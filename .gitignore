@@ -1,0 +1,46 @@
+# Python
+*.pyc
+*.py~
+*.pyc~
+
+# C/C++
+*.cpp~
+*.c~
+*.hpp~
+*.h~
+
+
+# YAML
+*.yaml~
+*.yml~
+
+# Object files
+*.o
+
+*.html~
+*.css~
+
+*.sh~
+*.bash~
+*.txt~
+*.js~
+*.json~
+*.frag~
+*.conf~
+*.md~
+
+.gitignore~
+.kdevgen
+Makefile~
+README.md~
+makefile_template~
+
+tmp
+venv
+
+CLI/.kserver_cli
+CLI/kserver
+
+middleware/libraries
+
+
