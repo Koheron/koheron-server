@@ -1,0 +1,13 @@
+dependencies:
+    pre:
+        # Install gcc-4.8 because CircleCI runs Ubuntu 12.04 (gcc-4.6)
+        - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+        - sudo apt-get update
+        - sudo apt-get install gcc-4.8 g++-4.8
+        - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
+        # ARM cross compiler
+        - sudo apt-get install gcc-arm-linux-gnueabihf
+        - sudo apt-get install g++-arm-linux-gnueabihf
+test:
+    pre:
+        - make
