@@ -1,6 +1,6 @@
 # koheron-server
 
-[![Circle CI](https://circleci.com/gh/Koheron/koheron-server.svg?style=svg)](https://circleci.com/gh/Koheron/koheron-server)
+[![Circle CI](https://circleci.com/gh/Koheron/koheron-server.svg?style=shield)](https://circleci.com/gh/Koheron/koheron-server)
 
 #### `High performance TCP / Websocket server for instrument control`
 
