@@ -1,5 +1,7 @@
 # koheron-server
 
+[![Circle CI](https://circleci.com/gh/Koheron/koheron-server.svg?style=svg)](https://circleci.com/gh/Koheron/koheron-server)
+
 #### `High performance TCP / Websocket server for instrument control`
 
 Koheron Server is a TCP / Websocket server optimized for high-performance instrument control applications.
