@@ -16,14 +16,4 @@ $ sudo apt-get install gcc-arm-linux-gnueabihf
 $ sudo apt-get install g++-arm-linux-gnueabihf
 ```
 
-## Access log
-```
-$ cat /var/log/syslog | grep --text KServer
-```
-
-## Kill daemon
-```
-$ sudo pkill -SIGINT kserverd
-```
-
 
