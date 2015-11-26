@@ -11,3 +11,6 @@ dependencies:
 test:
     pre:
         - make
+        # CLI
+        - make -C cli TARGET_HOST=local clean all
+        - make -C cli TARGET_HOST=redpitaya clean all
