@@ -1,15 +1,10 @@
 #! /usr/bin/python
 
-# @file devmem.py
-#
-# @brief Device memory access
+# Device memory access
 #
 # Based on the C core library
 #
-# @author Thomas Vanderbruggen <thomas@koheron.com>
-# @date 23/05/2015
-#
-# (c) Koheron 2015
+# (c) Koheron
 
 import ctypes
 

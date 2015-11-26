@@ -1,15 +1,10 @@
 #! /usr/bin/python
 
-# @file kclient.py
-#
-# @brief Initializes connection to KServer
+# Initializes connection to KServer
 #
 # Based on the C core library
 #
-# @author Thomas Vanderbruggen <thomas@koheron.com>
-# @date 02/05/2015
-#
-# (c) Koheron 2015
+# (c) Koheron
 
 import ctypes
 import platform

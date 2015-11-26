@@ -1,10 +1,7 @@
 /**
- *  CLI/config_file.h - KServer CLI config file
+ *  cli/config_file.h - KServer CLI config file
  *
- *  @author Thomas Vanderbruggen <thomas@koheron.com>
- *  @date 24/08/2015
- *
- *  (c) Koheron 2014-2015
+ *  (c) Koheron
  */
 
 #ifndef __KS_CLI_CONFIG_FILE_H__

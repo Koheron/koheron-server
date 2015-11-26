@@ -1,10 +1,7 @@
 /**
- *  CLI/kserver_cli.c - Command line interface for KServer
+ *  cli/kserver_cli.c - Command line interface for KServer
  *
- *  @author Thomas Vanderbruggen <thomas@koheron.com>
- *  @date 19/08/2015
- *
- *  (c) Koheron 2014-2015
+ *  (c) Koheron
  */
  
 #include <stdio.h>

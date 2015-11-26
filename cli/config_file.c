@@ -1,10 +1,7 @@
 /**
- *  CLI/config_file.c - Implementation of config_file.h
+ *  cli/config_file.c - Implementation of config_file.h
  *
- *  @author Thomas Vanderbruggen <thomas@koheron.com>
- *  @date 24/08/2015
- *
- *  (c) Koheron 2014-2015
+ *  (c) Koheron
  */
  
 #include "config_file.h"

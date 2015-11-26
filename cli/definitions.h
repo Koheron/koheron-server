@@ -1,10 +1,7 @@
 /** 
- * CLI/definitions.h - KServer CLI definitions
+ * cli/definitions.h - KServer CLI definitions
  *
- * @author Thomas Vanderbruggen <thomas@koheron.com>
- * @date 24/08/2015
- *
- * (c) Koheron 2015
+ * (c) Koheron
  */
  
 #ifndef __KS_CLI_DEFINITIONS_H__

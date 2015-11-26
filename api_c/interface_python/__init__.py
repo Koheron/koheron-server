@@ -1,11 +1,6 @@
-# __init__.py
-#
 # Init file for the Koheron API package
 #
-# Thomas Vanderbruggen <thomas@koheron.com>
-# 15/03/2015
-#
-# (c) Koheron 2015
+# (c) Koheron
 
 """koheron
 API to communicate, control, prototype, ...
