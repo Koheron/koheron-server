@@ -1,10 +1,7 @@
 /** 
- * API/C/sessions.c - Implementation of sessions.h
+ * Implementation of sessions.h
  *
- * @author Thomas Vanderbruggen <thomas@koheron.com>
- * @date 12/09/2015
- *
- * (c) Koheron 2015
+ * (c) Koheron
  */
  
 #include "sessions.h"

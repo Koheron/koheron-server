@@ -1,10 +1,7 @@
 /** 
- * API/C/kclient.h - Internal header for KClient
+ * Internal header for KClient
  *
- * @author Thomas Vanderbruggen <thomas@koheron.com>
- * @date 02/05/2015
- *
- * (c) Koheron 2015
+ * (c) Koheron
  */
  
 #ifndef __KCLIENT_H__

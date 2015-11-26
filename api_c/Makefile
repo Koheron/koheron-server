@@ -1,9 +1,6 @@
-# Makefile for Koheron API core library
+# Makefile for client API
 #
-# Thomas Vanderbruggen <thomas@koheron.com>
-# 02/05/2015
-#
-# (c) Koheron 2015
+# (c) Koheron
 
 TARGET_OS=Linux
 #TARGET_OS=Win32

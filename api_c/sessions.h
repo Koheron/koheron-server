@@ -1,10 +1,7 @@
 /** 
- * API/C/sessions.h - KServer current sessions managing
+ * KServer current sessions monitoring and management
  *
- * @author Thomas Vanderbruggen <thomas@koheron.com>
- * @date 12/09/2015
- *
- * (c) Koheron 2015
+ * (c) Koheron
  */
 
 #ifndef __SESSIONS_H__

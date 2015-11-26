@@ -1,10 +1,7 @@
 /** 
- * API/C/kclient.c - Implementation of kclient.h
+ * Implementation of kclient.h
  *
- * @author Thomas Vanderbruggen <thomas@koheron.com>
- * @date 02/05/2015
- *
- * (c) Koheron 2015
+ * (c) Koheron
  */
 
 #include "kclient.h"

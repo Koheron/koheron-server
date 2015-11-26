@@ -1,10 +1,7 @@
 /** 
- * API/C/koheron.h - Public header for Koheron API library
+ * Public header for Koheron API library
  *
- * @author Thomas Vanderbruggen <thomas@koheron.com>
- * @date 24/05/2015
- *
- * (c) Koheron 2015
+ * (c) Koheron
  */
  
 #ifndef __KOHERON_H__

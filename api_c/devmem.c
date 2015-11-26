@@ -1,12 +1,7 @@
 /** 
- * @file devmem.c
- * 
- * @briefC Implementation of devmem.h
+ * Implementation of devmem.h
  *
- * @author Thomas Vanderbruggen <thomas@koheron.com>
- * @date 23/05/2015
- *
- * (c) Koheron 2015
+ * (c) Koheron
  */
 
 #include <stdio.h>

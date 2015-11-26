@@ -1,12 +1,7 @@
 /** 
- * @file definitions.h
- * 
- * @brief Koheron API library definitions
+ * Koheron API library definitions
  *
- * @author Thomas Vanderbruggen <thomas@koheron.com>
- * @date 02/05/2015
- *
- * (c) Koheron 2015
+ * (c) Koheron
  */
  
 #ifndef __DEFINITIONS_H__
