@@ -664,6 +664,142 @@ int KDevice<KS_Dev_mem,DEV_MEM>::
     return 0;
 }
 
+/////////////////////////////////////
+// MASK_AND
+
+template<>
+template<>
+int KDevice<KS_Dev_mem,DEV_MEM>::
+        parse_arg<KS_Dev_mem::MASK_AND> (const Command& cmd,
+                KDevice<KS_Dev_mem,DEV_MEM>::
+                Argument<KS_Dev_mem::MASK_AND>& args)
+{
+    char tmp_str[2*KSERVER_READ_STR_LEN];
+
+    uint32_t i = 0;
+    uint32_t cnt = 0;
+    uint32_t param_num = 0;
+
+    while(1) {
+        if(cmd.buffer[i]=='\0') {
+            break;
+        }
+        else if(cmd.buffer[i]=='|') {
+            tmp_str[cnt] = '\0';
+
+            switch(param_num)
+            {
+              case 0: {
+                  args.mmap_idx = static_cast<Klib::MemMapID>(CSTRING_TO_UINT(tmp_str));
+                  break;
+              }
+              case 1: {
+                  args.offset = CSTRING_TO_UINT(tmp_str);
+                  break;
+              }
+              case 2: {
+                  args.mask = CSTRING_TO_UINT(tmp_str);
+                  break;
+              }
+            }
+
+            param_num++;
+            cnt = 0;
+            i++;
+        } else {
+            tmp_str[cnt] = cmd.buffer[i];
+            i++;
+            cnt++;
+        }
+    }
+
+    if(param_num == 0 || param_num > 3) {
+        kserver->syslog.print(SysLog::ERROR, "Invalid number of parameters\n");
+        return -1;
+    }
+
+    return 0;
+}
+
+template<>
+template<>
+int KDevice<KS_Dev_mem,DEV_MEM>::
+        execute_op<KS_Dev_mem::MASK_AND> 
+        (const Argument<KS_Dev_mem::MASK_AND>& args, SessID sess_id)
+{
+    Klib::MaskAnd(THIS->dev_mem.GetBaseAddr(args.mmap_idx) + args.offset, 
+                  args.mask);
+    return 0;
+}
+
+/////////////////////////////////////
+// MASK_OR
+
+template<>
+template<>
+int KDevice<KS_Dev_mem,DEV_MEM>::
+        parse_arg<KS_Dev_mem::MASK_OR> (const Command& cmd,
+                KDevice<KS_Dev_mem,DEV_MEM>::
+                Argument<KS_Dev_mem::MASK_OR>& args)
+{
+    char tmp_str[2*KSERVER_READ_STR_LEN];
+
+    uint32_t i = 0;
+    uint32_t cnt = 0;
+    uint32_t param_num = 0;
+
+    while(1) {
+        if(cmd.buffer[i]=='\0') {
+            break;
+        }
+        else if(cmd.buffer[i]=='|') {
+            tmp_str[cnt] = '\0';
+
+            switch(param_num)
+            {
+              case 0: {
+                  args.mmap_idx = static_cast<Klib::MemMapID>(CSTRING_TO_UINT(tmp_str));
+                  break;
+              }
+              case 1: {
+                  args.offset = CSTRING_TO_UINT(tmp_str);
+                  break;
+              }
+              case 2: {
+                  args.mask = CSTRING_TO_UINT(tmp_str);
+                  break;
+              }
+            }
+
+            param_num++;
+            cnt = 0;
+            i++;
+        } else {
+            tmp_str[cnt] = cmd.buffer[i];
+            i++;
+            cnt++;
+        }
+    }
+
+    if(param_num == 0 || param_num > 3) {
+        kserver->syslog.print(SysLog::ERROR, "Invalid number of parameters\n");
+        return -1;
+    }
+
+    return 0;
+}
+
+template<>
+template<>
+int KDevice<KS_Dev_mem,DEV_MEM>::
+        execute_op<KS_Dev_mem::MASK_OR> 
+        (const Argument<KS_Dev_mem::MASK_OR>& args, SessID sess_id)
+{
+    Klib::MaskOr(THIS->dev_mem.GetBaseAddr(args.mmap_idx) + args.offset, 
+                  args.mask);
+    return 0;
+}
+
 template<>
 bool KDevice<KS_Dev_mem,DEV_MEM>::is_failed(void)
 {
@@ -775,6 +911,26 @@ int KDevice<KS_Dev_mem,DEV_MEM>::
         }
 
         err = execute_op<KS_Dev_mem::TOGGLE_BIT>(args, cmd.sess_id);
+        return err;
+      }
+      case KS_Dev_mem::MASK_AND: {
+        Argument<KS_Dev_mem::MASK_AND> args;
+
+        if(parse_arg<KS_Dev_mem::MASK_AND>(cmd, args) < 0) {
+            return -1;
+        }
+
+        err = execute_op<KS_Dev_mem::MASK_AND>(args, cmd.sess_id);
+        return err;
+      }
+      case KS_Dev_mem::MASK_OR: {
+        Argument<KS_Dev_mem::MASK_OR> args;
+
+        if(parse_arg<KS_Dev_mem::MASK_OR>(cmd, args) < 0) {
+            return -1;
+        }
+
+        err = execute_op<KS_Dev_mem::MASK_OR>(args, cmd.sess_id);
         return err;
       }
       case KS_Dev_mem::dev_mem_op_num:

@@ -40,6 +40,8 @@ class KS_Dev_mem : public KDevice<KS_Dev_mem,DEV_MEM>
         SET_BIT,
         CLEAR_BIT,
         TOGGLE_BIT,
+        MASK_AND,
+        MASK_OR,
         dev_mem_op_num
     };
 
@@ -63,86 +65,106 @@ template<>
 struct KDevice<KS_Dev_mem,DEV_MEM>::
             Argument<KS_Dev_mem::ADD_MEMORY_MAP>
 {
-unsigned int device_addr; ///< Physical address of the device 
-	unsigned int map_size; ///< Mmap size 
-	};
+unsigned int device_addr; ///< Physical address of the device
+    unsigned int map_size; ///< Mmap size
+    };
 
 template<>
 template<>
 struct KDevice<KS_Dev_mem,DEV_MEM>::
             Argument<KS_Dev_mem::RM_MEMORY_MAP>
 {
-Klib::MemMapID mmap_idx; ///< Index of Memory Map 
-	};
+Klib::MemMapID mmap_idx; ///< Index of Memory Map
+    };
 
 template<>
 template<>
 struct KDevice<KS_Dev_mem,DEV_MEM>::
             Argument<KS_Dev_mem::READ>
 {
-Klib::MemMapID mmap_idx; ///< Index of Memory Map 
-	unsigned int offset; ///< Offset of the register to read 
-	};
+Klib::MemMapID mmap_idx; ///< Index of Memory Map
+    unsigned int offset; ///< Offset of the register to read
+    };
 
 template<>
 template<>
 struct KDevice<KS_Dev_mem,DEV_MEM>::
             Argument<KS_Dev_mem::WRITE>
 {
-Klib::MemMapID mmap_idx; ///< Index of Memory Map 
-	unsigned int offset; ///< Offset of the register to read 
-	unsigned int reg_val; ///< Value to write in the register 
-	};
+Klib::MemMapID mmap_idx; ///< Index of Memory Map
+    unsigned int offset; ///< Offset of the register to read
+    unsigned int reg_val; ///< Value to write in the register
+    };
 
 template<>
 template<>
 struct KDevice<KS_Dev_mem,DEV_MEM>::
             Argument<KS_Dev_mem::WRITE_BUFFER>
 {
-Klib::MemMapID mmap_idx; ///< Index of Memory Map 
-	unsigned int offset; ///< Offset of the register to write 
-	unsigned int len_data; ///< Size of the buffer data. To be used for the handshaking. 
-	};
+Klib::MemMapID mmap_idx; ///< Index of Memory Map
+    unsigned int offset; ///< Offset of the register to write
+    unsigned int len_data; ///< Size of the buffer data. To be used for the handshaking.
+    };
 
 template<>
 template<>
 struct KDevice<KS_Dev_mem,DEV_MEM>::
             Argument<KS_Dev_mem::READ_BUFFER>
 {
-Klib::MemMapID mmap_idx; ///< Index of Memory Map 
-	unsigned int offset; ///< Offset of the register to read 
-	unsigned int buff_size; ///< Number of registers to read 
-	};
+Klib::MemMapID mmap_idx; ///< Index of Memory Map
+    unsigned int offset; ///< Offset of the register to read
+    unsigned int buff_size; ///< Number of registers to read
+    };
 
 template<>
 template<>
 struct KDevice<KS_Dev_mem,DEV_MEM>::
             Argument<KS_Dev_mem::SET_BIT>
 {
-Klib::MemMapID mmap_idx; ///< Index of Memory Map 
-	unsigned int offset; ///< Offset of the register 
-	unsigned int index; ///< Index of the bit to set in the register 
-	};
+Klib::MemMapID mmap_idx; ///< Index of Memory Map
+    unsigned int offset; ///< Offset of the register
+    unsigned int index; ///< Index of the bit to set in the register
+    };
 
 template<>
 template<>
 struct KDevice<KS_Dev_mem,DEV_MEM>::
             Argument<KS_Dev_mem::CLEAR_BIT>
 {
-Klib::MemMapID mmap_idx; ///< Index of Memory Map 
-	unsigned int offset; ///< Offset of the register 
-	unsigned int index; ///< Index of the bit to set in the register 
-	};
+Klib::MemMapID mmap_idx; ///< Index of Memory Map
+    unsigned int offset; ///< Offset of the register
+    unsigned int index; ///< Index of the bit to set in the register
+    };
 
 template<>
 template<>
 struct KDevice<KS_Dev_mem,DEV_MEM>::
             Argument<KS_Dev_mem::TOGGLE_BIT>
 {
-Klib::MemMapID mmap_idx; ///< Index of Memory Map 
-	unsigned int offset; ///< Offset of the register 
-	unsigned int index; ///< Index of the bit to set in the register 
-	};
+Klib::MemMapID mmap_idx; ///< Index of Memory Map
+    unsigned int offset; ///< Offset of the register
+    unsigned int index; ///< Index of the bit to set in the register
+    };
+
+template<>
+template<>
+struct KDevice<KS_Dev_mem,DEV_MEM>::
+            Argument<KS_Dev_mem::MASK_AND>
+{
+Klib::MemMapID mmap_idx; ///< Index of Memory Map
+    unsigned int offset; ///< Offset of the register
+    unsigned int mask; ///< Mask to apply on the register
+    };
+
+template<>
+template<>
+struct KDevice<KS_Dev_mem,DEV_MEM>::
+            Argument<KS_Dev_mem::MASK_OR>
+{
+Klib::MemMapID mmap_idx; ///< Index of Memory Map
+    unsigned int offset; ///< Offset of the register
+    unsigned int mask; ///< Mask to apply on the register
+    };
 
 } // namespace kserver
 

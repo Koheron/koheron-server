@@ -9,10 +9,10 @@
 #include <array>
 
 #define DEVICES_TABLE(ENTRY)    \
-  ENTRY(DEV_MEM, KS_Dev_mem, "OPEN", "ADD_MEMORY_MAP", "RM_MEMORY_MAP", "READ", "WRITE", "WRITE_BUFFER", "READ_BUFFER", "SET_BIT", "CLEAR_BIT", "TOGGLE_BIT")
+  ENTRY(DEV_MEM, KS_Dev_mem, "OPEN", "ADD_MEMORY_MAP", "RM_MEMORY_MAP", "READ", "WRITE", "WRITE_BUFFER", "READ_BUFFER", "SET_BIT", "CLEAR_BIT", "TOGGLE_BIT", "MASK_AND", "MASK_OR")
 
 /// Maximum number of operations
-#define MAX_OP_NUM 10
+#define MAX_OP_NUM 12
 
 /// Devices #
 typedef enum {
@@ -25,9 +25,9 @@ typedef enum {
 /// String descriptions of the devices and their related operations
 static const std::array< std::array< std::string, MAX_OP_NUM+1 >, device_num >
 device_desc = {{
-  {{"NO_DEVICE", "", "", "", "", "", "", "", "", "", ""}},
-  {{"KSERVER", "GET_ID", "GET_CMDS","GET_STATS", "GET_DEV_STATUS", "GET_RUNNING_SESSIONS", "KILL_SESSION" , "GET_SESSION_PERFS", "", "", ""}},
-  {{"DEV_MEM", "OPEN", "ADD_MEMORY_MAP", "RM_MEMORY_MAP", "READ", "WRITE", "WRITE_BUFFER", "READ_BUFFER", "SET_BIT", "CLEAR_BIT", "TOGGLE_BIT"}},
+  {{"NO_DEVICE", "", "", "", "", "", "", "", "", "", "", "", ""}},
+  {{"KSERVER", "GET_ID", "GET_CMDS","GET_STATS", "GET_DEV_STATUS", "GET_RUNNING_SESSIONS", "KILL_SESSION" , "GET_SESSION_PERFS", "", "", "", "", ""}},
+  {{"DEV_MEM", "OPEN", "ADD_MEMORY_MAP", "RM_MEMORY_MAP", "READ", "WRITE", "WRITE_BUFFER", "READ_BUFFER", "SET_BIT", "CLEAR_BIT", "TOGGLE_BIT", "MASK_AND", "MASK_OR"}},
 }};
 
 #endif // __DEVICES_TABLE_HPP__
