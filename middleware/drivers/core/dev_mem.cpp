@@ -13,8 +13,10 @@
 /// @brief Namespace of the Koheron library
 namespace Klib {
 
-DevMem::DevMem()
-: mem_maps(),
+DevMem::DevMem(intptr_t addr_limit_down_, intptr_t addr_limit_up_)
+: addr_limit_down(addr_limit_down_),
+  addr_limit_up(addr_limit_up_),
+  mem_maps(),
   reusable_ids(0)
 {
     fd = -1;
@@ -55,8 +57,21 @@ int DevMem::Close()
 
 unsigned int DevMem::num_maps = 0;
 
-MemMapID DevMem::AddMemoryMap(uint32_t addr, uint32_t size)
+bool DevMem::__is_forbidden_address(intptr_t addr)
 {
+    if(addr_limit_up == 0x0 && addr_limit_down == 0x0)
+        return false; // No limit defined
+    else
+        return (addr > addr_limit_up) || (addr < addr_limit_down);
+}
+
+MemMapID DevMem::AddMemoryMap(intptr_t addr, uint32_t size)
+{
+    if(__is_forbidden_address(addr)) {
+        fprintf(stderr,"Forbidden memory region\n");
+        return static_cast<MemMapID>(-1);
+    }
+
     MemoryMap *mem_map = new MemoryMap(&fd, addr, size);
     assert(mem_map != NULL);
 

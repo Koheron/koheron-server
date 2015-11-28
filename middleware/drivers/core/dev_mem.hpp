@@ -1,17 +1,13 @@
-/// @file dev_mem.hpp
+/// Device memory manager
 ///
-/// @brief Device memory manager
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 02/08/2014
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #ifndef __DRIVERS_CORE_DEV_MEM_HPP__
 #define __DRIVERS_CORE_DEV_MEM_HPP__
 
 #include <map>
 #include <vector>
+#include <cstdint>
 #include <assert.h> 
 
 extern "C" {
@@ -20,6 +16,11 @@ extern "C" {
 
 #include "memory_map.hpp"
 
+// TODO (28/11/2015)
+// Add optionnal parameters to DevMem to define allowed memory mapping region
+// e.g. limit mapping to FPGA addresses
+// Then check required maps are within the set memory 
+
 /// @namespace Klib
 /// @brief Namespace of the Koheron library
 namespace Klib {
@@ -27,59 +28,64 @@ namespace Klib {
 /// ID of a memory map
 typedef uint32_t MemMapID;
 
-/// @brief Device memory manager
-/// Based on a memory maps factory
+/// Device memory manager
+/// A memory maps factory
 class DevMem
 {
   public:
-    DevMem();
+    DevMem(intptr_t addr_limit_down_=0x0, intptr_t addr_limit_up_=0x0);
     ~DevMem();
 
-    /// @brief Open the /dev/mem driver
+    /// Open the /dev/mem driver
     int Open();
 	
-    /// @brief Close all the memory maps
+    /// Close all the memory maps
     /// @return 0 if succeed, -1 else
     int Close();
 
     /// Current number of memory maps
     static unsigned int num_maps;
 
-    /// @brief Create a new memory map
+    /// Create a new memory map
     /// @addr Base address of the map
     /// @size Size of the map 
     /// @return An ID to the created map,
     ///         or -1 if an error occured
-    MemMapID AddMemoryMap(uint32_t addr, uint32_t size);
+    MemMapID AddMemoryMap(intptr_t addr, uint32_t size);
     
-    /// @brief Remove a memory map
+    /// Remove a memory map
     /// @id ID of the memory map to be removed
     void RmMemoryMap(MemMapID id);
     
-    /// @brief Remove all the memory maps
+    /// Remove all the memory maps
     void RemoveAll();
     
-    /// @brief Get a memory map
+    /// Get a memory map
     /// @id ID of the memory map
     MemoryMap& GetMemMap(MemMapID id);
     
-    /// @brief Return the base address of a map
+    /// Return the base address of a map
     /// @id ID of the map
     uint32_t GetBaseAddr(MemMapID id);
     
-    /// @brief Return the status of a map
+    /// Return the status of a map
     /// @id ID of the map
     int GetStatus(MemMapID id);
 	
-    /// @brief Return 1 if a memory map failed
+    /// Return 1 if a memory map failed
     int IsFailed();
     
-    /// @brief True if the /dev/mem device is open
+    /// True if the /dev/mem device is open
     inline bool IsOpen() const {return is_open;}
 
   private:
     int fd;         ///< /dev/mem file ID
     bool is_open;   ///< True if /dev/mem open
+    
+    /// Limit addresses
+    intptr_t addr_limit_down;
+    intptr_t addr_limit_up;
+    bool __is_forbidden_address(intptr_t addr);
     
     /// Memory maps container
     std::map<MemMapID, MemoryMap*> mem_maps; 
