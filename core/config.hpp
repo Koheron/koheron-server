@@ -10,6 +10,8 @@
 #ifndef __CONFIG_HPP__
 #define __CONFIG_HPP__
 
+#include <cstdint>
+
 #include "kserver_defs.hpp"
 #include "gason.hpp"
 
@@ -22,12 +24,11 @@ typedef enum {
     server_t_num
 } server_t;
 
-/// @brief Program configuration
 struct KServerConfig
 {
     KServerConfig();
     
-    /// @brief Load the config from a JSON configuration file
+    /// Load the config from a JSON configuration file
     int load_file(char *filename);
     
     void show();
@@ -59,7 +60,11 @@ struct KServerConfig
     /// Unix socket max parallel connections
     unsigned int unixsock_worker_connections;
     
-private:
+    /// Allowed memory region for memory mapping
+    intptr_t addr_limit_down;
+    intptr_t addr_limit_up;
+    
+  private:
     char* _get_source(char *filename);
     
     // Performs some checks and tuning on the loaded configuration
@@ -73,6 +78,7 @@ private:
     int _read_tcp(JsonValue value);
     int _read_websocket(JsonValue value);
     int _read_unixsocket(JsonValue value);
+    int _read_addr_limits(JsonValue value);
 };
 
 } // namespace kserver

@@ -93,6 +93,11 @@ namespace kserver {
 ///       --> The last connected user has write access to the devices
 #define DFLT_WRITE_PERM_POLICY LCFS
 
+/// Allowed memory region for memory mapping
+/// By default set to 0x0, that is no limitation
+#define DFLT_ADDR_LIMIT_DOWN 0x0
+#define DFLT_ADDR_LIMIT_UP   0x0
+
 // ------------------------------------------
 // Buffer sizes
 // ------------------------------------------

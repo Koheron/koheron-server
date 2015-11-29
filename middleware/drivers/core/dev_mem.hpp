@@ -16,11 +16,6 @@ extern "C" {
 
 #include "memory_map.hpp"
 
-// TODO (28/11/2015)
-// Add optionnal parameters to DevMem to define allowed memory mapping region
-// e.g. limit mapping to FPGA addresses
-// Then check required maps are within the set memory 
-
 /// @namespace Klib
 /// @brief Namespace of the Koheron library
 namespace Klib {

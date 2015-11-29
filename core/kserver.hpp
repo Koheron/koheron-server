@@ -155,7 +155,6 @@ class KServer : public KDevice<KServer, KSERVER>
     KServer(KServerConfig *config_);
     ~KServer();
     
-    /// @brief Run the server
     int Run(void);
 
     /// Operations associated to the device

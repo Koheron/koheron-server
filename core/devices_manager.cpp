@@ -20,7 +20,7 @@ namespace kserver {
 DeviceManager::DeviceManager(KServer *kserver_)
 : device_list(device_num),
   kserver(kserver_),
-  dev_mem()
+  dev_mem(kserver_->config->addr_limit_down, kserver_->config->addr_limit_up)
 {
     device_list[KSERVER] = static_cast<KDeviceAbstract*>(kserver);
     is_started[KSERVER] = 1;
