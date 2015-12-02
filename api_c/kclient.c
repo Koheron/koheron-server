@@ -152,18 +152,18 @@ void free_command(struct command *cmd)
 
 #define CMD_LEN 1024
 
-#define CHECK_FORMAT(ret)               \
-  do {                                  \
-  if ((ret) < 0) {                      \
-      DEBUG_MSG("Format error\n");      \
-      return -1;                        \
-  }                                     \
-                                        \
-  if ((ret) >= CMD_LEN) {               \
-      DEBUG_MSG("Buffer overflow\n");   \
-      return -1;                        \
-  }                                     \
-  while(0)
+#define CHECK_FORMAT(ret)                   \
+  do {                                      \
+      if ((ret) < 0) {                      \
+          DEBUG_MSG("Format error\n");      \
+          return -1;                        \
+      }                                     \
+                                            \
+      if ((ret) >= CMD_LEN) {               \
+          DEBUG_MSG("Buffer overflow\n");   \
+          return -1;                        \
+      }                                     \
+  } while(0)
 
 static int build_command_string(struct command *cmd, char *cmd_str)
 {
