@@ -10,8 +10,8 @@ dependencies:
         - sudo apt-get install g++-arm-linux-gnueabihf
 test:
     pre:
-        - make TARGET_HOST=local
-        - make TARGET_HOST=redpitaya
+        - make TARGET_HOST=local clean all
+        - make TARGET_HOST=redpitaya clean all
         # CLI
         - make -C cli TARGET_HOST=local clean all
         - make -C cli TARGET_HOST=redpitaya clean all
