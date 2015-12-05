@@ -152,32 +152,34 @@ void free_command(struct command *cmd)
 
 #define CMD_LEN 1024
 
-#define CHECK_FORMAT(ret)               \
-  if ((ret) < 0) {                      \
-      DEBUG_MSG("Format error\n");      \
-      return -1;                        \
-  }                                     \
-                                        \
-  if ((ret) >= CMD_LEN) {               \
-      DEBUG_MSG("Buffer overflow\n");   \
-      return -1;                        \
-  }
+#define CHECK_FORMAT(ret)                   \
+  do {                                      \
+      if ((ret) < 0) {                      \
+          DEBUG_MSG("Format error\n");      \
+          return -1;                        \
+      }                                     \
+                                            \
+      if ((ret) >= CMD_LEN) {               \
+          DEBUG_MSG("Buffer overflow\n");   \
+          return -1;                        \
+      }                                     \
+  } while(0)
 
 static int build_command_string(struct command *cmd, char *cmd_str)
 {
     int i;    
     int ret = snprintf(cmd_str, CMD_LEN, "%i|%i|", 
                        cmd->dev_id, cmd->op_ref);          
-    CHECK_FORMAT(ret)
+    CHECK_FORMAT(ret);
     
     for (i=0; i<cmd->params_num; i++) {
         ret = snprintf(cmd_str + strlen(cmd_str), CMD_LEN, "%lu|", 
                        (cmd->params)[i]);
-        CHECK_FORMAT(ret)
+        CHECK_FORMAT(ret);
     }
     
     ret = snprintf(cmd_str+strlen(cmd_str), CMD_LEN, "\n");
-    CHECK_FORMAT(ret)
+    CHECK_FORMAT(ret);
     
     return 0;
 }
