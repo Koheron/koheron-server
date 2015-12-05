@@ -63,8 +63,8 @@ static int __get_sessions_data(struct kclient *kcl, struct rcv_buff *rcv_buffer)
     if (bytes_read < 0)
         return -1;
         
-    printf("bytes_read = %u\n", bytes_read);
-    printf("%s\n", rcv_buffer->buffer);
+/*    printf("bytes_read = %u\n", bytes_read);*/
+/*    printf("%s\n", rcv_buffer->buffer);*/
     
     return bytes_read;
 }
