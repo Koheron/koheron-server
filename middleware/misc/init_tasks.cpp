@@ -1,0 +1,72 @@
+/// @file init_tasks.cpp
+///
+/// @brief Implementation of init_tasks.hpp
+/// @date 12/09/2015
+///
+/// (c) Koheron 2014-2015
+
+#include "init_tasks.hpp"
+
+#include <cstdio>
+#include <cstring>
+
+extern "C" {
+  #include <sys/socket.h>
+  #include <sys/types.h>  
+  #include <arpa/inet.h>
+  #include <ifaddrs.h>
+}
+
+#include "../drivers/core/wr_register.hpp"
+
+InitTasks::InitTasks(Klib::DevMem& dev_mem_)
+: dev_mem(dev_mem_)
+{}
+
+#define LED_ADDR 0x43C00000
+#define MAP_SIZE 4096
+#define LED_OFFSET 0x0
+
+void InitTasks::show_ip_on_leds()
+{
+// http://stackoverflow.com/questions/20800319/how-to-get-my-ip-address-in-c-linux
+    
+    struct ifaddrs *addrs;
+    getifaddrs(&addrs);
+    ifaddrs *tmp = addrs;
+
+    // Turn all the leds ON
+    Klib::MemMapID dev_num = dev_mem.AddMemoryMap(LED_ADDR, 16*MAP_SIZE);
+    Klib::WriteReg32(dev_mem.GetBaseAddr(dev_num) + LED_OFFSET, 255);
+
+    char interface[] = "eth0";
+
+    while(tmp) {
+        // Works only for IPv4 address
+        if(tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_INET) {            
+            struct sockaddr_in *pAddr = (struct sockaddr_in *)tmp->ifa_addr;
+            int val = strcmp(tmp->ifa_name,interface);
+            
+            if(val != 0) {
+                tmp = tmp->ifa_next;
+                continue;
+            }
+            
+            // Interface found
+            printf("Interface %s found: %s\n", 
+                   tmp->ifa_name, inet_ntoa(pAddr->sin_addr));
+            uint32_t ip = htonl(pAddr->sin_addr.s_addr);
+
+            // Write IP address in FPGA memory
+            // The 8 Least Significant Bits should be connected to the FPGA LEDs
+            Klib::WriteReg32(dev_mem.GetBaseAddr(dev_num) + LED_OFFSET, ip);
+
+            break;
+        }
+        
+        tmp = tmp->ifa_next;
+    }
+
+    freeifaddrs(addrs);
+    dev_mem.RmMemoryMap(dev_num);
+}

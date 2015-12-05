@@ -9,7 +9,8 @@
 #include <array>
 
 #define DEVICES_TABLE(ENTRY)    \
-  ENTRY(DEV_MEM, KS_Dev_mem, "OPEN", "ADD_MEMORY_MAP", "RM_MEMORY_MAP", "READ", "WRITE", "WRITE_BUFFER", "READ_BUFFER", "SET_BIT", "CLEAR_BIT", "TOGGLE_BIT", "MASK_AND", "MASK_OR")
+  ENTRY(DEV_MEM, KS_Dev_mem, "OPEN", "ADD_MEMORY_MAP", "RM_MEMORY_MAP", "READ", "WRITE", "WRITE_BUFFER", "READ_BUFFER", "SET_BIT", "CLEAR_BIT", "TOGGLE_BIT", "MASK_AND", "MASK_OR")    \
+  ENTRY(INIT_TASKS, KS_Init_tasks, "SHOW_IP_ON_LEDS", "","","","","","","","","","","")
 
 /// Maximum number of operations
 #define MAX_OP_NUM 12
@@ -19,6 +20,7 @@ typedef enum {
     NO_DEVICE,
     KSERVER,
     DEV_MEM,
+    INIT_TASKS,
     device_num
 } device_t;
 
@@ -28,6 +30,7 @@ device_desc = {{
   {{"NO_DEVICE", "", "", "", "", "", "", "", "", "", "", "", ""}},
   {{"KSERVER", "GET_ID", "GET_CMDS","GET_STATS", "GET_DEV_STATUS", "GET_RUNNING_SESSIONS", "KILL_SESSION" , "GET_SESSION_PERFS", "", "", "", "", ""}},
   {{"DEV_MEM", "OPEN", "ADD_MEMORY_MAP", "RM_MEMORY_MAP", "READ", "WRITE", "WRITE_BUFFER", "READ_BUFFER", "SET_BIT", "CLEAR_BIT", "TOGGLE_BIT", "MASK_AND", "MASK_OR"}},
+  {{"INIT_TASKS", "SHOW_IP_ON_LEDS", "", "", "", "", "", "", "", "", "", "", ""}},
 }};
 
 #endif // __DEVICES_TABLE_HPP__

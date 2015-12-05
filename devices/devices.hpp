@@ -4,3 +4,4 @@
 /// (c) Koheron 2014-2015 
 
 # include "ks_dev_mem.hpp"
+# include "ks_init_tasks.hpp"
