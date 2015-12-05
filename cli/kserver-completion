@@ -1,8 +1,6 @@
-# kserver-completion.bash
+# Bash completion for KServer CLI
 #
-# Autocompletion for the KServer CLI
-
-kserver_call=$1 #./kserver
+# (c) Koheron
 
 # Provides a string with the available devices
 #
@@ -19,7 +17,7 @@ _get_devices()
         fi
         
         ((linecount++))
-    done < <(${kserver_call} status -d)
+    done < <(kserver status -d)
     
     echo $devices
 }
@@ -74,4 +72,4 @@ _kserver()
     return 0
 }
 
-complete -F _kserver ${kserver_call}
+complete -F _kserver kserver
