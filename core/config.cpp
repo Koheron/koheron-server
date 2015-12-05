@@ -11,6 +11,7 @@
 #include <string>
 #include <cstring>
 #include <streambuf>
+#include <inttypes.h>
 
 #include "config.hpp"
 
