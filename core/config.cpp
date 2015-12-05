@@ -373,8 +373,9 @@ void KServerConfig::show()
     printf("Websocket listen: %u\n", websock_port);
     printf("Websocket workers: %u\n\n", websock_worker_connections);
     
-    printf("Addr limit down: %lu\n", addr_limit_down);
-    printf("Addr limit up: %lu\n\n", addr_limit_up);
+    // http://stackoverflow.com/questions/5795978/string-format-for-intptr-t-and-uintptr-t
+    printf("Addr limit down: %" PRIxPTR "\n", addr_limit_down);
+    printf("Addr limit up: %" PRIxPTR "\n\n", addr_limit_up);
     printf("\n====================================\n\n");
 }
 
