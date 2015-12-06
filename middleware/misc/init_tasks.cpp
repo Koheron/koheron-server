@@ -20,7 +20,7 @@ InitTasks::InitTasks(Klib::DevMem& dev_mem_)
 : dev_mem(dev_mem_)
 {}
 
-#define LED_ADDR 0x43C00000
+#define LED_ADDR 0x60000000
 #define MAP_SIZE 4096
 #define LED_OFFSET 0x0
 
