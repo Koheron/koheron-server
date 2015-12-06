@@ -1,6 +1,6 @@
-# kserver
+# tcp-server
 
-[![Circle CI](https://circleci.com/gh/Koheron/kserver.svg?style=shield)](https://circleci.com/gh/Koheron/kserver)
+[![Circle CI](https://circleci.com/gh/Koheron/tcp-server.svg?style=shield)](https://circleci.com/gh/Koheron/tcp-server)
 
 #### `High performance TCP / Websocket server for instrument control`
 
