@@ -48,7 +48,9 @@ template<>
 template<>
 struct KDevice<KS_Init_tasks,INIT_TASKS>::
             Argument<KS_Init_tasks::SHOW_IP_ON_LEDS>
-{};
+{
+        uint32_t leds_addr; ///< 
+    };
 
 } // namespace kserver
 

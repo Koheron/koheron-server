@@ -23,6 +23,42 @@ int KDevice<KS_Init_tasks,INIT_TASKS>::
                 KDevice<KS_Init_tasks,INIT_TASKS>::
                 Argument<KS_Init_tasks::SHOW_IP_ON_LEDS>& args)
 {
+    char tmp_str[2*KSERVER_READ_STR_LEN];
+
+    uint32_t i = 0;
+    uint32_t cnt = 0;
+    uint32_t param_num = 0;
+
+    while(1) {
+        if(cmd.buffer[i]=='\0') {
+            break;
+        }
+        else if(cmd.buffer[i]=='|') {
+            tmp_str[cnt] = '\0';
+
+            switch(param_num)
+            {
+              case 0: {
+                  args.leds_addr = CSTRING_TO_UINT(tmp_str);
+                  break;
+              }
+            }
+
+            param_num++;
+            cnt = 0;
+            i++;
+        } else {
+            tmp_str[cnt] = cmd.buffer[i];
+            i++;
+            cnt++;
+        }
+    }
+
+    if(param_num == 0 || param_num > 1) {
+        kserver->syslog.print(SysLog::ERROR, "Invalid number of parameters\n");
+        return -1;
+    }
+
     return 0;
 }
 
@@ -32,7 +68,7 @@ int KDevice<KS_Init_tasks,INIT_TASKS>::
         execute_op<KS_Init_tasks::SHOW_IP_ON_LEDS> 
         (const Argument<KS_Init_tasks::SHOW_IP_ON_LEDS>& args, SessID sess_id)
 {
-    THIS->__init_tasks.show_ip_on_leds();
+    THIS->__init_tasks.show_ip_on_leds(args.leds_addr);
     return 0;
 }
 
