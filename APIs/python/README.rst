@@ -4,7 +4,7 @@ Koheron server Python API
 Interface to initialize the connection with Koheron TCP server and to control the remote device memory.
 
 Example, controlling the GPIOs on the Zynq (https://github.com/Koheron/zynq-sdk)
-```py
+.. code-block:: python
 from koheron_tcp_client import KClient, DevMem
 
 host = '192.168.1.12'
@@ -31,5 +31,5 @@ dvm.write(GPIO, GPIO_TRI, 0)
 val = 15
 dvm.write(GPIO, GPIO_DATA, val)
 assert dvm.read(GPIO, GPIO_DATA) == val
-```
+::
 
