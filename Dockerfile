@@ -14,6 +14,7 @@ RUN apt-get -y install gcc-arm-linux-gnueabihf
 RUN apt-get -y install g++-arm-linux-gnueabihf
 RUN apt-get -y install gcc-arm-linux-gnueabi
 RUN apt-get -y install g++-arm-linux-gnueabi
+RUN apt-get -y install make
 
 WORKDIR /code/
 
