@@ -6,13 +6,7 @@
 
 Koheron Server is a TCP / Websocket server optimized for high-performance instrument control applications.
 
-### Build
-
-To build the server call:
-```
-$ make CROSS_COMPILE=<toolchain>-
-```
-where `<toolchain>-` is the toolchain of the cross-compiler to be used.
+### Requirements
 
 To install a given GCC based toolchain use
 ```
@@ -20,12 +14,20 @@ $ sudo apt-get install gcc-<toolchain>
 $ sudo apt-get install g++-<toolchain>
 ```
 
+### Build
+
+To build the server call:
+```
+$ make CROSS_COMPILE=<toolchain>-
+```
+where `<toolchain>` is the toolchain of the cross-compiler to be used.
+
 For example, to cross-compile for the Ubuntu Core distribution: 
 ```
 $ make CROSS_COMPILE=arm-linux-gnueabihf-
 ```
 
-To compile the server on the local machine use:
+Or to compile the server on the local machine use:
 ```
 $ make TARGET_HOST=local
 ```
@@ -37,7 +39,13 @@ The build produces an executable called `kserverd`.
 #### On the local machine
 
 ```
-$ sudo kserverd -c kserver.conf
+$ sudo ./kserverd -c kserver.conf
+```
+
+Check whether the daemon is launched
+
+```
+$ ps -A | grep kserverd
 ```
 
 #### On a remote machine
