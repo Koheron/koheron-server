@@ -32,9 +32,12 @@
 .gitignore~
 .kdevgen
 Makefile~
+Dockerfile~
 README.md~
 makefile_template~
-
+APIs/python/README.rst~
+kserverd
+cli/kserver
 tmp
 venv
 
