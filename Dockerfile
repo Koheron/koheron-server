@@ -9,14 +9,11 @@ RUN apt-get update
 RUN apt-get -y install gcc-4.8 g++-4.8
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 60 \
                         --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
+                        
 RUN apt-get -y install gcc-arm-linux-gnueabihf
 RUN apt-get -y install g++-arm-linux-gnueabihf
 RUN apt-get -y install gcc-arm-linux-gnueabi
 RUN apt-get -y install g++-arm-linux-gnueabi
-
-RUN apt-get -y install gcc-multilib
-RUN apt-get -y install gcc-arm-xilinx-linux-gnueabi
-RUN apt-get -y install g++-arm-xilinx-linux-gnueabi
 
 RUN apt-get -y install make
 
