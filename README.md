@@ -47,9 +47,10 @@ Transfer the executable and the configuration file to the remote machine
 $ scp kserverd root@<host_ip>:/tmp:kserverd
 $ scp kserver.conf root@<host_ip>:/tmp/kserver.conf
 ```
-where `<host_ip>` is the IP address of the remote host. Then launch the daemon: from a secure shell on the remote machine
+where `<host_ip>` is the IP address of the remote host. Then launch the daemon from a secure shell on the remote machine:
 ```
-# /tmp/kserverd -c /tmp/kserver.conf
+$ ssh root@<host_ip>
+<remote_host># /tmp/kserverd -c /tmp/kserver.conf
 ```
 
 #### Add the server to our install
