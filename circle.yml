@@ -11,7 +11,7 @@ dependencies:
 test:
     pre:
         - make TARGET_HOST=local clean all
-        - make CROSS_COMPILE=arm-linux-gnueabihf clean all
+        - make CROSS_COMPILE=arm-linux-gnueabihf- clean all
         # CLI
         - make -C cli TARGET_HOST=local clean all
-        - make -C cli CROSS_COMPILE=arm-linux-gnueabihf clean all
+        - make -C cli CROSS_COMPILE=arm-linux-gnueabihf- clean all
