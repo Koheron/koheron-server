@@ -10,14 +10,14 @@ Koheron Server is a TCP / Websocket server optimized for high-performance instru
 
 To build the server call:
 ```
-$ make CROSS_COMPILE=toolchain-
+$ make CROSS_COMPILE=<toolchain>-
 ```
-where `toolchain-` is the toolchain of the cross-compiler to be used.
+where `<toolchain>-` is the toolchain of the cross-compiler to be used.
 
 To install a given GCC based toolchain use
 ```
-$ sudo apt-get install gcc-toolchain
-$ sudo apt-get install g++-toolchain
+$ sudo apt-get install gcc-<toolchain>
+$ sudo apt-get install g++-<toolchain>
 ```
 
 For example, to cross-compile for the Ubuntu Core distribution: 
@@ -68,3 +68,12 @@ post-up /usr/local/tcp-server/kserverd -c /usr/local/tcp-server/kserver.conf
 
 Add the same line into `/etc/network/interfaces.d/wlan0` for initialization when the Wifi is up.
 
+### Command line interface
+
+To compile the CLI run
+```
+$ make -C cli CROSS_COMPILE=<toolchain>-
+```
+it generates an executable `cli/kserver`.
+
+See also [CLI usage](doc/command_line_interface.md).
