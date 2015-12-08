@@ -5,4 +5,7 @@ machine:
 dependencies:
     override:
         - docker info
+        
+test:
+    pre:
         - docker build -t koheron/tcp-server .
