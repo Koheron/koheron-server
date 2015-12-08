@@ -5,13 +5,13 @@ dependencies:
         - sudo apt-get update
         - sudo apt-get install gcc-4.8 g++-4.8
         - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
-        # ARM cross compiler
+        # ARM cross compilers
         - sudo apt-get install gcc-arm-linux-gnueabihf
         - sudo apt-get install g++-arm-linux-gnueabihf
 test:
     pre:
         - make TARGET_HOST=local clean all
-        - make TARGET_HOST=redpitaya clean all
+        - make CROSS_COMPILE=arm-linux-gnueabihf clean all
         # CLI
         - make -C cli TARGET_HOST=local clean all
-        - make -C cli TARGET_HOST=redpitaya clean all
+        - make -C cli CROSS_COMPILE=arm-linux-gnueabihf clean all
