@@ -34,6 +34,12 @@ The build produce an executable called `kserverd`
 
 ### Deploy
 
+#### On the local machine
+
+```
+$ sudo kserverd -c kserver.conf
+```
+
 #### On a remote machine
 
 Transfer the executable and the configuration file to the remote machine
