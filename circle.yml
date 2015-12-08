@@ -12,6 +12,7 @@ dependencies:
         - sudo apt-get install g++-arm-linux-gnueabi
 test:
     pre:
+        - arm-linux-gnueabi-gcc --version
         - make TARGET_HOST=local clean all
         - make CROSS_COMPILE=arm-linux-gnueabihf- clean all
         - make CROSS_COMPILE=arm-linux-gnueabi- clean all
