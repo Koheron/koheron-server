@@ -21,16 +21,17 @@ WORKDIR /code/
 COPY Makefile /code/
 
 # Compile kserverd
-COPY core /code/
-COPY devices /code/
-COPY middleware /code/
+#COPY core /code/
+#COPY devices /code/
+#COPY middleware /code/
+COPY . /code/
 RUN make TARGET_HOST=local clean all
 RUN make CROSS_COMPILE=arm-linux-gnueabihf- clean all
 RUN make CROSS_COMPILE=arm-linux-gnueabi- clean all
 
 # Compile CLI
-COPY cli /code/
-COPY APIs /code/
+#COPY cli /code/
+#COPY APIs /code/
 RUN make -C cli TARGET_HOST=local clean all
 RUN make -C cli CROSS_COMPILE=arm-linux-gnueabihf- clean all
 RUN make -C cli CROSS_COMPILE=arm-linux-gnueabi- clean all
