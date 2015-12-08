@@ -51,3 +51,20 @@ where `<host_ip>` is the IP address of the remote host. Then launch the daemon: 
 ```
 # /tmp/kserverd -c /tmp/kserver.conf
 ```
+
+#### Add the server to our install
+
+Install the executable and the configuration files into a folder of your choice, for example `/usr/local/tcp-server`:
+```
+# mkdir /usr/local/tcp-server
+# cp kserverd /usr/local/tcp-server
+# cp kserver.conf /usr/local/tcp-server
+```
+
+Launch the server after initialization of the ethernet connection: add the following line into `/etc/network/interfaces.d/eth0`:
+```
+post-up /usr/local/tcp-server/kserverd -c /usr/local/tcp-server/kserver.conf
+```
+
+Add the same line into `/etc/network/interfaces.d/wlan0` for initialization when the Wifi is up.
+
