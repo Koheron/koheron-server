@@ -4,7 +4,7 @@ FROM ubuntu:14.04
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 # install dependencies
-RUN apt-get install software-properties-common
+RUN apt-get -y install software-properties-common
 RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
 RUN apt-get update
 RUN apt-get install gcc-4.8 g++-4.8
