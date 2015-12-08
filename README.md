@@ -30,7 +30,7 @@ To compile the server on the local machine use:
 $ make TARGET_HOST=local
 ```
 
-The build produce an executable called `kserverd`
+The build produces an executable called `kserverd`.
 
 ### Deploy
 
