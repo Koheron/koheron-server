@@ -53,7 +53,7 @@ $ ssh root@<host_ip>
 <remote_host># /tmp/kserverd -c /tmp/kserver.conf
 ```
 
-#### Add the server to our install
+#### Add the server to your Linux install
 
 Install the executable and the configuration files into a folder of your choice, for example `/usr/local/tcp-server`:
 ```
