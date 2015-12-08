@@ -540,7 +540,7 @@ void __init_tasks_usage(void)
            "Display last IP number onto RedPitaya LEDs");
 }
 
-int __set_ip_on_leds()
+int __set_ip_on_leds(uint32_t leds_addr)
 {
     dev_id_t dev_id;
     op_id_t op_id;
@@ -569,6 +569,7 @@ int __set_ip_on_leds()
     }
     
     cmd->op_ref = op_id;
+    add_parameter(cmd, (long)leds_addr);
     
     if (kclient_send(kcl, cmd) < 0) {
         fprintf(stderr, "Cannot send show_ip_leds command\n");
@@ -598,8 +599,12 @@ void ks_cli_init_tasks(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
     
-    if (IS_INIT_TASKS_IP_ON_LEDS) {    
-        if (__set_ip_on_leds() < 0)
+    if (IS_INIT_TASKS_IP_ON_LEDS) {
+        printf("%s", argv[2]);
+        
+        uint32_t leds_addr = (int) strtol(argv[2], (char **)NULL, 10);
+         
+        if (__set_ip_on_leds(leds_addr) < 0)
             exit(EXIT_FAILURE);
     }
     else if (IS_INIT_TASKS_HELP) {

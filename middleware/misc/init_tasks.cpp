@@ -1,6 +1,9 @@
-/// Implementation of init_tasks.hpp
+/// @file init_tasks.cpp
 ///
-/// (c) Koheron
+/// @brief Implementation of init_tasks.hpp
+/// @date 12/09/2015
+///
+/// (c) Koheron 2014-2015
 
 #include "init_tasks.hpp"
 
@@ -20,11 +23,10 @@ InitTasks::InitTasks(Klib::DevMem& dev_mem_)
 : dev_mem(dev_mem_)
 {}
 
-#define LED_ADDR 0x60000000
 #define MAP_SIZE 4096
 #define LED_OFFSET 0x0
 
-void InitTasks::show_ip_on_leds()
+void InitTasks::show_ip_on_leds(uint32_t leds_addr)
 {
 // http://stackoverflow.com/questions/20800319/how-to-get-my-ip-address-in-c-linux
     
@@ -33,7 +35,7 @@ void InitTasks::show_ip_on_leds()
     ifaddrs *tmp = addrs;
 
     // Turn all the leds ON
-    Klib::MemMapID dev_num = dev_mem.AddMemoryMap(LED_ADDR, 16*MAP_SIZE);
+    Klib::MemMapID dev_num = dev_mem.AddMemoryMap(leds_addr, 16*MAP_SIZE);
     Klib::WriteReg32(dev_mem.GetBaseAddr(dev_num) + LED_OFFSET, 255);
 
     char interface[] = "eth0";

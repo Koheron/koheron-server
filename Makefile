@@ -13,8 +13,8 @@ ADD_DEBUG_FLAGS = false
 # Middleware include path
 MIDWARE_INC_PATH=middleware
 
-DEFINES = -DDEBUG_KSERVER
-#DEFINES = -DRELEASE_KSERVER
+DEFINES = -DDEBUG_KSERVER -D_GLIBCXX_USE_NANOSLEEP
+#DEFINES = -DRELEASE_KSERVER -D_GLIBCXX_USE_NANOSLEEP
 
 # --------------------------------------------------------------
 # Objects to build
