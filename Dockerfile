@@ -13,7 +13,7 @@ RUN apt-get -y install g++-arm-linux-gnueabihf
 RUN apt-get -y install gcc-arm-linux-gnueabi
 RUN apt-get -y install g++-arm-linux-gnueabi
 
-RUN apt-get -y install ia32-libs
+RUN apt-get -y install program:i386
 RUN apt-get -y install gcc-arm-xilinx-linux-gnueabi
 RUN apt-get -y install g++-arm-xilinx-linux-gnueabi
 
