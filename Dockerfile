@@ -1,9 +1,7 @@
 FROM ubuntu:14.04
 #FROM armbuild/ubuntu:latest
 
-RUN rm /bin/sh && ln -s /bin/bash /bin/sh
-
-# install dependencies
+# Install dependencies
 RUN apt-get -y install software-properties-common
 RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
 RUN apt-get update
@@ -14,6 +12,8 @@ RUN apt-get -y install gcc-arm-linux-gnueabihf
 RUN apt-get -y install g++-arm-linux-gnueabihf
 RUN apt-get -y install gcc-arm-linux-gnueabi
 RUN apt-get -y install g++-arm-linux-gnueabi
+RUN apt-get -y install gcc-arm-xilinx-linux-gnueabi
+RUN apt-get -y install g++-arm-xilinx-linux-gnueabi
 RUN apt-get -y install make
 
 WORKDIR /code/
@@ -23,8 +23,10 @@ COPY . /code/
 RUN make TARGET_HOST=local clean all
 RUN make CROSS_COMPILE=arm-linux-gnueabihf- clean all
 RUN make CROSS_COMPILE=arm-linux-gnueabi- clean all
+RUN make CROSS_COMPILE=arm-xilinx-linux-gnueabi- clean all
 
 # Compile CLI
 RUN make -C cli TARGET_HOST=local clean all
 RUN make -C cli CROSS_COMPILE=arm-linux-gnueabihf- clean all
 RUN make -C cli CROSS_COMPILE=arm-linux-gnueabi- clean all
+RUN make -C cli CROSS_COMPILE=arm-xilinx-linux-gnueabi- clean all

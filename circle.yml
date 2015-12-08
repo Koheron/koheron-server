@@ -3,9 +3,9 @@ machine:
     - docker
     
 dependencies:
-    override:
-        - docker info
+  override:
+    - docker info
         
 test:
-    pre:
-        - docker build -t koheron/tcp-server .
+  pre:
+    - docker build -t koheron/tcp-server .
