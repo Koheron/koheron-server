@@ -49,19 +49,18 @@ $ ps -A | grep kserverd
 
 #### On a remote machine
 
-Connect via SSH to a remote machine
-```
-$ ssh root@<host_ip>
-```
-where `<host_ip>` is the IP address of the remote host.
-
 Transfer the executable and the configuration file to the remote machine
 ```
 $ scp kserverd root@<host_ip>:/tmp
 $ scp kserver.conf root@<host_ip>:/tmp
 ```
+where `<host_ip>` is the IP address of the remote host.
 
-Then launch the daemon from a secure shell on the remote machine:
+Then connect via SSH to a remote machine
+```
+$ ssh root@<host_ip>
+``` 
+and launch the daemon from a secure shell on the remote machine:
 ```
 <remote_host># /tmp/kserverd -c /tmp/kserver.conf
 ```
@@ -95,9 +94,13 @@ $ make -C cli CROSS_COMPILE=<toolchain>-
 ```
 it generates an executable `cli/kserver`.
 
-Transfer CLI to remote machine 
+You can then transfer the executable to the remote machine: 
 ```
-$ scp cli/kserver root@<host_ip>
+$ scp cli/kserver root@<host_ip>:/tmp
+```
+and use it:
+```
+<remote_host># /tmp/kserver --help
 ```
 
 See also [CLI usage](doc/command_line_interface.md).
