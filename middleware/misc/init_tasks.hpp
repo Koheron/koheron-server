@@ -8,15 +8,13 @@
 
 #include "../drivers/core/dev_mem.hpp"
 
-#define LEDS_ADDR 0x60000000
-
 class InitTasks
 {
   public:
     InitTasks(Klib::DevMem& dev_mem_);
     
     /// Display IP address last number onto the RedPitaya LEDs
-    void show_ip_on_leds(uint32_t leds_addr=LEDS_ADDR);
+    void show_ip_on_leds(uint32_t leds_addr);
     
   private:
     Klib::DevMem& dev_mem;
