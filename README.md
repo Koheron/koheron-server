@@ -8,7 +8,7 @@ Koheron Server is a TCP / Websocket server optimized for high-performance instru
 
 ### Requirements
 
-To install a given GCC based toolchain use
+To install a given GCC based cross-compiler toolchain run
 ```
 $ sudo apt-get install gcc-<toolchain>
 $ sudo apt-get install g++-<toolchain>
@@ -20,7 +20,6 @@ To build the server call:
 ```
 $ make CROSS_COMPILE=<toolchain>-
 ```
-where `<toolchain>` is the toolchain of the cross-compiler to be used.
 
 For example, to cross-compile for the Ubuntu Core distribution: 
 ```
@@ -67,7 +66,7 @@ Then launch the daemon from a secure shell on the remote machine:
 <remote_host># /tmp/kserverd -c /tmp/kserver.conf
 ```
 
-If the server is already launched, kill it nicely with:
+If the server is already launched, you can end it nicely before by running:
 ```
 <remote_host># pkill -SIGINT kserverd
 ```
