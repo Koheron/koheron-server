@@ -1,8 +1,3 @@
-# kclient.py
-# Initializes connection to KServer
-# Thomas Vanderbruggen <thomas@koheron.com>
-# (c) Koheron 2015
-
 import socket
 import struct
 from rcv_send import recv_timeout, recv_n_bytes, recv_buffer, send_handshaking
@@ -77,7 +72,9 @@ class KClient:
            
         if type(port) != int:
             raise TypeError("Port number must be an integer")
-            
+
+        self.host = host
+        self.port = port
         self.verbose = verbose
         self.is_connected = False
 
@@ -196,7 +193,7 @@ class KClient:
         
         Return: True if an error occured in the current session.
         """
-        sent = self.send(make_command(1,2))
+        self.send(make_command(1,2))
         data_recv = self.sock.recv(3)
         
         if data_recv == '':
@@ -212,22 +209,6 @@ class KClient:
         """
         # TODO
         return
-        
-    def get_server_log(self):
-        """ Return KServer log
-        
-        Return: 
-            An array of the commands executed by KServer 
-            during the current session.
-            
-            Each log entry is a dictionnary containing:
-                * "Command#": Number of the executed command
-                * "Device": Execution device
-                * "Operation": Operation run on the device
-                * "Parsing": Command parsing status
-                * "Status": Execution status
-        """
-        return KserverLog(self)
         
     def __del__(self):
         if hasattr(self,'sock'):
@@ -249,6 +230,10 @@ class Commands:
             
             
         msg = recv_timeout(client.sock, 'EOC')
+        
+        if msg == "RECV_ERR_TIMEOUT":
+            raise RuntimeError("Timeout at message reception")
+        
         lines = msg.split('\n')
 
         self.devices = []
@@ -260,8 +245,7 @@ class Commands:
             self.print_devices()
         
     def get_device(self, device_name):
-        """ Provide device parameters
-        """    
+        """ Provide device parameters """    
         for device in self.devices:
             if device.name == device_name:
                 return device
@@ -269,8 +253,7 @@ class Commands:
         raise ValueError('Device ' + device_name + ' unknown')
         
     def print_devices(self):
-        """ Print the devices and operations available on KServer
-        """
+        """ Print the devices and operations available on KServer """
         print "Devices available from KServer:"
         
         for device in self.devices:      

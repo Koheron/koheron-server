@@ -1,8 +1,3 @@
-# rcv_send.py
-# Data reception and emission functions for KClient
-# Thomas Vanderbruggen <thomas@koheron.com>
-# (c) Koheron 2015
-
 import time
 import struct
 
@@ -52,17 +47,11 @@ def recv_timeout(socket, escape_seq, timeout=5):
     
     begin=time.time()
     
-    while 1:    
-        # if you got some data, then break after timeout
-        if total_data and time.time()-begin > timeout:
-            break
+    while 1:
+        if time.time()-begin > timeout:
+            print "Error in recv_timeout Timeout exceeded"
+            return "RECV_ERR_TIMEOUT"
          
-        # if you got no data at all,
-        # wait a little longer, twice the timeout
-        elif time.time()-begin > timeout*2:
-            break
-         
-        #recv something
         try:
             data = socket.recv(2048)
             if data:
@@ -73,8 +62,10 @@ def recv_timeout(socket, escape_seq, timeout=5):
                     break
         except:
             pass
+        
+        # To avoid the progrqm to freeze at connection sometimes
+        time.sleep(0.005)
      
-    #join all parts to make final string
     return ''.join(total_data)
     
 def recv_buffer(socket, buff_size, data_type = 'uint32'):
