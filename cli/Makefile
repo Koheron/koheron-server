@@ -5,7 +5,7 @@
 #TARGET_HOST = redpitaya
 #TARGET_HOST = local
 
-API_INC_PATH = ../APIs/api_c
+API_INC_PATH = ../APIs/C
 
 # Toolchain
 ifeq ($(TARGET_HOST),redpitaya)
