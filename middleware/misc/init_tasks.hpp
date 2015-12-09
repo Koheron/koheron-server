@@ -8,7 +8,7 @@
 
 #include "../drivers/core/dev_mem.hpp"
 
-#define LEDS_ADDR 0x43C00000
+#define LEDS_ADDR 0x60000000
 
 class InitTasks
 {

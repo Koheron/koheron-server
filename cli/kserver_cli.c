@@ -590,7 +590,9 @@ int __set_ip_on_leds(uint32_t leds_addr)
  * ks_cli_init_tasks - Execute init tasks
  */
 void ks_cli_init_tasks(int argc, char **argv)
-{    
+{   
+    uint32_t leds_addr;
+     
     assert(strcmp(argv[0], "init_tasks") == 0);
     
     if (argc < 2) {
@@ -600,10 +602,16 @@ void ks_cli_init_tasks(int argc, char **argv)
     }
     
     if (IS_INIT_TASKS_IP_ON_LEDS) {
-        printf("%s", argv[2]);
+        if (argc == 2) {
+            leds_addr = 0x60000000;
+        }
+        else if (argc == 3) {
+            leds_addr = (int) strtol(argv[2], (char **)NULL, 0);
+        } else {
+            fprintf(stderr, "Invalid number of arguments\n");
+            exit(EXIT_FAILURE);
+        }
         
-        uint32_t leds_addr = (int) strtol(argv[2], (char **)NULL, 10);
-         
         if (__set_ip_on_leds(leds_addr) < 0)
             exit(EXIT_FAILURE);
     }
