@@ -50,15 +50,26 @@ $ ps -A | grep kserverd
 
 #### On a remote machine
 
-Transfer the executable and the configuration file to the remote machine
-```
-$ scp kserverd root@<host_ip>:/tmp:kserverd
-$ scp kserver.conf root@<host_ip>:/tmp/kserver.conf
-```
-where `<host_ip>` is the IP address of the remote host. Then launch the daemon from a secure shell on the remote machine:
+Connect via SSH to a remote machine
 ```
 $ ssh root@<host_ip>
+```
+where `<host_ip>` is the IP address of the remote host.
+
+Transfer the executable and the configuration file to the remote machine
+```
+$ scp kserverd root@<host_ip>:/tmp
+$ scp kserver.conf root@<host_ip>:/tmp
+```
+
+Then launch the daemon from a secure shell on the remote machine:
+```
 <remote_host># /tmp/kserverd -c /tmp/kserver.conf
+```
+
+If the server is already launched, kill it nicely with:
+```
+<remote_host># pkill -SIGINT kserverd
 ```
 
 #### Add the server to your Linux install
@@ -84,5 +95,10 @@ To compile the CLI run
 $ make -C cli CROSS_COMPILE=<toolchain>-
 ```
 it generates an executable `cli/kserver`.
+
+Transfer CLI to remote machine 
+```
+$ scp cli/kserver root@<host_ip>
+```
 
 See also [CLI usage](doc/command_line_interface.md).
