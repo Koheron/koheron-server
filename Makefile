@@ -79,7 +79,7 @@ CCPP=$(CROSS_COMPILE)g++
 CFLAGS= -Wall -Werror -I$(MIDWARE_INC_PATH) -I$(MIDWARE_INC_PATH)/libraries $(DEFINES)
 
 # Architecture specific flags
-ifeq ($(TARGET_HOST),redpitaya)
+ifeq ($(TARGET_HOST),arm)
   ARM_FLAGS = -march=armv7-a -mtune=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard
   CFLAGS += $(ARM_FLAGS)
 else ifeq ($(TARGET_HOST),local)
