@@ -21,7 +21,11 @@ venv:
 endif
 
 kserverd: venv libraries
+ifeq ($(DOCKER),False)
 	venv/bin/python kmake.py kserver -c config/$(CONFIG)
+else
+	python kmake.py kserver -c config/$(CONFIG)
+endif
 
 clean:
 	rm -rf tmp
