@@ -537,7 +537,7 @@ void __init_tasks_usage(void)
 
     printf("%-10s%-20s%-50s\n", "-h", "--help", "Show this message");
     printf("%-10s%-20s%-50s\n", "-i", "--ip_on_leds", 
-           "Display last IP number onto RedPitaya LEDs");
+           "Display last IP number onto board LEDs");
 }
 
 int __set_ip_on_leds(uint32_t leds_addr)

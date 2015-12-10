@@ -5,7 +5,7 @@
 #
 # (c) Koheron, 2014-2015
 
-#TARGET_HOST = redpitaya
+#TARGET_HOST = arm
 #TARGET_HOST = local
 
 ADD_DEBUG_FLAGS = false
@@ -59,11 +59,10 @@ TARGET=kserverd
 # Toolchains
 # --------------------------------------------------------------
 
-ifeq ($(TARGET_HOST),redpitaya)
+ifeq ($(TARGET_HOST),arm)
   #CROSS_COMPILE?=arm-linux-gnueabi-
   CROSS_COMPILE?=arm-linux-gnueabihf-
   #CROSS_COMPILE?=arm-xilinx-linux-gnueabi-
-  DEFINES += -DREDPITAYA
 else ifeq ($(TARGET_HOST),local)
   CROSS_COMPILE?=
   DEFINES += -DLOCAL
@@ -90,7 +89,7 @@ endif
 # Add debug/optimization flags
 ifeq ($(ADD_DEBUG_FLAGS),true)
   CFLAGS += -rdynamic #-g
-  ifeq ($(TARGET_HOST),redpitaya)
+  ifeq ($(TARGET_HOST),arm)
     CFLAGS +=-mapcs-frame
   endif
 else

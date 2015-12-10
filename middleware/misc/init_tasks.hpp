@@ -13,7 +13,7 @@ class InitTasks
   public:
     InitTasks(Klib::DevMem& dev_mem_);
     
-    /// Display IP address last number onto the RedPitaya LEDs
+    /// Display IP address last number onto the board LEDs
     void show_ip_on_leds(uint32_t leds_addr);
     
   private:

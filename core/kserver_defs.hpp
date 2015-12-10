@@ -19,11 +19,7 @@ namespace kserver {
 // Architecture
 // ------------------------------------------
 
-#ifdef REDPITAYA
 # define KSERVER_HAS_DEVMEM 1
-#else
-# define KSERVER_HAS_DEVMEM 0
-#endif 
 
 // ------------------------------------------
 // Connections

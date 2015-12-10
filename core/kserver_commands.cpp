@@ -43,7 +43,7 @@ namespace kserver {
 
 /////////////////////////////////////
 // GET_ID
-// Send the ID of the RedPitaya
+// Send the ID of the board
 
 KSERVER_STRUCT_ARGUMENTS(GET_ID)
 {

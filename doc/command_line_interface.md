@@ -67,7 +67,7 @@ $ kserver status --sessions
 
 This set of commands is designed to be called in the init scripts at system launch. They interface the `INIT_TASKS` device.
 
-To show the last digit of the IP address on the RedPitaya LEDs use:
+To show the last digit of the IP address on the board LEDs use:
 ```
 $ kserver init_tasks --ip_on_leds [LEDS_ADDRESS]
 ```

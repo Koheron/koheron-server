@@ -2,17 +2,16 @@
 #
 # (c) Koheron
 
-#TARGET_HOST = redpitaya
+#TARGET_HOST = arm
 #TARGET_HOST = local
 
 API_INC_PATH = ../APIs/C
 
 # Toolchain
-ifeq ($(TARGET_HOST),redpitaya)
+ifeq ($(TARGET_HOST),arm)
 #CROSS_COMPILE?=arm-linux-gnueabi-
 CROSS_COMPILE?=arm-linux-gnueabihf-
 #CROSS_COMPILE?=arm-xilinx-linux-gnueabi-
-DEFINES += -DREDPITAYA
 else ifeq ($(TARGET_HOST),local)
 CROSS_COMPILE?=
 DEFINES += -DLOCAL
@@ -32,7 +31,7 @@ TARGET=kserver
 # GCC compiling & linking flags
 CFLAGS= -Wall -Werror -I$(API_INC_PATH) $(DEFINES) -g # -O3 # -g
 
-ifeq ($(TARGET_HOST),redpitaya)
+ifeq ($(TARGET_HOST),arm)
 ARM_FLAGS = -march=armv7-a -mtune=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard
 CFLAGS += $(ARM_FLAGS)
 else ifeq ($(TARGET_HOST),local)
