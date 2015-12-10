@@ -26,10 +26,9 @@ InitTasks::InitTasks(Klib::DevMem& dev_mem_)
 #define MAP_SIZE 4096
 #define LED_OFFSET 0x0
 
-void InitTasks::show_ip_on_leds(uint32_t leds_addr)
-{
 // http://stackoverflow.com/questions/20800319/how-to-get-my-ip-address-in-c-linux
-    
+void InitTasks::show_ip_on_leds(uint32_t leds_addr)
+{   
     struct ifaddrs *addrs;
     getifaddrs(&addrs);
     ifaddrs *tmp = addrs;
