@@ -16,7 +16,11 @@ RUN apt-get -y install gcc-arm-linux-gnueabi
 RUN apt-get -y install g++-arm-linux-gnueabi
 
 RUN apt-get -y install make
-RUN apt-get -y install virtualenv
+
+# Install virtualenv
+RUN apt-get -y install python-pip python-dev build-essential
+RUN pip install virtualenv virtualenvwrapper
+RUN pip install --upgrade pip
 
 WORKDIR /code/
 COPY . /code/
