@@ -71,5 +71,4 @@ To show the last digit of the IP address on the RedPitaya LEDs use:
 ```
 $ kserver init_tasks --ip_on_leds [LEDS_ADDRESS]
 ```
-
-If nothing is specified by default `LEDS_ADDRESS = 0x60000000`, else the LEDs base address can be specified in hexadecimal form `0x########`
+where `LEDS_ADDRESS` the LEDs base address can be specified in hexadecimal form (e.g. `0x60000000`).

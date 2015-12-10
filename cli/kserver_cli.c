@@ -602,10 +602,7 @@ void ks_cli_init_tasks(int argc, char **argv)
     }
     
     if (IS_INIT_TASKS_IP_ON_LEDS) {
-        if (argc == 2) {
-            leds_addr = 0x60000000;
-        }
-        else if (argc == 3) {
+        if (argc == 3) {
             leds_addr = (int) strtol(argv[2], (char **)NULL, 0);
         } else {
             fprintf(stderr, "Invalid number of arguments\n");
