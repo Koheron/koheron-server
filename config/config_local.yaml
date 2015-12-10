@@ -1,0 +1,15 @@
+# Config for KServer running on localhost
+#
+# To be compiled on the local computer
+#
+# (c) Koheron 2014-2015
+
+# Target host
+host: Local
+
+devices:
+    - ../devices/dev_mem.yaml
+    - ../middleware/tests/tests.hpp
+    - ../middleware/tests/tuple_tests.hpp
+    - ../middleware/tests/eigen_tests.hpp
+

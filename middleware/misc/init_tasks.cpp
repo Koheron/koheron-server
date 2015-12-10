@@ -1,9 +1,6 @@
-/// @file init_tasks.cpp
+/// Implementation of init_tasks.hpp
 ///
-/// @brief Implementation of init_tasks.hpp
-/// @date 12/09/2015
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #include "init_tasks.hpp"
 

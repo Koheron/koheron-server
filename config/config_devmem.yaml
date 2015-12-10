@@ -1,0 +1,11 @@
+# Configuration file for public repository generation
+#
+# (c) Koheron
+
+# Target host
+host: Redpitaya
+
+devices:
+    - ../devices/dev_mem.yaml
+    - ../middleware/misc/init_tasks.hpp
+

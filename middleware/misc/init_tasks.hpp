@@ -1,5 +1,4 @@
-/// Task to be performed at init. 
-/// Callable via the CLI.
+/// Tasks to be performed at init. Callable via the CLI.
 ///
 /// (c) Koheron
 
@@ -8,12 +7,14 @@
 
 #include "../drivers/core/dev_mem.hpp"
 
+//> \description Task to be performed at init. Callable via the CLI.
 class InitTasks
 {
   public:
     InitTasks(Klib::DevMem& dev_mem_);
     
-    /// Display IP address last number onto the board LEDs
+    //> \description Display IP address last number onto the board LEDs
+    //> \io_type WRITE
     void show_ip_on_leds(uint32_t leds_addr);
     
   private:

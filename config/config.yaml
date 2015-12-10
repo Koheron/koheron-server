@@ -1,0 +1,19 @@
+# Configuration file for Redpitaya with all devices
+#
+# (c) Koheron
+
+# Target host
+host: Redpitaya
+
+devices:
+    # Core devices
+    - ../devices/dev_mem.yaml
+    - ../middleware/drivers/core/xadc.hpp
+    - ../middleware/drivers/core/gpio.hpp
+    - ../middleware/drivers/core/oscillo.hpp
+    - ../middleware/drivers/core/dac.hpp
+    
+#    # Misc
+    - ../middleware/tests/tests.hpp
+    - ../middleware/misc/init_tasks.hpp
+
