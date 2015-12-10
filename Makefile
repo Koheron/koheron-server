@@ -2,6 +2,7 @@
 # 'make clean' deletes everything except source files and Makefile
 
 CONFIG = config_local.yaml
+DOCKER=False
 
 all: kserverd
 
@@ -11,9 +12,13 @@ libraries:
 	mkdir -p middleware/libraries
 	cp -r tmp/eigen-eigen-c58038c56923/Eigen middleware/libraries 
 
+ifeq ($(DOCKER),False)
 venv:
 	virtualenv venv
 	venv/bin/pip install -r requirements.txt
+else
+venv:
+endif
 
 kserverd: venv libraries
 	venv/bin/python kmake.py kserver -c config/$(CONFIG)

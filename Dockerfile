@@ -18,17 +18,18 @@ RUN apt-get -y install g++-arm-linux-gnueabi
 RUN apt-get -y install make
 
 # Install virtualenv
-RUN apt-get -y install python-pip python-dev build-essential
-RUN pip install virtualenv virtualenvwrapper
+RUN apt-get -y install python-pip python-dev build-essential python-virtualenv
 RUN pip install --upgrade pip
 
 WORKDIR /code/
 COPY . /code/
 
+RUN pip install -r requirements.txt
+
 # Compile kserverd
-RUN make CONFIG=config_local.yaml clean all
-RUN make CONFIG=config_armel.yaml clean all
-RUN make CONFIG=config_armhf.yaml clean all
+RUN make DOCKER=True CONFIG=config_local.yaml clean all
+RUN make DOCKER=True CONFIG=config_armel.yaml clean all
+RUN make DOCKER=True CONFIG=config_armhf.yaml clean all
 
 # Compile CLI
 RUN make -C cli TARGET_HOST=local clean all
