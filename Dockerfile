@@ -56,5 +56,5 @@ RUN make DOCKER=True CONFIG=config_local.yaml clean all
 RUN make -C cli TARGET_HOST=local clean all
 
 # Launch kserver
-RUN /code/tmp/server/kserverd -c /code/config/kserver_docker.conf
-RUN /cli/kserver status --sessions
+RUN /code/tmp/server/kserverd -c /code/config/kserver_docker.conf &
+RUN /code/cli/kserver status --sessions
