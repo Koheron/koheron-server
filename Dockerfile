@@ -1,7 +1,10 @@
 FROM ubuntu:14.04
 #FROM armbuild/ubuntu:latest
 
+# ---------------------------------------
 # Install dependencies
+# ---------------------------------------
+
 RUN apt-get -y install software-properties-common
 RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
 RUN apt-get update
@@ -27,23 +30,31 @@ COPY . /code/
 
 RUN pip install -r requirements.txt
 
+# ---------------------------------------
 # Compile kserverd
+# ---------------------------------------
+
 RUN make DOCKER=True CONFIG=config_local.yaml clean all
 RUN make DOCKER=True CONFIG=config_armel.yaml clean all
 RUN make DOCKER=True CONFIG=config_armhf.yaml clean all
 RUN make DOCKER=True CONFIG=config_toolchain.yaml clean all
 
+# ---------------------------------------
 # Compile CLI
+# ---------------------------------------
+
 RUN make -C cli TARGET_HOST=local clean all
 RUN make -C cli CROSS_COMPILE=arm-linux-gnueabihf- clean all
 RUN make -C cli CROSS_COMPILE=arm-linux-gnueabi- clean all
 
-# TESTS
+# ---------------------------------------
+# Tests
+# ---------------------------------------
 
 # Compile server in local
 RUN make DOCKER=True CONFIG=config_local.yaml clean all
 RUN make -C cli TARGET_HOST=local clean all
 
 # Launch kserver
-RUN /tmp/server/kserverd -c /config/kserver_docker.conf
+RUN /code/tmp/server/kserverd -c /code/config/kserver_docker.conf
 RUN /cli/kserver status --sessions
