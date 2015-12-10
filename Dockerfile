@@ -21,9 +21,9 @@ WORKDIR /code/
 COPY . /code/
 
 # Compile kserverd
-RUN make TARGET_HOST=local clean all
-RUN make CROSS_COMPILE=arm-linux-gnueabihf- clean all
-RUN make CROSS_COMPILE=arm-linux-gnueabi- clean all
+RUN make CONFIG=config_local.yaml clean all
+RUN make CONFIG=config_armel.yaml clean all
+RUN make CONFIG=config_armhf.yaml clean all
 
 # Compile CLI
 RUN make -C cli TARGET_HOST=local clean all

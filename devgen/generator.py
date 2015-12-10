@@ -80,12 +80,7 @@ class Generator:
           
         # Call g++
         print "Compile ..."
-        if self.host == "Redpitaya":
-            subprocess.check_call("make -C tmp/server TARGET_HOST=redpitaya clean all", shell=True)
-        elif self.host == "Local":
-            subprocess.check_call("make -C tmp/server TARGET_HOST=local clean all", shell=True)
-        else:
-            raise ValueError("Unknown host " + self.host)
+        subprocess.check_call("make -C tmp/server TARGET_HOST=" + self.host + " clean all", shell=True)
         
     def _makefile_gen(self, template_filename):
         """ Generate the template for KServer makefile
