@@ -38,7 +38,18 @@ class Generator:
         with open(config_filename) as config_file:    
             config = yaml.load(config_file)
             
-        self.host = config["host"]
+        if "host" in config:
+            self.host = config["host"]
+        else:
+            self.host = None
+            
+        if "cross-compile" in config:
+            self.cross_compile = config["cross-compile"]
+        else:
+            self.cross_compile = None
+            
+        if self.host == None and self.cross_compile == None:
+            raise ValueError("Specify a target host or a cross-compilation toolchain")
                 
         # Generate devices
         base_dir = os.path.dirname(config_filename)
@@ -80,7 +91,12 @@ class Generator:
           
         # Call g++
         print "Compile ..."
-        subprocess.check_call("make -C tmp/server TARGET_HOST=" + self.host + " clean all", shell=True)
+        
+        if self.host != None:
+            subprocess.check_call("make -C tmp/server TARGET_HOST=" + self.host + " clean all", shell=True)
+        
+        if self.cross_compile != None:
+            subprocess.check_call("make -C tmp/server CROSS_COMPILE=" + self.cross_compile + "- clean all", shell=True)
         
     def _makefile_gen(self, template_filename):
         """ Generate the template for KServer makefile
