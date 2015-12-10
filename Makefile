@@ -16,7 +16,7 @@ ifeq ($(DOCKER),False)
 venv:
 	virtualenv venv
 	venv/bin/pip install -r requirements.txt
-else
+else # No virtualenv required when running in a Docker container
 venv:
 endif
 

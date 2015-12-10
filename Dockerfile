@@ -31,8 +31,19 @@ RUN pip install -r requirements.txt
 RUN make DOCKER=True CONFIG=config_local.yaml clean all
 RUN make DOCKER=True CONFIG=config_armel.yaml clean all
 RUN make DOCKER=True CONFIG=config_armhf.yaml clean all
+RUN make DOCKER=True CONFIG=config_toolchain.yaml clean all
 
 # Compile CLI
 RUN make -C cli TARGET_HOST=local clean all
 RUN make -C cli CROSS_COMPILE=arm-linux-gnueabihf- clean all
 RUN make -C cli CROSS_COMPILE=arm-linux-gnueabi- clean all
+
+# TESTS
+
+# Compile server in local
+RUN make DOCKER=True CONFIG=config_local.yaml clean all
+RUN make -C cli TARGET_HOST=local clean all
+
+# Launch kserver
+RUN /tmp/server/kserverd -c /config/kserver_docker.conf
+RUN /cli/kserver status --sessions
