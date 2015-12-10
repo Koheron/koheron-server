@@ -57,4 +57,5 @@ RUN make -C cli TARGET_HOST=local clean all
 
 # Launch kserver
 RUN /code/tmp/server/kserverd -c /code/config/kserver_docker.conf &
+RUN /code/cli/kserver host --tcp localhost 36000
 RUN /code/cli/kserver status --sessions
