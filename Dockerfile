@@ -60,7 +60,6 @@ RUN make -C cli TARGET_HOST=local clean all
 # Launch kserver
 RUN $work_dir/tmp/server/kserverd -c $work_dir/config/kserver_docker.conf &
 #RUN ps -A | grep kserverd
-RUN cat /var/log/syslog | grep --text KServer
 
 RUN $work_dir/cli/kserver host --tcp localhost 36000
 RUN $work_dir/cli/kserver host --status

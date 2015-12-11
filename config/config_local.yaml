@@ -4,11 +4,12 @@
 #
 # (c) Koheron
 
+# Local config do not contain dev_mem
+
 # Target host
-host: Local
+host: local
 
 devices:
-    - ../devices/dev_mem.yaml
     - ../middleware/tests/tests.hpp
     - ../middleware/tests/tuple_tests.hpp
     - ../middleware/tests/eigen_tests.hpp

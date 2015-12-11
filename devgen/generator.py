@@ -39,12 +39,12 @@ class Generator:
             config = yaml.load(config_file)
             
         if "host" in config:
-            self.host = config["host"]
+            self.host = config["host"].lower()
         else:
             self.host = None
             
         if "cross-compile" in config:
-            self.cross_compile = config["cross-compile"]
+            self.cross_compile = config["cross-compile"].lower()
         else:
             self.cross_compile = None
             
