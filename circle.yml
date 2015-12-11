@@ -9,3 +9,4 @@ dependencies:
 test:
   pre:
     - docker build -t koheron/tcp-server .
+    - docker run -d -p 9200:9200 koheron/tcp-server make DOCKER=True CONFIG=config_local.yaml clean all

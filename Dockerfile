@@ -54,13 +54,13 @@ RUN make -C cli CROSS_COMPILE=arm-linux-gnueabi- clean all
 # ---------------------------------------
 
 # Compile server in local
-RUN make DOCKER=True CONFIG=config_local.yaml clean all
-RUN make -C cli TARGET_HOST=local clean all
+#RUN make DOCKER=True CONFIG=config_local.yaml clean all
+#RUN make -C cli TARGET_HOST=local clean all
 
 # Launch kserver
-RUN $work_dir/tmp/server/kserverd -c $work_dir/config/kserver_docker.conf &
+#RUN $work_dir/tmp/server/kserverd -c $work_dir/config/kserver_docker.conf &
 #RUN ps -A | grep kserverd
 
-RUN $work_dir/cli/kserver host --tcp localhost 36000
-RUN $work_dir/cli/kserver host --status
-RUN $work_dir/cli/kserver status --sessions
+#RUN $work_dir/cli/kserver host --tcp localhost 36000
+#RUN $work_dir/cli/kserver host --status
+#RUN $work_dir/cli/kserver status --sessions
