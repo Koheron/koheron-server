@@ -30,6 +30,13 @@
 #define N_AVG1_OFF       0
 #define N_AVG2_OFF       0 // 4 ??
 
+// XADC channels
+#define LASER_POWER_CHANNEL   1
+#define LASER_CURRENT_CHANNEL 8
+
+#define MAX_LASER_CURRENT 50.0 // mA
+
+//> \description Laser development kit driver
 class Lase
 {
   public:
@@ -44,6 +51,28 @@ class Lase
     int Open(uint32_t dac_wfm_size_);
     
     void Close();
+    
+    //> \description Reset to default state
+    //> \io_type WRITE
+    void reset();
+    
+    //> \description Laser current monitoring
+    //> \io_type READ
+    uint32_t get_laser_current();
+    
+    //> \description Laser power monitoring
+    //> \io_type READ
+    uint32_t get_laser_power();
+    
+    //> \io_type WRITE
+    void start_laser();
+    
+    //> \io_type WRITE
+    void stop_laser();
+    
+    //> \param current Laser current in mA
+    //> \io_type WRITE
+    void set_laser_current(float current);
     
     enum Status {
         CLOSED,

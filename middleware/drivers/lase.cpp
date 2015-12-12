@@ -55,6 +55,7 @@ int Lase::Open(uint32_t dac_wfm_size_)
         gpio.Open();
         
         status = OPENED;
+        reset();
     }
     
     return 0;
@@ -63,6 +64,8 @@ int Lase::Open(uint32_t dac_wfm_size_)
 void Lase::Close()
 {
     if(status == OPENED) {
+        reset();
+        
         dev_mem.RmMemoryMap(config_map);
         dev_mem.RmMemoryMap(status_map);
         dev_mem.RmMemoryMap(dac_map);
@@ -72,5 +75,55 @@ void Lase::Close()
     
         status = CLOSED;
     }
+}
+
+void Lase::reset()
+{
+    assert(status == OPENED);
+
+    // XADC
+    xadc.set_channel(LASER_POWER_CHANNEL, LASER_CURRENT_CHANNEL);
+    xadc.enable_averaging();
+    xadc.set_averaging(256);
+    
+    // GPIO
+    gpio.set_as_output(7, 2);
+    
+    // Config
+    Klib::WriteReg32(dev_mem.GetBaseAddr(config_map) + ADDR_OFF, 8);
+    Klib::ClearBit(dev_mem.GetBaseAddr(config_map) + ADDR_OFF, 0);
+    Klib::ClearBit(dev_mem.GetBaseAddr(config_map) + ADDR_OFF, 1);
+    Klib::SetBit(dev_mem.GetBaseAddr(config_map) + ADDR_OFF, 0);
+    
+    stop_laser();
+    set_laser_current(0.0);
+}
+
+uint32_t Lase::get_laser_current()
+{
+    return xadc.read(LASER_CURRENT_CHANNEL);
+}
+
+uint32_t Lase::get_laser_power()
+{
+    return xadc.read(LASER_POWER_CHANNEL);
+}
+
+void Lase::start_laser()
+{
+    gpio.clear_bit(7, 2);
+}
+
+void Lase::stop_laser()
+{
+    gpio.set_bit(7, 2);
+}
+
+void Lase::set_laser_current(float current)
+{
+    float current_;
+    current > MAX_LASER_CURRENT ? current_ = MAX_LASER_CURRENT : current_ = current;    
+    uint32_t voltage = (uint32_t) ((1024/250) * current_);
+    Klib::WriteReg32(dev_mem.GetBaseAddr(config_map) + PWM3_OFF, voltage);
 }
 
