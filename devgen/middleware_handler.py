@@ -59,6 +59,7 @@ class MiddlewareHppParser:
         line_cnt = 0;
         
         device = {}
+        device["name"] = None
         device["operations"] = [];
         device["includes"] = [self._get_include(hppfile)];
         operation = {}
@@ -101,6 +102,13 @@ class MiddlewareHppParser:
                             WARNING(line_cnt, "Empty device description")
                         elif is_operation:
                             WARNING(line_cnt, "Empty operation description")
+                elif tag == '\\rename':
+                    if is_dev_general:
+                        if len(tokens) > 2:
+                            device["name"] = tokens[2].strip()
+                        else:
+                            WARNING(line_cnt, "Empty rename")
+                            
                 elif tag == '\io_type':
                     if is_operation:
                         io_type = tokens[2].strip()
@@ -161,7 +169,8 @@ class MiddlewareHppParser:
                           "type": classname
                         })
                         
-                        device["name"] = classname
+                        if device["name"] == None: # No rename
+                            device["name"] = classname
                     else:
                         ERROR(line_cnt, "No device class name")
                     

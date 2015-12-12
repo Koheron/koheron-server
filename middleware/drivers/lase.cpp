@@ -143,3 +143,4 @@ void Lase::reset_acquisition()
     Klib::SetBit(dev_mem.GetBaseAddr(config_map) + ADDR_OFF, 1);
 }
 
+

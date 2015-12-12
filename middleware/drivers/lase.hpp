@@ -37,6 +37,7 @@
 #define MAX_LASER_CURRENT 50.0 // mA
 
 //> \description Laser development kit driver
+//> \rename Oscillo
 class Lase
 {
   public:

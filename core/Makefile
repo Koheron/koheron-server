@@ -10,7 +10,7 @@
 #    - armhf For compilation on armhf architecture
 #    - armel For compilation on armel architecture 
 
-ADD_DEBUG_FLAGS = false
+ADD_DEBUG_FLAGS = true
 
 # Middleware include path
 MIDWARE_INC_PATH=middleware
@@ -96,7 +96,7 @@ endif
 
 # Add debug/optimization flags
 ifeq ($(ADD_DEBUG_FLAGS),true)
-  CFLAGS += -rdynamic #-g
+  CFLAGS += -rdynamic -g
   ifeq ($(TARGET_HOST),armhf)
     CFLAGS +=-mapcs-frame
   else ifeq ($(TARGET_HOST),armel)
