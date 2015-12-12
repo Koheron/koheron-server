@@ -127,3 +127,19 @@ void Lase::set_laser_current(float current)
     Klib::WriteReg32(dev_mem.GetBaseAddr(config_map) + PWM3_OFF, voltage);
 }
 
+uint32_t Lase::get_bitstream_id()
+{
+    return Klib::ReadReg32(dev_mem.GetBaseAddr(config_map) + BITSTREAM_ID_OFF);
+}
+
+void Lase::set_led(uint32_t value)
+{
+    Klib::WriteReg32(dev_mem.GetBaseAddr(config_map) + LEDS_OFF, value);
+}
+
+void Lase::reset_acquisition()
+{
+    Klib::ClearBit(dev_mem.GetBaseAddr(config_map) + ADDR_OFF, 1);
+    Klib::SetBit(dev_mem.GetBaseAddr(config_map) + ADDR_OFF, 1);
+}
+

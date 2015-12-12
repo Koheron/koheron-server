@@ -74,6 +74,15 @@ class Lase
     //> \io_type WRITE
     void set_laser_current(float current);
     
+    //> \io_type READ
+    uint32_t get_bitstream_id();
+    
+    //> \io_type WRITE
+    void set_led(uint32_t value);
+    
+    //> \io_type WRITE
+    void reset_acquisition();
+    
     enum Status {
         CLOSED,
         OPENED,
