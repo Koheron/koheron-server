@@ -43,7 +43,7 @@ int get_value_offset(uint32_t channel)
         return -1;
     }
     
-    return (channel == 1 ? CHAN1_VALUE_OFFSET : CHAN2_VALUE_OFFSET);
+    return (channel == 1 ? CHAN1_VALUE_OFF : CHAN2_VALUE_OFF);
 }
 
 int get_dir_offset(uint32_t channel)
@@ -52,7 +52,7 @@ int get_dir_offset(uint32_t channel)
         return -1;
     }
     
-    return (channel == 1 ? CHAN1_DIR_OFFSET : CHAN2_DIR_OFFSET);
+    return (channel == 1 ? CHAN1_DIR_OFF : CHAN2_DIR_OFF);
 }
 
 

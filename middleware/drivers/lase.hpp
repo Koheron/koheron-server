@@ -9,26 +9,7 @@
 #include "core/wr_register.hpp"
 #include "core/xadc.hpp"
 #include "core/gpio.hpp"
-
-// Addresses
-#define CONFIG_ADDR      0x60000000
-#define STATUS_ADDR      0x50000000
-#define DAC_ADDR         0x40000000
-
-// Config offsets
-#define LEDS_OFF         0
-#define PWM0_OFF         4
-#define PWM1_OFF         8
-#define PWM2_OFF         12
-#define PWM3_OFF         16
-#define ADDR_OFF         20
-#define AVG1_OFF         24
-#define AVG2_OFF         28
-#define BITSTREAM_ID_OFF 36
-
-// Status offsets
-#define N_AVG1_OFF       0
-#define N_AVG2_OFF       0 // 4 ??
+#include "core/addresses.hpp"
 
 // XADC channels
 #define LASER_POWER_CHANNEL   1
@@ -37,7 +18,6 @@
 #define MAX_LASER_CURRENT 50.0 // mA
 
 //> \description Laser development kit driver
-//> \rename Oscillo
 class Lase
 {
   public:

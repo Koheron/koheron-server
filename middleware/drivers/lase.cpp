@@ -111,12 +111,12 @@ uint32_t Lase::get_laser_power()
 
 void Lase::start_laser()
 {
-    gpio.clear_bit(7, 2);
+    gpio.clear_bit(7, 2); // Laser enable on pin DIO7_P
 }
 
 void Lase::stop_laser()
 {
-    gpio.set_bit(7, 2);
+    gpio.set_bit(7, 2); // Laser enable on pin DIO7_P
 }
 
 void Lase::set_laser_current(float current)

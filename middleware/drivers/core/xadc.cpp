@@ -60,7 +60,7 @@ int Xadc::set_channel(uint32_t channel_0_, uint32_t channel_1_)
     channel_1 = channel_1_;
     
     uint32_t val = (1 << channel_0) + (1 << channel_1);
-    Klib::WriteReg32(dev_mem.GetBaseAddr(dev_num) + SET_CHAN_OFFSET, val);
+    Klib::WriteReg32(dev_mem.GetBaseAddr(dev_num) + SET_CHAN_OFF, val);
     
     return 0;
 }
@@ -68,7 +68,7 @@ int Xadc::set_channel(uint32_t channel_0_, uint32_t channel_1_)
 void Xadc::enable_averaging()
 {
     uint32_t val = (1 << channel_0) + (1 << channel_1);
-    Klib::WriteReg32(dev_mem.GetBaseAddr(dev_num) + AVG_EN_OFFSET, val);
+    Klib::WriteReg32(dev_mem.GetBaseAddr(dev_num) + AVG_EN_OFF, val);
 }
 
 int Xadc::set_averaging(uint32_t n_avg)
@@ -92,7 +92,7 @@ int Xadc::set_averaging(uint32_t n_avg)
         return -1;
     }
     
-    Klib::WriteReg32(dev_mem.GetBaseAddr(dev_num) + AVG_OFFSET, reg);
+    Klib::WriteReg32(dev_mem.GetBaseAddr(dev_num) + AVG_OFF, reg);
     
     return 0;
 }
@@ -103,7 +103,6 @@ int Xadc::read(uint32_t channel)
         return -1;
     }
     
-    return Klib::ReadReg32(dev_mem.GetBaseAddr(dev_num) 
-                           + READ_OFFSET + 4*channel);
+    return Klib::ReadReg32(dev_mem.GetBaseAddr(dev_num) + READ_OFF + 4*channel);
 }
 

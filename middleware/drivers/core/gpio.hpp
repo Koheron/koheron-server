@@ -9,15 +9,7 @@
 
 #include "dev_mem.hpp"
 #include "wr_register.hpp"
-
-// Addresses
-#define GPIO_ADDR 0x41200000
-
-// Offsets
-#define CHAN1_VALUE_OFFSET 0
-#define CHAN2_VALUE_OFFSET 8
-#define CHAN1_DIR_OFFSET   4
-#define CHAN2_DIR_OFFSET   12
+#include "addresses.hpp"
 
 /// Maximum bit index
 /// For use on RedPitaya index < 7, but this is specific

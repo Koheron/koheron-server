@@ -10,15 +10,7 @@
 
 #include "dev_mem.hpp"
 #include "wr_register.hpp"
-
-// Addresses
-#define XADC_ADDR 0x43C00000
-
-// Offsets
-#define SET_CHAN_OFFSET 0x324
-#define AVG_EN_OFFSET   0x32C
-#define READ_OFFSET     0x240
-#define AVG_OFFSET      0x300
+#include "addresses.hpp"
 
 //> \description XADC driver
 class Xadc
