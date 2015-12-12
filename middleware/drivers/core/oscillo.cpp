@@ -21,7 +21,8 @@ Oscillo::~Oscillo()
     Close();
 }
 
-int Oscillo::Open(uint32_t config_addr, uint32_t adc_1_addr, uint32_t adc_2_addr, uint32_t waveform_size_)
+int Oscillo::Open(uint32_t config_addr, uint32_t adc_1_addr, 
+                  uint32_t adc_2_addr, uint32_t waveform_size_)
 {
     // Reopening
     if(status == OPENED && waveform_size_ != waveform_size) {
@@ -37,9 +38,9 @@ int Oscillo::Open(uint32_t config_addr, uint32_t adc_1_addr, uint32_t adc_2_addr
         // period the acquisition time can be twice as long
         acq_time_us = 2*(waveform_size*1E6)/SAMPLING_RATE;
     
-        const_ip_map = dev_mem.AddMemoryMap(const_ip_addr, 16*MAP_SIZE);
+        config_map = dev_mem.AddMemoryMap(config_addr, 16*MAP_SIZE);
         
-        if(static_cast<int>(const_ip_map) < 0) {
+        if(static_cast<int>(config_map) < 0) {
             status = FAILED;
             return -1;
         }
@@ -60,9 +61,9 @@ int Oscillo::Open(uint32_t config_addr, uint32_t adc_1_addr, uint32_t adc_2_addr
             return -1;
         }
         
-        Klib::WriteReg32(dev_mem.GetBaseAddr(const_ip_map)+TRIG_START_OFFSET,0);
-        Klib::WriteReg32(dev_mem.GetBaseAddr(const_ip_map)+TRIG_ACQ_OFFSET, 0);
-        Klib::WriteReg32(dev_mem.GetBaseAddr(const_ip_map)+TRIG_START_OFFSET,1);
+        Klib::WriteReg32(dev_mem.GetBaseAddr(config_map)+TRIG_START_OFFSET,0);
+        Klib::WriteReg32(dev_mem.GetBaseAddr(config_map)+TRIG_ACQ_OFFSET, 0);
+        Klib::WriteReg32(dev_mem.GetBaseAddr(config_map)+TRIG_START_OFFSET,1);
         
         data = Klib::KVector<float>(waveform_size, 0);
         data_all = Klib::KVector<float>(2*waveform_size, 0);
@@ -79,7 +80,7 @@ int Oscillo::Open(uint32_t config_addr, uint32_t adc_1_addr, uint32_t adc_2_addr
 void Oscillo::Close()
 {
     if(status == OPENED) {
-        dev_mem.RmMemoryMap(const_ip_map);
+        dev_mem.RmMemoryMap(config_map);
         dev_mem.RmMemoryMap(adc_1_map);
         dev_mem.RmMemoryMap(adc_2_map);
         status = CLOSED;
@@ -111,7 +112,7 @@ void Oscillo::_raw_to_vector(uint32_t *raw_data)
 {    
     if(avg_on) {
         uint32_t num_avg 
-            = Klib::ReadReg32(dev_mem.GetBaseAddr(const_ip_map)+NUM_AVG_OFFSET);
+            = Klib::ReadReg32(dev_mem.GetBaseAddr(config_map)+NUM_AVG_OFFSET);
     
         for(unsigned int i=0; i<data.size(); i++) {
             data[i] = _raw_to_float(raw_data[i]) / float(num_avg);
@@ -127,7 +128,7 @@ void Oscillo::_raw_to_vector_all(uint32_t *raw_data_1, uint32_t *raw_data_2)
 {    
     if(avg_on) {
         uint32_t num_avg 
-            = Klib::ReadReg32(dev_mem.GetBaseAddr(const_ip_map)+NUM_AVG_OFFSET);
+            = Klib::ReadReg32(dev_mem.GetBaseAddr(config_map)+NUM_AVG_OFFSET);
     
         for(unsigned int i=0; i<waveform_size; i++) {
             data_all[i] = _raw_to_float(raw_data_1[i]) / float(num_avg);
@@ -147,7 +148,7 @@ Klib::KVector<float>& Oscillo::read_data(bool channel)
     Klib::MemMapID adc_map;
     channel ? adc_map = adc_1_map : adc_map = adc_2_map;
 
-    Klib::WriteReg32(dev_mem.GetBaseAddr(const_ip_map)+TRIG_ACQ_OFFSET, 1);
+    Klib::WriteReg32(dev_mem.GetBaseAddr(config_map)+TRIG_ACQ_OFFSET, 1);
     
     _wait_for_acquisition();
     
@@ -155,13 +156,13 @@ Klib::KVector<float>& Oscillo::read_data(bool channel)
         = reinterpret_cast<uint32_t*>(dev_mem.GetBaseAddr(adc_map));
     _raw_to_vector(raw_data);
 
-    Klib::WriteReg32(dev_mem.GetBaseAddr(const_ip_map)+TRIG_ACQ_OFFSET, 0);
+    Klib::WriteReg32(dev_mem.GetBaseAddr(config_map)+TRIG_ACQ_OFFSET, 0);
     return data;
 }
 
 Klib::KVector<float>& Oscillo::read_all_channels()
 {
-    Klib::WriteReg32(dev_mem.GetBaseAddr(const_ip_map)+TRIG_ACQ_OFFSET, 1);
+    Klib::WriteReg32(dev_mem.GetBaseAddr(config_map)+TRIG_ACQ_OFFSET, 1);
     
     _wait_for_acquisition();
     
@@ -172,7 +173,7 @@ Klib::KVector<float>& Oscillo::read_all_channels()
         
     _raw_to_vector_all(raw_data_1, raw_data_2);
 
-    Klib::WriteReg32(dev_mem.GetBaseAddr(const_ip_map)+TRIG_ACQ_OFFSET, 0);
+    Klib::WriteReg32(dev_mem.GetBaseAddr(config_map)+TRIG_ACQ_OFFSET, 0);
     return data_all;
 }
 
@@ -181,15 +182,15 @@ void Oscillo::set_averaging(bool avg_status)
     avg_on = avg_status;
     
     if(avg_on) {
-        Klib::WriteReg32(dev_mem.GetBaseAddr(const_ip_map)+AVG_ON_1_OFFSET, 1);
-        Klib::WriteReg32(dev_mem.GetBaseAddr(const_ip_map)+AVG_ON_2_OFFSET, 1);
+        Klib::WriteReg32(dev_mem.GetBaseAddr(config_map)+AVG_ON_1_OFFSET, 1);
+        Klib::WriteReg32(dev_mem.GetBaseAddr(config_map)+AVG_ON_2_OFFSET, 1);
     } else {
-        Klib::WriteReg32(dev_mem.GetBaseAddr(const_ip_map)+AVG_ON_1_OFFSET, 0);
-        Klib::WriteReg32(dev_mem.GetBaseAddr(const_ip_map)+AVG_ON_2_OFFSET, 0);
+        Klib::WriteReg32(dev_mem.GetBaseAddr(config_map)+AVG_ON_1_OFFSET, 0);
+        Klib::WriteReg32(dev_mem.GetBaseAddr(config_map)+AVG_ON_2_OFFSET, 0);
     }
 }
 
 uint32_t Oscillo::get_num_average()
 {
-    return avg_on ? Klib::ReadReg32(dev_mem.GetBaseAddr(const_ip_map)+NUM_AVG_OFFSET) : 0;
+    return avg_on ? Klib::ReadReg32(dev_mem.GetBaseAddr(config_map)+NUM_AVG_OFFSET) : 0;
 }

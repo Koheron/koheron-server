@@ -209,6 +209,10 @@ class MiddlewareHppParser:
                     ERROR(line_cnt, "Failure indicator function mustn't have argument")
                  
                 is_failed = False
+                
+        if not "description" in device:
+            device["description"] = ""
+                
         self.raw_dev_data = device
         self.device = self._get_device()
         fd.close()
@@ -366,6 +370,8 @@ class MiddlewareHppParser:
         if("description" in self.raw_dev_data 
            and self.raw_dev_data["description"] != ""):
             device["description"] = self.raw_dev_data["description"]
+        else:
+            device["description"] = ""
             
         device["includes"] = self.raw_dev_data["includes"]
         device["objects"] = [{

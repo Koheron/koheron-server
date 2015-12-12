@@ -75,7 +75,7 @@ class Oscillo
     uint32_t acq_time_us;
 
     // Memory maps IDs:
-    Klib::MemMapID const_ip_map;
+    Klib::MemMapID config_map;
     Klib::MemMapID adc_1_map;
     Klib::MemMapID adc_2_map;
     
