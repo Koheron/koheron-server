@@ -2,8 +2,8 @@
 ///
 /// (c) Koheron
 
-#ifndef __DAC_HPP__
-#define __DAC_HPP__
+#ifndef __DRIVERS_CORE_DAC_HPP__
+#define __DRIVERS_CORE_DAC_HPP__
 
 #include "dev_mem.hpp"
 #include "wr_register.hpp"
@@ -62,4 +62,4 @@ class Dac
     
 }; // class Dac
 
-#endif // __DAC_HPP__
+#endif // __DRIVERS_CORE_DAC_HPP__

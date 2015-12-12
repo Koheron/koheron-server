@@ -12,7 +12,7 @@
 #include "wr_register.hpp"
 
 // Addresses
-#define XADC_ADDR 0x43C10000
+#define XADC_ADDR 0x43C00000
 
 // Offsets
 #define SET_CHAN_OFFSET 0x324

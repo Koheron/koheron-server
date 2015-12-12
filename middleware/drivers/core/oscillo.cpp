@@ -21,7 +21,7 @@ Oscillo::~Oscillo()
     Close();
 }
 
-int Oscillo::Open(uint32_t const_ip_addr, uint32_t adc_1_addr, uint32_t adc_2_addr, uint32_t waveform_size_)
+int Oscillo::Open(uint32_t config_addr, uint32_t adc_1_addr, uint32_t adc_2_addr, uint32_t waveform_size_)
 {
     // Reopening
     if(status == OPENED && waveform_size_ != waveform_size) {

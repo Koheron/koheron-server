@@ -33,7 +33,8 @@ class Oscillo
     //> \status ERROR_IF_NEG
     //> \on_error Cannot open OSCILLO device
     //> \flag AT_INIT
-    int Open(uint32_t const_ip_addr_, uint32_t adc_1_addr_, uint32_t adc_2_addr_, uint32_t waveform_size_);
+    int Open(uint32_t config_addr_, uint32_t adc_1_addr_, 
+             uint32_t adc_2_addr_, uint32_t waveform_size_);
     
     void Close();
 
