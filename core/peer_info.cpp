@@ -50,7 +50,7 @@ PeerInfo::PeerInfo(int comm_fd)
         memset(sockaddr_ptr, 0, sizeof(struct sockaddr));
 
         if(getpeername(comm_fd, (struct sockaddr*)&addr, &len) < 0) {
-            sockaddr_ptr = NULL;
+            sockaddr_ptr = nullptr;
         } else {
             sockaddr_ptr = (struct sockaddr*)&addr;
         }
