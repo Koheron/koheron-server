@@ -1,9 +1,6 @@
-/// @file oscillo.hpp
+/// Oscilloscope driver
 ///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 09/08/2015
-///
-/// (c) Koheron 2014-2015 
+/// (c) Koheron
 
 #ifndef __DRIVERS_CORE_OSCILLO_HPP__
 #define __DRIVERS_CORE_OSCILLO_HPP__

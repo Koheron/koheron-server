@@ -1,8 +1,4 @@
-/// @file dac.cpp
-///
-/// @date 26/10/2015
-///
-/// (c) Koheron 2014-2015 
+/// (c) Koheron
 
 #include "dac.hpp"
 

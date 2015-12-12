@@ -1,9 +1,6 @@
-/// @file dac.hpp
+/// DAC driver
 ///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 09/08/2015
-///
-/// (c) Koheron 2014-2015 
+/// (c) Koheron
 
 #ifndef __DAC_HPP__
 #define __DAC_HPP__
@@ -19,8 +16,7 @@
 // Addresses
 #define DAC_ADDR          0x44000000
 
-//> \pool Core
-//> \description Dac driver
+//> \description DAC driver
 class Dac
 {
   public:

@@ -1,11 +1,6 @@
-/// @file memory_map.hpp
+/// Memory map devices
 ///
-/// @brief Memory map devices
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 02/08/2014
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #ifndef __DRIVERS_CORE_MEMORY_MAP_HPP__
 #define __DRIVERS_CORE_MEMORY_MAP_HPP__

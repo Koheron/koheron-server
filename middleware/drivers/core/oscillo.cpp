@@ -1,9 +1,4 @@
-/// @file oscillo.cpp
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 09/08/2015
-///
-/// (c) Koheron 2014-2015 
+/// (c) Koheron
 
 #include "oscillo.hpp"
 
