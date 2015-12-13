@@ -85,6 +85,7 @@ void Oscillo::Close()
 {
     if(status == OPENED) {
         dev_mem.RmMemoryMap(config_map);
+        dev_mem.RmMemoryMap(status_map);
         dev_mem.RmMemoryMap(adc_1_map);
         dev_mem.RmMemoryMap(adc_2_map);
         status = CLOSED;

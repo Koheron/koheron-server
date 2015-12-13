@@ -5,6 +5,8 @@
 #ifndef __DRIVERS_LASE_HPP__
 #define __DRIVERS_LASE_HPP__
 
+#include <tuple>
+
 #include "core/dev_mem.hpp"
 #include "core/wr_register.hpp"
 #include "core/xadc.hpp"
@@ -44,6 +46,10 @@ class Lase
     //> \description Laser power monitoring
     //> \io_type READ
     uint32_t get_laser_power();
+    
+    //> \description Send all monitoring data at once
+    //> \io_type READ
+    std::tuple<uint32_t, uint32_t> get_monitoring();
     
     //> \io_type WRITE
     void start_laser();

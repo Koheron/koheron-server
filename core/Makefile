@@ -10,7 +10,7 @@
 #    - armhf For compilation on armhf architecture
 #    - armel For compilation on armel architecture 
 
-ADD_DEBUG_FLAGS = true
+ADD_DEBUG_FLAGS = false
 
 # Middleware include path
 MIDWARE_INC_PATH=middleware

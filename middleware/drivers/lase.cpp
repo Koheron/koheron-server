@@ -109,6 +109,11 @@ uint32_t Lase::get_laser_power()
     return xadc.read(LASER_POWER_CHANNEL);
 }
 
+std::tuple<uint32_t, uint32_t> Lase::get_monitoring()
+{
+    return std::make_tuple(get_laser_current(), get_laser_power());
+}
+
 void Lase::start_laser()
 {
     gpio.clear_bit(7, 2); // Laser enable on pin DIO7_P
