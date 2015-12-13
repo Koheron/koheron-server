@@ -7,19 +7,12 @@
 
 #include "dev_mem.hpp"
 #include "wr_register.hpp"
+#include "addresses.hpp"
 
 #include <signal/kvector.hpp>
  
 #define MAP_SIZE 4096
 #define SAMPLING_RATE 125E6
-
-// Offsets
-#define AVG_ON_1_OFFSET   16
-#define AVG_ON_2_OFFSET   20
-#define NUM_AVG_OFFSET    40
-
-#define TRIG_START_OFFSET 8
-#define TRIG_ACQ_OFFSET   12 
 
 //> \description Oscilloscope driver
 class Oscillo
@@ -33,8 +26,7 @@ class Oscillo
     //> \status ERROR_IF_NEG
     //> \on_error Cannot open OSCILLO device
     //> \flag AT_INIT
-    int Open(uint32_t config_addr_, uint32_t adc_1_addr_, 
-             uint32_t adc_2_addr_, uint32_t waveform_size_);
+    int Open(uint32_t waveform_size_);
     
     void Close();
 
@@ -76,6 +68,7 @@ class Oscillo
 
     // Memory maps IDs:
     Klib::MemMapID config_map;
+    Klib::MemMapID status_map;
     Klib::MemMapID adc_1_map;
     Klib::MemMapID adc_2_map;
     

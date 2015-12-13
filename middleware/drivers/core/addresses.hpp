@@ -5,7 +5,7 @@
 #ifndef __DRIVERS_CORE_ADDRESSES_HPP__
 #define __DRIVERS_CORE_ADDRESSES_HPP__
 
-// Addresses
+// Base addresses
 #define CONFIG_ADDR      0x60000000
 #define STATUS_ADDR      0x50000000
 #define DAC_ADDR         0x40000000
