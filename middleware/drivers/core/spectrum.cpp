@@ -80,6 +80,18 @@ void Spectrum::Close()
     }
 }
 
+void Spectrum::set_scale_sch(uint32_t scale_sch)
+{
+    Klib::WriteReg32(dev_mem.GetBaseAddr(config_map) + CFG_FFT_OFF, 
+                     1 + 2 * scale_sch);
+}
+
+void Spectrum::set_offset(uint32_t offset_real, uint32_t offset_imag)
+{
+    Klib::WriteReg32(dev_mem.GetBaseAddr(config_map) + SUBSTRACT_MEAN_OFF, 
+                     offset_real + 16384 * offset_imag);
+}
+
 void Spectrum::_wait_for_acquisition()
 {
     // The overhead of sleep_for might be of the order of our waiting time:

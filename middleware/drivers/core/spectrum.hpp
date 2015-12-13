@@ -29,6 +29,12 @@ class Spectrum
     int Open(uint32_t samples_num_);
     
     void Close();
+    
+    //> \io_type WRITE
+    void set_scale_sch(uint32_t scale_sch);
+    
+    //> \io_type WRITE
+    void set_offset(uint32_t offset_real, uint32_t offset_imag);
 
     //> \description Read the acquired data
     //> \io_type READ
