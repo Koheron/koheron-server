@@ -30,8 +30,7 @@
 // Spectrum
 #define SUBSTRACT_MEAN_OFF 24
 #define CFG_FFT_OFF        28
-#define DEMOD_OFF          32
-#define AVG_OFF_OFF        36
+#define AVG_OFF_OFF        32
 
 // -- Status offsets
 #define N_AVG1_OFF         0

@@ -68,11 +68,11 @@ class Spectrum
     Klib::MemMapID demod_map;
     
     // Acquired data buffers
+    uint32_t *raw_data;
     Klib::KVector<float> data;
     
     // Internal functions
     void _wait_for_acquisition();
-    void _raw_to_vector(uint32_t *raw_data);
 }; // class Spectrum
 
 #endif // __DRIVERS_CORE_SPECTRUM_HPP__
