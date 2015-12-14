@@ -38,6 +38,8 @@ void PeerInfo::__build(struct sockaddr* sock_)
 
 PeerInfo::PeerInfo(int comm_fd)
 {
+    memset(ip_str, 0, INET6_ADDRSTRLEN);
+
     if(comm_fd == -1) {
         __build(nullptr);
     } else {
@@ -47,7 +49,7 @@ PeerInfo::PeerInfo(int comm_fd)
         struct sockaddr *sockaddr_ptr;
 
         if(getpeername(comm_fd, (struct sockaddr*)&addr, &len) < 0) {
-            sockaddr_ptr = NULL;
+            sockaddr_ptr = nullptr;
         } else {
             sockaddr_ptr = (struct sockaddr*)&addr;
         }

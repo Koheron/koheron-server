@@ -1,11 +1,4 @@
-/// @file memory_map.cpp
-///
-/// @brief Implementation of memory_map.hpp
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 02/08/2014
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #include "memory_map.hpp"
 
