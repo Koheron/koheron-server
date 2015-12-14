@@ -1,7 +1,12 @@
 FROM ubuntu:14.04
 #FROM armbuild/ubuntu:latest
 
+ENV work_dir /code
+
+# ---------------------------------------
 # Install dependencies
+# ---------------------------------------
+
 RUN apt-get -y install software-properties-common
 RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
 RUN apt-get update
@@ -16,16 +21,46 @@ RUN apt-get -y install gcc-arm-linux-gnueabi
 RUN apt-get -y install g++-arm-linux-gnueabi
 
 RUN apt-get -y install make
+RUN apt-get -y install wget
 
-WORKDIR /code/
-COPY . /code/
+# Install virtualenv
+RUN apt-get -y install python-pip python-dev build-essential python-virtualenv
+RUN pip install --upgrade pip
 
+WORKDIR $work_dir/
+COPY . $work_dir/
+
+RUN pip install -r requirements.txt
+
+# ---------------------------------------
 # Compile kserverd
-RUN make TARGET_HOST=local clean all
-RUN make CROSS_COMPILE=arm-linux-gnueabihf- clean all
-RUN make CROSS_COMPILE=arm-linux-gnueabi- clean all
+# ---------------------------------------
 
+RUN make DOCKER=True CONFIG=config_local.yaml clean all
+RUN make DOCKER=True CONFIG=config_armel.yaml clean all
+RUN make DOCKER=True CONFIG=config_armhf.yaml clean all
+RUN make DOCKER=True CONFIG=config_toolchain.yaml clean all
+
+# ---------------------------------------
 # Compile CLI
+# ---------------------------------------
+
 RUN make -C cli TARGET_HOST=local clean all
 RUN make -C cli CROSS_COMPILE=arm-linux-gnueabihf- clean all
 RUN make -C cli CROSS_COMPILE=arm-linux-gnueabi- clean all
+
+# ---------------------------------------
+# Tests
+# ---------------------------------------
+
+# Compile server in local
+#RUN make DOCKER=True CONFIG=config_local.yaml clean all
+#RUN make -C cli TARGET_HOST=local clean all
+
+# Launch kserver
+#RUN $work_dir/tmp/server/kserverd -c $work_dir/config/kserver_docker.conf &
+#RUN ps -A | grep kserverd
+
+#RUN $work_dir/cli/kserver host --tcp localhost 36000
+#RUN $work_dir/cli/kserver host --status
+#RUN $work_dir/cli/kserver status --sessions

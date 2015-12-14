@@ -1,0 +1,16 @@
+# Config the server for running tests on localhost
+#
+# To be compiled on the local computer
+#
+# (c) Koheron
+
+# Local config do not contain dev_mem
+
+# Target host
+host: local
+
+devices:
+    - ../middleware/tests/tests.hpp
+    - ../middleware/tests/tuple_tests.hpp
+    - ../middleware/tests/eigen_tests.hpp
+

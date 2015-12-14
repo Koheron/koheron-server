@@ -37,8 +37,9 @@ inline void WriteReg32(intptr_t addr, std::bitset<32> reg_val)
 inline void WriteBuff32(intptr_t addr, const uint32_t *data_ptr, 
                         uint32_t buff_size)
 {
-    for (uint32_t i=0; i < buff_size; i++)
+    for(uint32_t i=0; i < buff_size; i++) {
         WriteReg32(addr + sizeof(uint32_t)*i, data_ptr[i]);
+    }
 }
 
 /// Read a value in a 32 bits register
@@ -82,12 +83,6 @@ inline void ToggleBit(intptr_t addr, uint32_t index)
 inline bool ReadBit(intptr_t addr, uint32_t index)
 {
     return *((volatile intptr_t *) addr) & (1 << index);
-}
-
-inline void WriteBits(intptr_t addr, uint32_t index, 
-                      uint32_t size, uint32_t value)
-{
-    // TODO   
 }
 
 // -- Masks

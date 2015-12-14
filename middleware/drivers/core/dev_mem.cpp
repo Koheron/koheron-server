@@ -1,11 +1,4 @@
-/// @file dev_mem.cpp
-///
-/// @brief Implementation of dev_mem.hpp
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 02/08/2014
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #include "dev_mem.hpp"
 
