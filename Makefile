@@ -25,7 +25,7 @@ libraries:
 ifeq ($(INTERNAL),True)
 middleware:
 	mkdir tmp
-	git clone git@github.com:Koheron/zynq-sdk.git tmp/zynq-sdk
+	git clone https://github.com/Koheron/zynq-sdk.git tmp/zynq-sdk
 else
 middleware:
 endif
