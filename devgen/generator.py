@@ -81,7 +81,7 @@ class Generator:
         os.remove(os.path.join(self.src_dir, 'core/Makefile'))
         os.remove(os.path.join(self.src_dir, 'core/main.cpp'))
         
-        copytree('middleware', os.path.join(self.src_dir, 'middleware'))
+        copytree('tmp/zynq-sdk/middleware', os.path.join(self.src_dir, 'middleware'))
         os.remove(os.path.join(self.src_dir, 'middleware/README.md'))
         copyfile('core/main.cpp', os.path.join(self.src_dir, 'main.cpp'))
 

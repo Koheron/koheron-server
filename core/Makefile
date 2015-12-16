@@ -48,7 +48,7 @@ OBJS_KSERVER = core/kserver.o              \
 OBJS_KS_DEV ?= {% for obj in objs_list %} {{ obj }} {% endfor %}
 
 # Objects in Middleware
-SRC_MIDWARE = $(shell find middleware/ -name '*.cpp')
+SRC_MIDWARE = $(shell find middleware -name '*.cpp')
 OBJS_MIDWARE = $(subst .cpp,.o, $(SRC_MIDWARE))
 
 # All objects 		

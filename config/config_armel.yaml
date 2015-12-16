@@ -8,11 +8,11 @@ host: armel
 devices:
     # Core devices
     - ../devices/dev_mem.yaml
-    - ../middleware/drivers/core/xadc.hpp
-    - ../middleware/drivers/core/gpio.hpp
-    - ../middleware/drivers/core/oscillo.hpp
+    - ../tmp/zynq-sdk/middleware/drivers/core/xadc.hpp
+    - ../tmp/zynq-sdk/middleware/drivers/core/gpio.hpp
+    - ../tmp/zynq-sdk/middleware/drivers/core/oscillo.hpp
     
     # Misc
-    - ../middleware/tests/tests.hpp
-    - ../middleware/misc/init_tasks.hpp
+    - ../tmp/zynq-sdk/middleware/tests/tests.hpp
+    - ../tmp/zynq-sdk/middleware/misc/init_tasks.hpp
 
