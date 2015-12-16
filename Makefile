@@ -2,19 +2,33 @@
 # 'make clean' deletes everything except source files and Makefile
 
 CONFIG=config_local.yaml
+
+# To build within the repository
+INTERNAL=True
+
 DOCKER=False
+
+ifeq ($(INTERNAL),True)
+MIDWARE_PATH = tmp/zynq-sdk/middleware
+else
+MIDWARE_PATH = middleware
+endif
 
 all: kserverd
 
 libraries:
 	wget -P tmp bitbucket.org/eigen/eigen/get/3.2.6.tar.gz
 	cd tmp && tar -zxvf 3.2.6.tar.gz
-	mkdir -p tmp/zynq-sdk/middleware/libraries
-	cp -r tmp/eigen-eigen-c58038c56923/Eigen tmp/zynq-sdk/middleware/libraries
-	
+	mkdir -p $(MIDWARE_PATH)/libraries
+	cp -r tmp/eigen-eigen-c58038c56923/Eigen $(MIDWARE_PATH)/libraries
+
+ifeq ($(INTERNAL),True)
 middleware:
 	mkdir tmp
 	git clone git@github.com:Koheron/zynq-sdk.git tmp/zynq-sdk
+else
+middleware:
+endif
 
 ifeq ($(DOCKER),False)
 venv:
@@ -26,9 +40,9 @@ endif
 
 kserverd: venv middleware libraries
 ifeq ($(DOCKER),False)
-	venv/bin/python kmake.py kserver -c config/$(CONFIG)
+	venv/bin/python kmake.py kserver -c config/$(CONFIG) $(MIDWARE_PATH)
 else
-	python kmake.py kserver -c config/$(CONFIG)
+	python kmake.py kserver -c config/$(CONFIG) $(MIDWARE_PATH)
 endif
 
 clean:

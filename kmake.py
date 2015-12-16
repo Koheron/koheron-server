@@ -77,24 +77,12 @@ def kmake_kserver(argv):
         raise ValueError("kmake kserver requires at least 1 argument")
     
     if (argv[0] == '-g') or (argv[0] == '--generate'):
-        # Generate the source files
-        if len(argv) == 1:
-            raise ValueError("Configuration file required for source file generation")
-        
-        if len(argv) > 2:
-            raise ValueError("Too many arguments for source file generation")
-            
-        Generator(argv[1])
+        # Generate the source files  
+        Generator(argv[1], middleware_path=_parse_argv_gen_comp(argv))
         return
     elif (argv[0] == '-c') or (argv[0] == '--generate-compile'):
-        # Generate and compile the source files
-        if len(argv) == 1:
-            raise ValueError("Configuration file required for source file generation and compilation")
-        
-        if len(argv) > 2:
-            raise ValueError("Too many arguments for source file generation and compilation")
-            
-        generator = Generator(argv[1])
+        # Generate and compile the source files           
+        generator = Generator(argv[1], middleware_path=_parse_argv_gen_comp(argv))
         generator.compile()
         return
     elif (argv[0] == '-h') or (argv[0] == '--help'):
@@ -104,6 +92,20 @@ def kmake_kserver(argv):
         raise ValueError("Invalid option")
         return
         
+def _parse_argv_gen_comp(argv):
+    if len(argv) == 1:
+        raise ValueError("Configuration file required for source file generation")
+            
+    if len(argv) == 3:
+        midware_path = argv[2]
+    else:
+        midware_path = 'middleware'
+        
+    if len(argv) > 3:
+        raise ValueError("Too many arguments for source file generation")
+        
+    return midware_path
+    
 # -------------------------------------
 # Main
 # -------------------------------------

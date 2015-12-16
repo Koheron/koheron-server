@@ -18,7 +18,7 @@ from device import Device
 import device_table
 
 class Generator:
-    def __init__(self, config_filename, src_dir='tmp/server'):
+    def __init__(self, config_filename, middleware_path='middleware', src_dir='tmp/server'):
         """ Generate the KServer sources
         
             Args:
@@ -27,6 +27,7 @@ class Generator:
         """
         # Set-up directories
         self.src_dir = src_dir
+        self.middleware_path = middleware_path
         self.dev_dir = os.path.join(self.src_dir, 'devices')
         
         if os.path.isdir(self.src_dir):
@@ -81,7 +82,10 @@ class Generator:
         os.remove(os.path.join(self.src_dir, 'core/Makefile'))
         os.remove(os.path.join(self.src_dir, 'core/main.cpp'))
         
-        copytree('tmp/zynq-sdk/middleware', os.path.join(self.src_dir, 'middleware'))
+        print self.middleware_path
+        print os.path.join(self.src_dir, 'middleware')
+        
+        copytree(self.middleware_path, os.path.join(self.src_dir, 'middleware'))
         os.remove(os.path.join(self.src_dir, 'middleware/README.md'))
         copyfile('core/main.cpp', os.path.join(self.src_dir, 'main.cpp'))
 
