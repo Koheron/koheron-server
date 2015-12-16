@@ -23,7 +23,7 @@
 #  include <mutex>
 #endif
 
-#include <drivers/core/dev_mem.hpp>
+#include <drivers/dev_mem.hpp>
 
 namespace kserver {
 
