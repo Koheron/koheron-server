@@ -22,6 +22,7 @@ RUN apt-get -y install g++-arm-linux-gnueabi
 
 RUN apt-get -y install make
 RUN apt-get -y install wget
+RUN apt-get -y install git
 
 # Install virtualenv
 RUN apt-get -y install python-pip python-dev build-essential python-virtualenv
