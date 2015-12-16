@@ -189,7 +189,7 @@ operations:
            
 # Middleware description
 includes: # Must be in /middleware
-  - drivers/core/wr_register.hpp
+  - drivers/wr_register.hpp
                        
 objects: 
 #  - name: dev_mem
