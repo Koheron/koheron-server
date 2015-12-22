@@ -1,11 +1,7 @@
-# @file middleware_handler.py
+# Generates a device description dictionnary and code fragments 
+# from a tagged C++ header file
 #
-# @brief Generate YAML description and fragments
-#
-# @author Thomas Vanderbruggen <thomas@koheron.com>
-# @date 02/09/2015
-#
-# (c) Koheron 2014-2015
+# (c) Koheron
 
 import os
 import time
