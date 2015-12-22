@@ -1,11 +1,6 @@
-# @file dev_mem.yaml
+# DEV_MEM device
 #
-# @brief DEV_MEM device
-#
-# @author Thomas Vanderbruggen <thomas@koheron.com>
-# @date 08/03/2015
-#
-# (c) Koheron 2014-2015
+# (c) Koheron
 
 name: DEV_MEM
 description: Map and access physical memory
