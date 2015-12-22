@@ -1,11 +1,6 @@
-# __init__.py
-#
 # Init file for the devgen package
 #
-# Thomas Vanderbruggen <thomas@koheron.com>
-# 17/03/2015
-#
-# (c) Koheron 2015
+# (c) Koheron
 
 """devgen
 Koheron device generator
@@ -15,9 +10,9 @@ fragments to generate sources files.
 """
 
 __title__ = 'devgen'
-__version__ = '0.0.0'
+__version__ = '1.0.0'
 __author__ = "Koheron SAS"
-__license__ = "Proprietary"
+__license__ = "AGPL"
 __copyright__ = 'Copyright 2015 Koheron SAS'
 
 from generator import Generator
