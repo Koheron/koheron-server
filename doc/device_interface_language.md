@@ -12,7 +12,7 @@ The language is based on comments added to the header files.
 
 Comments must start with `//>` and they are followed by tags starting with `\`.
 
-The device name is the class name in upper case. The device is defined if a `\pool` tag is define above the class definition.
+The device name is the class name in upper case.
 
 A new operation is added when a tag introduced by a command `//>` is added before a public function of the class. The `\io_type` tag is the only required tag to define a command.
 
@@ -24,7 +24,6 @@ A new operation is added when a tag introduced by a command `//>` is added befor
 #ifndef __FRIDGE_HPP__
 #define __FRIDGE_HPP__
 
-//> \pool kitchen
 //> \description The kitchen fridge
 class Fridge
 {
@@ -58,12 +57,6 @@ class Fridge
 ```
 
 ## Tags
-
-### \pool  (Required)
-
-Indicates that the class must be interfaced as a new device to the server and defines the device pool it must be integrated in.
-
-To be placed above the `class` keyword.
 
 ### \io_type  (Required)
 
