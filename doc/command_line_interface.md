@@ -2,8 +2,6 @@
 
 The command line interface (CLI) is an administration tool for the Koheron server daemon.
 
-For now, it mainly implements monitoring features. Capabilities will be expanded as we neeed them in the future.
-
 A list of the available commands can be obtained by executing:
 ```
 $ kserver --help
