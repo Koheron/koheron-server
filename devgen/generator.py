@@ -1,11 +1,6 @@
-# @file generator.py
+# Generate Koheron server sources
 #
-# @brief Generate KServer sources
-#
-# @author Thomas Vanderbruggen <thomas@koheron.com>
-# @date 23/12/2014
-#
-# (c) Koheron 2014-2015
+# (c) Koheron
 
 import os
 import yaml
