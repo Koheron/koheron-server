@@ -2,14 +2,16 @@
 
 ## Introduction
 
-A device is the central concept around which the Koheron software is organized. It provides the abstract and uniform representation required to handle the software at the various and heterogeneous levels used by KoheronOS:
+A device is the central concept around which the tcp-server is organized. It provides the abstract and uniform representation required to handle the software at the various and heterogeneous levels used:
 * HDL code in the FPGA
 * C/C++ code in the Middleware
 * Python code in the client side 
 
 At first order a device is associated to a given bitstream in the FPGA, and it defines a *set of operations* that can be realized on the bitstream.
 
-However, note that the tools allow you to define a device in a more general way: it can be associated to several bitstreams, or represent a purely middleware code (e.g. KServer is seen as a device).
+Note that the tools allow you to define a device in a more general way: it can be associated to several bitstreams, or represent a purely middleware code (e.g. the commands specific to the server administration are integrated as a device in the server itself).
+
+Here we present the device description language that is a dictonnary of the required data defining a device. This dictionnary can be automatically build from C++ header files using the [tagging language](device_interface_language.md).
 
 ## Basic features
 
@@ -144,5 +146,3 @@ Optionally, a ```cast``` field can be specified to cast the elementary type into
 # Compilation
 
 Tools to compile devices are provided by the **Kmake** utility.
-
-The device description file can be auto-generated from a Python driver with the Middleware generator (experimental).
