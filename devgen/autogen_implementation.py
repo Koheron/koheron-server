@@ -1,11 +1,6 @@
-# @file autogen_implementation.py
+# Generate the implementation template for the device
 #
-# @brief Generate the implementation template for the device
-#
-# @author Thomas Vanderbruggen <thomas@koheron.com>
-# @date 21/12/2014
-#
-# (c) Koheron 2014-2015
+# (c) Koheron
 
 import os
 import device as dev_utils
