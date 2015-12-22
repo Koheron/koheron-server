@@ -1,11 +1,6 @@
-# @file device.py
+# Loads and generates devices descriptions. Generates source code.
 #
-# @brief Loads and generates devices descriptions. Generates source code.
-#
-# @author Thomas Vanderbruggen <thomas@koheron.com>
-# @date 21/12/2014
-#
-# (c) Koheron 2014-2015
+# (c) Koheron
 
 import yaml
 import os
