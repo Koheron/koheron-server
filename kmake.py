@@ -1,13 +1,8 @@
 #! /usr/bin/python
 
-# @file kmake.py
+# Build utilitaries interface for Koheron server
 #
-# @brief Build utilitaries for KServer
-#
-# @author Thomas Vanderbruggen <thomas@koheron.com>
-# @date 19/03/2015
-#
-# (c) Koheron 2014-2015
+# (c) Koheron
 
 import sys
 from devgen import Device, Generator
