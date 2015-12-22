@@ -1,13 +1,6 @@
-# @file device_table.py
+# Device table generation
 #
-# @brief Device table
-#
-# @author Thomas Vanderbruggen <thomas@koheron.com>
-# @date 20/03/2015
-#
-# (c) Koheron 2014-2015
-
-# XXX A Jinja template can be used here
+# (c) Koheron
 
 import os
 import yaml
