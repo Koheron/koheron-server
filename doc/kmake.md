@@ -2,13 +2,13 @@
 
 ## Introduction
 
-Kmake is a Python based building utility for KServer. It handles:
+Kmake is a Python based building utility for the Koheron server. It handles:
 * the code generation
 * the compilation
 
 ## In a nutshell
 
-### Compile KServer
+### Compile the server
 
 1-  Edit the configuration file `config.yaml`.
 
@@ -29,7 +29,7 @@ $ python kmake.py fragments -t devices/dev.yaml
 ```
 then open the file `devices/ks_dev.frag` and edit the fragment related to the new command.
 
-3- Compile KServer and that's it !
+3- Compile the server and that's it !
 
 ### Create a new device
 
@@ -47,7 +47,7 @@ then open the file `devices/ks_dev.frag` and edit the fragments for each command
 
 3-  Add the device to your configuration `config.yaml`: In the field `path` add `- devices/dev.yaml`.
 
-4-  Compile KServer and you're done !
+4-  Compile and you're done !
 
 ## Detailed reference
 
@@ -65,7 +65,7 @@ $ python kmake.py <command> --help
 ```
 for the detailed usage of a given command
 
-### Build KServer
+### Build the server
 
 ```
 $ python kmake.py kserver [-h|--help] [<options> [cfg_file]]
@@ -76,7 +76,7 @@ The options are:
 * `-g, --generate` Generate the source files
 * `-c, --generate-compile` Generate the sources and compile KServer
 
-The compilation flow for KServer is:
+The compilation flow is:
 
 <img src="https://cloud.githubusercontent.com/assets/7926718/11366496/81fb32e0-92a5-11e5-97e4-1c511f648e5f.png" width="500px" />
 
