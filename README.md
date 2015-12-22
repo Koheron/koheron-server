@@ -14,7 +14,7 @@ $ sudo apt-get install gcc-<toolchain>
 $ sudo apt-get install g++-<toolchain>
 ```
 
-The build requires Python 2.7. You also the following programs:
+The build requires Python 2.7. You also need the following programs:
 ```
 $ sudo apt-get install wget
 $ sudo apt-get install git
