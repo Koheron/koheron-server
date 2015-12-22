@@ -1,6 +1,6 @@
 /// @file {{ device.class_name|lower }}.hpp
 ///
-/// (c) Koheron 2014-2015 
+/// (c) Koheron 
 
 #ifndef __{{ device.class_name|upper }}_HPP__
 #define __{{ device.class_name|upper }}_HPP__
