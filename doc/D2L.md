@@ -54,11 +54,9 @@ The description above gives the main characteristics of a device, however in pra
 
 Let consider a real example. Here is a fragment of the pool ```Koheron``` and the device ```DEV_MEM```:
 ```yaml
-# @file koheron.yaml
+# devmem.yaml
 #
-# @brief Pool of Koheron devices
-#
-# (c) Koheron 2014-2015
+# DEV_MEM: Memory access and control device
 
 name: DEV_MEM
 description: Map and access physical memory
