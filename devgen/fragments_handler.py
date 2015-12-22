@@ -1,11 +1,6 @@
-# @file fragments_handler.py
+# Handle code fragments
 #
-# @brief Handle code fragments
-#
-# @author Thomas Vanderbruggen <thomas@koheron.com>
-# @date 23/12/2014
-#
-# (c) Koheron 2014-2015
+# (c) Koheron
 
 import device as dev_utils
 
