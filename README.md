@@ -27,27 +27,28 @@ $ sudo pip install --upgrade pip
 
 To build the server call:
 ```
-$ make CROSS_COMPILE=<toolchain>-
+$ make CONFIG=<config.yaml>
+```
+where `config.yaml` is the server configuration in the [config](config) folder.
+
+For example, to compile for the Ubuntu Core distribution. After installing the `arm-linux-gnueabihf` toolchain run
+```
+$ make CONFIG=config_armhf.yaml
 ```
 
-For example, to cross-compile for the Ubuntu Core distribution: 
+To compile the server on the local machine use:
 ```
-$ make CROSS_COMPILE=arm-linux-gnueabihf-
-```
-
-Or to compile the server on the local machine use:
-```
-$ make TARGET_HOST=local
+$ make CONFIG=config_local.yaml
 ```
 
-The build produces an executable called `kserverd`.
+The build produces a folder `tmp`. The server executable is `tmp/server/kserverd`.
 
 ### Deploy
 
 #### On the local machine
 
 ```
-$ sudo ./kserverd -c kserver.conf
+$ sudo tmp/server/kserverd -c kserver.conf
 ```
 
 Check whether the daemon is launched
@@ -60,8 +61,8 @@ $ ps -A | grep kserverd
 
 Transfer the executable and the configuration file to the remote machine
 ```
-$ scp kserverd root@<host_ip>:/tmp
-$ scp kserver.conf root@<host_ip>:/tmp
+$ scp tmp/server/kserverd root@<host_ip>:/tmp
+$ scp config/kserver.conf root@<host_ip>:/tmp
 ```
 where `<host_ip>` is the IP address of the remote host.
 
