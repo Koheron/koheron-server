@@ -8,10 +8,19 @@ Koheron Server is a TCP / Websocket server optimized for high-performance instru
 
 ### Requirements
 
-To install a given GCC based cross-compiler toolchain run
+You first need to get the C/C++ compiler. To install a given GCC based cross-compiler toolchain run
 ```
 $ sudo apt-get install gcc-<toolchain>
 $ sudo apt-get install g++-<toolchain>
+```
+
+The build requires Python 2.7. You also the following programs:
+```
+$ sudo apt-get install wget
+$ sudo apt-get install git
+
+$ sudo apt-get -y install python-pip python-dev build-essential python-virtualenv
+$ sudo pip install --upgrade pip
 ```
 
 ### Build
