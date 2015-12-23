@@ -1,15 +1,13 @@
 # Command line Interface
 
-The command line interface (CLI) is an administration tool for the KServer daemon.
-
-For now, it mainly implements monitoring features. Capabilities will be expanded as we neeed them in the future.
+The command line interface (CLI) is an administration tool for the Koheron server daemon.
 
 A list of the available commands can be obtained by executing:
 ```
 $ kserver --help
 ```
 
-Note that, beyond the CLI capabilities, signals can be send directly to the KServer daemon. To nicely stop the daemon run:
+Note that, beyond the CLI capabilities, signals can be send directly to the daemon. To nicely stop the daemon run:
 ```
 $ pkill -SIGINT kserverd
 ```

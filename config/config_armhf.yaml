@@ -1,0 +1,20 @@
+# Configuration file for ARM/Ubuntu
+#
+# (c) Koheron
+
+# Target host
+host: armhf
+
+devices:
+    # Core devices
+    - ../devices/dev_mem.yaml
+    - ../tmp/zynq-sdk/middleware/drivers/xadc.hpp
+    - ../tmp/zynq-sdk/middleware/drivers/gpio.hpp
+    - ../tmp/zynq-sdk/middleware/drivers/oscillo.hpp
+    - ../tmp/zynq-sdk/middleware/drivers/spectrum.hpp
+    - ../tmp/zynq-sdk/middleware/drivers/base.hpp
+    
+    # Misc
+    - ../tmp/zynq-sdk/middleware/tests/tests.hpp
+    - ../tmp/zynq-sdk/middleware/misc/init_tasks.hpp
+

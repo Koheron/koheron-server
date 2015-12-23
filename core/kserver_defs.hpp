@@ -19,7 +19,12 @@ namespace kserver {
 // Architecture
 // ------------------------------------------
 
-# define KSERVER_HAS_DEVMEM 1
+#ifdef LOCAL
+#  define KSERVER_HAS_DEVMEM 0
+#else
+#  define KSERVER_HAS_DEVMEM 1
+#endif
+
 
 // ------------------------------------------
 // Connections
