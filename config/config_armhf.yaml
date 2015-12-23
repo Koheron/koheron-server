@@ -12,7 +12,7 @@ devices:
     - ../tmp/zynq-sdk/middleware/drivers/gpio.hpp
     - ../tmp/zynq-sdk/middleware/drivers/oscillo.hpp
     - ../tmp/zynq-sdk/middleware/drivers/spectrum.hpp
-    - ../tmp/zynq-sdk/middleware/drivers/lase.hpp
+    - ../tmp/zynq-sdk/middleware/drivers/base.hpp
     
     # Misc
     - ../tmp/zynq-sdk/middleware/tests/tests.hpp
