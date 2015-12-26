@@ -17,7 +17,6 @@ _relaunch_kserver()
 
 # Check periodically
 while true ; do
-    echo "Check"
     _relaunch_kserver&
     sleep ${check_interval}
 done
