@@ -22,6 +22,7 @@ _get_devices()
     echo $devices
 }
 
+_have kserver &&
 _kserver()
 {
     COMPREPLY=()
