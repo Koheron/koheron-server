@@ -5,9 +5,15 @@ from flask import Flask, render_template
 def index():
     return render_template('index.html')
     
-@app.route('/server/<int:device_id>/<int:command_id>', methods=['GET'])
-def send_command():
-    pass
+@app.route('/server/status/devices/<device_name>', methods=['GET'])
+def status_devices(device_name):
+    try:
+        params = app.client.cmds.get_device(device_name)
+    except:
+        print("Device not found")
+        params = None
+
+    return render_template('device.html', params=params)
 
 if __name__ == "__main__":
     app.run(debug=True)

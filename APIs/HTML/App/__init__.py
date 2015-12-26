@@ -6,7 +6,7 @@ class ServerApp(Flask):
 
     def __init__(self, *args, **kwargs):
         super(ServerApp, self).__init__(*args, **kwargs)
-        client = KClient('127.0.0.1', verbose=True)
+        self.client = KClient('127.0.0.1', verbose=False)
         
 
 app = ServerApp(__name__)
