@@ -15,13 +15,13 @@ from os import path
 from setuptools import setup
 from setuptools.command.build_ext import build_ext as _build_ext
 
-class build_ext(_build_ext):
-    def finalize_options(self):
-        _build_ext.finalize_options(self)
-        # Prevent numpy from thinking it is still in its setup process:
-        __builtins__.__NUMPY_SETUP__ = False
-        import numpy
-        self.include_dirs.append(numpy.get_include())
+#class build_ext(_build_ext):
+#    def finalize_options(self):
+#        _build_ext.finalize_options(self)
+#        # Prevent numpy from thinking it is still in its setup process:
+#        __builtins__.__NUMPY_SETUP__ = False
+#        import numpy
+#        self.include_dirs.append(numpy.get_include())
 
 here = path.abspath(path.dirname(__file__))
 
@@ -35,7 +35,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.0.4',
+    version='1.0.5',
 
     description='Client for Koheron TCP server',
     long_description=long_description,
@@ -86,8 +86,8 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[],
     
-    cmdclass={'build_ext':build_ext},
-    setup_requires=['numpy'],
+#    cmdclass={'build_ext':build_ext},
+#    setup_requires=['numpy'],
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow

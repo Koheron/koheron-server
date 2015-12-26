@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% block head %}
+    <title>{% block title %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta name="author" content="">
+    <meta charset="utf-8">
+
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/main.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/syntax.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/media.css') }}" media="all and (max-width: 1024px)">
+
+    {% endblock %}
+  </head>
+
+  <body>
+      {% block content %}
+        {% if params is none %}
+            Device not found   
+        {% else %}      
+          Name: {{ params.name }} <br>
+          ID: {{ params.id }}
+          <br><br>
+          Operations: <br>
+          {% for operation in params.operations %}
+            <li>{{loop.index - 1}}: {{ operation }}</li>
+          {% endfor %}
+        {% endif %}
+      {% endblock %}
+      {% include 'footer.html' %}
+
+    {% block js_footer %}
+     
+    {% endblock %}
+  </body>
+</html>
