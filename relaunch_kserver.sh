@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# Relaunch the server if it goes down.
+#
+# (c) Koheron
+
 # Duration between 2 consecutives checks
 check_interval=5
 

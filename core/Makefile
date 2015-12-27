@@ -15,11 +15,6 @@ ADD_DEBUG_FLAGS = false
 # Middleware include path
 MIDWARE_INC_PATH=middleware
 
-ARM_PROCESSOR=cortex-a9
-
-DEFINES = -DDEBUG_KSERVER -D_GLIBCXX_USE_NANOSLEEP
-#DEFINES = -DRELEASE_KSERVER -D_GLIBCXX_USE_NANOSLEEP
-
 # --------------------------------------------------------------
 # Objects to build
 # --------------------------------------------------------------
@@ -81,15 +76,18 @@ CCPP=$(CROSS_COMPILE)g++
 # GCC compiling & linking flags
 # --------------------------------------------------------------
 
+DEFINES = -DDEBUG_KSERVER 
+#DEFINES = -DRELEASE_KSERVER
+
 CFLAGS= -Wall -Werror -I$(MIDWARE_INC_PATH) -I$(MIDWARE_INC_PATH)/libraries $(DEFINES)
 
 # Architecture specific flags
 ifeq ($(TARGET_HOST),armhf)
-  ARM_FLAGS = -march=armv7-a -mtune=$(ARM_PROCESSOR) -mfpu=vfpv3 -mfloat-abi=hard
+  ARM_FLAGS = -march=armv7-a -mtune=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard
   CFLAGS += $(ARM_FLAGS)
 else ifeq ($(TARGET_HOST),armel)
-  ARM_FLAGS = -march=armv7-a -mtune=$(ARM_PROCESSOR)
-  CFLAGS += $(ARM_FLAGS)
+  ARM_FLAGS = -march=armv7-a -mtune=cortex-a9
+  CFLAGS += $(ARM_FLAGS) -D_GLIBCXX_USE_NANOSLEEP
 else ifeq ($(TARGET_HOST),local)
   CFLAGS += -march=native
 endif
