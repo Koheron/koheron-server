@@ -54,7 +54,7 @@ $ sudo tmp/server/kserverd -c kserver.conf
 Check whether the daemon is launched
 
 ```
-$ ps -A | grep kserverd
+$ pgrep kserverd
 ```
 
 #### On a remote machine
