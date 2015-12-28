@@ -69,8 +69,13 @@ else ifeq ($(TARGET_HOST),local)
 endif
 
 # Main GCC executable (used for compiling and linking)
+
 CC=$(CROSS_COMPILE)gcc
 CCPP=$(CROSS_COMPILE)g++
+
+# Use Link Time Optimization
+#CC=$(CROSS_COMPILE)gcc -flto
+#CCPP=$(CROSS_COMPILE)g++ -flto
 
 # --------------------------------------------------------------
 # GCC compiling & linking flags
@@ -81,9 +86,12 @@ DEFINES = -DDEBUG_KSERVER
 
 CFLAGS= -Wall -Werror -I$(MIDWARE_INC_PATH) -I$(MIDWARE_INC_PATH)/libraries $(DEFINES)
 
+MFPU = vfpv3 # Better
+#MFPU = neon # Less good
+
 # Architecture specific flags
 ifeq ($(TARGET_HOST),armhf)
-  ARM_FLAGS = -march=armv7-a -mtune=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard
+  ARM_FLAGS = -march=armv7-a -mtune=cortex-a9 -mfpu=$(MFPU) -mfloat-abi=hard
   CFLAGS += $(ARM_FLAGS)
 else ifeq ($(TARGET_HOST),armel)
   ARM_FLAGS = -march=armv7-a -mtune=cortex-a9
@@ -101,7 +109,7 @@ ifeq ($(ADD_DEBUG_FLAGS),true)
     CFLAGS +=-mapcs-frame
   endif
 else
-  CFLAGS += -O3
+  CFLAGS += -Os
 endif
 
 CPPFLAGS=$(CFLAGS) -std=c++11 -pthread
