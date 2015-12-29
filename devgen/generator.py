@@ -89,7 +89,7 @@ class Generator:
         self._makefile_gen('core/Makefile')
           
         # Call g++
-        print "Compile ..."
+        print "Compiling ..."
         
         if self.host != None:
             subprocess.check_call("make -C tmp/server TARGET_HOST=" + self.host + " clean all", shell=True)

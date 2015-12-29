@@ -5,6 +5,9 @@
 #
 # (c) Koheron
 
+CPUS = $(shell nproc 2> /dev/null || echo 1)
+MAKEFLAGS += --jobs=$(CPUS)
+
 # TARGET_HOST:
 #    - local For compilation on local machine
 #    - armhf For compilation on armhf architecture
