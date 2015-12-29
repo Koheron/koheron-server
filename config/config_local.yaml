@@ -12,5 +12,5 @@ host: local
 devices:
     - ../tmp/zynq-sdk/middleware/tests/tests.hpp
     - ../tmp/zynq-sdk/middleware/tests/tuple_tests.hpp
-    - ../tmp/zynq-sdk/middleware/tests/eigen_tests.hpp
+    #- ../tmp/zynq-sdk/middleware/tests/eigen_tests.hpp
 

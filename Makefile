@@ -7,6 +7,7 @@ CONFIG=config_local.yaml
 INTERNAL=True
 
 DOCKER=False
+USE_EIGEN = False
 
 ifeq ($(INTERNAL),True)
 MIDWARE_PATH = tmp/zynq-sdk/middleware
@@ -17,11 +18,13 @@ endif
 all: kserverd
 
 libraries:
+ifeq ($(USE_EIGEN),True)
 	wget -P tmp bitbucket.org/eigen/eigen/get/3.2.6.tar.gz
 	cd tmp && tar -zxvf 3.2.6.tar.gz
 	mkdir -p $(MIDWARE_PATH)/libraries
 	cp -r tmp/eigen-eigen-c58038c56923/Eigen $(MIDWARE_PATH)/libraries
-
+endif
+    
 ifeq ($(INTERNAL),True)
 middleware:
 	mkdir tmp
