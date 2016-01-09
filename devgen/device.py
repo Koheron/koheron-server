@@ -178,8 +178,7 @@ class Operations:
         return False
         
 class Objects:
-    """ Objects from external API
-    """
+    """ Objects from external API """
     
     def __init__(self, objects):
         if objects == None:
@@ -196,8 +195,7 @@ class Objects:
         return self._objects[index]
         
 class Includes:
-    """ API files to inlude
-    """
+    """ API files to include """
     
     def __init__(self, includes):
         if includes == None:
