@@ -8,9 +8,6 @@ host: armel
 devices:
     # Core devices
     - ../devices/dev_mem.yaml
-    - ../tmp/zynq-sdk/middleware/drivers/xadc.hpp
-    - ../tmp/zynq-sdk/middleware/drivers/gpio.hpp
-    - ../tmp/zynq-sdk/middleware/drivers/oscillo.hpp
     
     # Misc
     - ../tmp/zynq-sdk/middleware/tests/tests.hpp
