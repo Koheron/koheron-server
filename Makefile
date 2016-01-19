@@ -4,7 +4,7 @@
 CONFIG=config_local.yaml
 
 # To build within the repository
-INTERNAL=True
+INTERNAL=False
 
 DOCKER=False
 USE_EIGEN = False
