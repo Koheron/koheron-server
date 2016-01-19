@@ -37,10 +37,10 @@ RUN pip install -r requirements.txt
 # Compile kserverd
 # ---------------------------------------
 
-RUN make DOCKER=True CONFIG=config_local.yaml clean all
-RUN make DOCKER=True CONFIG=config_armel.yaml clean all
-RUN make DOCKER=True CONFIG=config_armhf.yaml clean all
-RUN make DOCKER=True CONFIG=config_toolchain.yaml clean all
+RUN make DOCKER=True INTERNAL=True CONFIG=config_local.yaml clean all
+RUN make DOCKER=True INTERNAL=True CONFIG=config_armel.yaml clean all
+RUN make DOCKER=True INTERNAL=True CONFIG=config_armhf.yaml clean all
+RUN make DOCKER=True INTERNAL=True CONFIG=config_toolchain.yaml clean all
 
 # ---------------------------------------
 # Compile CLI
@@ -55,7 +55,7 @@ RUN make -C cli CROSS_COMPILE=arm-linux-gnueabi- clean all
 # ---------------------------------------
 
 # Compile server in local
-#RUN make DOCKER=True CONFIG=config_local.yaml clean all
+#RUN make DOCKER=True INTERNAL=True CONFIG=config_local.yaml clean all
 #RUN make -C cli TARGET_HOST=local clean all
 
 # Launch kserver
