@@ -12,7 +12,7 @@ RUN apt-get update
 RUN apt-get -y install gcc-arm-linux-gnueabihf \
                        g++-arm-linux-gnueabihf \
                        gcc-arm-linux-gnueabi \
-                       g++-arm-linux-gnueabi
+                       g++-arm-linux-gnueabi \
                        make \
                        wget \
                        git \
