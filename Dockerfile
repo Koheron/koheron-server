@@ -7,25 +7,18 @@ ENV work_dir /code
 # Install dependencies
 # ---------------------------------------
 
-RUN apt-get -y install software-properties-common
-RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
 RUN apt-get update
 
-RUN apt-get -y install gcc-4.8 g++-4.8
-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 60 \
-                        --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
-                        
-RUN apt-get -y install gcc-arm-linux-gnueabihf
-RUN apt-get -y install g++-arm-linux-gnueabihf
-RUN apt-get -y install gcc-arm-linux-gnueabi
-RUN apt-get -y install g++-arm-linux-gnueabi
-
-RUN apt-get -y install make
-RUN apt-get -y install wget
-RUN apt-get -y install git
-
-# Install virtualenv
-RUN apt-get -y install python-pip python-dev build-essential python-virtualenv
+RUN apt-get -y install gcc-arm-linux-gnueabihf \
+                       g++-arm-linux-gnueabihf \
+                       gcc-arm-linux-gnueabi \
+                       g++-arm-linux-gnueabi
+                       make \
+                       wget \
+                       git \
+                       python-pip \
+                       python-dev \
+                       build-essential
 RUN pip install --upgrade pip
 
 WORKDIR $work_dir/
