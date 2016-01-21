@@ -81,7 +81,6 @@ class Generator:
         print os.path.join(self.src_dir, 'middleware')
         
         copytree(self.middleware_path, os.path.join(self.src_dir, 'middleware'))
-        os.remove(os.path.join(self.src_dir, 'middleware/README.md'))
         copyfile('core/main.cpp', os.path.join(self.src_dir, 'main.cpp'))
 
         # Generate Makefile

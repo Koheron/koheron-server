@@ -10,6 +10,6 @@ devices:
     - ../devices/dev_mem.yaml
     
     # Misc
-    - ../tmp/zynq-sdk/middleware/tests/tests.hpp
-    - ../tmp/zynq-sdk/middleware/misc/init_tasks.hpp
+    - ../middleware/tests/tests.hpp
+    - ../middleware/misc/init_tasks.hpp
 
