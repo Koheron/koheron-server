@@ -1,5 +1,4 @@
-/// @file tests.hpp
-/// (c) Koheron 2014-2015 
+/// (c) Koheron
 
 #ifndef __TESTS_TEST_HPP__
 #define __TESTS_TEST_HPP__
@@ -63,6 +62,7 @@ class Tests
   
     // Data buffers
     Klib::KVector<float> data;
+    std::array<uint32_t, 10> data_std_array;
     
 }; // class Tests
 

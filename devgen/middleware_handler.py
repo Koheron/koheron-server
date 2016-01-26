@@ -581,7 +581,8 @@ class FragmentsGenerator:
                     type_base = operation["prototype"]["ret_type"].split('<')[0].strip()
                     
                     if (type_base == "Klib::KVector" 
-                        or type_base == "std::vector" 
+                        or type_base == "std::vector"
+                        or type_base == "std::array" 
                         or type_base == "std::tuple"):
                         frag.append("    return SEND<" + template + ">(" 
                                     + self._build_func_call(operation) + ");\n")
