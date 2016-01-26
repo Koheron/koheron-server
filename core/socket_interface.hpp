@@ -106,12 +106,12 @@ class SocketInterface
   }
   
 #define SEND_STD_ARRAY(sock_interf)                     \
-  template<typename T>                                  \
-  int sock_interf::Send(const std::array<T>& vect)      \
+  template<typename T, std::size_t N>                   \
+  int sock_interf::Send(const std::array<T, N>& vect)   \
   {                                                     \
-      return SendArray<T>(vect.data(), vect.size());    \
+      return SendArray<T>(vect.data(), N);              \
   }
-  
+
 // http://stackoverflow.com/questions/1374468/stringstream-string-and-char-conversion-confusion
 #define SEND_TUPLE(sock_interf)                         \
   template<typename... Tp>                              \
