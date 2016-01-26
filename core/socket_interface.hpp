@@ -110,7 +110,7 @@ class SocketInterface
   }
   
 #define SEND_STD_ARRAY(sock_interf)                     \
-  template<typename T, std::size_t N>                   \
+  template<typename T, size_t N>                        \
   int sock_interf::Send(const std::array<T, N>& vect)   \
   {                                                     \
       return SendArray<T>(vect.data(), N);              \

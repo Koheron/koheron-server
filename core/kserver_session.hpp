@@ -12,6 +12,7 @@
 
 #include <string>
 #include <ctime>
+#include <array>
 
 #include "commands.hpp"
 #include "devices_manager.hpp"
@@ -62,16 +63,16 @@ class Session
     
     // --- Accessors
     
-    /// @brief Display the log of the session
+    /// Display the log of the session
     void DisplayLog(void);
 
-    /// @brief Number of requests received during the current session
+    /// Number of requests received during the current session
     inline unsigned int RequestNum(void) const
     {
         return requests_num;
     }
 
-    /// @brief Number of requests errors during the current session
+    /// Number of requests errors during the current session
     inline unsigned int ErrorNum(void) const
     {
         return errors_num;
@@ -92,7 +93,7 @@ class Session
     // --- Receive 
     // For large amount of data transfer
     
-    /// @brief Receive data from client with handshaking
+    /// Receive data from client with handshaking
     /// @buff_size Size of the buffer to receive
     /// @return Pointer to the data if success, NULL else
     ///
@@ -104,24 +105,22 @@ class Session
     /// 3) The client send the data buffer
     const uint32_t* RcvHandshake(uint32_t buff_size);
     
-    /// @brief Send scalar data
+    /// Send scalar data
     template<class T> int Send(const T& data);
     
-    /// @brief Send a C string
+    /// Send a C string
     /// @string The null-terminated string
     /// @return The number of bytes send if success, -1 if failure
     int SendCstr(const char* string);
     
-    /// @brief Send Array of size len
+    /// Send Arrays
     template<typename T> int SendArray(const T* data, unsigned int len);
     
-    /// @brief Send a KVector
     template<typename T> int Send(const Klib::KVector<T>& vect);
-    
-    /// @brief Send a std::vector
     template<typename T> int Send(const std::vector<T>& vect);
+    template<typename T, size_t N> int Send(const std::array<T, N>& vect);
     
-    /// @brief Send a std::tuple
+    /// Send a std::tuple
     template<typename... Tp> int Send(const std::tuple<Tp...>& t);
     
     // --- Internal use
@@ -260,6 +259,27 @@ int Session::Send(const std::vector<T>& vect)
 #if KSERVER_HAS_WEBSOCKET
       case WEBSOCK:
         return WEBSOCKET->template Send<T>(vect);
+#endif
+    }
+    
+    return -1;
+}
+
+template<typename T, size_t N>
+int Session::Send(const std::array<T, N>& vect)
+{
+    switch(sock_type) {
+#if KSERVER_HAS_TCP
+      case TCP:
+        return TCPSOCKET->template Send<T, N>(vect);
+#endif
+#if KSERVER_HAS_UNIX_SOCKET
+      case UNIX:
+        return UNIXSOCKET->template Send<T, N>(vect);
+#endif
+#if KSERVER_HAS_WEBSOCKET
+      case WEBSOCK:
+        return WEBSOCKET->template Send<T, N>(vect);
 #endif
     }
     
