@@ -3,10 +3,9 @@
 #ifndef __TESTS_TEST_HPP__
 #define __TESTS_TEST_HPP__
 
-#include "../drivers/dev_mem.hpp" // Unused but needed for now
-
 #include <array>
 
+#include <drivers/dev_mem.hpp> // Unused but needed for now
 #include <signal/kvector.hpp>
 
 //> \description Tests for KServer development

@@ -1,12 +1,7 @@
-/// @file listening_channel.cpp
+/// Implementation and specializations of 
+/// the class ListeningChannel in kserver.hpp
 ///
-/// @brief Implementation and specializations of 
-///        the class ListeningChannel in kserver.hpp
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 31/08/2015
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #include "kserver.hpp"
 
