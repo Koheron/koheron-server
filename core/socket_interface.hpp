@@ -87,6 +87,10 @@ class SocketInterface
     template<class T> int Send(const T& data);                          \
     template<typename T> int Send(const Klib::KVector<T>& vect);        \
     template<typename T> int Send(const std::vector<T>& vect);          \
+                                                                        \
+    template<typename T, std::size_t N>                                 \
+        int Send(const std::array<T, N>& vect);                         \
+                                                                        \
     int SendCstr(const char *string);                                   \
     template<class T> int SendArray(const T *data, unsigned int len);   \
     template<typename... Tp> int Send(const std::tuple<Tp...>& t);
