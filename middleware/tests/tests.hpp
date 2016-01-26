@@ -6,6 +6,8 @@
 
 #include "../drivers/dev_mem.hpp" // Unused but needed for now
 
+#include <array>
+
 #include <signal/kvector.hpp>
 
 //> \description Tests for KServer development
@@ -39,6 +41,9 @@ class Tests
     //> \io_type WRITE
     //> \param mean_
     void set_std_dev(float mean_);
+
+    //> \io_type READ
+    std::array<uint32_t, 10>& send_std_array();
     
     enum Status {
         CLOSED,

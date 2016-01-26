@@ -65,4 +65,15 @@ void Tests::set_std_dev(float std_dev_)
     std_dev = std_dev_;
 }
 
+std::array<uint32_t, 10>& send_std_array(Tests::)
+{
+    std::array<uint32_t, 10> data;
+    
+    for(unsigned int i=0; i<data.size(); i++) {
+        data[i] = i*i;
+    }
+
+    return data;
+}
+
 
