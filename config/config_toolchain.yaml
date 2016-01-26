@@ -11,5 +11,4 @@ devices:
     
     # Misc
     - ../middleware/tests/tests.hpp
-    - ../middleware/misc/init_tasks.hpp
 
