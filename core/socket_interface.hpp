@@ -1,11 +1,6 @@
-/// @file socket_interface.hpp
+/// Socket interface
 ///
-/// @brief Socket interface
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 15/08/2015
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #ifndef __SOCKET_INTERFACE_HPP__
 #define __SOCKET_INTERFACE_HPP__

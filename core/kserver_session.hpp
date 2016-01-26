@@ -1,11 +1,6 @@
-/// @file kserver_session.hpp
+/// Server session
 ///
-/// @brief Handle a KServer session
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 22/11/2014
-///
-/// (c) Koheron 2014
+/// (c) Koheron
 
 #ifndef __KSERVER_SESSION_HPP__
 #define __KSERVER_SESSION_HPP__

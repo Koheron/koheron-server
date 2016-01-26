@@ -1,11 +1,6 @@
-/// @file kserver_session.cpp
+/// Implementation of kserver_session.hpp
 ///
-/// @brief Implementation of kserver_session.hpp
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 22/11/2014
-///
-/// (c) Koheron 2014
+/// (c) Koheron
 
 #include "kserver_session.hpp"
 #include "websocket.hpp"
