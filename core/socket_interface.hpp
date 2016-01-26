@@ -12,6 +12,7 @@
 
 #include<string>
 #include<vector>
+#include<array>
 
 #include "config.hpp"
 #include "kserver.hpp"
@@ -104,6 +105,13 @@ class SocketInterface
       return SendArray<T>(vect.data(), vect.size());    \
   }
   
+#define SEND_STD_ARRAY(sock_interf)                     \
+  template<typename T>                                  \
+  int sock_interf::Send(const std::array<T>& vect)      \
+  {                                                     \
+      return SendArray<T>(vect.data(), vect.size());    \
+  }
+  
 // http://stackoverflow.com/questions/1374468/stringstream-string-and-char-conversion-confusion
 #define SEND_TUPLE(sock_interf)                         \
   template<typename... Tp>                              \
@@ -146,6 +154,7 @@ class TCPSocketInterface : public SocketInterface
 
 SEND_KVECTOR(TCPSocketInterface)
 SEND_STD_VECTOR(TCPSocketInterface)
+SEND_STD_ARRAY(TCPSocketInterface)
 SEND_TUPLE(TCPSocketInterface)
 SEND_SPECIALIZE(TCPSocketInterface)
 
@@ -204,6 +213,7 @@ class WebSocketInterface : public SocketInterface
 
 SEND_KVECTOR(WebSocketInterface)
 SEND_STD_VECTOR(WebSocketInterface)
+SEND_STD_ARRAY(WebSocketInterface)
 SEND_TUPLE(WebSocketInterface)
 SEND_SPECIALIZE(WebSocketInterface)
 
