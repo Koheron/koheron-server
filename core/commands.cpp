@@ -1,11 +1,6 @@
-/// @file commands.cpp
+/// Implementation of commands.hpp
 ///
-/// @brief Implementation of commands.hpp
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 11/01/2015
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #include "commands.hpp"
 

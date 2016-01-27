@@ -1,11 +1,6 @@
-/// @file main.cpp
+/// Main file for Server
 ///
-/// @brief Main file for KServer
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 12/11/2014
-///
-/// (c) Koheron 2014
+/// (c) Koheron
 
 #include "core/kserver_defs.hpp"
 
@@ -55,14 +50,14 @@ void parse_options(int argc, char **argv,
     int cmdx = 0;
     int opt_ch;
 
-    while((opt_ch = getopt_long(argc, argv, opt_str, 
+    while ((opt_ch = getopt_long(argc, argv, opt_str, 
                                 lopts, &cmdx)) != EOF) {
-        switch(opt_ch) {
+        switch (opt_ch) {
           case 'v':
             config->verbose = 1;
             break;
           case 'c':
-            if(config->load_file(optarg) < 0) {
+            if (config->load_file(optarg) < 0) {
                 fprintf(stderr, "Cannot load configuration file %s\n", optarg);
                 exit (EXIT_FAILURE);
             }
@@ -104,11 +99,11 @@ void daemonize()
     //set new session
     pid_t sid = setsid();
     
-    if(sid < 0)
+    if (sid < 0)
         exit(EXIT_FAILURE);
     
     // Change the current working directory to root.
-    if(chdir("/") < 0) {
+    if (chdir("/") < 0) {
         fprintf(stderr, "KServer: Cannot change current directory to root\n");
         exit(EXIT_FAILURE);
     }
@@ -132,7 +127,7 @@ int main(int argc, char **argv)
     parse_options(argc, argv, config);
     
 #if KSERVER_IS_DAEMON
-    if(config->daemon)
+    if (config->daemon)
         daemonize();
 #endif
 
@@ -141,8 +136,6 @@ int main(int argc, char **argv)
     server.Run();
 
     delete config;
-    
-    printf("Bye bye !!\n");
     
     // FIXME Not a clean way to terminate
     // But else the program doesn't close

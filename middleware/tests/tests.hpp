@@ -1,11 +1,11 @@
-/// @file tests.hpp
-/// (c) Koheron 2014-2015 
+/// (c) Koheron
 
 #ifndef __TESTS_TEST_HPP__
 #define __TESTS_TEST_HPP__
 
-#include "../drivers/dev_mem.hpp" // Unused but needed for now
+#include <array>
 
+#include <drivers/dev_mem.hpp> // Unused but needed for now
 #include <signal/kvector.hpp>
 
 //> \description Tests for KServer development
@@ -39,6 +39,9 @@ class Tests
     //> \io_type WRITE
     //> \param mean_
     void set_std_dev(float mean_);
+
+    //> \io_type READ
+    std::array<uint32_t, 10>& send_std_array();
     
     enum Status {
         CLOSED,
@@ -58,6 +61,7 @@ class Tests
   
     // Data buffers
     Klib::KVector<float> data;
+    std::array<uint32_t, 10> data_std_array;
     
 }; // class Tests
 

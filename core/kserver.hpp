@@ -1,11 +1,6 @@
-/// @file kserver.hpp
+/// Server main class
 ///
-/// @brief KServer main class
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 22/11/2014
-///
-/// (c) Koheron 2014
+/// (c) Koheron
 
 #ifndef __KSERVER_HPP__
 #define __KSERVER_HPP__
@@ -121,17 +116,15 @@ class ListeningChannel
 template<int sock_type>
 void ListeningChannel<sock_type>::detach_worker()
 {
-    if(listen_fd >= 0) {
+    if (listen_fd >= 0)
         comm_thread.detach();
-    }
 }
 
 template<int sock_type>
 void ListeningChannel<sock_type>::join_worker()
 {
-    if(listen_fd >= 0) {
+    if (listen_fd >= 0)
         comm_thread.join();
-    }
 }
 #endif // KSERVER_HAS_THREADS
 

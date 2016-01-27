@@ -1,11 +1,6 @@
-/// @file kdevice.hpp
+/// Server devices
 ///
-/// @brief KServer devices
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 22/11/2014
-///
-/// (c) Koheron 2014
+/// (c) Koheron
 
 #ifndef __KDEVICE_HPP__
 #define __KDEVICE_HPP__
@@ -42,7 +37,7 @@ public:
 
 	template<class Dev, device_t dev_kind>
 	KDevice<Dev, dev_kind>* cast() {
-	    if(Dev::__kind != kind)
+	    if (Dev::__kind != kind)
 	        return NULL;
 	    else
             return static_cast<KDevice<Dev, dev_kind>*>(this);

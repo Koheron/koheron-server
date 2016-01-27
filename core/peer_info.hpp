@@ -1,11 +1,6 @@
-/// @file peer_info.hpp
+///  Client infos
 ///
-/// @brief Client infos
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 30/11/2014
-///
-/// (c) Koheron 2014
+/// (c) Koheron
 
 #ifndef __PEER_INFO_HPP__
 #define __PEER_INFO_HPP__

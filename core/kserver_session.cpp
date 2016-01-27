@@ -1,11 +1,6 @@
-/// @file kserver_session.cpp
+/// Implementation of kserver_session.hpp
 ///
-/// @brief Implementation of kserver_session.hpp
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 22/11/2014
-///
-/// (c) Koheron 2014
+/// (c) Koheron
 
 #include "kserver_session.hpp"
 #include "websocket.hpp"
@@ -38,7 +33,7 @@ Session::Session(KServerConfig *config_, int comm_fd_,
 {
     assert(sock_type < sock_type_num);
 
-    switch(sock_type) {
+    switch (sock_type) {
 #if KSERVER_HAS_TCP
       case TCP: {
         socket = new TCPSocketInterface(config_, &session_manager.kserver, 
@@ -68,7 +63,7 @@ Session::~Session()
     if(socket == nullptr)
         return;
 
-    switch(sock_type) {
+    switch (sock_type) {
 #if KSERVER_HAS_TCP
       case TCP:
         delete TCPSOCKET;
@@ -97,7 +92,7 @@ int Session::init_session(void)
     requests_num = 0;
     start_time = std::time(nullptr);
     
-    switch(sock_type) {
+    switch (sock_type) {
 #if KSERVER_HAS_TCP
       case TCP:
         return TCPSOCKET->init();
@@ -117,7 +112,7 @@ int Session::init_session(void)
 
 int Session::exit_session(void)
 {
-    switch(sock_type) {
+    switch (sock_type) {
 #if KSERVER_HAS_TCP
       case TCP:
         return TCPSOCKET->exit();
@@ -154,31 +149,31 @@ int Session::parse_input_buffer(void)
 	
     // Split the buffer replacing '\n' by '\0' 
     // and set a pointer on the following character
-    while(1) {        
-        if(buff_str[i] == '\0') {	    
-            if(i>0) {
+    while (1) {        
+        if (buff_str[i] == '\0') {	    
+            if (i>0) {
                 assert((buff_str[i-1] != '\n' && strlen(remain_ptr) != 0) ||
                        (buff_str[i-1] == '\0' && strlen(remain_ptr) == 0)    );
             }
 	    
             goto exit_loop;
         }
-        else if(get_dev_num) {
+        else if (get_dev_num) {
             // Get device number
             unsigned int cnt_dev = 0;
 	        
-            while(1) {
-                if(cnt_dev >= N_CHAR_DEV) {
+            while (1) {
+                if (cnt_dev >= N_CHAR_DEV) {
                     syslog_ptr->print(SysLog::CRITICAL,
                                       "Buffer dev_num_str overflow\n");
                     cmd.parsing_err = 1;
                     break;
                 }
 	            
-                if(buff_str[cnt_dev+i] == '\0') {
+                if (buff_str[cnt_dev+i] == '\0') {
                     goto exit_loop;
                 }
-                else if(buff_str[cnt_dev+i] == '|') {
+                else if (buff_str[cnt_dev+i] == '|') {
                     dev_num_str[cnt_dev] = '\0';
                     cnt_dev++;
                     break;
@@ -193,18 +188,18 @@ int Session::parse_input_buffer(void)
             // Get operation number
             unsigned int cnt_op = 0;
 	        
-            while(1) {
-                if(cnt_op >= N_CHAR_OP) {
+            while (1) {
+                if (cnt_op >= N_CHAR_OP) {
                     syslog_ptr->print(SysLog::CRITICAL, 
                                       "Buffer op_num_str overflow\n");
                     cmd.parsing_err = 1;
                     break;
                 }
 	        
-                if(buff_str[cnt_op+cnt_dev+i] == '\0') {
+                if (buff_str[cnt_op+cnt_dev+i] == '\0') {
                     goto exit_loop;
                 }
-                else if(buff_str[cnt_op+cnt_dev+i] == '|') {
+                else if (buff_str[cnt_op+cnt_dev+i] == '|') {
                     op_num_str[cnt_op] = '\0';
                     cnt_op++; 
                     break;
@@ -216,7 +211,7 @@ int Session::parse_input_buffer(void)
 	            
             cmd.operation = (uint32_t) strtoul(op_num_str, NULL, 10);
 	        
-            if(cmd.device < device_num) {
+            if (cmd.device < device_num) {
                 cmd.buffer = &buff_str[i + cnt_dev + cnt_op];
             } else {
                 syslog_ptr->print(SysLog::ERROR, "Unknown device number %u\n",
@@ -227,7 +222,7 @@ int Session::parse_input_buffer(void)
             get_dev_num = 0;
             i += cnt_dev + cnt_op;
         } 
-        else if(buff_str[i] == '\n') {
+        else if (buff_str[i] == '\n') {
             buff_str[i] = '\0';
 	        
             syslog_ptr->print(SysLog::DEBUG, "[R@%u] %s for device #%u\n", 
@@ -256,27 +251,26 @@ exit_loop:
     assert(strlen(remain_ptr) + 1 <= 2 * KSERVER_READ_STR_LEN);
     strcpy(remain_str, remain_ptr);
 	    
-    if(cmd_list.size() == 0) { // Didn't receive a full request	    
+    if (cmd_list.size() == 0) // Didn't receive a full request	    
         return 1;
-    }
 	
     return 0;
 }
 
 void Session::execute_cmds()
 {
-    for(unsigned int i=0; i<cmd_list.size(); i++) {
+    for (unsigned int i=0; i<cmd_list.size(); i++) {
 //        printf("Command #%u\n",i);
 //        cmd_list[i].print();
 		
-        if(cmd_list[i].parsing_err == 1) {
+        if (cmd_list[i].parsing_err == 1) {
             cmd_list[i].status = exec_skip;
             errors_num++;
         } else {       
             int exec_status 
                 = session_manager.dev_manager.Execute(cmd_list[i]);
             
-            if(exec_status < 0) {
+            if (exec_status < 0) {
                 cmd_list[i].status = exec_err;
                 errors_num++;
             } else {
@@ -288,17 +282,16 @@ void Session::execute_cmds()
 
 int Session::Run()
 {
-    if(init_session() < 0) {
+    if (init_session() < 0)
         return -1;
-    }
 	
-    while(!session_manager.kserver.exit_comm.load()) {
+    while (!session_manager.kserver.exit_comm.load()) {
         PERF_TIC(READY_TO_READ)
     
         // Read
         int err_read = -1;
         
-        switch(sock_type) {
+        switch (sock_type) {
 #if KSERVER_HAS_TCP
           case TCP:
             err_read = TCPSOCKET->read_data(buff_str, remain_str);
@@ -316,9 +309,9 @@ int Session::Run()
 #endif
         }
         
-        if(err_read == 1) {
+        if (err_read == 1) {
             break;
-        } else if(err_read < 0) {
+        } else if (err_read < 0) {
             exit_session();
             return err_read;
         }
@@ -326,7 +319,7 @@ int Session::Run()
         PERF_TIC(PARSE)
  
         // Parse and execute
-        if(parse_input_buffer() == 1) { // Request not complete
+        if (parse_input_buffer() == 1) { // Request not complete
             continue;
         } else {
             // TODO (TV, 20/09/2015) 
@@ -345,7 +338,7 @@ int Session::Run()
 
 const uint32_t* Session::RcvHandshake(uint32_t buff_size)
 {
-    switch(sock_type) {
+    switch (sock_type) {
 #if KSERVER_HAS_TCP
       case TCP:
         return TCPSOCKET->RcvHandshake(buff_size);
@@ -365,7 +358,7 @@ const uint32_t* Session::RcvHandshake(uint32_t buff_size)
 
 int Session::SendCstr(const char* string)
 {
-    switch(sock_type) {
+    switch (sock_type) {
 #if KSERVER_HAS_TCP
       case TCP:
         return TCPSOCKET->SendCstr(string);

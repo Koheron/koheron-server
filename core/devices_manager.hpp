@@ -1,11 +1,6 @@
-/// @file devices_manager.hpp
+/// Server devices manager
 ///
-/// @brief KServer devices manager
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 24/11/2014
-///
-/// (c) Koheron 2014
+/// (c) Koheron
 
 #ifndef __DEVICES_MANAGER_HPP__
 #define __DEVICES_MANAGER_HPP__
@@ -46,7 +41,6 @@ KS_dev_status_desc = {{
 class KServer;
 struct Command;
 
-/// @brief Manage the KServer devices
 class DeviceManager
 {
   public:
@@ -56,32 +50,32 @@ class DeviceManager
     
     int Init();
 
-    /// @brief Start device
+    /// Start device
     int StartDev(device_t dev);
 
-    /// @brief Start all devices
+    /// Start all devices
     /// @return 0 if success, -1 if failure
     int StartAll(void);
 
-    /// @brief Stop device
+    /// Stop device
     void StopDev(device_t dev);
 
-    /// @brief Reset all devices
+    /// Reset all devices
     void Reset(void);
 
-    /// @brief Execute a command
+    /// Execute a command
     int Execute(const Command &cmd);
 
-    /// @brief Return true if the device is already started
+    /// Return true if the device is already started
     bool IsStarted(device_t dev) const;
 
-    /// @brief Set a Device to started
+    /// Set a Device to started
     void SetDevStarted(device_t dev);
 
-    /// @brief Return true if a device failed to open/initialize
+    /// Return true if a device failed to open/initialize
     bool IsFailed(device_t dev);
 
-    /// @brief Device status
+    /// Device status
     KS_device_status GetStatus(device_t dev);
     
     Klib::DevMem& GetDevMem() {return dev_mem;}

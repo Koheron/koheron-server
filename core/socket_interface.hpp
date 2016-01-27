@@ -1,17 +1,13 @@
-/// @file socket_interface.hpp
+/// Socket interface
 ///
-/// @brief Socket interface
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 15/08/2015
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #ifndef __SOCKET_INTERFACE_HPP__
 #define __SOCKET_INTERFACE_HPP__
 
-#include<string>
-#include<vector>
+#include <string>
+#include <vector>
+#include <array>
 
 #include "config.hpp"
 #include "kserver.hpp"
@@ -86,6 +82,10 @@ class SocketInterface
     template<class T> int Send(const T& data);                          \
     template<typename T> int Send(const Klib::KVector<T>& vect);        \
     template<typename T> int Send(const std::vector<T>& vect);          \
+                                                                        \
+    template<typename T, std::size_t N>                                 \
+        int Send(const std::array<T, N>& vect);                         \
+                                                                        \
     int SendCstr(const char *string);                                   \
     template<class T> int SendArray(const T *data, unsigned int len);   \
     template<typename... Tp> int Send(const std::tuple<Tp...>& t);
@@ -104,6 +104,13 @@ class SocketInterface
       return SendArray<T>(vect.data(), vect.size());    \
   }
   
+#define SEND_STD_ARRAY(sock_interf)                     \
+  template<typename T, size_t N>                        \
+  int sock_interf::Send(const std::array<T, N>& vect)   \
+  {                                                     \
+      return SendArray<T>(vect.data(), N);              \
+  }
+
 // http://stackoverflow.com/questions/1374468/stringstream-string-and-char-conversion-confusion
 #define SEND_TUPLE(sock_interf)                         \
   template<typename... Tp>                              \
@@ -146,6 +153,7 @@ class TCPSocketInterface : public SocketInterface
 
 SEND_KVECTOR(TCPSocketInterface)
 SEND_STD_VECTOR(TCPSocketInterface)
+SEND_STD_ARRAY(TCPSocketInterface)
 SEND_TUPLE(TCPSocketInterface)
 SEND_SPECIALIZE(TCPSocketInterface)
 
@@ -204,6 +212,7 @@ class WebSocketInterface : public SocketInterface
 
 SEND_KVECTOR(WebSocketInterface)
 SEND_STD_VECTOR(WebSocketInterface)
+SEND_STD_ARRAY(WebSocketInterface)
 SEND_TUPLE(WebSocketInterface)
 SEND_SPECIALIZE(WebSocketInterface)
 

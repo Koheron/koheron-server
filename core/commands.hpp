@@ -1,11 +1,6 @@
-/// @file commands.hpp
+/// Commands received by the server
 ///
-/// @brief Commands for KServer
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 22/11/2014
-///
-/// (c) Koheron 2014
+/// (c) Koheron
 
 #ifndef __COMMANDS_HPP__
 #define __COMMANDS_HPP__

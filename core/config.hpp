@@ -1,11 +1,8 @@
-/// @file config.hpp
+/// Server configuration 
+/// 
+/// Load and store configuration file content
 ///
-/// @brief Koheron server configuration
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 20/07/2015
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #ifndef __CONFIG_HPP__
 #define __CONFIG_HPP__

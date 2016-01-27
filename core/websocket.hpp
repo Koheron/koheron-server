@@ -1,11 +1,6 @@
-/// @file websocket.hpp
+/// Websocket protocol interface
 ///
-/// @brief Websockets for KServer
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 11/07/2015
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #ifndef __WEBSOCKET_HPP__
 #define __WEBSOCKET_HPP__
