@@ -1,11 +1,6 @@
-/// @file dev_definitions.hpp
+/// Generate devices definitions from device table
 ///
-/// @brief Generate devices definitions from device table
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 26/12/2014
-///
-/// (c) Koheron 2014
+/// (c) Koheron
 
 #ifndef __DEV_DEFINITIONS_HPP__
 #define __DEV_DEFINITIONS_HPP__

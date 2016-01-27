@@ -1,11 +1,6 @@
-/// @file config.cpp
+/// Implementation of config.hpp
 ///
-/// @brief Implementation of config.hpp
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 20/07/2015
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #include <fstream>
 #include <string>
@@ -40,7 +35,7 @@ char* KServerConfig::_get_source(char *filename)
 {
     std::ifstream t(filename);
     
-    if(!t) {
+    if (!t) {
         fprintf(stderr, "Cannot open file %s\n", filename);
         return nullptr;
     }
@@ -64,25 +59,22 @@ char* KServerConfig::_get_source(char *filename)
 // Check whether a field is set to "ON" or "OFF"
 int is_on(JsonValue value)
 {
-    if(value.getTag() != JSON_STRING) {
+    if (value.getTag() != JSON_STRING)
         return -1;
-    }
             
-    if(strcmp(value.toString(), "ON") == 0) {
+    if (strcmp(value.toString(), "ON") == 0)
         return 1;
-    } 
-    else if(strcmp(value.toString(), "OFF") == 0) {
+    else if (strcmp(value.toString(), "OFF") == 0)
         return 0;
-    } else {
+    else
         return -1;
-    }
 }
 
 int KServerConfig::_read_verbose(JsonValue value)
 {
     int status = is_on(value);
     
-    if(status < 0) {
+    if (status < 0) {
         fprintf(stderr, "Invalid field verbose\n");
         return -1;
     }
@@ -95,7 +87,7 @@ int KServerConfig::_read_tcp_nodelay(JsonValue value)
 {
     int status = is_on(value);
     
-    if(status < 0) {
+    if (status < 0) {
         fprintf(stderr, "Invalid field tcp_nodelay\n");
         return -1;
     }
@@ -108,7 +100,7 @@ int KServerConfig::_read_daemon(JsonValue value)
 {
     int status = is_on(value);
     
-    if(status < 0) {
+    if (status < 0) {
         fprintf(stderr, "Invalid field daemon\n");
         return -1;
     }
@@ -119,16 +111,16 @@ int KServerConfig::_read_daemon(JsonValue value)
 
 int KServerConfig::_read_log(JsonValue value)
 {
-    if(value.getTag() != JSON_OBJECT) {
+    if (value.getTag() != JSON_OBJECT) {
         fprintf(stderr, "Invalid field log\n");
         return -1;
     }
     
-    for(auto i : value) {
-        if(strcmp(i->key, "system_log") == 0) {
+    for (auto i : value) {
+        if (strcmp(i->key, "system_log") == 0) {
             int status = is_on(i->value);
         
-            if(status < 0) {
+            if (status < 0) {
                 fprintf(stderr, "Invalid field system_log\n");
                 return -1;
             }
@@ -145,35 +137,35 @@ int KServerConfig::_read_log(JsonValue value)
 
 int KServerConfig::_read_server(JsonValue value, server_t serv_type)
 {
-    if(value.getTag() != JSON_OBJECT) {
+    if (value.getTag() != JSON_OBJECT) {
         fprintf(stderr, "Invalid TCP field\n");
         return -1;
     }
     
     for (auto i : value) {
-        if(strcmp(i->key, "listen") == 0) {
-            if(i->value.getTag() != JSON_NUMBER) {
+        if (strcmp(i->key, "listen") == 0) {
+            if (i->value.getTag() != JSON_NUMBER) {
                 fprintf(stderr, "Invalid value in field listen\n");
                 return -1;
             }
             
-            if(serv_type == TCP_SERVER) {            
+            if (serv_type == TCP_SERVER) {            
                 tcp_port = i->value.toNumber();
             }
-            else if(serv_type == WEBSOCK_SERVER) {            
+            else if (serv_type == WEBSOCK_SERVER) {            
                 websock_port = i->value.toNumber();
             } else { // UNIXSOCK_SERVER
                 fprintf(stderr, "Unix socket don't have a listen port\n");
                 return -1;
             }
         }
-        else if(strcmp(i->key, "path") == 0) {
+        else if(strcmp (i->key, "path") == 0) {
             if(serv_type != UNIXSOCK_SERVER) {
                 fprintf(stderr, "Field path only valid for Unix socket\n");
                 return -1;
             }
             
-            if(i->value.getTag() != JSON_STRING) {
+            if (i->value.getTag() != JSON_STRING) {
                 fprintf(stderr, "Invalid value in field path\n");
                 return -1;
             }
@@ -181,21 +173,18 @@ int KServerConfig::_read_server(JsonValue value, server_t serv_type)
             memset(unixsock_path, 0, UNIX_SOCKET_PATH_LEN);
             strcpy(unixsock_path, i->value.toString());
         }        
-        else if(strcmp(i->key, "worker_connections") == 0) {
-            if(i->value.getTag() != JSON_NUMBER) {
+        else if (strcmp(i->key, "worker_connections") == 0) {
+            if (i->value.getTag() != JSON_NUMBER) {
                 fprintf(stderr, "Invalid value in field worker_connections\n");
                 return -1;
             }
             
-            if(serv_type == TCP_SERVER) {
+            if (serv_type == TCP_SERVER)
                 tcp_worker_connections = i->value.toNumber();
-            }
-            else if(serv_type == WEBSOCK_SERVER) {            
+            else if (serv_type == WEBSOCK_SERVER)         
                 websock_worker_connections = i->value.toNumber();
-            }
-            else if(serv_type == UNIXSOCK_SERVER) {            
+            else if (serv_type == UNIXSOCK_SERVER)        
                 unixsock_worker_connections = i->value.toNumber();
-            }
         } else {
             fprintf(stderr, "Unknown server key %s\n", i->key);
             return -1;
@@ -222,14 +211,14 @@ int KServerConfig::_read_unixsocket(JsonValue value)
 
 int KServerConfig::_read_addr_limits(JsonValue value)
 {
-    if(value.getTag() != JSON_OBJECT) {
+    if (value.getTag() != JSON_OBJECT) {
         fprintf(stderr, "Invalid addr_limits field\n");
         return -1;
     }
     
     for (auto i : value) {
-        if(strcmp(i->key, "up") == 0) {
-            if(i->value.getTag() != JSON_STRING) {
+        if (strcmp(i->key, "up") == 0) {
+            if (i->value.getTag() != JSON_STRING) {
                 fprintf(stderr, "Address limit up must be a string "
                                 "of the hexadecimal address number\n");
                 return -1;
@@ -237,8 +226,8 @@ int KServerConfig::_read_addr_limits(JsonValue value)
             
             addr_limit_up = (intptr_t)strtol(i->value.toString(), NULL, 0);
         }
-        else if(strcmp(i->key, "down") == 0) {
-            if(i->value.getTag() != JSON_STRING) {
+        else if (strcmp(i->key, "down") == 0) {
+            if (i->value.getTag() != JSON_STRING) {
                 fprintf(stderr, "Address limit down must be a string "
                                 "of the hexadecimal address number\n");
                 return -1;
@@ -257,7 +246,7 @@ int KServerConfig::_read_addr_limits(JsonValue value)
 
 void KServerConfig::_check_config()
 {
-    if(daemon) {
+    if (daemon) {
         // Desactivate verbose if run as a daemon
         // since stdout is not available
         verbose = false;
@@ -265,10 +254,9 @@ void KServerConfig::_check_config()
         // In daemon mode it is advisable to 
         // activate the syslog since this is the
         // main output for the program
-        if(!syslog) {
+        if (!syslog)
             printf("NOTICE: You should consider to activate "
                    "the syslog when running KServer as a daemon\n");
-        }
     }
 }
 
@@ -288,9 +276,8 @@ int KServerConfig::load_file(char *filename)
 {
     char *source = _get_source(filename);
     
-    if(source == nullptr) {
+    if (source == nullptr)
         return -1;
-    }
     
     char *endptr;
     JsonValue value;
@@ -304,53 +291,51 @@ int KServerConfig::load_file(char *filename)
         return -1;
     }
     
-    if(value.getTag() != JSON_OBJECT) {
+    if (value.getTag() != JSON_OBJECT) {
         fprintf(stderr, "Invalid configuration file\n");
         return -1;
     }
     
-    for(auto i : value) {
-        if(IS_VERBOSE) {
-            if(_read_verbose(i->value) < 0)
+    for (auto i : value) {
+        if (IS_VERBOSE) {
+            if (_read_verbose(i->value) < 0)
                 return -1;
         }
-        else if(IS_TCP_NODELAY) {
-            if(_read_tcp_nodelay(i->value) < 0)
+        else if (IS_TCP_NODELAY) {
+            if (_read_tcp_nodelay(i->value) < 0)
                 return -1;
         }
-        else if(IS_DAEMON) {
-            if(_read_daemon(i->value) < 0)
+        else if (IS_DAEMON) {
+            if (_read_daemon(i->value) < 0)
                 return -1;
         }
-        else if(IS_LOGS) {
-            if(_read_log(i->value) < 0)
+        else if (IS_LOGS) {
+            if (_read_log(i->value) < 0)
                 return -1;
         }
-        else if(IS_TCP) {
-            if(_read_tcp(i->value) < 0)
+        else if (IS_TCP) {
+            if (_read_tcp(i->value) < 0)
                 return -1;
         }
-        else if(IS_WEBSOCKET) {
-            if(_read_websocket(i->value) < 0)
+        else if (IS_WEBSOCKET) {
+            if (_read_websocket(i->value) < 0)
                 return -1;
         }
-        else if(IS_UNIX) {
-            if(_read_unixsocket(i->value) < 0)
+        else if (IS_UNIX) {
+            if (_read_unixsocket(i->value) < 0)
                 return -1;
         }
-        else if(IS_ADDR_LIMITS) {
-            if(_read_addr_limits(i->value) < 0)
+        else if (IS_ADDR_LIMITS) {
+            if (_read_addr_limits(i->value) < 0)
                 return -1;
-        }
-        else {
+        } else {
             fprintf(stderr, "Unknown field %s in configuration file\n", i->key);
             return -1;
         }
     }
     
-    if(verbose) {
+    if (verbose)
         show();
-    }
     
     _check_config();
     

@@ -1,11 +1,6 @@
-/// @file kdevice.cpp
+///  Implementation of kdevice.hpp
 ///
-/// @brief Implementation of kdevice.hpp
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 20/12/2014
-///
-/// (c) Koheron 2014
+/// (c) Koheron
 
 #include "kdevice.hpp"
 
@@ -20,7 +15,7 @@ namespace kserver {
       
 bool KDeviceAbstract::is_failed(void) 
 {
-    switch(kind) {
+    switch (kind) {
       case NO_DEVICE:
         return 0;
       case KSERVER:

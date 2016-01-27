@@ -1,11 +1,6 @@
-/// @file devices_manager.cpp
+/// Implementation of devices_manager.hpp
 ///
-/// @brief Implementation of devices_manager.hpp
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 24/11/2014
-///
-/// (c) Koheron 2014
+/// (c) Koheron
 
 #include "devices_manager.hpp"
 #include "kserver.hpp"
@@ -34,7 +29,7 @@ DeviceManager::~DeviceManager()
 int DeviceManager::Init()
 {
 #if KSERVER_HAS_DEVMEM
-    if(dev_mem.Open() < 0) {
+    if (dev_mem.Open() < 0) {
         kserver->syslog.print(SysLog::CRITICAL,
                               "Can't start DevMem\n");
         return -1;
@@ -61,24 +56,22 @@ int DeviceManager::StartDev(device_t dev)
     assert(dev < device_num);
 
     // If already started, nothing to do
-    if(is_started[dev]) {
+    if (is_started[dev])
         return 0;
-    }
 
-    if(dev == NO_DEVICE) {
+    if (dev == NO_DEVICE) {
         is_started[dev] = 1;
         return 0;
     }
     
-    if(dev == KSERVER) {
-        if(!is_started[dev]) {
+    if (dev == KSERVER)
+        if (!is_started[dev]) {
             kserver->syslog.print(SysLog::CRITICAL,
                                   "KServer must always be started !\n");
             return -1;   
         }
-    }
 
-    switch(dev) {
+    switch (dev) {
         // Automatic generation with X macro
         DEVICES_TABLE(EXPAND_AS_START_DEVICE)
 
@@ -89,7 +82,7 @@ int DeviceManager::StartDev(device_t dev)
 	
     assert(device_list.at(dev) != NULL);
 			
-    if(IsFailed(dev)) {
+    if (IsFailed(dev)) {
         kserver->syslog.print(SysLog::CRITICAL, "Failed to start %s\n", 
                               GET_DEVICE_NAME(dev).c_str() );
         return -1;
@@ -111,13 +104,11 @@ int DeviceManager::StartDev(device_t dev)
 
 int DeviceManager::Execute(const Command& cmd)
 { 
-    if(StartDev(cmd.device) < 0) {
+    if (StartDev(cmd.device) < 0)
         return -1;
-    }
 
-    if(cmd.device == 0) {
+    if (cmd.device == 0)
         return 0;
-    }
 
     assert(cmd.device < device_num);
     KDeviceAbstract *dev_abs = device_list[cmd.device];
@@ -161,9 +152,8 @@ void DeviceManager::SetDevStarted(device_t dev)
 bool DeviceManager::IsFailed(device_t dev)
 {
     // NO_DEVICE never fail
-    if(dev == NO_DEVICE) {
+    if (dev == NO_DEVICE)
         return 0;
-    }
 
     assert(dev < device_num);	
     assert(device_list.at(dev) != 0);
@@ -174,7 +164,7 @@ bool DeviceManager::IsFailed(device_t dev)
 // X Macro: Stop device
 #define EXPAND_AS_STOP_DEVICE(num, name, operations ...)       \
         case num: {                                            \
-            if(is_started[num]) {                              \
+            if (is_started[num]) {                             \
                 delete static_cast< name *>(device_list[num]); \
                 is_started[num] = 0;                           \
             }                                                  \
@@ -196,7 +186,7 @@ void DeviceManager::StopDev(device_t dev)
     // Therefore, we cast to the appropriate KDevice before
     // deleting:
     // delete ( dev_name *) device_list[dev];
-    switch(dev) {
+    switch (dev) {
       // Automatic generation with X macro
       DEVICES_TABLE(EXPAND_AS_STOP_DEVICE)
 
@@ -212,9 +202,8 @@ void DeviceManager::Reset(void)
 #endif
 
     // KServer is never reseted
-    for(unsigned int i=2; i<device_num; i++) {
+    for (unsigned int i=2; i<device_num; i++)
         StopDev((device_t)i);
-    }
 }
 
 int DeviceManager::StartAll(void)
@@ -227,11 +216,9 @@ int DeviceManager::StartAll(void)
 
     // Maybe not the most efficient implementation
     // But not a speed critical function
-    for(unsigned int i=0; i<device_num; i++) {
-        if(StartDev((device_t)i) < 0) {
+    for (unsigned int i=0; i<device_num; i++)
+        if (StartDev((device_t)i) < 0)
             ret = -1;
-        }
-    }
 		
     return ret;
 }
@@ -240,21 +227,18 @@ KS_device_status DeviceManager::GetStatus(device_t dev)
 {
     // NO_DEVICE and KSERVER are always on
     // and never fail
-    if(dev==0 || dev==1) {
+    if (dev==0 || dev==1)
         return DEV_ON;
-    }
 
     assert(dev < device_num);
 
-    if(!is_started[dev]) {
+    if (!is_started[dev])
         return DEV_OFF;
-    }
 	
-    if(IsFailed(dev)) {
+    if (IsFailed(dev))
         return DEV_FAIL;
-    } else {
+    else
         return DEV_ON;
-    }
 }
 
 } // namespace kserver
