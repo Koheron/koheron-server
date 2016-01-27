@@ -1,11 +1,6 @@
-/// @file peer_info.cpp
+/// Implementation of peer_info.hpp
 ///
-/// @brief Implementation of peer_info.hpp
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 30/11/2014
-///
-/// (c) Koheron 2014
+/// (c) Koheron
 
 #include "peer_info.hpp"
 
@@ -17,14 +12,14 @@ namespace kserver {
 
 void PeerInfo::__build(struct sockaddr* sock_)
 {
-    if(sock_ == nullptr) {
+    if (sock_ == nullptr) {
         ip_family = 0;
         strcpy(ip_str,"");
         port = 0;
     } else {        
         ip_family = sock_->sa_family;
 
-        if(ip_family == AF_INET) {
+        if (ip_family == AF_INET) {
             struct sockaddr_in *s = (struct sockaddr_in *)&sock_;
             port = ntohs(s->sin_port);
             inet_ntop(AF_INET, &s->sin_addr, ip_str, sizeof ip_str);
@@ -40,7 +35,7 @@ PeerInfo::PeerInfo(int comm_fd)
 {
     memset(ip_str, 0, INET6_ADDRSTRLEN);
 
-    if(comm_fd == -1) {
+    if (comm_fd == -1) {
         __build(nullptr);
     } else {
         // Get client informations
@@ -48,11 +43,10 @@ PeerInfo::PeerInfo(int comm_fd)
         socklen_t len = sizeof addr;
         struct sockaddr *sockaddr_ptr;
 
-        if(getpeername(comm_fd, (struct sockaddr*)&addr, &len) < 0) {
+        if (getpeername(comm_fd, (struct sockaddr*)&addr, &len) < 0)
             sockaddr_ptr = nullptr;
-        } else {
+        else
             sockaddr_ptr = (struct sockaddr*)&addr;
-        }
 	        
         __build(sockaddr_ptr);
     }

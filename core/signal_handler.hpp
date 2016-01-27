@@ -1,11 +1,6 @@
-/// @file signal_handler.hpp
+/// Signal handler
 ///
-/// @brief Signal handler
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 11/09/2015
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #ifndef __SIGNAL_HANDLER_HPP__
 #define __SIGNAL_HANDLER_HPP__

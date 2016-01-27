@@ -1,11 +1,6 @@
-/// @file kserver_defs.hpp
+/// Server definitions and static configurations
 ///
-/// @brief Koheron server definitions
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 22/11/2014
-///
-/// (c) Koheron 2014
+/// (c) Koheron
 
 #ifndef __KSERVER_DEFS_HPP__
 #define __KSERVER_DEFS_HPP__
@@ -24,7 +19,6 @@ namespace kserver {
 #else
 #  define KSERVER_HAS_DEVMEM 1
 #endif
-
 
 // ------------------------------------------
 // Connections

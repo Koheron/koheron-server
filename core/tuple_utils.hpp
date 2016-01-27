@@ -1,11 +1,6 @@
-/// @file tuple_utils.hpp
+/// Utilities for tuple manipulations
 ///
-/// @brief Utilities for tuple manipulations
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 06/10/2015
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #ifndef __TUPLE_UTILS_HPP__
 #define __TUPLE_UTILS_HPP__

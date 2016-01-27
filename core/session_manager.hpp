@@ -1,11 +1,6 @@
-/// @file session_manager.hpp
+/// Sessions manager
 ///
-/// @brief Session manager
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 26/12/2014
-///
-/// (c) Koheron 2014
+/// (c) Koheron
 
 #ifndef __SESSION_MANAGER_HPP__
 #define __SESSION_MANAGER_HPP__

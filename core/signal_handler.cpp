@@ -1,11 +1,6 @@
-/// @file signal_handler.cpp
+/// Implementation of signal_handler.hpp
 ///
-/// @brief Implementation of signal_handler.hpp
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 11/09/2015
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #include "signal_handler.hpp"
 
