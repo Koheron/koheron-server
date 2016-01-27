@@ -1,11 +1,6 @@
-/// @file kserver_syslog.cpp
+/// Implementation of kserver_syslog.hpp
 ///
-/// @brief Inplementation of kserver_syslog.hpp
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 21/07/2015
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #include "kserver_syslog.hpp"
 
@@ -27,7 +22,7 @@ SysLog::SysLog(KServerConfig *config_)
 {
     memset(fmt_buffer, 0, FMT_BUFF_LEN);
 
-    if(config->syslog) {
+    if (config->syslog) {
         setlogmask(LOG_UPTO(KSERVER_SYSLOG_UPTO));
         openlog("KServer", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
     }
@@ -43,7 +38,7 @@ void SysLog::close()
 {
     assert(config != NULL);
 
-    if(config->syslog) {
+    if (config->syslog) {
         print(INFO, "Close syslog ...\n");
         closelog();
     }
@@ -56,12 +51,12 @@ int SysLog::print_stderr(const char *header, const char *message, ...)
     
     int ret = snprintf(fmt_buffer, FMT_BUFF_LEN, "%s: %s", header, message);
 
-    if(ret < 0) {
+    if (ret < 0) {
         fprintf(stderr, "Format error\n");
         return -1;
     }
 
-    if(ret >= FMT_BUFF_LEN) {
+    if (ret >= FMT_BUFF_LEN) {
         fprintf(stderr, "Buffer fmt_buffer overflow\n");
         return -1;
     }
@@ -84,56 +79,49 @@ void SysLog::print(unsigned int severity, const char *message, ...)
     // See http://comments.gmane.org/gmane.linux.suse.programming-e/1107
     va_copy(argptr2, argptr);
 
-    switch(severity) {
+    switch (severity) {
       case PANIC:
         print_stderr("KSERVER PANIC", message, argptr);
         
-        if(config->syslog) {
+        if (config->syslog)
             vsyslog(LOG_ALERT, message, argptr2);
-        }
         
         break;
       case CRITICAL:
         print_stderr("KSERVER CRITICAL", message, argptr);
         
-        if(config->syslog) {
+        if (config->syslog)
             vsyslog(LOG_CRIT, message, argptr2);
-        }
 
         break;
       case ERROR:
         print_stderr("KSERVER ERROR", message, argptr);
         
-        if(config->syslog) {
+        if (config->syslog)
             vsyslog(LOG_ERR, message, argptr2);
-        }
         
         break;
       case WARNING:
         print_stderr("KSERVER WARNING", message, argptr);
         
-        if(config->syslog) {
+        if (config->syslog)
             vsyslog(LOG_WARNING, message, argptr2);
-        }
         
         break;
       case INFO:
-        if(config->verbose) {
+        if (config->verbose)
             vprintf(message, argptr);
-        }
         
-        if(config->syslog) {
+        if (config->syslog)
             vsyslog(LOG_NOTICE, message, argptr2);
-        }
+
         break;
       case DEBUG:
-        if(config->verbose) {
+        if (config->verbose)
             vprintf(message, argptr);
-        }
         
-        if(config->syslog) {
+        if (config->syslog)
             vsyslog(LOG_DEBUG, message, argptr2);
-        }
     
         break;
       default:

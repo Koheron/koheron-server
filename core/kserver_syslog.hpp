@@ -1,11 +1,6 @@
-/// @file kserver_syslog.hpp
+/// Server system log
 ///
-/// @brief KServer system log
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 21/07/2015
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #ifndef __KSERVER_SYSLOG_HPP__
 #define __KSERVER_SYSLOG_HPP__
