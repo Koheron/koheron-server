@@ -1,11 +1,6 @@
-/// @file kserver.cpp
+/// Implementation of kserver.hpp
 ///
-/// @brief Implementation of kserver.hpp
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 24/11/2014
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #include "kserver.hpp"
 
@@ -34,39 +29,36 @@ KServer::KServer(KServerConfig *config_)
   syslog(config_),
   start_time(0)
 {
-    if(sig_handler.Init(this))
+    if (sig_handler.Init(this))
         exit(EXIT_FAILURE);
 
-    if(dev_manager.Init() < 0)
+    if (dev_manager.Init() < 0)
         exit (EXIT_FAILURE);
     
     exit_comm.store(false);
 
 #if KSERVER_HAS_TCP
-    if(tcp_listener.init() < 0)
+    if (tcp_listener.init() < 0)
         exit(EXIT_FAILURE);
 #else
-    if(config->tcp_worker_connections > 0) {
+    if (config->tcp_worker_connections > 0)
         syslog.print(SysLog::ERROR, "TCP connections not supported\n");
-    }
 #endif // KSERVER_HAS_TCP
 
 #if KSERVER_HAS_WEBSOCKET
-    if(websock_listener.init() < 0)
+    if (websock_listener.init() < 0)
         exit(EXIT_FAILURE);
 #else
-    if(config->websock_worker_connections > 0) {
+    if (config->websock_worker_connections > 0)
         syslog.print(SysLog::ERROR, "Websocket connections not supported\n");
-    }
 #endif // KSERVER_HAS_WEBSOCKET
 
 #if KSERVER_HAS_UNIX_SOCKET
-    if(unix_listener.init() < 0)
+    if (unix_listener.init() < 0)
         exit(EXIT_FAILURE);
 #else
-    if(config->unixsock_worker_connections > 0) {
+    if (config->unixsock_worker_connections > 0)
         syslog.print(SysLog::ERROR, "Unix socket connections not supported\n");
-    }
 #endif // KSERVER_HAS_UNIX_SOCKET
 }
 
@@ -96,15 +88,15 @@ void KServer::close_listeners()
 int KServer::start_listeners_workers()
 {
 #if KSERVER_HAS_TCP
-    if(tcp_listener.start_worker() < 0)
+    if (tcp_listener.start_worker() < 0)
         return -1;
 #endif
 #if KSERVER_HAS_WEBSOCKET
-    if(websock_listener.start_worker() < 0)
+    if (websock_listener.start_worker() < 0)
         return -1;
 #endif
 #if KSERVER_HAS_UNIX_SOCKET
-    if(unix_listener.start_worker() < 0)
+    if (unix_listener.start_worker() < 0)
         return -1;
 #endif
     
@@ -145,11 +137,11 @@ int KServer::Run()
 {
     start_time = std::time(nullptr);
     
-    if(start_listeners_workers() < 0)
+    if (start_listeners_workers() < 0)
         return -1;
 
-    while(1) {
-        if(sig_handler.Interrupt()) {
+    while (1) {
+        if (sig_handler.Interrupt()) {
             syslog.print(SysLog::INFO, 
                          "Interrupt received, killing KServer ...\n");
             
