@@ -23,10 +23,10 @@ Tests::~Tests()
 int Tests::Open(uint32_t waveform_size_)
 {
     // Reopening
-    if(status == OPENED && waveform_size_ != waveform_size)
+    if (status == OPENED && waveform_size_ != waveform_size)
         Close();
 
-    if(status == CLOSED) {
+    if (status == CLOSED) {
         waveform_size = waveform_size_;        
         data = Klib::KVector<float>(waveform_size, 0);       
         status = OPENED;
@@ -37,9 +37,8 @@ int Tests::Open(uint32_t waveform_size_)
 
 void Tests::Close()
 {
-    if(status == OPENED) {
+    if (status == OPENED)
         status = CLOSED;
-    }
 }
 
 Klib::KVector<float>& Tests::read()
@@ -47,7 +46,7 @@ Klib::KVector<float>& Tests::read()
     std::default_random_engine generator(std::random_device{}());
     std::normal_distribution<float> distribution(mean, std_dev);
 
-    for(unsigned int i=0; i<data.size(); i++)
+    for (unsigned int i=0; i<data.size(); i++)
         data[i] = distribution(generator);
 
     return data;
@@ -65,7 +64,7 @@ void Tests::set_std_dev(float std_dev_)
 
 std::array<uint32_t, 10>& Tests::send_std_array()
 {    
-    for(uint32_t i=0; i<data_std_array.size(); i++)
+    for (uint32_t i=0; i<data_std_array.size(); i++)
         data_std_array[i] = i*i;
 
     return data_std_array;

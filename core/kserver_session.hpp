@@ -179,7 +179,7 @@ friend class SessionManager;
 template<class T> 
 int Session::Send(const T& data)
 {
-    switch(sock_type) {
+    switch (sock_type) {
 #if KSERVER_HAS_TCP
       case TCP:
         return TCPSOCKET->template Send<T>(data);
@@ -200,7 +200,7 @@ int Session::Send(const T& data)
 template<typename T> 
 int Session::SendArray(const T* data, unsigned int len)
 {
-    switch(sock_type) {
+    switch (sock_type) {
 #if KSERVER_HAS_TCP
       case TCP:
         return TCPSOCKET->template SendArray<T>(data, len);
@@ -221,7 +221,7 @@ int Session::SendArray(const T* data, unsigned int len)
 template<typename T>
 int Session::Send(const Klib::KVector<T>& vect)
 {
-    switch(sock_type) {
+    switch (sock_type) {
 #if KSERVER_HAS_TCP
       case TCP:
         return TCPSOCKET->template Send<T>(vect);
@@ -242,7 +242,7 @@ int Session::Send(const Klib::KVector<T>& vect)
 template<typename T>
 int Session::Send(const std::vector<T>& vect)
 {
-    switch(sock_type) {
+    switch (sock_type) {
 #if KSERVER_HAS_TCP
       case TCP:
         return TCPSOCKET->template Send<T>(vect);
@@ -263,7 +263,7 @@ int Session::Send(const std::vector<T>& vect)
 template<typename T, size_t N>
 int Session::Send(const std::array<T, N>& vect)
 {
-    switch(sock_type) {
+    switch (sock_type) {
 #if KSERVER_HAS_TCP
       case TCP:
         return TCPSOCKET->template Send<T, N>(vect);
@@ -284,7 +284,7 @@ int Session::Send(const std::array<T, N>& vect)
 template<typename... Tp>
 int Session::Send(const std::tuple<Tp...>& t)
 {
-    switch(sock_type) {
+    switch (sock_type) {
 #if KSERVER_HAS_TCP
       case TCP:
         return TCPSOCKET->template Send<Tp...>(t);
