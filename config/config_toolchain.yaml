@@ -3,7 +3,7 @@
 # (c) Koheron
 
 # Target host
-cross-compile: arm-linux-gnueabihf
+cross-compile: arm-linux-gnueabihf-
 
 devices:
     # Core devices
@@ -11,4 +11,3 @@ devices:
     
     # Misc
     - ../middleware/tests/tests.hpp
-
