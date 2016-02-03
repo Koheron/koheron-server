@@ -201,6 +201,7 @@ void __display_sessions(struct running_sessions *sessions)
         const char *ip = sessions->sessions[i].clt_ip;
         
         char time_str[TIME_STR_LEN];
+        sock_type_name = "";
         
         switch (sessions->sessions[i].conn_type) {
           case TCP:
