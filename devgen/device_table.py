@@ -4,6 +4,7 @@
 
 import os
 import yaml
+import jinja2
 
 #--------------------------------------------
 # Generate device_table.hpp
@@ -140,12 +141,15 @@ def PrintDevDescription(file_id, devices, max_op_num):
 #--------------------------------------------
 
 def PrintDevicesHeader(devices, src_dir):
-    devtab_filename = os.path.join(src_dir, 'devices.hpp')
-    f = open(devtab_filename, 'w')
-        
-    PrintFileHeader(f, 'devices.hpp') 
-    
-    for device in devices:
-        f.write('# include "' + device.class_name.lower() + '.hpp"\n')
-               
-    return
+    template_filename = 'devgen/templates/devices.hpp'
+
+    header_renderer = jinja2.Environment(
+      loader = jinja2.FileSystemLoader(os.path.abspath('.'))
+    )
+
+    template = header_renderer.get_template(template_filename)
+    header_filename = os.path.join(src_dir, 'devices.hpp')
+    output = file(header_filename, 'w')
+    output.write(template.render(devices=devices))
+    output.close()
+
