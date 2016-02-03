@@ -135,21 +135,4 @@ def PrintDevDescription(file_id, devices, max_op_num):
     
     file_id.write('}};\n\n' )
     return
-    
-#--------------------------------------------
-# Generate devices.hpp
-#--------------------------------------------
-
-def PrintDevicesHeader(devices, src_dir):
-    template_filename = 'devgen/templates/devices.hpp'
-
-    header_renderer = jinja2.Environment(
-      loader = jinja2.FileSystemLoader(os.path.abspath('.'))
-    )
-
-    template = header_renderer.get_template(template_filename)
-    header_filename = os.path.join(src_dir, 'devices.hpp')
-    output = file(header_filename, 'w')
-    output.write(template.render(devices=devices))
-    output.close()
 
