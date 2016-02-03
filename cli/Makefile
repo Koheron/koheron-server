@@ -29,7 +29,7 @@ SRCS = $(subst .o,.c, $(OBJS), ))
 TARGET=kserver
 
 # GCC compiling & linking flags
-CFLAGS= -Wall -Werror -I$(API_INC_PATH) $(DEFINES) -g # -O3 # -g
+CFLAGS= -Wall -Werror -I$(API_INC_PATH) $(DEFINES) -Os # -g
 
 ifeq ($(TARGET_HOST),arm)
 ARM_FLAGS = -march=armv7-a -mtune=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard
