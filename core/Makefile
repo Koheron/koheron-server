@@ -39,8 +39,7 @@ OBJS_KSERVER = core/kserver.o              \
                core/crypto/sha1.o          \
                core/kserver_syslog.o       \
                core/socket_interface.o     \
-               core/signal_handler.o       \
-               core/perf_monitor.o
+               core/signal_handler.o       
                
 # Object in KServer/devices
 OBJS_KS_DEV ?= {% for obj in objs_list %} {{ obj }} {% endfor %}

@@ -472,109 +472,6 @@ KSERVER_EXECUTE_OP(KILL_SESSION)
     return -1;
 }
 
-/////////////////////////////////////
-// GET_SESSION_PERFS
-// Send the perfs of a session
-
-KSERVER_STRUCT_ARGUMENTS(GET_SESSION_PERFS)
-{
-    SessID sid; ///< ID of the session who perfs are wanted
-};
-
-KSERVER_PARSE_ARG(GET_SESSION_PERFS)
-{
-    char tmp_str[2*KSERVER_READ_STR_LEN];
-
-    uint32_t i = 0;
-    uint32_t cnt = 0;
-    uint32_t param_num = 0;
-
-    while (1) {
-        if (cmd.buffer[i]=='\0') {
-            break;
-        }
-        else if (cmd.buffer[i]=='|') {
-            tmp_str[cnt] = '\0';
-
-            if(param_num == 0)
-                args.sid = static_cast<SessID>(CSTRING_TO_UINT(tmp_str));
-
-            param_num++;
-            cnt = 0;
-            i++;
-        } else {
-            tmp_str[cnt] = cmd.buffer[i];
-            i++;
-            cnt++;
-        }
-    }
-
-    if (param_num != 1) {
-        kserver->syslog.print(SysLog::ERROR, "Invalid number of parameters\n");
-        return -1;
-    }
-
-    return 0;
-}
-
-KSERVER_EXECUTE_OP(GET_SESSION_PERFS)
-{
-    char send_str[KS_DEV_WRITE_STR_LEN];
-    unsigned int bytes = 0;
-    unsigned int bytes_send = 0;
-
-    std::vector<SessID> ids = kserver->session_manager.GetCurrentIDs();
-    
-    for (unsigned int i=0; i<ids.size(); i++) {        
-        if (ids[i] == args.sid) {
-            const PerfMonitor *perf 
-                = kserver->session_manager.GetSession(args.sid).GetPerf();
-                
-            // Send:
-            // timing_pt_name:mean_duration:min_duration:max_duration
-            for (int j=0; j<timing_points_num; j++) {
-                timing_point_t time_pt = static_cast<timing_point_t>(j);
-            
-                int ret = snprintf(send_str, KS_DEV_WRITE_STR_LEN,
-                                "%s:%f:%d:%d\n", 
-                                timing_points_desc[time_pt].c_str(),
-                                perf->get_mean_duration(time_pt),
-                                perf->get_min_duration(time_pt),
-                                perf->get_max_duration(time_pt));
-
-                if (ret < 0) {
-                    kserver->syslog.print(SysLog::ERROR, 
-                        "KServer::GET_SESSION_PERFS Format error\n");
-                    return -1;
-                }
-
-                if (ret >= KS_DEV_WRITE_STR_LEN) {
-                    kserver->syslog.print(SysLog::ERROR, 
-                        "KServer::GET_SESSION_PERFS Buffer overflow\n");
-                    return -1;
-                }
-
-                if ((bytes = GET_SESSION.SendCstr(send_str)) < 0)
-                    return -1;
-
-                bytes_send += bytes;
-            }            
-                
-            // Send EOSP (End Of Session Perf)
-            if ((bytes = GET_SESSION.SendCstr("EOSP\n")) < 0)
-                return -1;
-
-            kserver->syslog.print(SysLog::DEBUG, 
-                                  "[S] [%u bytes]\n", bytes_send+bytes);
-            return 0;
-        }
-    }
-    
-    kserver->syslog.print(SysLog::ERROR, 
-                    "KServer::GET_SESSION_PERFS Invalid ID: %u\n", args.sid);
-    return -1;
-}
-
 ////////////////////////////////////////////////
 
 #define KSERVER_EXECUTE_CMD(cmd_name)                               \
@@ -610,8 +507,6 @@ int KDevice<KServer, KSERVER>::execute(const Command& cmd)
         KSERVER_EXECUTE_CMD(GET_RUNNING_SESSIONS)
       case KServer::KILL_SESSION:
         KSERVER_EXECUTE_CMD(KILL_SESSION)
-      case KServer::GET_SESSION_PERFS:
-        KSERVER_EXECUTE_CMD(GET_SESSION_PERFS)
       case KServer::kserver_op_num:
       default:
         kserver->syslog.print(SysLog::ERROR,
