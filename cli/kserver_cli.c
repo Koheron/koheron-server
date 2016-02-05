@@ -79,7 +79,6 @@ void __stop_client(struct kclient *kcl)
 #define IS_STATUS_HELP     TEST_CMD("-h", "--help")
 #define IS_STATUS_DEVICES  TEST_CMD("-d", "--devices")
 #define IS_STATUS_SESSIONS TEST_CMD("-s", "--sessions")
-#define IS_STATUS_PERFS    TEST_CMD("-p", "--perfs")
 
 /**
  * __status_usage - Help for the status command
@@ -98,8 +97,6 @@ void __status_usage(void)
            "Show the available commands for DEVICE");
     printf("%-10s%-15s%-15s%-50s\n", "-s", "--sessions", "", 
            "Show the running sessions");
-    printf("%-10s%-15s%-15s%-50s\n", "-p", "--perfs", "SID", 
-           "Show the perfs of the session with ID SID");
 }
 
 /**
@@ -166,22 +163,6 @@ void __format_time(char *time_str, time_t uptime)
     int seconds = remainder % 60;
     
     snprintf(time_str, TIME_STR_LEN, "%i:%02i:%02i", hours, minutes, seconds);
-}
-
-void __display_perfs(struct session_perfs *perfs)
-{
-    int i;
-    struct timing_point pt;
-    
-    printf("\e[7m%-15s%-15s%-15s%-10s\e[27m\n",
-           "TIME PT", "MEAN", "MIN", "MAX");
-
-    for (i=0; i<perfs->timing_points_num; i++) {
-        pt = perfs->points[i];
-        
-        printf("%-15s%-15f%-15d%-10d\n",
-               pt.name, pt.mean_duration, pt.min_duration, pt.max_duration);
-    }
 }
 
 /**
@@ -290,54 +271,6 @@ void ks_cli_status(int argc, char **argv)
 
         free(sessions);
         __stop_client(kcl);
-    }
-    else if (IS_STATUS_PERFS) {
-        struct kclient *kcl;
-        struct running_sessions *sessions;
-        struct session_perfs *perfs;
-        int sid;
-        
-        if (argc != 3) {
-            fprintf(stderr, "Invalid number of arguments.\n"
-                            "Expect session ID\n");
-            exit(EXIT_FAILURE);
-        }
-        
-        sid = (int) strtol(argv[2], (char **)NULL, 10);
-        
-        kcl = __start_client();
-        
-        if (kcl == NULL) {
-            fprintf(stderr, "Connection failed\n");
-            exit(EXIT_FAILURE);
-        }
-        
-        sessions = kclient_get_running_sessions(kcl);
-        
-        if (sessions == NULL) {
-            __stop_client(kcl);
-            exit(EXIT_FAILURE);
-        }
-        
-        if (!kclient_is_valid_sess_id(sessions, sid)) {
-            fprintf(stderr, "Invalid session ID %d\n", sid);
-            free(sessions);
-            __stop_client(kcl);
-            exit(EXIT_FAILURE);
-        }
-        
-        perfs = kclient_get_session_perfs(kcl, sid);
-        
-        if (perfs == NULL) {
-            __stop_client(kcl);
-            exit(EXIT_FAILURE);
-        }
-                
-        __display_perfs(perfs);
-        
-        free(sessions);
-        free(perfs);
-        __stop_client(kcl);        
     } else {
         fprintf(stderr, "Invalid status command: %s\n", argv[1]);
         __status_usage();
