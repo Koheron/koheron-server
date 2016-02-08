@@ -19,9 +19,9 @@
 
 /* Init tasks */
 #ifdef LOCAL
-#  define KSERVER_CLI_HAS_INIT_TASKS 0
+#  define KSERVER_CLI_HAS_INIT 0
 #else
-#  define KSERVER_CLI_HAS_INIT_TASKS 1
+#  define KSERVER_CLI_HAS_INIT 1
 #endif
 
 /* Tests */
