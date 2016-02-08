@@ -526,10 +526,6 @@ void ks_cli_kill(int argc, char **argv)
  
 #if KSERVER_CLI_HAS_INIT
 
-int __run()
-{
-    
-}
 /* Init_tasks options */
 #define IS_INIT_HELP   TEST_CMD("-h", "--help")
 
