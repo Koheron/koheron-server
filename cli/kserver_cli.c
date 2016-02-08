@@ -524,25 +524,21 @@ void ks_cli_kill(int argc, char **argv)
  *  -------------------------------------------------
  */
  
-#if KSERVER_CLI_HAS_INIT_TASKS
-
-/**
- * __init_tasks_usage - Help for the init_tasks command
- */
-void __init_tasks_usage(void)
-{
-    printf("Tasks to be performed at system initialization\n");
-    printf("Usage: kserver init_tasks [option]\n\n");
-    
-    printf("\e[7m%-10s%-20s%-50s\e[27m\n", "Option", "Long option", "Meaning");
-
-    printf("%-10s%-20s%-50s\n", "-h", "--help", "Show this message");
-    printf("%-10s%-20s%-50s\n", "-i", "--ip_on_leds", 
-           "Display last IP number onto board LEDs");
-}
+#if KSERVER_CLI_HAS_INIT
 
 int __set_ip_on_leds(uint32_t leds_addr)
 {
+    
+}
+
+/* Init_tasks options */
+#define IS_INIT_HELP   TEST_CMD("-h", "--help")
+
+/**
+ * ks_cli_init - Execute init device
+ */
+void ks_cli_init(int argc, char **argv)
+{   
     dev_id_t dev_id;
     op_id_t op_id;
     struct command* cmd;
@@ -554,26 +550,27 @@ int __set_ip_on_leds(uint32_t leds_addr)
         return -1;
     }
     
-    if ((dev_id = get_device_id(kcl, "INIT_TASKS")) < 0) {
-        fprintf(stderr, "Unknown device INIT_TASKS\n");
+    assert(strcmp(argv[0], "init") == 0);
+    
+    if ((dev_id = get_device_id(kcl, "INIT")) < 0) {
+        fprintf(stderr, "Unknown device INIT\n");
         return -1;
     }
     
-    if ((op_id = get_op_id(kcl, dev_id, "SHOW_IP_ON_LEDS")) < 0) {
-        fprintf(stderr, "Unknown operation SHOW_IP_ON_LEDS\n");
+    if ((op_id = get_op_id(kcl, dev_id, "RUN")) < 0) {
+        fprintf(stderr, "Unknown operation RUN\n");
         return -1;
     }
     
     if ((cmd = init_command(dev_id)) == NULL) {
-        fprintf(stderr, "Cannot allocate show_ip_leds command\n");
+        fprintf(stderr, "Cannot allocate init/run command\n");
         return -1;
     }
     
     cmd->op_ref = op_id;
-    add_parameter(cmd, (long)leds_addr);
     
     if (kclient_send(kcl, cmd) < 0) {
-        fprintf(stderr, "Cannot send show_ip_leds command\n");
+        fprintf(stderr, "Cannot execute init/run command\n");
         return -1;
     }
 
@@ -583,47 +580,7 @@ int __set_ip_on_leds(uint32_t leds_addr)
     return 0;
 }
 
-/* Init_tasks options */
-#define IS_INIT_TASKS_HELP          TEST_CMD("-h", "--help")
-#define IS_INIT_TASKS_IP_ON_LEDS    TEST_CMD("-i", "--ip_on_leds")
-
-/**
- * ks_cli_init_tasks - Execute init tasks
- */
-void ks_cli_init_tasks(int argc, char **argv)
-{   
-    uint32_t leds_addr;
-     
-    assert(strcmp(argv[0], "init_tasks") == 0);
-    
-    if (argc < 2) {
-        fprintf(stderr, "Available commands:\n\n");
-        __init_tasks_usage();
-        exit(EXIT_FAILURE);
-    }
-    
-    if (IS_INIT_TASKS_IP_ON_LEDS) {
-        if (argc == 3) {
-            leds_addr = (int) strtol(argv[2], (char **)NULL, 0);
-        } else {
-            fprintf(stderr, "Invalid number of arguments\n");
-            exit(EXIT_FAILURE);
-        }
-        
-        if (__set_ip_on_leds(leds_addr) < 0)
-            exit(EXIT_FAILURE);
-    }
-    else if (IS_INIT_TASKS_HELP) {
-        __init_tasks_usage();
-        exit(EXIT_SUCCESS);
-    } else {
-        fprintf(stderr, "Invalid set command: %s\n", argv[1]);
-        __init_tasks_usage();
-        exit(EXIT_FAILURE);
-    }
-}
-
-#endif /* KSERVER_CLI_HAS_INIT_TASKS */
+#endif /* KSERVER_CLI_HAS_INIT */
 
 /* 
  *  -------------------------------------------------
