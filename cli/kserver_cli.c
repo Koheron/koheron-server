@@ -542,37 +542,35 @@ void ks_cli_init(int argc, char **argv)
     
     if (kcl == NULL) {
         fprintf(stderr, "Connection failed\n");
-        return -1;
+        exit(EXIT_FAILURE);
     }
     
     assert(strcmp(argv[0], "init") == 0);
     
     if ((dev_id = get_device_id(kcl, "INIT")) < 0) {
         fprintf(stderr, "Unknown device INIT\n");
-        return -1;
+        exit(EXIT_FAILURE);
     }
     
     if ((op_id = get_op_id(kcl, dev_id, "RUN")) < 0) {
         fprintf(stderr, "Unknown operation RUN\n");
-        return -1;
+        exit(EXIT_FAILURE);
     }
     
     if ((cmd = init_command(dev_id)) == NULL) {
         fprintf(stderr, "Cannot allocate init/run command\n");
-        return -1;
+        exit(EXIT_FAILURE);
     }
     
     cmd->op_ref = op_id;
     
     if (kclient_send(kcl, cmd) < 0) {
         fprintf(stderr, "Cannot execute init/run command\n");
-        return -1;
+        exit(EXIT_FAILURE);
     }
 
     free_command(cmd);
     __stop_client(kcl);
-    
-    return 0;
 }
 
 #endif /* KSERVER_CLI_HAS_INIT */
