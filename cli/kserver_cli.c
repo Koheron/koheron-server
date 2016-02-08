@@ -520,7 +520,7 @@ void ks_cli_kill(int argc, char **argv)
 
 /* 
  *  -------------------------------------------------
- *                   Init tasks
+ *                   Init
  *  -------------------------------------------------
  */
  
@@ -695,8 +695,8 @@ void usage(void)
     printf("%-15s%-50s\n", "status", "Display the current status of the server");
     printf("%-15s%-50s\n", "kill", "Kill a session (UNSTABLE)");
     printf("%-15s%-50s\n", "host", "Set the connection parameters");
-#if KSERVER_CLI_HAS_INIT_TASKS
-    printf("%-15s%-50s\n", "init_tasks", "Tasks to be performed at system initialization");
+#if KSERVER_CLI_HAS_INIT
+    printf("%-15s%-50s\n", "init", "Tasks to be performed at system initialization");
 #endif
 #if KSERVER_CLI_HAS_TESTS
     printf("%-15s%-50s\n", "tests", "Tests commands. For development purpose");
@@ -721,9 +721,9 @@ int main(int argc, char **argv)
     else if (strcmp(argv[1], "kill") == 0) {
         ks_cli_kill(argc-1, &argv[1]);
     }
-#if KSERVER_CLI_HAS_INIT_TASKS
-    else if (strcmp(argv[1], "init_tasks") == 0) {
-        ks_cli_init_tasks(argc-1, &argv[1]);
+#if KSERVER_CLI_HAS_INIT
+    else if (strcmp(argv[1], "init") == 0) {
+        ks_cli_init(argc-1, &argv[1]);
     }
 #endif
 #if KSERVER_CLI_HAS_TESTS
