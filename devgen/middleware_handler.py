@@ -391,19 +391,7 @@ class MiddlewareHppParser:
     def get_device_name(self):
         """ Build the device name from the class name
         """
-        raw_name = self.raw_dev_data["name"]
-        
-        dev_name = []
-        
-        # Check whether there are capital letters within the class name
-        # and insert an underscore before them
-        for idx, letter in enumerate(raw_name):
-            if idx > 0 and letter == letter.upper():
-                dev_name.append('_')
-                
-            dev_name.append(letter.upper())
-            
-        return ''.join(dev_name)
+        return self.raw_dev_data["name"].strip()
         
     def _format_operation(self, op):
         operation = {}
