@@ -5,6 +5,7 @@ import time
 import math
 import numpy as np
 import functools
+import string
 
 from .rcv_send import recv_timeout, recv_n_bytes, send_handshaking
 
@@ -86,7 +87,7 @@ def _class_to_device_name(classname):
     # Check whether there are capital letters within the class name
     # and insert an underscore before them
     for idx, letter in enumerate(classname):
-        if idx > 0 and letter == letter.upper():
+        if idx > 0 and letter in list(string.ascii_uppercase):
             dev_name.append('_')
 
         dev_name.append(letter.upper())
