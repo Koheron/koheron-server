@@ -134,11 +134,11 @@ class Device:
             directory: Directory where the generated sources must be saved
         """ 
         # Generate KServer header file (hpp)
-        self._render_header(directory)
+        self._render_ks_device_header(directory)
         # Generate KServer implementation (cpp)
         autogen_implementation.Generate(self, directory)
 
-    def _render_header(self, directory):
+    def _render_ks_device_header(self, directory):
         template_filename = 'devgen/templates/ks_device.hpp'
 
         header_renderer = jinja2.Environment(

@@ -49,7 +49,7 @@ class Generator:
                 
         # Generate devices
         base_dir = os.path.dirname(config_filename)
-        gen_devices = [] # List of generated devices
+        devices = [] # List of generated devices
         self.obj_files = []  # Object file names
         
         for path in config["devices"]:       
@@ -58,13 +58,14 @@ class Generator:
             print "Generate " + device.name
             device.Generate(self.dev_dir)
             
-            gen_devices.append(device)
+            devices.append(device)
             self.obj_files.append(os.path.join('devices', 
                                                device.class_name.lower()+'.o'))
          
         print "Generate device table"
-        device_table.PrintDeviceTable(gen_devices, self.dev_dir)
-        device_table.PrintDevicesHeader(gen_devices, self.dev_dir)
+        device_table.PrintDeviceTable(devices, self.dev_dir)
+        
+        self._render_devices_header(devices)
         
     def compile(self):
         """ Compile KServer
@@ -85,7 +86,7 @@ class Generator:
 
         # Generate Makefile
         print "Generate Makefile"
-        self._makefile_gen('core/Makefile')
+        self._render_makefile('core/Makefile')
           
         # Call g++
         print "Compiling ..."
@@ -96,7 +97,7 @@ class Generator:
         if self.cross_compile != None:
             subprocess.check_call("make -C tmp/server CROSS_COMPILE=" + self.cross_compile + " clean all", shell=True)
         
-    def _makefile_gen(self, template_filename):
+    def _render_makefile(self, template_filename):
         """ Generate the template for KServer makefile
 
         Args:
@@ -113,4 +114,18 @@ class Generator:
         output = file(makefile_filename, 'w')
         output.write(template.render(date=date, objs_list=self.obj_files))
         output.close()
+        
+    def _render_devices_header(self, devices):
+        template_filename = 'devgen/templates/devices.hpp'
+
+        header_renderer = jinja2.Environment(
+          loader = jinja2.FileSystemLoader(os.path.abspath('.'))
+        )
+
+        template = header_renderer.get_template(template_filename)
+        header_filename = os.path.join(self.dev_dir, 'devices.hpp')
+        output = file(header_filename, 'w')
+        output.write(template.render(devices=devices))
+        output.close()
+
         
