@@ -6,6 +6,7 @@
 import os
 import time
 import yaml
+import string
 
 class MiddlewareHandler:
     def __init__(self, hppfile):
@@ -398,7 +399,7 @@ class MiddlewareHppParser:
         # Check whether there are capital letters within the class name
         # and insert an underscore before them
         for idx, letter in enumerate(raw_name):
-            if idx > 0 and letter == letter.upper():
+            if idx > 0 and letter in list(string.ascii_uppercase):
                 dev_name.append('_')
                 
             dev_name.append(letter.upper())
