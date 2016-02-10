@@ -78,7 +78,6 @@ class Session
     inline const char* GetClientIP() const    { return peer_info.ip_str; }
     inline int GetClientPort() const          { return peer_info.port;   }
     inline std::time_t GetStartTime() const   { return start_time;       }
-    inline const PerfMonitor* GetPerf() const { return &perf;            }
     
     inline const SessionPermissions* GetPermissions() const
     {

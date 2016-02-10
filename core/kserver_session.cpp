@@ -7,12 +7,6 @@
 
 namespace kserver {
 
-#if KSERVER_HAS_PERF
-  #define PERF_TIC(timing_pt) perf.tic(timing_pt);
-#else
-  #define PERF_TIC(timing_pt)
-#endif
-
 Session::Session(KServerConfig *config_, int comm_fd_,
                  SessID id_, int sock_type_, PeerInfo peer_info_,
                  SessionManager& session_manager_)
@@ -26,9 +20,6 @@ Session::Session(KServerConfig *config_, int comm_fd_,
 , permissions()
 , requests_num(0)
 , errors_num(0)
-#if KSERVER_HAS_PERF
-, perf()
-#endif
 , start_time(0)
 {
     assert(sock_type < sock_type_num);
@@ -285,9 +276,7 @@ int Session::Run()
     if (init_session() < 0)
         return -1;
 	
-    while (!session_manager.kserver.exit_comm.load()) {
-        PERF_TIC(READY_TO_READ)
-    
+    while (!session_manager.kserver.exit_comm.load()) {    
         // Read
         int err_read = -1;
         
@@ -315,21 +304,12 @@ int Session::Run()
             exit_session();
             return err_read;
         }
-        
-        PERF_TIC(PARSE)
  
         // Parse and execute
-        if (parse_input_buffer() == 1) { // Request not complete
+        if (parse_input_buffer() == 1) // Request not complete
             continue;
-        } else {
-            // TODO (TV, 20/09/2015) 
-            // We perf the execution time for all the commands.
-            // Need to perf command per command and to store 
-            // the executed command for precise perf of the devices
-            PERF_TIC(EXECUTE)
-            
+        else
             execute_cmds();
-        }
     }
 
     exit_session();	

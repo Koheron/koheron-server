@@ -120,11 +120,8 @@ namespace kserver {
 #define UNIX_SOCKET_PATH_LEN 108
 
 // ------------------------------------------
-// Debugging and performances
+// Debugging
 // ------------------------------------------
-
-// Enable session timing monitoring
-#define KSERVER_HAS_PERF 1
 
 #ifndef DEBUG_KSERVER
 # define NDEBUG
