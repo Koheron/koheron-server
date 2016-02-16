@@ -61,12 +61,9 @@ To display the running sessions:
 $ kserver status --sessions
 ```
 
-## Init tasks
+## Init
 
-This set of commands is designed to be called in the init scripts at system launch. They interface the `INIT_TASKS` device.
-
-To show the last digit of the IP address on the board LEDs use:
+This command is called at network connection post-up. It is definec in the `INIT` device. Call:
 ```
-$ kserver init_tasks --ip_on_leds [LEDS_ADDRESS]
+$ kserver init
 ```
-where `LEDS_ADDRESS` the LEDs base address can be specified in hexadecimal form (e.g. `0x60000000`).
