@@ -103,7 +103,7 @@ Defined flags are:
 
 Indicates the condition for operation execution failing. By default this is set to `NEVER_FAIL`.
 
-It is advisable to set this flag id your function returns an error status and you want KServer to report an execution failure.
+It is advisable to set this flag if your function returns an error status and you want tcp-server to report an execution failure.
 
 Please do **not** use exceptions in your C++ code: KServer won't catch them and won't notice the execution of an operation failed.
 
@@ -120,4 +120,4 @@ Message to log in the server [syslog](syslog.md) in case of execution failure.
 
 Designates a boolean function returning the device status. It must return true when the device is unoperable. A typical example is when memory mapping failed.
 
-The function must not take any argument. This is an optional feature but it is highly recommended to add such a function to your device if it can become inoperable in any way. If this is not defined, KServer will consider that your device never fails.
+The function must not take any argument. This is an optional feature but it is highly recommended to add such a function to your device if it can become inoperable in any way. If this is not defined, tcp-server will consider that your device never fails.
