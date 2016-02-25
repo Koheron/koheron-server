@@ -29,7 +29,7 @@ _kserver()
     local cur="${COMP_WORDS[COMP_CWORD]}"
     local prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-    local opts="host status kill init_tasks -h --help"
+    local opts="host status kill init -h --help"
 
     case "${prev}" in
     # HOST
@@ -46,12 +46,6 @@ _kserver()
     kill)
         local host_opts="-h --help"
         COMPREPLY=( $(compgen -W "${host_opts}" -- ${cur}) )
-        return 0
-        ;;
-    # INIT_TASKS
-    init_tasks)
-        local init_tasks_opts="-h --help -i --ip_on_leds"
-        COMPREPLY=( $(compgen -W "${init_tasks_opts}" -- ${cur}) )
         return 0
         ;;
     # STATUS
