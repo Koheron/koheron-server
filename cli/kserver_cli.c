@@ -480,25 +480,25 @@ void ks_cli_init(int argc, char **argv)
     
     assert(strcmp(argv[0], "init") == 0);
     
-    if ((dev_id = get_device_id(kcl, "INIT")) < 0) {
-        fprintf(stderr, "Unknown device INIT\n");
+    if ((dev_id = get_device_id(kcl, "COMMON")) < 0) {
+        fprintf(stderr, "Unknown device COMMON\n");
         exit(EXIT_FAILURE);
     }
     
-    if ((op_id = get_op_id(kcl, dev_id, "RUN")) < 0) {
-        fprintf(stderr, "Unknown operation RUN\n");
+    if ((op_id = get_op_id(kcl, dev_id, "IP_ON_LEDS")) < 0) {
+        fprintf(stderr, "Unknown operation IP_ON_LEDS\n");
         exit(EXIT_FAILURE);
     }
     
     if ((cmd = init_command(dev_id)) == NULL) {
-        fprintf(stderr, "Cannot allocate init/run command\n");
+        fprintf(stderr, "Cannot allocate common/ip_on_leds command\n");
         exit(EXIT_FAILURE);
     }
     
     cmd->op_ref = op_id;
     
     if (kclient_send(kcl, cmd) < 0) {
-        fprintf(stderr, "Cannot execute init/run command\n");
+        fprintf(stderr, "Cannot execute common/ip_on_leds command\n");
         exit(EXIT_FAILURE);
     }
 
@@ -535,7 +535,7 @@ void __tests_usage(void)
 #define IS_TESTS_HELP     TEST_CMD("-h", "--help")
 #define IS_TESTS_CRASH    TEST_CMD("-c", "--crash")
 
-int __crash_kserser_daemon()
+int __crash_kserver_daemon()
 {
     dev_id_t dev_id;
     op_id_t op_id;
@@ -590,7 +590,7 @@ void ks_cli_tests(int argc, char **argv)
     }
     
     if (IS_TESTS_CRASH) {    
-        if (__crash_kserser_daemon() < 0)
+        if (__crash_kserver_daemon() < 0)
             exit(EXIT_FAILURE);
     }
     else if (IS_TESTS_HELP) {

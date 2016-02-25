@@ -25,6 +25,6 @@
 #endif
 
 /* Tests */
-#define KSERVER_CLI_HAS_TESTS 1
+#define KSERVER_CLI_HAS_TESTS 0
  
 #endif // __KS_CLI_DEFINITIONS_H__
