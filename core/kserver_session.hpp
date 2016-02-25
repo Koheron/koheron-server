@@ -16,10 +16,6 @@
 #include "socket_interface.hpp"
 #include "peer_info.hpp"
 
-#if KSERVER_HAS_PERF
-#include "perf_monitor.hpp"
-#endif
-
 namespace kserver {
 
 /// Stores the permissions of a session
@@ -136,10 +132,6 @@ class Session
     // Monitoring
     unsigned int requests_num;
     unsigned int errors_num;
-    
-#if KSERVER_HAS_PERF
-    PerfMonitor perf;
-#endif
 
     std::time_t start_time;     ///< Starting time od the session
     // -------------------
