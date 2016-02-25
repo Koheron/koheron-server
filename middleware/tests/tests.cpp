@@ -72,6 +72,6 @@ std::array<uint32_t, 10>& Tests::send_std_array()
 
 uint64_t Tests::read64()
 {
-    return (1UL << 63);
+    return (1ULL << 63);
 }
 
