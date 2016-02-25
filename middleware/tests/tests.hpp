@@ -45,6 +45,9 @@ class Tests
 
     //> \io_type READ
     uint64_t read64();
+
+    //> \io_type READ
+    int read_int();
     
     enum Status {
         CLOSED,

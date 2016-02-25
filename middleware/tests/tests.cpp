@@ -75,3 +75,8 @@ uint64_t Tests::read64()
     return (1ULL << 63);
 }
 
+
+int Tests::read_int()
+{
+    return 42;
+}
