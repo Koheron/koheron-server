@@ -70,4 +70,8 @@ std::array<uint32_t, 10>& Tests::send_std_array()
     return data_std_array;
 }
 
+uint64_t Tests::read64()
+{
+    return (1ULL << 63);
+}
 
