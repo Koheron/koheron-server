@@ -570,20 +570,18 @@ class FragmentsGenerator:
                 frag.append("        return -1;\n")
                 frag.append("    }\n\n")
                     
-                if operation["prototype"]["ret_type"] == "uint32_t":
-                    frag.append("    return SEND<uint32_t>(ret);\n")
-                elif operation["prototype"]["ret_type"] == "uint64_t":
-                    frag.append("    return SEND<uint64_t>(ret);\n")
-                else:
-                    raise ValueError("No available interface to send type " 
-                                     + operation["prototype"]["ret_type"])
+                frag.append("    return SEND<uint32_t>(ret);\n")
             elif operation["status"] == "NEVER_FAIL":
                 template = self.parser._get_template(operation["prototype"]["ret_type"])
             
-                if operation["prototype"]["ret_type"] == "uint32_t":
+                if (operation["prototype"]["ret_type"] == "uint32_t"
+                    or operation["prototype"]["ret_type"] == "unsigned int"
+                    or operation["prototype"]["ret_type"] == "unsigned long"
+                    or operation["prototype"]["ret_type"] == "int"):
                     frag.append("    return SEND<uint32_t>(" 
                                 + self._build_func_call(operation) + ");\n")
-                elif operation["prototype"]["ret_type"] == "uint64_t":
+                elif (operation["prototype"]["ret_type"] == "uint64_t"
+                      or operation["prototype"]["ret_type"] == "unsigned long long"):
                     frag.append("    return SEND<uint64_t>(" 
                                 + self._build_func_call(operation) + ");\n")
                 elif template != None:

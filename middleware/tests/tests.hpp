@@ -43,8 +43,24 @@ class Tests
     //> \io_type READ
     std::array<uint32_t, 10>& send_std_array();
 
+    // -----------------------------------------------
+    // Send integers
+    // -----------------------------------------------
+
     //> \io_type READ
     uint64_t read64();
+
+    //> \io_type READ
+    int read_int();
+
+    //> \io_type READ
+    unsigned int read_uint();
+
+    //> \io_type READ
+    unsigned long read_ulong();
+
+    //> \io_type READ
+    unsigned long long read_ulonglong();
     
     enum Status {
         CLOSED,

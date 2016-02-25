@@ -70,8 +70,32 @@ std::array<uint32_t, 10>& Tests::send_std_array()
     return data_std_array;
 }
 
+// -----------------------------------------------
+// Send integers
+// -----------------------------------------------
+
 uint64_t Tests::read64()
 {
     return (1ULL << 63);
 }
 
+
+int Tests::read_int()
+{
+    return -42;
+}
+
+unsigned int Tests::read_uint()
+{
+    return 42;
+}
+
+unsigned long Tests::read_ulong()
+{
+    return 2048;
+}
+
+unsigned long long Tests::read_ulonglong()
+{
+    return (1ULL << 63);
+}
