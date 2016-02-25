@@ -128,6 +128,7 @@ class SocketInterface
 #define SEND_SPECIALIZE(sock_interf)                                     \
   template<> int sock_interf::Send<std::string>(const std::string& str); \
   template<> int sock_interf::Send<uint32_t>(const uint32_t& val);       \
+  template<> int sock_interf::Send<uint64_t>(const uint64_t& val);       \
   template<> int sock_interf::Send<float>(const float& val); 
 
 // -----------------------------------------------

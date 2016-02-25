@@ -77,8 +77,7 @@ class MiddlewareHppParser:
             
             tokens = line_strip.split(' ')
             
-            if tokens[0] == '//>' and len(tokens) > 1:
-                    
+            if tokens[0] == '//>' and len(tokens) > 1:                    
                 tag = tokens[1].strip()
                 
                 # Determine whether a new operation is being defined
@@ -571,12 +570,21 @@ class FragmentsGenerator:
                 frag.append("        return -1;\n")
                 frag.append("    }\n\n")
                     
-                frag.append("    return SEND<uint32_t>(ret);\n")
+                if operation["prototype"]["ret_type"] == "uint32_t":
+                    frag.append("    return SEND<uint32_t>(ret);\n")
+                elif operation["prototype"]["ret_type"] == "uint64_t":
+                    frag.append("    return SEND<uint64_t>(ret);\n")
+                else:
+                    raise ValueError("No available interface to send type " 
+                                     + operation["prototype"]["ret_type"])
             elif operation["status"] == "NEVER_FAIL":
                 template = self.parser._get_template(operation["prototype"]["ret_type"])
             
                 if operation["prototype"]["ret_type"] == "uint32_t":
                     frag.append("    return SEND<uint32_t>(" 
+                                + self._build_func_call(operation) + ");\n")
+                elif operation["prototype"]["ret_type"] == "uint64_t":
+                    frag.append("    return SEND<uint64_t>(" 
                                 + self._build_func_call(operation) + ");\n")
                 elif template != None:
                     type_base = operation["prototype"]["ret_type"].split('<')[0].strip()

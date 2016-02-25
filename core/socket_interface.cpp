@@ -31,6 +31,12 @@ namespace kserver {
     }                                                               \
                                                                     \
     template<>                                                      \
+    int sock_interf::Send<uint64_t>(const uint64_t& val)            \
+    {                                                               \
+        return SendArray<uint64_t>(&val, 1);                        \
+    }                                                               \
+                                                                    \
+    template<>                                                      \
     int sock_interf::Send<float>(const float& val)                  \
     {                                                               \
         return SendArray<float>(&val, 1);                           \

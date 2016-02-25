@@ -42,6 +42,9 @@ class Tests
 
     //> \io_type READ
     std::array<uint32_t, 10>& send_std_array();
+
+    //> \io_type READ
+    uint64_t read64();
     
     enum Status {
         CLOSED,
