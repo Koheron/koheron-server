@@ -624,7 +624,7 @@ class FragmentsGenerator:
             ptr_type = self._get_ptr_type(operation["prototype"]["ret_type"])
             
             #Get array length
-            len_data = self._get_array_length(operation["io_type"]["remaining"])
+            len_data = self.parser._get_array_length(operation["io_type"]["remaining"])
             
             if len_data["src"] == "this":
                 obj_name = self.device["objects"][0]["name"]
