@@ -204,7 +204,12 @@ int SignalHandler::set_crash_signals()
     }
     
     if (sigaction(SIGBUS, &sig_crash_handler, NULL) < 0) {
-        kserver->syslog.print(SysLog::CRITICAL, "Cannot set SIGBUSs handler\n");
+        kserver->syslog.print(SysLog::CRITICAL, "Cannot set SIGBUS handler\n");
+        return -1;
+    }
+
+    if (sigaction(SIGABRT, &sig_crash_handler, NULL) < 0) {
+        kserver->syslog.print(SysLog::CRITICAL, "Cannot set SIGABRT handler\n");
         return -1;
     }
 
