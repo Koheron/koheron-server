@@ -186,6 +186,10 @@ void SessionManager::__reset_permissions(SessID id)
 
 void SessionManager::DeleteSession(SessID id)
 {
+#if KSERVER_HAS_THREADS
+    std::lock_guard<std::mutex> lock(mutex);
+#endif
+
     if (!__is_current_id(id)) {
         kserver.syslog.print(SysLog::INFO, 
                              "Not allocated session ID: %u\n", id);
