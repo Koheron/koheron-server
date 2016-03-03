@@ -77,34 +77,17 @@ class MiddlewareHppParser:
             
             tokens = line_strip.split(' ')
             
-            if tokens[0] == '//>' and len(tokens) > 1:                    
-                tag = tokens[1].strip()
+            if tokens[0] == '//>':
+                if len(tokens) > 1:                    
+                    tag = tokens[1].strip()
+                else:
+                    tag = ""
                 
                 # Determine whether a new operation is being defined
-                if not is_operation and not is_dev_general and not tag == '\pool':
+                if not is_operation and not is_dev_general:
                     is_operation = True
             
-                if tag == '\description':
-                    if len(tokens) > 2:
-                        if is_dev_general:
-                            device["description"] = ' '.join(tokens[2:])
-                        elif is_operation:
-                            operation["description"] = ' '.join(tokens[2:])
-                        else:
-                            WARNING(line_cnt, "Tag \description doesn't refer to any device or operation")
-                    else:
-                        if is_dev_general:
-                            WARNING(line_cnt, "Empty device description")
-                        elif is_operation:
-                            WARNING(line_cnt, "Empty operation description")
-                elif tag == '\\rename':
-                    if is_dev_general:
-                        if len(tokens) > 2:
-                            device["name"] = tokens[2].strip()
-                        else:
-                            WARNING(line_cnt, "Empty rename")
-                            
-                elif tag == '\io_type':
+                if tag == '\io_type':
                     if is_operation:
                         io_type = tokens[2].strip()
                         io_type_remaining = ""
@@ -126,24 +109,6 @@ class MiddlewareHppParser:
                         }
                     else:
                         ERROR(line_cnt, "Tag \io_type defined outside an operation")
-                elif tag == '\param':
-                    if len(tokens) > 3:
-                        operation["params"].append({
-                          "name": tokens[2],
-                          "description": ' '.join(tokens[3:])
-                        });
-                    else:
-                        WARNING(line_cnt, "Empty parameter name and/or description")
-                elif tag == '\status':
-                    if is_operation:
-                        operation["status"] = tokens[2].strip()
-                    else:
-                        ERROR(line_cnt, "Tag \status defined outside an operation")
-                elif tag == '\on_error':
-                    if is_operation:
-                        operation["on_error"] = ' '.join(tokens[2:])
-                    else:
-                        ERROR(line_cnt, "Tag \on_error defined outside an operation")
                 elif tag == '\\flag':
                     if is_operation:
                         for i in range(2, len(tokens)):
@@ -189,11 +154,7 @@ class MiddlewareHppParser:
                     ERROR(line_cnt, "Invalid function prototype")
                 
                 if reset_op:
-                    if (not "status" in operation) or (operation["status"] == ""):
-                        # By default NEVER_FAIL
-                        operation["status"] = "NEVER_FAIL"
-                        
-                    if operation["io_type"]["value"] == "WRITE_ARRAY":
+                    if "io_type" in operation and operation["io_type"]["value"] == "WRITE_ARRAY":
                         operation["array_params"] = self._get_write_array_params(operation["io_type"])
 
                     self._check_operation(operation)
@@ -213,9 +174,6 @@ class MiddlewareHppParser:
                     ERROR(line_cnt, "Failure indicator function mustn't have argument")
                  
                 is_failed = False
-                
-        if not "description" in device:
-            device["description"] = ""
                 
         self.raw_dev_data = device
         self.device = self._get_device()
@@ -280,29 +238,22 @@ class MiddlewareHppParser:
         else:
             return None
         
-    def _check_operation(self, operation):
-        # Check execution status definition
-        if not self._is_valid_status(operation["status"]):
-            raise ValueError("In operation " 
-                             + operation["prototype"]["name"].upper() 
-                             + ": Invalid execution status " 
-                             + operation["status"])
-        elif(operation["status"] == "ERROR_IF_NEG" 
-             and operation["prototype"]["ret_type"] != "int"):
-            raise ValueError("In operation " 
-                             + operation["prototype"]["name"].upper() 
-                             + ": Invalid return type for status ERROR_IF_NEG\n" 
-                             + "Expected int")
-                             
-        if not "io_type" in operation:
-            raise ValueError("In operation " 
-                             + operation["prototype"]["name"].upper() 
-                             + ": No I/O type specified")
+    def _check_operation(self, operation):                             
+        if not 'io_type' in operation:
+            # Determine io_type from function prototype:
+            #
+            # By default if the function returns something
+            # then it from type READ. Else if it returns void
+            # it is of type WRITE.
+            if operation['prototype']['ret_type'] == 'void':
+                operation["io_type"] = {'value': 'WRITE', 'remaining': ''}
+            else:
+                operation["io_type"] = {'value': 'READ', 'remaining': ''}
         elif not self._is_valid_io_type(operation["io_type"]["value"]):
             raise ValueError("In operation " 
                              + operation["prototype"]["name"].upper() 
                              + ": Invalid I/O type " 
-                             + operation["io_type"]["value"])
+                             + operation["io_type"]["value"])                            
                              
         # Check flags
         if len(operation["flags"]) > 0:
@@ -319,14 +270,7 @@ class MiddlewareHppParser:
                     raise ValueError("In operation " 
                                  + operation["prototype"]["name"].upper() 
                                  + ": unknown parameter name " + param["name"])
-                             
-    def _is_valid_status(self, status):
-        return (
-          status == "ERROR_IF_NEG"  or
-          status == "ERROR_IF_NULL" or
-          status == "NEVER_FAIL"
-        )
-        
+                                     
     def _is_valid_io_type(self, io_type):
         return (
           io_type == "WRITE"      or
@@ -370,13 +314,7 @@ class MiddlewareHppParser:
         device = {}
         device["operations"] = []
         device["name"] = self.get_device_name()
-        
-        if("description" in self.raw_dev_data 
-           and self.raw_dev_data["description"] != ""):
-            device["description"] = self.raw_dev_data["description"]
-        else:
-            device["description"] = ""
-            
+        device["description"] = ""            
         device["includes"] = self.raw_dev_data["includes"]
         device["objects"] = [{
           "type": self.raw_dev_data["objects"][0]["type"],
@@ -533,69 +471,37 @@ class FragmentsGenerator:
         return fragments
         
     def generate_fragment(self, op_name):
-        """ Generate the fragment of an operation
-        """
+        """ Generate the fragment of an operation """
         operation = self._get_operation_data(op_name)
-        
         frag = []
         
         if operation["io_type"]["value"] == "WRITE":
-            if "on_error" in operation:
-                if operation["status"] == "ERROR_IF_NEG":
-                    frag.append("    if (" + self._build_func_call(operation) + " < 0) {\n")
-                    frag.append('        kserver->syslog.print(SysLog::ERROR, "' 
-                                         + operation["on_error"] + '\\n");\n')
-                    frag.append("        return -1;\n")
-                    frag.append("    }\n\n")
-                    
-                    frag.append("    return 0;\n")
-            else:
-                if operation["status"] == "ERROR_IF_NEG":
-                     frag.append("    return " + self._build_func_call(operation) + ";\n")
-                elif operation["status"] == "NEVER_FAIL":
-                    frag.append("    " + self._build_func_call(operation) + ";\n")
-                    frag.append("    return 0;\n")
+            frag.append("    " + self._build_func_call(operation) + ";\n")
+            frag.append("    return 0;\n")
         elif operation["io_type"]["value"] == "READ":
-            if operation["status"] == "ERROR_IF_NEG":
-                # In this case the return type must be an int.
-                # After checking the status, we send the 
-                # result as an uint32_t to the client
+            template = self.parser._get_template(operation["prototype"]["ret_type"])
+        
+            if (operation["prototype"]["ret_type"] == "uint32_t"
+                or operation["prototype"]["ret_type"] == "unsigned int"
+                or operation["prototype"]["ret_type"] == "unsigned long"
+                or operation["prototype"]["ret_type"] == "int"):
+                frag.append("    return SEND<uint32_t>(" 
+                            + self._build_func_call(operation) + ");\n")
+            elif (operation["prototype"]["ret_type"] == "uint64_t"
+                  or operation["prototype"]["ret_type"] == "unsigned long long"):
+                frag.append("    return SEND<uint64_t>(" 
+                            + self._build_func_call(operation) + ");\n")
+            elif template != None:
+                type_base = operation["prototype"]["ret_type"].split('<')[0].strip()
                 
-                frag.append("    int ret = " + self._build_func_call(operation) + ";\n\n")
-                    
-                frag.append("    if (ret < 0) {\n")
-                if "on_error" in operation:
-                    frag.append('        kserver->syslog.print(SysLog::ERROR, "' 
-                                + operation["on_error"] + '\\n");\n')
-                frag.append("        return -1;\n")
-                frag.append("    }\n\n")
-                    
-                frag.append("    return SEND<uint32_t>(ret);\n")
-            elif operation["status"] == "NEVER_FAIL":
-                template = self.parser._get_template(operation["prototype"]["ret_type"])
-            
-                if (operation["prototype"]["ret_type"] == "uint32_t"
-                    or operation["prototype"]["ret_type"] == "unsigned int"
-                    or operation["prototype"]["ret_type"] == "unsigned long"
-                    or operation["prototype"]["ret_type"] == "int"):
-                    frag.append("    return SEND<uint32_t>(" 
+                if (type_base == "std::vector"
+                    or type_base == "std::array" 
+                    or type_base == "std::tuple"):
+                    frag.append("    return SEND<" + template + ">(" 
                                 + self._build_func_call(operation) + ");\n")
-                elif (operation["prototype"]["ret_type"] == "uint64_t"
-                      or operation["prototype"]["ret_type"] == "unsigned long long"):
-                    frag.append("    return SEND<uint64_t>(" 
-                                + self._build_func_call(operation) + ");\n")
-                elif template != None:
-                    type_base = operation["prototype"]["ret_type"].split('<')[0].strip()
-                    
-                    if (type_base == "Klib::KVector" 
-                        or type_base == "std::vector"
-                        or type_base == "std::array" 
-                        or type_base == "std::tuple"):
-                        frag.append("    return SEND<" + template + ">(" 
-                                    + self._build_func_call(operation) + ");\n")
-                else:
-                    raise ValueError("No available interface to send type " 
-                                     + operation["prototype"]["ret_type"])
+            else:
+                raise ValueError("No available interface to send type " 
+                                 + operation["prototype"]["ret_type"])
         
         elif operation["io_type"]["value"] == "READ_CSTR":
             if (operation["prototype"]["ret_type"] != "char *"       and
@@ -604,26 +510,12 @@ class FragmentsGenerator:
                 operation["prototype"]["ret_type"] != "const char*"):
                 raise ValueError("I/O type READ_CSTR expects a char*. Found " 
                                  + operation["prototype"]["ret_type"] + ".\n")
-                      
-            if operation["status"] == "ERROR_IF_NULL":
-                frag.append("    char *ret = " + self._build_func_call(operation) + ";\n\n")
-                
-                frag.append("    if (ret == nullptr) {\n")
-                if "on_error" in operation:
-                    frag.append('        kserver->syslog.print(SysLog::ERROR, "' 
-                                + operation["on_error"] + '\\n");\n')
-                frag.append("        return -1;\n")
-                frag.append("    }\n\n")
-                
-                frag.append("    return SEND_CSTR(ret);\n")
-            elif operation["status"] == "NEVER_FAIL":
-                    frag.append("    return SEND_CSTR(" 
-                                + self._build_func_call(operation) + ");\n")
+
+            frag.append("    return SEND_CSTR(" 
+                        + self._build_func_call(operation) + ");\n")
             
         elif operation["io_type"]["value"] == "READ_ARRAY":
             ptr_type = self._get_ptr_type(operation["prototype"]["ret_type"])
-            
-            #Get array length
             len_data = self.parser._get_array_length(operation["io_type"]["remaining"])
             
             if len_data["src"] == "this":
@@ -640,43 +532,26 @@ class FragmentsGenerator:
             else:
                 raise ValueError("Unknown array length source")
             
-            if operation["status"] == "ERROR_IF_NULL":
-                frag.append("    " + ptr_type + " *ret = " + self._build_func_call(operation) + ";\n\n")
-                
-                frag.append("    if (ret == nullptr) {\n")
-                if "on_error" in operation:
-                    frag.append('        kserver->syslog.print(SysLog::ERROR, "' 
-                                + operation["on_error"] + '\\n");\n')
-                frag.append("        return -1;\n")
-                frag.append("    }\n\n")
-                
-                frag.append("    return SEND_ARRAY<" + ptr_type + ">(ret, " + length + ");\n")
-            elif operation["status"] == "NEVER_FAIL":
-                frag.append("    return SEND_ARRAY<" + ptr_type + ">(" 
-                            + self._build_func_call(operation) + ", " + length + ");\n")
+            frag.append("    return SEND_ARRAY<" + ptr_type + ">(" 
+                        + self._build_func_call(operation) + ", " + length + ");\n")
                             
         elif operation["io_type"]["value"] == "WRITE_ARRAY":
             len_name = "len_" + operation["array_params"]["name"]["name"]
             
-            if operation["status"] == "NEVER_FAIL":
-                frag.append("    const uint32_t *data_ptr = RCV_HANDSHAKE(args." + len_name + ");\n\n")
-                
-                frag.append("    if(data_ptr == nullptr) {\n")
-                frag.append("       return -1;\n")
-                frag.append("    }\n\n")
-                
-                frag.append("    " + self._build_write_array_func_call(operation) + ";\n\n")
-                frag.append("    return 0;\n")
+            frag.append("    const uint32_t *data_ptr = RCV_HANDSHAKE(args." + len_name + ");\n\n")
+            frag.append("    if(data_ptr == nullptr) {\n")
+            frag.append("       return -1;\n")
+            frag.append("    }\n\n")
+            frag.append("    " + self._build_write_array_func_call(operation) + ";\n\n")
+            frag.append("    return 0;\n")
                             
         # self._show_fragment(frag)
         return frag
         
     def _get_ptr_type(self, ret_type):
         """Get the pointer type
-        
-        Ex. if ret_type is char* it returns char
-        
-        Raise an error if ret_type is not a pointer
+        Ex. if ret_type is char* it returns char.
+        Raise an error if ret_type is not a pointer.
         """
         tokens = ret_type.split('*')
         

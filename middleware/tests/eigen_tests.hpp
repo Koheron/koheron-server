@@ -1,11 +1,6 @@
-/// @file tuple_tests.hpp
+/// Tests for Eigen librairy
 ///
-/// @brief Tests for Eigen librairy
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 06/10/2015
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #ifndef __EIGEN_TESTS_HPP__
 #define __EIGEN_TESTS_HPP__
@@ -14,13 +9,12 @@
 
 #include "../drivers/dev_mem.hpp" // Unused but needed for now
 
-//> \description Tests for tuple tranfers
 class EigenTests
 {
   public:
     EigenTests(Klib::DevMem& dvm_unused_) {}
     
-    //> \io_type WRITE
+    //>
     void small_vector()
     {
         Eigen::Vector2f v(1, 2);
@@ -30,7 +24,7 @@ class EigenTests
                 
     }
     
-    //> \io_type WRITE
+    //>
     void dynamic_vector(unsigned int len)
     {
         Eigen::VectorXf v(len);
