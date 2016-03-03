@@ -4,9 +4,9 @@
 #define __TESTS_TEST_HPP__
 
 #include <array>
+#include <vector>
 
 #include <drivers/dev_mem.hpp> // Unused but needed for now
-#include <signal/kvector.hpp>
 
 //> \description Tests for KServer development
 class Tests
@@ -26,22 +26,21 @@ class Tests
     //> \io_type WRITE
     void Close();
 
-    //> \description Read data
     //> \io_type READ
-    Klib::KVector<float>& read();
+    std::vector<float>& read();
     
-    //> \description Set mean
     //> \io_type WRITE
-    //> \param mean_
     void set_mean(float mean_);
 
-    //> \description Set standard deviation
     //> \io_type WRITE
-    //> \param mean_
     void set_std_dev(float mean_);
 
     //> \io_type READ
     std::array<uint32_t, 10>& send_std_array();
+    
+    //> \io_type READ_ARRAY param => 2*n_pts
+    float* get_array(uint32_t n_pts);
+    
 
     // -----------------------------------------------
     // Send integers
@@ -79,7 +78,7 @@ class Tests
     float std_dev;
   
     // Data buffers
-    Klib::KVector<float> data;
+    std::vector<float> data;
     std::array<uint32_t, 10> data_std_array;
     
 }; // class Tests

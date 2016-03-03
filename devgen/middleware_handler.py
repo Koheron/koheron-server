@@ -630,8 +630,13 @@ class FragmentsGenerator:
                 obj_name = self.device["objects"][0]["name"]
                 length = "THIS->" + obj_name + "." + len_data["length"]
             elif len_data["src"] == "param":
-                # TODO Check this is a valid param
-                length = "args." + len_data["length"]
+                length = ""
+                for param in operation["prototype"]["params"]:
+                    if len_data['length'].find(param['name']) >= 0:
+                        length = len_data['length'].replace(param['name'], "args." + param['name'])
+                        break
+                if length == "": # Length is a constant independent of a parameter
+                    length = len_data['length']
             else:
                 raise ValueError("Unknown array length source")
             
