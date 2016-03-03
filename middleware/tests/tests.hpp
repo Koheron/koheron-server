@@ -8,7 +8,6 @@
 
 #include <drivers/dev_mem.hpp> // Unused but needed for now
 
-//> \description Tests for KServer development
 class Tests
 {
   public:
@@ -36,6 +35,8 @@ class Tests
     //> \io_type READ_ARRAY param => 2*n_pts
     float* get_array(uint32_t n_pts);
     
+    //>
+    const char* get_cstr();
 
     // -----------------------------------------------
     // Send integers

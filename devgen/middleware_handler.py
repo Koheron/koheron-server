@@ -8,6 +8,8 @@ import time
 import yaml
 import string
 
+CSTR_TYPES = ["char *", "char*", "const char *", "const char*"]
+
 class MiddlewareHandler:
     def __init__(self, hppfile):
        self.parser =  MiddlewareHppParser(hppfile)
@@ -247,6 +249,8 @@ class MiddlewareHppParser:
             # it is of type WRITE.
             if operation['prototype']['ret_type'] == 'void':
                 operation["io_type"] = {'value': 'WRITE', 'remaining': ''}
+            elif operation["prototype"]["ret_type"] in CSTR_TYPES:
+                operation["io_type"] = {'value': 'READ_CSTR', 'remaining': ''}
             else:
                 operation["io_type"] = {'value': 'READ', 'remaining': ''}
         elif not self._is_valid_io_type(operation["io_type"]["value"]):
@@ -327,10 +331,8 @@ class MiddlewareHppParser:
         return device
         
     def get_device_name(self):
-        """ Build the device name from the class name
-        """
+        """ Build the device name from the class name """
         raw_name = self.raw_dev_data["name"]
-        
         dev_name = []
         
         # Check whether there are capital letters within the class name
@@ -504,10 +506,7 @@ class FragmentsGenerator:
                                  + operation["prototype"]["ret_type"])
         
         elif operation["io_type"]["value"] == "READ_CSTR":
-            if (operation["prototype"]["ret_type"] != "char *"       and
-                operation["prototype"]["ret_type"] != "char*"        and
-                operation["prototype"]["ret_type"] != "const char *" and
-                operation["prototype"]["ret_type"] != "const char*"):
+            if operation["prototype"]["ret_type"] not in CSTR_TYPES:
                 raise ValueError("I/O type READ_CSTR expects a char*. Found " 
                                  + operation["prototype"]["ret_type"] + ".\n")
 

@@ -81,6 +81,11 @@ float* Tests::get_array(uint32_t n_pts)
     return data.data();
 }
 
+const char* Tests::get_cstr()
+{
+    return "Hello !";
+}
+
 // -----------------------------------------------
 // Send integers
 // -----------------------------------------------

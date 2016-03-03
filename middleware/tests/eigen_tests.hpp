@@ -21,7 +21,6 @@ class EigenTests
         
         for(int i=0; i<v.size(); i++)
             printf("%i --> %f", i, v(i));
-                
     }
     
     //>
@@ -34,7 +33,6 @@ class EigenTests
         
         for(int i=0; i<v.size(); i++)
             printf("%i --> %f", i, v(i));
-                
     }
 };
 
