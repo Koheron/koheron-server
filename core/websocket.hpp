@@ -12,8 +12,6 @@
 
 namespace kserver {
 
-#define WEBSOCK_READ_STR_LEN 1024
-
 struct WebSocketStreamHeader {
     unsigned int header_size;
     int mask_offset;

@@ -112,6 +112,9 @@ namespace kserver {
 /// Number of char for the operation identification
 #define N_CHAR_OP 16
 
+/// Websocket buffer size
+#define WEBSOCK_READ_STR_LEN KSERVER_RECV_DATA_BUFF_LEN
+
 /// Maximum length of the Unix socket file path 
 ///
 /// Note:
