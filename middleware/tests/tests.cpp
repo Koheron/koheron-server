@@ -70,16 +70,16 @@ std::array<uint32_t, 10>& Tests::send_std_array()
     return data_std_array;
 }
 
-float* Tests::get_array(uint32_t n_pts)
-{
-    std::default_random_engine generator(std::random_device{}());
-    std::normal_distribution<float> distribution(mean, std_dev);
+//float* Tests::get_array(uint32_t n_pts)
+//{
+//    std::default_random_engine generator(std::random_device{}());
+//    std::normal_distribution<float> distribution(mean, std_dev);
 
-    for (unsigned int i=0; i<n_pts; i++)
-        data[i] = distribution(generator);
-        
-    return data.data();
-}
+//    for (unsigned int i=0; i<n_pts; i++)
+//        data[i] = distribution(generator);
+//        
+//    return data.data();
+//}
 
 const char* Tests::get_cstr()
 {

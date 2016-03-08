@@ -14,47 +14,29 @@ class Tests
     Tests(Klib::DevMem& dvm_unused_);
     ~Tests();
 
-    //>
     int Open(uint32_t waveform_size_);
-    
-    //>
     void Close();
 
-    //>
     std::vector<float>& read();
-    
-    //>
     void set_mean(float mean_);
-
-    //>
     void set_std_dev(float mean_);
 
-    //>
     std::array<uint32_t, 10>& send_std_array();
     
-    //> \io_type READ_ARRAY param => 2*n_pts
-    float* get_array(uint32_t n_pts);
-    
-    //>
+//    //> \io_type READ_ARRAY param => 2*n_pts
+//    float* get_array(uint32_t n_pts);
+//    
+
     const char* get_cstr();
 
     // -----------------------------------------------
     // Send integers
     // -----------------------------------------------
 
-    //>
     uint64_t read64();
-
-    //>
     int read_int();
-
-    //>
     unsigned int read_uint();
-
-    //>
     unsigned long read_ulong();
-
-    //>
     unsigned long long read_ulonglong();
     
     enum Status {
@@ -63,8 +45,8 @@ class Tests
         FAILED
     };
 
-    //> \is_failed
-    bool IsFailed() const {return status == FAILED;}
+//    #pragma is_failed
+//    bool IsFailed() const {return status == FAILED;}
 
   private:
     int status;
