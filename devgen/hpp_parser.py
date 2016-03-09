@@ -56,6 +56,10 @@ def _set_iotype(operation, _type):
 
 def _get_operation(method, pragmas):
     pragma = _get_method_pragma(method, pragmas)
+    
+    if pragma != None and pragma['data'] == 'devgen exclude':
+        return None
+    
     operation = {}
     operation['prototype'] = _get_operation_prototype(method)
     _set_iotype(operation, method['rtnType'])
@@ -77,7 +81,7 @@ def _get_operation_prototype(method):
 def _get_is_failed(_class, pragmas):
     for method in _class['methods']['public']:
         pragma = _get_method_pragma(method, pragmas)
-        if pragma != None and pragma['data'] == 'is_failed':
+        if pragma != None and pragma['data'] == 'devgen is_failed':
             prototype = _get_operation_prototype(method)
             if prototype["ret_type"] != "bool":
                 ERROR(pragma['line_number'], 'Failure indicator function must return a bool')
@@ -107,6 +111,8 @@ def _get_device(_class, pragmas):
         if 'is_failed' in device and method['name'] == device['is_failed']['name']:
             continue
             
-        device['operations'].append(_get_operation(method, pragmas))
+        operation = _get_operation(method, pragmas)
+        if operation != None:
+            device['operations'].append(operation)
     return device
 

@@ -13,14 +13,16 @@ class Tests
     ~Tests();
 
     int Open(uint32_t waveform_size_);
+    
+    # pragma devgen exclude
     void Close();
 
     void set_mean(float mean_);
     void set_std_dev(float mean_);
     std::vector<float>& read();
     std::array<uint32_t, 10>& send_std_array();
-    
-//    //> \io_type READ_ARRAY param => 2*n_pts
+
+//    #pragma devgen read_array len = 2*arg{n_pts}
 //    float* get_array(uint32_t n_pts);
 
     const char* get_cstr();
@@ -38,7 +40,7 @@ class Tests
         FAILED
     };
 
-    # pragma is_failed
+    #pragma devgen is_failed
     bool IsFailed() const {return status == FAILED;}
 
   private:
