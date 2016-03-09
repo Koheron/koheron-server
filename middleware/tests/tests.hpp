@@ -14,7 +14,7 @@ class Tests
 
     int Open(uint32_t waveform_size_);
     
-    # pragma devgen exclude
+    #pragma tcp-server exclude
     void Close();
 
     void set_mean(float mean_);
@@ -33,14 +33,14 @@ class Tests
     unsigned int read_uint();
     unsigned long read_ulong();
     unsigned long long read_ulonglong();
-    
+
     enum Status {
         CLOSED,
         OPENED,
         FAILED
     };
 
-    #pragma devgen is_failed
+    #pragma tcp-server is_failed
     bool IsFailed() const {return status == FAILED;}
 
   private:

@@ -25,12 +25,12 @@ def _get_pragmas(hpp_filename):
     pragmas = []
     for line in fd.readlines():
         line_cnt = line_cnt + 1
-        if "# pragma" in line:
+        if '# pragma tcp-server' in line:
             pragmas.append({
               'line_number': line_cnt,
               'data': line.split("# pragma")[1].strip()
             })
-        elif "#pragma" in line:
+        elif '#pragma tcp-server' in line:
             pragmas.append({
               'line_number': line_cnt,
               'data': line.split("#pragma")[1].strip()
@@ -57,7 +57,7 @@ def _set_iotype(operation, _type):
 def _get_operation(method, pragmas):
     pragma = _get_method_pragma(method, pragmas)
     
-    if pragma != None and pragma['data'] == 'devgen exclude':
+    if pragma != None and pragma['data'] == 'exclude':
         return None
     
     operation = {}
@@ -81,7 +81,7 @@ def _get_operation_prototype(method):
 def _get_is_failed(_class, pragmas):
     for method in _class['methods']['public']:
         pragma = _get_method_pragma(method, pragmas)
-        if pragma != None and pragma['data'] == 'devgen is_failed':
+        if pragma != None and pragma['data'] == 'is_failed':
             prototype = _get_operation_prototype(method)
             if prototype["ret_type"] != "bool":
                 ERROR(pragma['line_number'], 'Failure indicator function must return a bool')
