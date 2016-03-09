@@ -12,7 +12,7 @@ Before compiling the server, you need to define in the config file the set of th
 
 ### Interfacing a driver
 
-Consider you desire to interface the following GPIO driver:
+We would like to interface the following GPIO driver:
 ``` cpp
 // gpio.hpp
 #ifndef __GPIO_HPP__
@@ -83,3 +83,5 @@ if __name__ == "__main__":
 	gpio = Gpio(client)
 	gpio.set_bit(0, 2) 
 ```
+
+Go [there](https://github.com/Koheron/zynq-sdk/tree/master/devices) to find several complete examples.
