@@ -12,7 +12,7 @@ Before compiling the server, you need to define in the config file the set of th
 
 ### Interfacing a driver
 
-We would like to interface the following GPIO driver:
+Let say we would like to interface the following GPIO driver:
 ``` cpp
 // gpio.hpp
 #ifndef __GPIO_HPP__
@@ -46,7 +46,7 @@ class Gpio
 #endif // __GPIO_HPP__
 ```
 
-First you need to add the path to the file `gpio.hpp` in the configuration file of the server. During the build the class will be integrated into the server. All the public functions (except the constructor, the destructor and `Close` which is explicitly excluded) will be callable from the various communication interfaces.
+First we need to add the path to the file `gpio.hpp` in the configuration file of the server. During the build the class will be integrated into the server. All the public functions (except the constructor, the destructor and `Close` which is explicitly excluded) will be callable from the various communication interfaces.
 
 Once the server is [build and deployed](doc/build.md) we can interact with it. For example, we can build a Python TCP client calling the driver functions in the following way:
 ``` py
