@@ -11,7 +11,7 @@ The build requires Python 2.7. You also need the following programs:
 $ sudo apt-get install wget
 $ sudo apt-get install git
 
-$ sudo apt-get -y install python-pip python-dev build-essential python-virtualenv
+$ sudo apt-get -y install python-pip python-dev build-essential python-virtualenv libyaml-dev
 $ sudo pip install --upgrade pip
 ```
 
