@@ -2,7 +2,7 @@
 
 [![Circle CI](https://circleci.com/gh/Koheron/tcp-server.svg?style=shield)](https://circleci.com/gh/Koheron/tcp-server)
 
-#### `High performance TCP / Websocket server for instrument control`
+#### `High performance TCP/Websocket server for instrument control`
 
 Koheron server aims at solving the problem of interfacing hardware drivers with communication protocols. Modern instruments require a fast, low-latency control, able to cope with large data set. Moreover, the user interface ranges from heavy TCP based to light browser embedded clients. Proposing various UI to the instruments often requires implementing several protocols on the client side.
 
@@ -81,7 +81,8 @@ class Gpio(object):
 if __name__ == "__main__":
 	client = KClient('192.168.1.10')
 	gpio = Gpio(client)
-	gpio.set_bit(0, 2) 
+	gpio.set_as_output(0, 2)
+	gpio.set_bit(0, 2)
 ```
 
-Go [there](https://github.com/Koheron/zynq-sdk/tree/master/devices) to find several complete examples.
+Check our [drivers folder](https://github.com/Koheron/zynq-sdk/tree/master/devices) to find several complete examples.
