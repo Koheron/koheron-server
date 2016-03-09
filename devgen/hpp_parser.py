@@ -28,12 +28,12 @@ def _get_pragmas(hpp_filename):
         if '# pragma tcp-server' in line:
             pragmas.append({
               'line_number': line_cnt,
-              'data': line.split("# pragma")[1].strip()
+              'data': line.split("# pragma tcp-server")[1].strip()
             })
         elif '#pragma tcp-server' in line:
             pragmas.append({
               'line_number': line_cnt,
-              'data': line.split("#pragma")[1].strip()
+              'data': line.split("#pragma tcp-server")[1].strip()
             })
     fd.close()
     return pragmas
