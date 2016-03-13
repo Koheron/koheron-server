@@ -22,7 +22,7 @@ class Tests
     std::vector<float>& read();
     std::array<uint32_t, 10>& send_std_array();
 
-    #pragma tcp-server read_array[2*arg<n_pts>]
+    #pragma tcp-server read_array[2*arg{n_pts}]
     float* get_array(uint32_t n_pts);
 
     const char* get_cstr();

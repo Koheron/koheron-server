@@ -56,13 +56,21 @@ def _set_iotype(operation, _type):
 
 def _get_operation(method, pragmas):
     pragma = _get_method_pragma(method, pragmas)
-    
-    if pragma != None and pragma['data'] == 'exclude':
-        return None
-    
     operation = {}
+
+    if pragma != None:
+        print pragma['data']
+        if pragma['data'] == 'exclude':
+            return None
+        elif pragma['data'].find('read_array') >= 0:
+            remaining = pragma['data'].split('[')[1].split(']')[0]
+            operation["io_type"] = {'value': 'READ_ARRAY', 'remaining': remaining}
+        else:
+            _set_iotype(operation, method['rtnType'])
+    else:
+        _set_iotype(operation, method['rtnType'])
+
     operation['prototype'] = _get_operation_prototype(method)
-    _set_iotype(operation, method['rtnType'])
     return operation
     
 def _get_operation_prototype(method):

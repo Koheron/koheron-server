@@ -229,21 +229,22 @@ class FragmentsGenerator:
             
         elif operation["io_type"]["value"] == "READ_ARRAY":
             ptr_type = self._get_ptr_type(operation["prototype"]["ret_type"])
-            len_data = self.parser._get_array_length(operation["io_type"]["remaining"])
+            remaining = operation["io_type"]["remaining"]
             
-            if len_data["src"] == "this":
+            if remaining.find('this') >= 0:
                 obj_name = self.device["objects"][0]["name"]
-                length = "THIS->" + obj_name + "." + len_data["length"]
-            elif len_data["src"] == "param":
+                member_name = remaining.split('{')[1].split('}')[0].strip()
+                member_call = "THIS->" + obj_name + "." + member_name
+                length = remaining.replace('this{' + member_name + '}', member_call)
+            elif remaining.find('arg') >= 0:
                 length = ""
                 for param in operation["prototype"]["params"]:
-                    if len_data['length'].find(param['name']) >= 0:
-                        length = len_data['length'].replace(param['name'], "args." + param['name'])
-                        break
+                    if remaining.find(param['name']) >= 0:
+                        length = remaining.replace('arg{' + param['name'] + '}', "args." + param['name'])
                 if length == "": # Length is a constant independent of a parameter
-                    length = len_data['length']
-            else:
-                raise ValueError("Unknown array length source")
+                    length = remaining
+            else: # Length is a constant independent of a parameter
+                length = remaining
             
             frag.append("    return SEND_ARRAY<" + ptr_type + ">(" 
                         + self._build_func_call(operation) + ", " + length + ");\n")
@@ -260,7 +261,7 @@ class FragmentsGenerator:
                             
         # self._show_fragment(frag)
         return frag
-        
+
     def _get_ptr_type(self, ret_type):
         """Get the pointer type
         Ex. if ret_type is char* it returns char.
