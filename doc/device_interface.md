@@ -1,4 +1,4 @@
-# Device interface language
+# Device interface
 
 The *device interface language* is a simple set of tags to be added to the middleware class header file. It allows to quickly build a new device from a middleware C++ class.
 

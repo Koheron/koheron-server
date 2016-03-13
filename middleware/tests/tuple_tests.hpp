@@ -12,8 +12,7 @@ class TupleTests
 {
   public:
     TupleTests(Klib::DevMem& dvm_unused_) {}
-    
-    //>
+
     std::tuple<int,
                float, 
                double>
