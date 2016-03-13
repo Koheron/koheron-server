@@ -59,19 +59,49 @@ def _get_operation(method, pragmas):
     operation = {}
 
     if pragma != None:
-        print pragma['data']
         if pragma['data'] == 'exclude':
             return None
         elif pragma['data'].find('read_array') >= 0:
-            remaining = pragma['data'].split('[')[1].split(']')[0]
+            remaining = pragma['data'].split('read_array')[1].strip()
             operation["io_type"] = {'value': 'READ_ARRAY', 'remaining': remaining}
+        elif pragma['data'].find('write_array') >= 0:
+            remaining = pragma['data'].split('write_array')[1].strip()
+            operation["io_type"] = {'value': 'WRITE_ARRAY', 'remaining': remaining}
+            operation['array_params'] = _get_write_array_params(remaining)
         else:
             _set_iotype(operation, method['rtnType'])
     else:
         _set_iotype(operation, method['rtnType'])
 
     operation['prototype'] = _get_operation_prototype(method)
+    operation['flags'] = ''
     return operation
+
+def _get_write_array_params(remaining):
+    tokens = remaining.split()
+
+    if len(tokens) != 2:
+        raise ValueError('Line ' + pragma['line_number' ] 
+                         + ': write_array expects to arguments: pointer and length')
+
+    array_params = {}
+    if tokens[0].find('arg') >= 0:
+        array_params['name'] = {}
+        array_params['name']['src'] = 'param'
+        array_params['name']['name'] = tokens[0].split('{')[1].split('}')[0].strip()
+    else:
+        raise ValueError('Line ' + pragma['line_number' ] 
+                         + ': the pointer must be an argument')
+
+    if tokens[1].find('arg') >= 0:
+        array_params['length'] = {}
+        array_params['length']['src'] = 'param'
+        array_params['length']['length'] = tokens[0].split('{')[1].split('}')[0].strip()
+    else:
+        raise ValueError('Line ' + pragma['line_number' ] 
+                         + ': the length must be an argument')
+
+    return array_params
     
 def _get_operation_prototype(method):
     prototype = {}

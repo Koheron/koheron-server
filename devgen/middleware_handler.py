@@ -46,21 +46,20 @@ class MiddlewareHppParser:
         self.raw_dev_data = devices[0]
         self.raw_dev_data["includes"] = [self._get_include(hppfile)];
         self.device = self._get_device()
-        
+
     def _get_include(self, hppfile):
         folders = hppfile.split('/')        
         middleware_idx = -1
-        
         for idx, folder in enumerate(folders):
             if folder == "middleware":
                 middleware_idx = idx
                 break
-        
+
         if middleware_idx == -1:
             raise ValueError("Source file must be in the middleware folder")
 
         return '/'.join(folders[(middleware_idx+1):])
-        
+
     def _get_template(self, ret_type):
         tokens = ret_type.split('<')
         
@@ -79,56 +78,56 @@ class MiddlewareHppParser:
           "type": self.raw_dev_data["objects"][0]["type"],
           "name": "__" + self.get_device_name().lower()
         }]
-        
+
         for op in self.raw_dev_data["operations"]:
             device["operations"].append(self._format_operation(op))
-            
+
         return device
-        
+
     def get_device_name(self):
         """ Build the device name from the class name """
         raw_name = self.raw_dev_data["name"]
         dev_name = []
-        
+
         # Check whether there are capital letters within the class name
         # and insert an underscore before them
         for idx, letter in enumerate(raw_name):
             if idx > 0 and letter in list(string.ascii_uppercase):
                 dev_name.append('_')
-                
+
             dev_name.append(letter.upper())
-            
+
         return ''.join(dev_name)
-        
+
     def _format_operation(self, op):
         operation = {}
         operation["name"] = op["prototype"]["name"].upper()
-            
+
         if "description" in op and op["description"] != "":
             operation["description"] = op["description"]
-            
+
         if "flags" in op and len(op["flags"]) > 0:
             operation["flags"] = op["flags"]
-            
+
         if op["io_type"]["value"] == "WRITE_ARRAY":            
             send_buffer_flag = {
               "name": "SEND_BUFFER",
               "buffer_name": [op["array_params"]["name"]["name"]]
             }
-            
+
             if len(op["flags"]) > 0:
                 operation["flags"].append(send_buffer_flag)
             else:
                 operation["flags"] = [send_buffer_flag]
-            
+
         if len(op["prototype"]["params"]) > 0:
             if op["io_type"]["value"] == "WRITE_ARRAY":                
                 array_name_ok = False
-                array_lenght_ok = False
-                
+                array_length_ok = False
+
                 for param in op["prototype"]["params"]:
                     param_ptr_toks = param["name"].split('*')
-                
+
                     if (op["array_params"]["name"]["src"] == "param" and 
                         len(param_ptr_toks) == 2 and
                         param_ptr_toks[1].strip() == op["array_params"]["name"]["name"]):
@@ -139,30 +138,28 @@ class MiddlewareHppParser:
                         array_name_ok = True
                     elif (op["array_params"]["length"]["src"] == "param" and 
                           param["name"] == op["array_params"]["length"]["length"]):
-                        array_lenght_ok = True
+                        array_length_ok = True
                     else: # Miscellaneous parameter
                         arg = {}
                         arg["name"] = param["name"]
                         arg["type"] = param["type"]
                         arg["description"] = ""
-                        
+
                         if "arguments" in operation:
                             operation["arguments"].append(arg)
                         else:
                             operation["arguments"] = [arg]
             else:
                 operation["arguments"] = []
-                
+
                 for param in op["prototype"]["params"]:
                     arg = {}
                     arg["name"] = param["name"]
                     arg["type"] = param["type"]
                     arg["description"] = ""
                     operation["arguments"].append(arg)
-            
+
         return operation
-                
-        return "" # No description provided
         
 class FragmentsGenerator:
     def __init__(self, parser):
@@ -232,7 +229,7 @@ class FragmentsGenerator:
             remaining = operation["io_type"]["remaining"]
             
             if remaining.find('this') >= 0:
-                obj_name = self.device["objects"][0]["name"]
+                obj_name = self.parser.device["objects"][0]["name"]
                 member_name = remaining.split('{')[1].split('}')[0].strip()
                 member_call = "THIS->" + obj_name + "." + member_name
                 length = remaining.replace('this{' + member_name + '}', member_call)
@@ -253,9 +250,8 @@ class FragmentsGenerator:
             len_name = "len_" + operation["array_params"]["name"]["name"]
             
             frag.append("    const uint32_t *data_ptr = RCV_HANDSHAKE(args." + len_name + ");\n\n")
-            frag.append("    if(data_ptr == nullptr) {\n")
-            frag.append("       return -1;\n")
-            frag.append("    }\n\n")
+            frag.append("    if (data_ptr == nullptr)\n")
+            frag.append("       return -1;\n\n")
             frag.append("    " + self._build_write_array_func_call(operation) + ";\n\n")
             frag.append("    return 0;\n")
                             
