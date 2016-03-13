@@ -4,7 +4,7 @@
 #include <array>
 #include <vector>
 
-#include <drivers/dev_mem.hpp> // Unused but needed for now
+#include <drivers/dev_mem.hpp> 
 
 class Tests
 {
@@ -14,7 +14,7 @@ class Tests
 
     int Open(uint32_t waveform_size_);
     
-    # pragma devgen exclude
+    #pragma devgen exclude
     void Close();
 
     void set_mean(float mean_);
@@ -22,8 +22,8 @@ class Tests
     std::vector<float>& read();
     std::array<uint32_t, 10>& send_std_array();
 
-//    #pragma devgen read_array len = 2*arg{n_pts}
-//    float* get_array(uint32_t n_pts);
+    #pragma devgen read_array[2*arg<n_pts>]
+    float* get_array(uint32_t n_pts);
 
     const char* get_cstr();
 
