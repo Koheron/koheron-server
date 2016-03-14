@@ -33,9 +33,9 @@ class MiddlewareHandler:
         return d2l_filename
         
     def get_device_data(self):
-#        self.generate_device_description_file('./tmp')
+        # self.generate_device_description_file('./tmp')
         return self.parser.device
-        
+
     def get_fragments(self):
         frag_gen = FragmentsGenerator(self.parser)
         return frag_gen.get_fragments()

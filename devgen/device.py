@@ -156,15 +156,15 @@ class Device:
 class Operations:
     def __init__(self, operations):
         self._operations = operations
-        
+
     def __len__(self):
         return len(self._operations)
-        
+
     def __getitem__(self, index):
         if index >= len(self):
             raise IndexError
         return self._operations[index]
-        
+
     def is_valid_op(self, op_name):
         """ Test whether an operation is valid
         
@@ -174,39 +174,38 @@ class Operations:
         for operation in self:
             if operation["name"] == op_name:
                 return True
-                
+
         return False
         
 class Objects:
     """ Objects from external API """
-    
+
     def __init__(self, objects):
         if objects == None:
             self._objects = []
         else:
             self._objects = objects
-        
+
     def __len__(self):
         return len(self._objects)
-        
+
     def __getitem__(self, index):
         if index >= len(self):
             raise IndexError
         return self._objects[index]
-        
+
 class Includes:
     """ API files to include """
-    
     def __init__(self, includes):
         if includes == None:
             self._includes = []
         else:
             self._includes = includes
-        
+
     def __len__(self):
         return len(self._includes)
-        
+
     def __getitem__(self, index):
         if index >= len(self):
             raise IndexError
-        return self._includes[index]       
+        return self._includes[index]
