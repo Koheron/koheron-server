@@ -35,4 +35,5 @@ endif
 
 clean:
 	rm -rf tmp
+	# rm -rf venv
 

@@ -2,115 +2,87 @@
 
 [![Circle CI](https://circleci.com/gh/Koheron/tcp-server.svg?style=shield)](https://circleci.com/gh/Koheron/tcp-server)
 
-#### `High performance TCP / Websocket server for instrument control`
+#### `High performance TCP/Websocket server for instrument control`
 
-Koheron Server is a TCP / Websocket server optimized for high-performance instrument control applications.
+Koheron server aims at solving the problem of interfacing hardware drivers with communication protocols. Modern instruments require a fast, low-latency control, able to cope with large data set. Moreover, the user interface ranges from heavy TCP based to light browser embedded clients. Proposing various UI to the instruments often requires implementing several protocols on the client side.
 
-### Requirements
+Koheron server is designed to interface C++ drivers with various communications protocols (TCP, WebSocket or UnixSockets), giving you a lot of flexibility in the way you control your instrument. Your driver is statically compiled into the server to maximize performances. When your driver is exposed via an API composed of a set of C++ classes, it is straighforward to build the reciprocal API on the client side. The client API can be in Javascript for browser-based clients using the WebSocket protocol, or in Python or C for use with the TCP or Unisocket protocols.
 
-You first need to get the C/C++ compiler. To install a given GCC based cross-compiler toolchain run
-```
-$ sudo apt-get install gcc-<toolchain>
-$ sudo apt-get install g++-<toolchain>
-```
+Before compiling the server, you need to define in the config file the set of the header files containing the classes of your API. After the build, each class will be available as a device and each public function of the class will be a command associated to the related device. From the client side you can then call each command by sending the associated function arguments. If a non void value is returned by the function, then the server will send you back the result. If required, the behavior of each command can be tuned using a simple pragma language.
 
-The build requires Python 2.7. You also need the following programs:
-```
-$ sudo apt-get install wget
-$ sudo apt-get install git
+### Interfacing a driver
 
-$ sudo apt-get -y install python-pip python-dev build-essential python-virtualenv
-$ sudo pip install --upgrade pip
-```
+Let say we would like to interface the following GPIO driver:
+``` cpp
+// gpio.hpp
+#ifndef __GPIO_HPP__
+#define __GPIO_HPP__
 
-### Build
+#include <drivers/dev_mem.hpp>
+#include <drivers/wr_register.hpp>
 
-To build the server call:
-```
-$ make CONFIG=<config.yaml>
-```
-where `config.yaml` is the server configuration in the [config](config) folder.
+class Gpio
+{
+  public:
+    Gpio(Klib::DevMem& dev_mem_);
+    ~Gpio();
 
-For example, to compile for the Ubuntu Core distribution. After installing the `arm-linux-gnueabihf` toolchain run
-```
-$ make CONFIG=config_armhf.yaml
-```
+    int Open();
+    
+    # pragma tcp-server exclude
+    void Close();
 
-To compile the server on the local machine use:
-```
-$ make CONFIG=config_local.yaml
-```
+    void set_bit(uint32_t index, uint32_t channel);
+    void clear_bit(uint32_t index, uint32_t channel);
+    void toggle_bit(uint32_t index, uint32_t channel);
+    void set_as_input(uint32_t index, uint32_t channel);
+    void set_as_output(uint32_t index, uint32_t channel);
 
-The build produces a folder `tmp`. The server executable is `tmp/server/kserverd`.
+  private:
+    Klib::DevMem& dev_mem;
+    Klib::MemMapID gpio_mem; // GPIO memory map ID
+};
 
-### Deploy
-
-#### On the local machine
-
-```
-$ sudo tmp/server/kserverd -c kserver.conf
+#endif // __GPIO_HPP__
 ```
 
-Check whether the daemon is launched
+First we need to add the path to the file `gpio.hpp` in the configuration file of the server. During the build the class will be integrated into the server. All the public functions (except the constructor, the destructor and `Close` which is explicitly excluded) will be callable from the various communication interfaces.
 
-```
-$ pgrep kserverd
-```
+Once the server is [build and deployed](doc/build.md) we can interact with it. For example, we can build a Python TCP client calling the driver functions in the following way:
+``` py
+from koheron_tcp_client import KClient, command
 
-#### On a remote machine
+class Gpio(object):
+    def __init__(self, client):
+        self.client = client
+        self.open_gpio()
 
-Transfer the executable and the configuration file to the remote machine
-```
-$ scp tmp/server/kserverd root@<host_ip>:/tmp
-$ scp config/kserver.conf root@<host_ip>:/tmp
-```
-where `<host_ip>` is the IP address of the remote host.
+    def open_gpio(self):
+        @command('GPIO')
+        def open(self): pass
 
-Then connect via SSH to a remote machine
-```
-$ ssh root@<host_ip>
-``` 
-and launch the daemon from a secure shell on the remote machine:
-```
-<remote_host># /tmp/kserverd -c /tmp/kserver.conf
-```
+        open(self)
 
-If the server is already launched, you can end it nicely before by running:
-```
-<remote_host># pkill -SIGINT kserverd
-```
+    @command('GPIO')
+    def set_bit(self, index, channel): pass
 
-#### Add the server to your Linux install
+    @command('GPIO')
+    def clear_bit(self, index, channel): pass
 
-Install the executable and the configuration files into a folder of your choice, for example `/usr/local/tcp-server`:
-```
-# mkdir /usr/local/tcp-server
-# cp kserverd /usr/local/tcp-server
-# cp kserver.conf /usr/local/tcp-server
-```
+    @command('GPIO')
+    def toggle_bit(self, index, channel): pass
 
-Launch the server after initialization of the ethernet connection: add the following line into `/etc/network/interfaces.d/eth0`:
-```
-post-up /usr/local/tcp-server/kserverd -c /usr/local/tcp-server/kserver.conf
+    @command('GPIO')
+    def set_as_input(self, index, channel): pass
+
+    @command('GPIO')
+    def set_as_output(self, index, channel): pass
+
+if __name__ == "__main__":
+	client = KClient('192.168.1.10')
+	gpio = Gpio(client)
+	gpio.set_as_output(0, 2)
+	gpio.set_bit(0, 2)
 ```
 
-Add the same line into `/etc/network/interfaces.d/wlan0` for initialization when the Wifi is up.
-
-### Command line interface
-
-To compile the CLI run
-```
-$ make -C cli CROSS_COMPILE=<toolchain>-
-```
-it generates an executable `cli/kserver`.
-
-You can then transfer the executable to the remote machine: 
-```
-$ scp cli/kserver root@<host_ip>:/tmp
-```
-and use it:
-```
-<remote_host># /tmp/kserver --help
-```
-
-See also [CLI usage](doc/command_line_interface.md).
+Check our [drivers folder](https://github.com/Koheron/zynq-sdk/tree/master/devices) to find several complete examples.

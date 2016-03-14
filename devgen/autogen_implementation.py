@@ -8,8 +8,11 @@ import device as dev_utils
 # Associate a conversion macro to a type
 conv_macros = {
     'unsigned int': 'CSTRING_TO_UINT',
+    'const unsigned int': 'CSTRING_TO_UINT',
     'uint32_t': 'CSTRING_TO_UINT',
+    'const uint32_t': 'CSTRING_TO_UINT',
     'float': 'CSTRING_TO_FLOAT',
+    'const float': 'CSTRING_TO_FLOAT',
     'bool': 'CSTRING_TO_BOOL',
     'unsigned long': 'CSTRING_TO_ULONG',
     'uint64_t': 'CSTRING_TO_ULONG'

@@ -86,7 +86,8 @@ CCPP=$(CROSS_COMPILE)g++
 DEFINES = -DDEBUG_KSERVER 
 #DEFINES = -DRELEASE_KSERVER
 
-CFLAGS= -Wall -Werror -I$(MIDWARE_INC_PATH) -I$(MIDWARE_INC_PATH)/libraries $(DEFINES)
+CFLAGS= -Wall -Werror -Wno-unknown-pragmas \
+        -I$(MIDWARE_INC_PATH) -I$(MIDWARE_INC_PATH)/libraries $(DEFINES)
 
 MFPU = vfpv3 # Better
 #MFPU = neon # Less good

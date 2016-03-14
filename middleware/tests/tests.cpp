@@ -8,6 +8,7 @@
 
 Tests::Tests(Klib::DevMem& dvm_unused_)
 : data(0)
+, buffer(0)
 {
     waveform_size = 0;
     mean = 0;
@@ -72,13 +73,42 @@ std::array<uint32_t, 10>& Tests::send_std_array()
 
 float* Tests::get_array(uint32_t n_pts)
 {
+    if (data.size() < 2*n_pts)
+        data.resize(2*n_pts);
+
     std::default_random_engine generator(std::random_device{}());
     std::normal_distribution<float> distribution(mean, std_dev);
 
-    for (unsigned int i=0; i<n_pts; i++)
-        data[i] = distribution(generator);
-        
+    for (unsigned int i=0; i<n_pts; i++) {
+       data[i] = distribution(generator);
+       data[i + n_pts] = distribution(generator);
+    }
+
     return data.data();
+}
+
+float* Tests::get_array_bis()
+{
+    std::default_random_engine generator(std::random_device{}());
+    std::normal_distribution<float> distribution(mean, std_dev);
+
+    for (unsigned int i=0; i<data.size(); i++)
+       data[i] = distribution(generator);
+
+    return data.data();
+}
+
+void Tests::set_buffer(const uint32_t *data, uint32_t len)
+{
+    buffer.resize(len);
+
+    for (unsigned int i=0; i<buffer.size(); i++)
+        buffer[i] = data[i];
+}
+
+const char* Tests::get_cstr()
+{
+    return "Hello !";
 }
 
 // -----------------------------------------------

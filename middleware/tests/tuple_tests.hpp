@@ -8,13 +8,11 @@
 
 #include "../drivers/dev_mem.hpp" // Unused but needed for now
 
-//> \description Tests for tuple tranfers
 class TupleTests
 {
   public:
     TupleTests(Klib::DevMem& dvm_unused_) {}
-    
-    //> \io_type READ
+
     std::tuple<int,
                float, 
                double>

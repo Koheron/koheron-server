@@ -18,7 +18,8 @@ RUN apt-get -y install gcc-arm-linux-gnueabihf \
                        git \
                        python-pip \
                        python-dev \
-                       build-essential
+                       build-essential \
+                       libyaml-dev
 RUN pip install --upgrade pip
 
 WORKDIR $work_dir/
