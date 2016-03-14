@@ -19,6 +19,7 @@ class DevMem:
 
     def open(self):
         self.client.send_command(self.ref['id'], self.ref['open'])
+        return self.client.recv_int(4)
 
     def add_memory_map(self, device_addr, map_size):
         """ Add a memory map

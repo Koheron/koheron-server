@@ -71,37 +71,3 @@ def recv_timeout(socket, escape_seq, timeout=5):
         time.sleep(0.005)
 
     return ''.join(total_data)
-
-# ----------------------------------
-# Send
-# ----------------------------------
-
-
-def send_handshaking(sock, data, format_char='I'):
-    """ Send data according to the handshaking protocol
-
-    1) The size of the buffer must have been send as a
-       command argument to KServer before
-    2) KServer acknowledges reception readiness by sending
-       the number of points to receive to the client
-    3) The client send the data buffer
-
-    Args:
-        sock: The socket to use for communication
-        data: The data buffer to be send
-    """
-    data_recv = sock.recv(4)
-    num = struct.unpack(">I", data_recv)[0]
-    n_pts = len(data)
-
-    if num == n_pts:
-        format_ = ('%s'+format_char) % n_pts
-        buff = struct.pack(format_, *data.astype(np.int64))
-        sent = sock.send(buff)
-
-        if sent == 0:
-            raise RuntimeError("Socket connection broken")
-    else:
-        raise RuntimeError("Invalid handshake")
-
-    return
