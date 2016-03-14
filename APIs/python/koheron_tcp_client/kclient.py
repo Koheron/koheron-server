@@ -7,7 +7,7 @@ import numpy as np
 import functools
 import string
 
-from .rcv_send import recv_timeout, recv_n_bytes, send_handshaking
+from .rcv_send import recv_timeout, recv_n_bytes
 
 # --------------------------------------------
 # Decorators
@@ -214,11 +214,11 @@ class KClient:
                     if data_recv[:len(err_msg)] == err_msg:
                         print("kclient-recv_int: No data available")
                         return float('nan')
+
+                return struct.unpack("I", data_recv)[0]
         except:
             print("kclient-recv_int: Reception error")
             return float('nan')
-
-        return struct.unpack("I", data_recv)[0]
 
     def recv_n_bytes(self, n_bytes):
         """ Receive exactly n bytes
@@ -299,7 +299,7 @@ class KClient:
 
         if num == n_pts:
             format_ = ('%s'+format_char) % n_pts
-            buff = struct.pack(format_, *data.astype(np.int32))
+            buff = struct.pack(format_, *data.astype(np.uint32))
             sent = self.sock.send(buff)
 
             if sent == 0:
