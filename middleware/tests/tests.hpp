@@ -4,7 +4,7 @@
 #include <array>
 #include <vector>
 
-#include <drivers/dev_mem.hpp> // Unused but needed for now
+#include <drivers/dev_mem.hpp> 
 
 class Tests
 {
@@ -19,12 +19,22 @@ class Tests
 
     void set_mean(float mean_);
     void set_std_dev(float mean_);
+
+    // Send arrays
     std::vector<float>& read();
     std::array<uint32_t, 10>& send_std_array();
 
-//    #pragma devgen read_array len = 2*arg{n_pts}
-//    float* get_array(uint32_t n_pts);
+    #pragma tcp-server read_array 2*arg{n_pts}
+    float* get_array(uint32_t n_pts);
 
+    #pragma tcp-server read_array this{data.size()}
+    float* get_array_bis();
+
+    // Receive array
+    #pragma tcp-server write_array arg{data} arg{len}
+    void set_buffer(const uint32_t *data, uint32_t len);
+
+    // Send strings
     const char* get_cstr();
 
     // Send integers
@@ -43,14 +53,15 @@ class Tests
     #pragma tcp-server is_failed
     bool IsFailed() const {return status == FAILED;}
 
+
+    std::vector<float> data;
   private:
     int status;
     uint32_t waveform_size;
     float mean;
     float std_dev;
-  
-    // Data buffers
-    std::vector<float> data;
+
+    std::vector<uint32_t> buffer;
     std::array<uint32_t, 10> data_std_array;
 }; // class Tests
 
