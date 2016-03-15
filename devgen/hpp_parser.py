@@ -90,16 +90,14 @@ def _get_write_array_params(remaining):
         array_params['name']['src'] = 'param'
         array_params['name']['name'] = tokens[0].split('{')[1].split('}')[0].strip()
     else:
-        raise ValueError('Line ' + pragma['line_number' ] 
-                         + ': the pointer must be an argument')
+        raise ValueError('Line ' + pragma['line_number' ] + ': the pointer must be an argument')
 
     if tokens[1].find('arg') >= 0:
         array_params['length'] = {}
         array_params['length']['src'] = 'param'
-        array_params['length']['length'] = tokens[0].split('{')[1].split('}')[0].strip()
+        array_params['length']['length'] = tokens[1].split('{')[1].split('}')[0].strip()
     else:
-        raise ValueError('Line ' + pragma['line_number' ] 
-                         + ': the length must be an argument')
+        raise ValueError('Line ' + pragma['line_number' ] + ': the length must be an argument')
 
     return array_params
     
