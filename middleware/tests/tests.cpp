@@ -145,3 +145,8 @@ float Tests::read_float()
 {
     return 0.42;
 }
+
+bool Tests::read_bool()
+{
+    return true;   
+}
