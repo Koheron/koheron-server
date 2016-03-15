@@ -201,7 +201,8 @@ class FragmentsGenerator:
             if (operation["prototype"]["ret_type"] == "uint32_t"
                 or operation["prototype"]["ret_type"] == "unsigned int"
                 or operation["prototype"]["ret_type"] == "unsigned long"
-                or operation["prototype"]["ret_type"] == "int"):
+                or operation["prototype"]["ret_type"] == "int"
+                or operation["prototype"]["ret_type"] == "bool"):
                 frag.append("    return SEND<uint32_t>(" 
                             + self._build_func_call(operation) + ");\n")
             elif (operation["prototype"]["ret_type"] == "uint64_t"
