@@ -43,6 +43,7 @@ class Tests
     unsigned int read_uint();
     unsigned long read_ulong();
     unsigned long long read_ulonglong();
+    float read_float();
 
     enum Status {
         CLOSED,
