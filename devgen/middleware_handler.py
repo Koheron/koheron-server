@@ -208,6 +208,9 @@ class FragmentsGenerator:
                   or operation["prototype"]["ret_type"] == "unsigned long long"):
                 frag.append("    return SEND<uint64_t>(" 
                             + self._build_func_call(operation) + ");\n")
+            elif (operation["prototype"]["ret_type"] == "float"):
+                frag.append("    return SEND<float>(" 
+                            + self._build_func_call(operation) + ");\n")
             elif template != None:
                 type_base = operation["prototype"]["ret_type"].split('<')[0].strip()
                 
@@ -306,6 +309,7 @@ class FragmentsGenerator:
         len_name = operation["array_params"]['length']['length']
         obj_name = self.parser.device["objects"][0]["name"]
         func_name = operation["prototype"]["name"]
+
         call = "THIS->" + obj_name + "." + func_name + "("
 
         for count, param in enumerate(operation["prototype"]["params"]):

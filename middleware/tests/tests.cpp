@@ -140,3 +140,8 @@ unsigned long long Tests::read_ulonglong()
 {
     return (1ULL << 63);
 }
+
+float Tests::read_float()
+{
+    return 0.42;
+}
