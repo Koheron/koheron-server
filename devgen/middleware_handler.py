@@ -136,10 +136,11 @@ class MiddlewareHppParser:
                         len(param_ptr_toks) == 1 and
                         param_ptr_toks[0].strip() == op["array_params"]["name"]["name"]):
                         array_name_ok = True
-                    elif (op["array_params"]["length"]["src"] == "param" and 
-                          param["name"] == op["array_params"]["length"]["length"]):
-                        array_length_ok = True
-                    else: # Miscellaneous parameter
+                    else:
+                        if (op["array_params"]["length"]["src"] == "param" and 
+                            param["name"] == op["array_params"]["length"]["length"]):
+                            array_length_ok = True
+
                         arg = {}
                         arg["name"] = param["name"]
                         arg["type"] = param["type"]
@@ -149,6 +150,9 @@ class MiddlewareHppParser:
                             operation["arguments"].append(arg)
                         else:
                             operation["arguments"] = [arg]
+
+                if not array_name_ok or not array_length_ok:
+                    raise ValueError('write_array arguments not found in function prototype')
             else:
                 operation["arguments"] = []
 
@@ -247,7 +251,7 @@ class FragmentsGenerator:
                         + self._build_func_call(operation) + ", " + length + ");\n")
                             
         elif operation["io_type"]["value"] == "WRITE_ARRAY":
-            len_name = "len_" + operation["array_params"]["name"]["name"]
+            len_name = operation["array_params"]['length']['length']
             
             frag.append("    const uint32_t *data_ptr = RCV_HANDSHAKE(args." + len_name + ");\n\n")
             frag.append("    if (data_ptr == nullptr)\n")
@@ -299,14 +303,11 @@ class FragmentsGenerator:
         
     def _build_write_array_func_call(self, operation):
         assert operation["io_type"]["value"] == "WRITE_ARRAY"
-        
-        len_name = "len_" + operation["array_params"]["name"]["name"]
-    
+        len_name = operation["array_params"]['length']['length']
         obj_name = self.parser.device["objects"][0]["name"]
         func_name = operation["prototype"]["name"]
-        
         call = "THIS->" + obj_name + "." + func_name + "("
-                
+
         for count, param in enumerate(operation["prototype"]["params"]):
             param_ptr_toks = param["name"].split('*')
             

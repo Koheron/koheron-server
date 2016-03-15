@@ -92,35 +92,9 @@ class Device:
             self.frag_handler = FragmentsHandler(self, fragments=fragments)
         else:
             raise ValueError("Invalid device file " + os.path.basename(path))
-            
-        self._AddSendBufferArgs()
+
         self.objects = Objects(self._data["objects"])
         self.includes = Includes(self._data["includes"])
-        
-    def _AddSendBufferArgs(self):
-        """
-        When the flag SEND_BUFFER is defined, 
-        an argument 'buff_size' is added to 
-        implement the handshaking protocol.
-        """
-        
-        for idx, operation in enumerate(self.operations):
-            if not IsFlags(operation):
-                continue
-                
-            if not "arguments" in self.operations[idx]:
-                self.operations[idx]["arguments"] = []
-        
-            for flag in operation["flags"]:
-                if flag["name"] == "SEND_BUFFER":
-                    for buff_name in flag["buffer_name"]:
-                        arg = {
-                          'type': 'unsigned int',
-                          'name': 'len_' + buff_name,
-                          'description': 'Size of the buffer ' + buff_name 
-                                           + '. To be used for the handshaking.'
-                        }
-                        self.operations[idx]["arguments"].append(arg)
                   
     def BuildFragmentTpl(self):
         """ Build the template file to edit the fragments

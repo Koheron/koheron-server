@@ -65,11 +65,7 @@ operations:
     flags:
       - name: SEND_BUFFER 
         buffer_name: 
-          - data
-        # Operations with flag SEND_BUFFER 
-        # will automatically add an argument len_$buffer_name$
-        # for each buffer. To be used in the handshaking protocol
-              
+          - data              
     arguments:  
       - name: mmap_idx
         type: unsigned int
@@ -79,6 +75,10 @@ operations:
       - name: offset
         type: unsigned int
         description: Offset of the register to write
+
+      - name: len_data
+        type: unsigned int
+        description: Length of the data buffer
                         
   - name: READ_BUFFER
     description: Read a buffer of registers
