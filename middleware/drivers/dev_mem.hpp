@@ -7,7 +7,9 @@
 
 #include <map>
 #include <vector>
+#include <array>
 #include <cstdint>
+#include <string>
 #include <assert.h> 
 
 extern "C" {
@@ -20,8 +22,24 @@ extern "C" {
 /// @brief Namespace of the Koheron library
 namespace Klib {
 
+// struct MemoryRegion {
+//     intptr_t addr;
+//     uint32_t size;
+// };
+
 /// ID of a memory map
 typedef uint32_t MemMapID;
+
+class MemMapIdPool
+{
+  public:
+    MemMapIdPool() : reusable_ids(0) {};
+
+    MemMapID get_id(unsigned int num_maps);
+    void release_id(MemMapID id);
+  private:
+    std::vector<MemMapID> reusable_ids;
+};
 
 /// Device memory manager
 /// A memory maps factory
@@ -40,6 +58,10 @@ class DevMem
 
     /// Current number of memory maps
     static unsigned int num_maps;
+
+    // template<size_t N>
+    // std::array<MemMapID, N> 
+    // RequestMemoryMaps(std::array<MemoryRegion, N> regions, std::string dev_name);
 
     /// Create a new memory map
     /// @addr Base address of the map
@@ -81,10 +103,9 @@ class DevMem
     intptr_t addr_limit_down;
     intptr_t addr_limit_up;
     bool __is_forbidden_address(intptr_t addr);
-    
-    /// Memory maps container
-    std::map<MemMapID, MemoryMap*> mem_maps; 
-    std::vector<MemMapID> reusable_ids;
+
+    std::map<MemMapID, MemoryMap*> mem_maps;
+    MemMapIdPool id_pool;
 };
 
 }; // namespace Klib
