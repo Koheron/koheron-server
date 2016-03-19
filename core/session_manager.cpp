@@ -117,10 +117,6 @@ void SessionManager::__print_reusable_ids()
 
 bool SessionManager::__is_reusable_id(SessID id)
 {
-#if KSERVER_HAS_THREADS
-    std::lock_guard<std::mutex> lock(mutex);
-#endif
-
     for (size_t i=0; i<reusable_ids.size(); i++)
         if (reusable_ids[i] == id)
             return true;
@@ -130,10 +126,6 @@ bool SessionManager::__is_reusable_id(SessID id)
 
 bool SessionManager::__is_current_id(SessID id)
 {
-#if KSERVER_HAS_THREADS
-    std::lock_guard<std::mutex> lock(mutex);
-#endif
-
     std::vector<SessID> curr_ids = GetCurrentIDs();
     
     for (size_t i=0; i<curr_ids.size(); i++)
@@ -145,10 +137,6 @@ bool SessionManager::__is_current_id(SessID id)
 
 std::vector<SessID> SessionManager::GetCurrentIDs()
 {
-#if KSERVER_HAS_THREADS
-    std::lock_guard<std::mutex> lock(mutex);
-#endif
-
     std::vector<SessID> res(0);
 
     for (auto it = session_pool.begin(); it != session_pool.end(); ++it) {

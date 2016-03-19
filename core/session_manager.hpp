@@ -40,8 +40,6 @@ class SessionManager
     
     std::vector<SessID> GetCurrentIDs();
     
-    bool IsAlive(SessID id) {return __is_current_id(id);}
-    
     Session& GetSession(SessID id) const;
     
     void DeleteSession(SessID id);
