@@ -257,9 +257,19 @@ int kclient_rcv_n_bytes(struct kclient *kcl, int n_bytes);
 #define kclient_rcv_array(kclient, len, data_type)              \
         kclient_rcv_n_bytes(kclient, sizeof(data_type) * len);
 
+/**
+ * kclient_get_buffer - Return a casted pointer to the reception buffer
+ * @kclient Pointer to a kclient structure
+ * @data_type Cast data type
+ */
 #define kclient_get_buffer(kclient, data_type)                  \
         (data_type *) kclient->rcv_buffer.buffer;
 
+/**
+ * kclient_get_len - Return the length of the received array
+ * @kclient Pointer to a kclient structure
+ * @data_type Array data type
+ */
 #define kclient_get_len(kclient, data_type)                     \
         kclient->rcv_buffer.current_len / sizeof(data_type)
 
