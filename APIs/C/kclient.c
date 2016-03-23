@@ -15,6 +15,12 @@
 #include <unistd.h>
  #include <assert.h>
 
+ /**
+ * set_rcv_buff - Set the rcv_buff to default values
+ * @buff: The buffer structure to initialize
+ */
+static void set_rcv_buff(struct rcv_buff *buff);
+
 /*
  * --------- Data structures ---------
  */

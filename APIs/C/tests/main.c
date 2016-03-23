@@ -4,9 +4,9 @@
 # include <kclient.h>
 
 struct tests_device {
-    struct kclient *kcl;  // KClient
-    dev_id_t id;          // Device ID
-    op_id_t send_std_array_ref; // "GET_CSTR" reference
+    struct kclient *kcl;        // KClient
+    dev_id_t id;                // Device ID
+    op_id_t send_std_array_ref; // "SEND_STD_ARRAY" reference
 };
 
 struct tests_device* tests_init(struct kclient * kcl)
@@ -30,9 +30,8 @@ struct tests_device* tests_init(struct kclient * kcl)
 
 int tests_get_std_array(struct tests_device *dev)
 {
-    int i;
-    int bytes_read;
-    uint32_t *buff;
+    int i, bytes_read;
+    float *buff;
 
     struct command *cmd = init_command(dev->id);
     cmd->op_ref = dev->send_std_array_ref;
@@ -40,16 +39,16 @@ int tests_get_std_array(struct tests_device *dev)
     if (kclient_send(dev->kcl, cmd) < 0)
         return -1;
 
-    bytes_read = kclient_rcv_array(dev->kcl, 10, uint32_t);
+    bytes_read = kclient_rcv_array(dev->kcl, 10, float);
 
     if (bytes_read < 0) {
         fprintf(stderr, "Cannot read data\n");
         return -1;
     }
 
-    buff = (uint32_t *) dev->kcl->rcv_buffer.buffer;
-    for (i=0; i<dev->kcl->rcv_buffer.current_len / sizeof(uint32_t); i++)
-        printf("%i => %u\n", i, buff[i]);
+    buff = kclient_get_buffer(dev->kcl, float);
+    for (i=0; i<kclient_get_len(dev->kcl, float); i++)
+        printf("%i => %f\n", i, buff[i]);
 
     free_command(cmd);
     return 0;

@@ -231,12 +231,6 @@ int kclient_send(struct kclient *kcl, struct command *cmd);
 int kclient_send_string(struct kclient *kcl, const char *str);
 
 /**
- * set_rcv_buff - Set the rcv_buff to default values
- * @buff: The buffer structure to initialize
- */
-void set_rcv_buff(struct rcv_buff *buff);
-
-/**
  * kclient_rcv_esc_seq - Receive data until an escape sequence is reached
  * @esc_seq The escape sequence
  *
@@ -260,8 +254,14 @@ int kclient_rcv_n_bytes(struct kclient *kcl, int n_bytes);
  *
  * Returns the number of bytes read on success. -1 if failure.
  */
-#define kclient_rcv_array(kclient, len, data_type)                         \
+#define kclient_rcv_array(kclient, len, data_type)              \
         kclient_rcv_n_bytes(kclient, sizeof(data_type) * len);
+
+#define kclient_get_buffer(kclient, data_type)                  \
+        (data_type *) kclient->rcv_buffer.buffer;
+
+#define kclient_get_len(kclient, data_type)                     \
+        kclient->rcv_buffer.current_len / sizeof(data_type)
 
 /* 
  *  --------- Kill session ---------
