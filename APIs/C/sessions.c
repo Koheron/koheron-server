@@ -114,9 +114,12 @@ struct running_sessions* kclient_get_running_sessions(struct kclient *kcl)
                 else if (strcmp(tmp_buff, "WEBSOCK") == 0) {
                     tmp_session.conn_type = WEBSOCK;
                 }
+#if defined (__linux__)
                 else if (strcmp(tmp_buff, "UNIX") == 0) {
                     tmp_session.conn_type = UNIX;
-                } else {
+                }
+#endif
+                else {
                     fprintf(stderr, "Invalid connection type\n");
                     return NULL;
                 }

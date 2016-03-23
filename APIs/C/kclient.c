@@ -62,8 +62,7 @@ void debug_display_kclient(struct kclient *kcl)
     }
 }
 #else
-void debug_display_kclient(struct kclient *kcl)
-{}
+void debug_display_kclient(struct kclient *kcl) {}
 #endif
 
 dev_id_t get_device_id(struct kclient *kcl, char *dev_name)
@@ -287,7 +286,7 @@ int kclient_rcv_n_bytes(struct kclient *kcl, int n_bytes)
     set_rcv_buff(&kcl->rcv_buffer);
     
     while(bytes_read < n_bytes) {                        
-        bytes_rcv = read(kcl->sockfd, (kcl->rcv_buffer.buffer) + bytes_read, n_bytes - bytes_read);
+        bytes_rcv = read(kcl->sockfd, kcl->rcv_buffer.buffer + bytes_read, n_bytes - bytes_read);
         
         if (bytes_rcv == 0) {
             fprintf(stderr, "Connection closed by tcp-server\n");
@@ -576,7 +575,9 @@ struct kclient* kclient_connect(const char *host, int port)
     }
 
     kcl->conn_type = TCP;
+#if defined (__linux__)
     kcl->unix_sockfd = -1;
+#endif
 
     if (open_kclient_tcp_socket(kcl) < 0)
         return NULL;

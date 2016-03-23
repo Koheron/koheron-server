@@ -14,6 +14,7 @@ extern "C" {
 #include "definitions.h"
 
 #include <time.h>
+#include <stdint.h>
 
 #if defined (__linux__)
 #include <sys/socket.h>
