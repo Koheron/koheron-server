@@ -273,12 +273,6 @@ int kclient_rcv_n_bytes(struct kclient *kcl, int n_bytes);
 #define kclient_get_len(kclient, data_type)                     \
         kclient->rcv_buffer.current_len / sizeof(data_type)
 
-/* 
- *  --------- Kill session ---------
- */
- 
-int kill_session(struct kclient *kcl, int sess_id);
-
 #ifdef __cplusplus
 }
 #endif

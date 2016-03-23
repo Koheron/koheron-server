@@ -429,25 +429,6 @@ static int kclient_get_devices(struct kclient *kcl)
     
     return 0;
 }
-
-/* 
- *  --------- Kill session ---------
- */
-
-int kill_session(struct kclient *kcl, int sess_id)
-{
-    char cmd[64];
-    snprintf(cmd, 64, "1|5|%i|\n", sess_id);
-    
-    if (kclient_send_string(kcl, cmd) < 0)
-        return -1;
-
-    return 0;
-}
-
-/*
- * External functions
- */
  
 #if defined (__linux__)
 static int open_kclient_tcp_socket(struct kclient *kcl)
