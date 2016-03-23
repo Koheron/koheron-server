@@ -9,15 +9,25 @@
 
 API_INC_PATH = ..
 
+# GCC compiling & linking flags
+CFLAGS= -Wall -Werror -I$(API_INC_PATH) $(DEFINES) -O2 -std=gnu99 # -g
+
 # Toolchain
-ifeq ($(TARGET_HOST),arm)
-#CROSS_COMPILE?=arm-linux-gnueabi-
-CROSS_COMPILE?=arm-linux-gnueabihf-
-#CROSS_COMPILE?=arm-xilinx-linux-gnueabi-
+ifeq ($(TARGET_HOST),armhf)
+CROSS_COMPILE=arm-linux-gnueabihf-
+TARGET=tests
+ARM_FLAGS = -march=armv7-a -mtune=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard
+CFLAGS += $(ARM_FLAGS)
+else ifeq ($(TARGET_HOST),arm)
+ARM_FLAGS = -march=armv7-a -mtune=cortex-a9
+CFLAGS += $(ARM_FLAGS)
+CROSS_COMPILE=arm-linux-gnueabi-
+# CROSS_COMPILE=arm-xilinx-linux-gnueabi-
 TARGET=tests
 else ifeq ($(TARGET_HOST),local)
 CROSS_COMPILE?=
 DEFINES += -DLOCAL
+CFLAGS += -march=native
 else ifeq ($(TARGET_HOST),Win32)
 CROSS_COMPILE=i686-w64-mingw32-
 TARGET=tests.exe
@@ -28,6 +38,9 @@ TARGET=tests.exe
 LDFLAGS += -lws2_32
 endif
 
+# Libraries
+LIBS = -lm # -lpthread -lssl -lcrypto
+
 # Objects
 OBJS_API = $(API_INC_PATH)/kclient.o  \
            $(API_INC_PATH)/sessions.o
@@ -35,19 +48,6 @@ OBJS_API = $(API_INC_PATH)/kclient.o  \
 OBJS = $(OBJS_API) main.o
 # List of raw source files (all object files, renamed from .o to .c)
 SRCS = $(subst .o,.c, $(OBJS), ))
-
-# GCC compiling & linking flags
-CFLAGS= -Wall -Werror -I$(API_INC_PATH) $(DEFINES) -O2 -std=gnu99 # -g
-
-ifeq ($(TARGET_HOST),arm)
-ARM_FLAGS = -march=armv7-a -mtune=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard
-CFLAGS += $(ARM_FLAGS)
-else ifeq ($(TARGET_HOST),local)
-CFLAGS += -march=native
-endif
-
-# Libraries
-LIBS = -lm # -lpthread -lssl -lcrypto
 
 # Main GCC executable (used for compiling and linking)
 CC=$(CROSS_COMPILE)gcc
