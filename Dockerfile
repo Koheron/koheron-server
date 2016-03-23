@@ -1,5 +1,5 @@
-#FROM ubuntu:14.04
-FROM armbuild/ubuntu:latest
+FROM ubuntu:15.04
+#FROM armbuild/ubuntu:latest
 
 ENV work_dir /code
 
