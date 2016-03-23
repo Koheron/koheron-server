@@ -7,6 +7,10 @@
 #ifndef __KCLIENT_H__
 #define __KCLIENT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "definitions.h"
 
 #include <time.h>
@@ -99,6 +103,30 @@ struct kclient {
 };
 
 /**
+ * kclient_connect - Initialize a TCP connection with KServer
+ * @host A string containing the IP address of the host
+ * @port Port of KServer on the host
+ *
+ * Returns a pointer to a kclient structure if success, NULL otherwise
+ */
+struct kclient* kclient_connect(const char *host, int port);
+
+#if defined (__linux__)
+/**
+ * kclient_unix_connect - Initialize a Unix socket connection with KServer
+ * @sock_path Path to the Unix socket file
+ *
+ * Returns a pointer to a kclient structure if success, NULL otherwise
+ */
+struct kclient* kclient_unix_connect(const char *sock_path);
+#endif
+ 
+/**
+ * kclient_shutdown - Shutdown the connection with the server
+ */
+void kclient_shutdown(struct kclient *kcl);
+
+/**
  * debug_display_kclient - Display structure kclient
  */
  #ifdef DEBUG_KOHERON_API
@@ -169,7 +197,7 @@ static inline void reset_command(struct command *cmd, int op_ref)
 void free_command(struct command *cmd);
  
 /**
- * kclient_send - Send a command to KServer
+ * kclient_send - Send a command to tcp-server
  * @cmd: The command to send
  *
  * Returns 0 on success, -1 on failure
@@ -185,7 +213,7 @@ int kclient_send(struct kclient *kcl, struct command *cmd);
 int kclient_send_string(struct kclient *kcl, const char *str);
 
 /* Maximum length of the reception buffer */
-#define RCV_BUFFER_LEN 8192
+#define RCV_BUFFER_LEN 16384    
 
 /**
  * struct rcv_buff - Reception buffer structure
@@ -212,17 +240,26 @@ void set_rcv_buff(struct rcv_buff *buff);
  *
  * Returns the number of bytes read on success. -1 if failure.
  */
-int kclient_rcv_esc_seq(struct kclient *kcl, struct rcv_buff *rcv_buffer, 
-                        char *esc_seq);
+int kclient_rcv_esc_seq(struct kclient *kcl, struct rcv_buff *rcv_buffer, char *esc_seq);
 
-//int kclient_rcv_n_bytes(struct kclient *kcl, struct rcv_buff *rcv_buffer, 
-//                        int n_bytes);
+/**
+ * kclient_rcv_n_bytes - Receive a fixed number of bytes
+ * @rcv_buffer Pointer to a rcv_buff structure
+ * @n_bytes The numbre of bytes to receive
+ *
+ * Returns the number of bytes read on success. -1 if failure.
+ */
+int kclient_rcv_n_bytes(struct kclient *kcl, struct rcv_buff *rcv_buffer, int n_bytes);
 
 /* 
  *  --------- Kill session ---------
  */
  
 int kill_session(struct kclient *kcl, int sess_id);
+
+#ifdef __cplusplus
+}
+#endif
  
 #endif /* __KCLIENT_H__ */
 

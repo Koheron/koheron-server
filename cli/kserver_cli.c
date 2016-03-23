@@ -12,7 +12,6 @@
 
 #include <kclient.h>
 #include <sessions.h>
-#include <koheron.h>
 
 #include "definitions.h"
 #include "config_file.h"

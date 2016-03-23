@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <stdbool.h>
 #include <unistd.h>
+ #include <assert.h>
 
 /*
  * --------- Data structures ---------
@@ -212,15 +213,12 @@ void set_rcv_buff(struct rcv_buff *rcv_buff)
 #define RCV_LEN 2048
 
 // TODO Add timeout 
-int kclient_rcv_esc_seq(struct kclient *kcl, 
-                        struct rcv_buff *rcv_buffer, char *esc_seq)
+int kclient_rcv_esc_seq(struct kclient *kcl, struct rcv_buff *rcv_buffer, char *esc_seq)
 {
     int bytes_rcv = 0;
     int bytes_read = 0;
     int num_dev = 0;
-    
     char tmp_buff[RCV_LEN];
-    
     set_rcv_buff(rcv_buffer);
     
     while(1) {
@@ -230,7 +228,7 @@ int kclient_rcv_esc_seq(struct kclient *kcl,
         bytes_rcv = recv(get_socket_fd(kcl), tmp_buff, RCV_LEN-1, 0);
         
         if (bytes_rcv == 0) {
-            fprintf(stderr, "Connection closed by KServer\n");
+            fprintf(stderr, "Connection closed by tcp-server\n");
             return -1;
         }
         
@@ -276,40 +274,38 @@ int kclient_rcv_esc_seq(struct kclient *kcl,
     return bytes_read;
 }
 
-#if 0
-int kclient_rcv_n_bytes(struct kclient *kcl, char *rcv_buffer, int n_bytes)
+int kclient_rcv_n_bytes(struct kclient *kcl, struct rcv_buff *rcv_buffer, int n_bytes)
 {
     int bytes_rcv = 0;
-    int bytes_read = 0;
+    uint32_t bytes_read = 0;
+    set_rcv_buff(rcv_buffer);
     
-    char tmp_buff[RCV_LEN];
-    
-    memset(rcv_buffer, 0, sizeof(char)*RCV_BUFFER_LEN);
-    rcv_buffer[0] = '\0';
-    
-    while(1) {
-        int i;        
-        tmp_buff[0] = '\0';
-                        
-        bytes_rcv = recv(kcl->sockfd, tmp_buff, RCV_LEN-1, 0);
+    while(bytes_read < n_bytes) {                        
+        bytes_rcv = read(kcl->sockfd, (rcv_buffer->buffer) + bytes_read, n_bytes - bytes_read);
         
-        if(bytes_rcv == 0) {
-            fprintf(stderr, "Connection closed by KServer\n");
+        if (bytes_rcv == 0) {
+            fprintf(stderr, "Connection closed by tcp-server\n");
             return -1;
         }
         
-        if(bytes_rcv < 0) {
+        if (bytes_rcv < 0) {
             fprintf(stderr, "Can't receive data\n");
             return -1;
         }
+
+        bytes_read += bytes_rcv;
         
-        if(bytes_read + bytes_rcv >= RCV_BUFFER_LEN) {
+        if (bytes_read >= rcv_buffer->max_buff_len) {
             DEBUG_MSG("Buffer overflow\n");
             return -1;
         }
+
+        rcv_buffer->current_len = bytes_read;
     }
+
+    assert(bytes_read == n_bytes);
+    return bytes_read;
 }
-#endif
 
 int kclient_send_string(struct kclient *kcl, const char *str)
 {
@@ -452,9 +448,7 @@ int kill_session(struct kclient *kcl, int sess_id)
 static int open_kclient_tcp_socket(struct kclient *kcl)
 {
     int sockfd;
-    
     kcl->sockfd = -1;
-  
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (sockfd < 0) {
@@ -510,7 +504,7 @@ static int open_kclient_unix_socket(struct kclient *kcl)
 }
 #endif // (__linux__)
 
-static void set_serveraddr(struct kclient *kcl, char *host, int port)
+static void set_serveraddr(struct kclient *kcl, const char *host, int port)
 {    
     memset(&(kcl->serveraddr), 0, sizeof(kcl->serveraddr));
     (kcl->serveraddr).sin_family = AF_INET;
@@ -586,7 +580,7 @@ static int set_kclient_sock_options(struct kclient *kcl)
 #endif
 
 KOHERON_LIB_EXPORT
-struct kclient* kclient_connect(char *host, int port)
+struct kclient* kclient_connect(const char *host, int port)
 {  
     struct kclient *kcl = malloc(sizeof *kcl);
 
