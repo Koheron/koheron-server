@@ -45,6 +45,14 @@ RUN make -C cli CROSS_COMPILE=arm-linux-gnueabihf- clean all
 RUN make -C cli CROSS_COMPILE=arm-linux-gnueabi- clean all
 
 # ---------------------------------------
+# Compile API Tests
+# ---------------------------------------
+
+RUN make -C APIs/C/tests TARGET_HOST=local clean all
+RUN make -C APIs/C/tests CROSS_COMPILE=arm-linux-gnueabihf- clean all
+RUN make -C APIs/C/tests CROSS_COMPILE=arm-linux-gnueabi- clean all
+
+# ---------------------------------------
 # Tests
 # ---------------------------------------
 

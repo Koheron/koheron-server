@@ -3,7 +3,7 @@
 # (c) Koheron
 
 #TARGET_HOST = arm
-TARGET_HOST = local
+#TARGET_HOST = local
 
 API_INC_PATH = ..
 
