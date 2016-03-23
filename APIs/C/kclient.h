@@ -72,6 +72,21 @@ struct device {
     struct operation     ops[MAX_OP_NUM];
 };
 
+/* Maximum length of the reception buffer */
+#define RCV_BUFFER_LEN 16384    
+
+/**
+ * struct rcv_buff - Reception buffer structure
+ * @buffer: Received data buffer
+ * @max_buff_len: Maximum length of the buffer (RCV_BUFFER_LEN)
+ * @current_len: Length of the buffer including '\0' termination
+ */
+struct rcv_buff {
+    char buffer[RCV_BUFFER_LEN];
+    int  max_buff_len;
+    int  current_len;
+};
+
 /**
  * struct kclient - KServer client structure
  * @sockfd: TCP socket file descriptor
@@ -82,6 +97,7 @@ struct device {
  * @devs_num: Number of available devices
  * @devices: Available devices
  * @conn_type: Connection type
+ * @rcv_buff: Reception buffer
  */
 struct kclient {
 #if defined (__linux__)
@@ -100,6 +116,8 @@ struct kclient {
     struct device        devices[MAX_DEV_NUM];
     
     connection_t         conn_type;
+
+    struct rcv_buff      rcv_buffer;
 };
 
 /**
@@ -212,21 +230,6 @@ int kclient_send(struct kclient *kcl, struct command *cmd);
  */
 int kclient_send_string(struct kclient *kcl, const char *str);
 
-/* Maximum length of the reception buffer */
-#define RCV_BUFFER_LEN 16384    
-
-/**
- * struct rcv_buff - Reception buffer structure
- * @buffer: Received data buffer
- * @max_buff_len: Maximum length of the buffer (RCV_BUFFER_LEN)
- * @current_len: Length of the buffer including '\0' termination
- */
-struct rcv_buff {
-    char buffer[RCV_BUFFER_LEN];
-    int  max_buff_len;
-    int  current_len;
-};
-
 /**
  * set_rcv_buff - Set the rcv_buff to default values
  * @buff: The buffer structure to initialize
@@ -235,21 +238,30 @@ void set_rcv_buff(struct rcv_buff *buff);
 
 /**
  * kclient_rcv_esc_seq - Receive data until an escape sequence is reached
- * @rcv_buffer Pointer to a rcv_buff structure
  * @esc_seq The escape sequence
  *
  * Returns the number of bytes read on success. -1 if failure.
  */
-int kclient_rcv_esc_seq(struct kclient *kcl, struct rcv_buff *rcv_buffer, char *esc_seq);
+int kclient_rcv_esc_seq(struct kclient *kcl, char *esc_seq);
 
 /**
  * kclient_rcv_n_bytes - Receive a fixed number of bytes
- * @rcv_buffer Pointer to a rcv_buff structure
- * @n_bytes The numbre of bytes to receive
+ * @n_bytes The number of bytes to receive
  *
  * Returns the number of bytes read on success. -1 if failure.
  */
-int kclient_rcv_n_bytes(struct kclient *kcl, struct rcv_buff *rcv_buffer, int n_bytes);
+int kclient_rcv_n_bytes(struct kclient *kcl, int n_bytes);
+
+/**
+ * kclient_rcv_array - Receive an array
+ * @kclient Pointer to a kclient structure
+ * @len Array length
+ * @data_type Array data type
+ *
+ * Returns the number of bytes read on success. -1 if failure.
+ */
+#define kclient_rcv_array(kclient, len, data_type)                         \
+        kclient_rcv_n_bytes(kclient, sizeof(data_type) * len);
 
 /* 
  *  --------- Kill session ---------

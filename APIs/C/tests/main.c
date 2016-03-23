@@ -32,7 +32,6 @@ int tests_get_std_array(struct tests_device *dev)
 {
     int i;
     int bytes_read;
-    struct rcv_buff rcv_buffer;
     uint32_t *buff;
 
     struct command *cmd = init_command(dev->id);
@@ -41,15 +40,15 @@ int tests_get_std_array(struct tests_device *dev)
     if (kclient_send(dev->kcl, cmd) < 0)
         return -1;
 
-    bytes_read = kclient_rcv_n_bytes(dev->kcl, &rcv_buffer, sizeof(uint32_t) * 10);
+    bytes_read = kclient_rcv_array(dev->kcl, 10, uint32_t);
 
     if (bytes_read < 0) {
         fprintf(stderr, "Cannot read data\n");
         return -1;
     }
 
-    buff = (uint32_t *) rcv_buffer.buffer;
-    for (i=0; i<rcv_buffer.current_len / sizeof(uint32_t); i++)
+    buff = (uint32_t *) dev->kcl->rcv_buffer.buffer;
+    for (i=0; i<dev->kcl->rcv_buffer.current_len / sizeof(uint32_t); i++)
         printf("%i => %u\n", i, buff[i]);
 
     free_command(cmd);
@@ -68,6 +67,7 @@ int main(void)
     struct tests_device *dev = tests_init(kcl);
     tests_get_std_array(dev);
 
+    free(dev);
     kclient_shutdown(kcl);
     return 0;
 }

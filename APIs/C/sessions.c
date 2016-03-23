@@ -47,24 +47,23 @@ static void __append_session(struct running_sessions *sessions,
 /**
  * __get_sessions_data - Load running sessions data
  * @kcl: Kclient structure
- * @rcv_buffer: Reception buffer to load
  *
  * Returns the number of bytes received on success, -1 if failure
  */
-static int __get_sessions_data(struct kclient *kcl, struct rcv_buff *rcv_buffer)
+static int __get_sessions_data(struct kclient *kcl)
 {
     int bytes_read;
     
     if (kclient_send_string(kcl, "1|4|\n") < 0)
         return -1;
     
-    bytes_read = kclient_rcv_esc_seq(kcl, rcv_buffer, "EORS");
+    bytes_read = kclient_rcv_esc_seq(kcl, "EORS");
     
     if (bytes_read < 0)
         return -1;
         
 /*    printf("bytes_read = %u\n", bytes_read);*/
-/*    printf("%s\n", rcv_buffer->buffer);*/
+/*    printf("%s\n", kcl->rcv_buffer.buffer);*/
     
     return bytes_read;
 }
@@ -76,10 +75,9 @@ struct running_sessions* kclient_get_running_sessions(struct kclient *kcl)
     struct running_sessions *sessions;
     struct session_status tmp_session;
     char tmp_buff[2048];
-    
-    struct rcv_buff rcv_buffer;
-    char *buffer = rcv_buffer.buffer;
-    int bytes_read = __get_sessions_data(kcl, &rcv_buffer);
+
+    char *buffer = kcl->rcv_buffer.buffer;
+    int bytes_read = __get_sessions_data(kcl);
     
     if (bytes_read < 0) {
         fprintf(stderr, "Can't get running session data\n");
@@ -218,13 +216,11 @@ static void __append_timing_pt(struct session_perfs *perfs,
  /**
  * __get_session_perfs_data - Load running sessions data
  * @kcl: Kclient structure
- * @rcv_buffer: Reception buffer to load
  * @sid: Session ID
  *
  * Returns the number of bytes received on success, -1 if failure
  */
-static int __get_session_perfs_data(struct kclient *kcl, 
-                                    struct rcv_buff *rcv_buffer, int sid)
+static int __get_session_perfs_data(struct kclient *kcl, int sid)
 {
     int bytes_read;
     char cmd[64];
@@ -234,13 +230,13 @@ static int __get_session_perfs_data(struct kclient *kcl,
     if (kclient_send_string(kcl, cmd) < 0)
         return -1;
     
-    bytes_read = kclient_rcv_esc_seq(kcl, rcv_buffer, "EOSP");
+    bytes_read = kclient_rcv_esc_seq(kcl, "EOSP");
     
     if (bytes_read < 0)
         return -1;
         
 /*    printf("bytes_read = %u\n", bytes_read);*/
-/*    printf("%s\n", rcv_buffer->buffer);*/
+/*    printf("%s\n", kcl->rcv_buffer.buffer);*/
     
     return bytes_read;
 }
@@ -253,9 +249,8 @@ struct session_perfs* kclient_get_session_perfs(struct kclient *kcl, int sid)
     struct timing_point tmp_timing_pt;
     struct session_perfs *perfs;
     
-    struct rcv_buff rcv_buffer;
-    char *buffer = rcv_buffer.buffer;
-    int bytes_read = __get_session_perfs_data(kcl, &rcv_buffer, sid);
+    char *buffer = kcl->rcv_buffer.buffer;
+    int bytes_read = __get_session_perfs_data(kcl, sid);
     
     if (bytes_read < 0) {
         fprintf(stderr, "Can't get session perfs data\n");

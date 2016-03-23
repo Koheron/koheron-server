@@ -213,13 +213,13 @@ void set_rcv_buff(struct rcv_buff *rcv_buff)
 #define RCV_LEN 2048
 
 // TODO Add timeout 
-int kclient_rcv_esc_seq(struct kclient *kcl, struct rcv_buff *rcv_buffer, char *esc_seq)
+int kclient_rcv_esc_seq(struct kclient *kcl, char *esc_seq)
 {
     int bytes_rcv = 0;
     int bytes_read = 0;
     int num_dev = 0;
     char tmp_buff[RCV_LEN];
-    set_rcv_buff(rcv_buffer);
+    set_rcv_buff(&kcl->rcv_buffer);
     
     while(1) {
         int i;        
@@ -237,7 +237,7 @@ int kclient_rcv_esc_seq(struct kclient *kcl, struct rcv_buff *rcv_buffer, char *
             return -1;
         }
         
-        if (bytes_read + bytes_rcv >= rcv_buffer->max_buff_len) {
+        if (bytes_read + bytes_rcv >= kcl->rcv_buffer.max_buff_len) {
             DEBUG_MSG("Buffer overflow\n");
             return -1;
         }
@@ -246,17 +246,17 @@ int kclient_rcv_esc_seq(struct kclient *kcl, struct rcv_buff *rcv_buffer, char *
         // concatenate result into rcv_buffer
         for (i=0; i<bytes_rcv; i++) {            
             if (tmp_buff[i] != '\0') {
-                (rcv_buffer->buffer)[bytes_read] = tmp_buff[i];
+                (kcl->rcv_buffer.buffer)[bytes_read] = tmp_buff[i];
                 bytes_read++;
             } else if (tmp_buff[i] != '\n') {
                 num_dev++;
             }
         }
         
-        (rcv_buffer->buffer)[bytes_read] = '\0';
-        rcv_buffer->current_len = bytes_read + 1;
+        (kcl->rcv_buffer.buffer)[bytes_read] = '\0';
+        kcl->rcv_buffer.current_len = bytes_read + 1;
         
-        if (strstr(rcv_buffer->buffer, esc_seq)) {
+        if (strstr(kcl->rcv_buffer.buffer, esc_seq)) {
             break;
         }
     }
@@ -274,14 +274,14 @@ int kclient_rcv_esc_seq(struct kclient *kcl, struct rcv_buff *rcv_buffer, char *
     return bytes_read;
 }
 
-int kclient_rcv_n_bytes(struct kclient *kcl, struct rcv_buff *rcv_buffer, int n_bytes)
+int kclient_rcv_n_bytes(struct kclient *kcl, int n_bytes)
 {
     int bytes_rcv = 0;
     uint32_t bytes_read = 0;
-    set_rcv_buff(rcv_buffer);
+    set_rcv_buff(&kcl->rcv_buffer);
     
     while(bytes_read < n_bytes) {                        
-        bytes_rcv = read(kcl->sockfd, (rcv_buffer->buffer) + bytes_read, n_bytes - bytes_read);
+        bytes_rcv = read(kcl->sockfd, (kcl->rcv_buffer.buffer) + bytes_read, n_bytes - bytes_read);
         
         if (bytes_rcv == 0) {
             fprintf(stderr, "Connection closed by tcp-server\n");
@@ -295,12 +295,12 @@ int kclient_rcv_n_bytes(struct kclient *kcl, struct rcv_buff *rcv_buffer, int n_
 
         bytes_read += bytes_rcv;
         
-        if (bytes_read >= rcv_buffer->max_buff_len) {
+        if (bytes_read >= kcl->rcv_buffer.max_buff_len) {
             DEBUG_MSG("Buffer overflow\n");
             return -1;
         }
 
-        rcv_buffer->current_len = bytes_read;
+        kcl->rcv_buffer.current_len = bytes_read;
     }
 
     assert(bytes_read == n_bytes);
@@ -331,18 +331,17 @@ static int kclient_get_devices(struct kclient *kcl)
     char tmp_buff[2048];
     
     const char cmd[] = "1|1|\n";
-    struct rcv_buff rcv_buffer;
     
     if (kclient_send_string(kcl, cmd) < 0)
         return -1;
     
-    bytes_read = kclient_rcv_esc_seq(kcl, &rcv_buffer, "EOC");
+    bytes_read = kclient_rcv_esc_seq(kcl, "EOC");
     
     if (bytes_read < 0) {
         return -1;
     }
-    
-    char *buffer = rcv_buffer.buffer;
+
+    char *buffer = kcl->rcv_buffer.buffer;
     
     // Parse rcv_buffer
     tmp_buff[0] = '\0';
