@@ -28,6 +28,7 @@ else ifeq ($(TARGET_HOST),local)
 CROSS_COMPILE?=
 DEFINES += -DLOCAL
 CFLAGS += -march=native
+TARGET=tests
 else ifeq ($(TARGET_HOST),Win32)
 CROSS_COMPILE=i686-w64-mingw32-
 TARGET=tests.exe
