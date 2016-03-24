@@ -7,6 +7,7 @@ struct tests_device {
     struct kclient *kcl;        // KClient
     dev_id_t id;                // Device ID
     op_id_t send_std_array_ref; // "SEND_STD_ARRAY" reference
+    op_id_t set_buffer_ref;     // "SET_BUFFER" reference
 };
 
 struct tests_device* tests_init(struct kclient * kcl)
@@ -21,7 +22,8 @@ struct tests_device* tests_init(struct kclient * kcl)
     struct tests_device dev = {
         .kcl = kcl,
         .id = get_device_id(kcl, "TESTS"),
-        .send_std_array_ref = get_op_id(kcl, dev.id, "SEND_STD_ARRAY")
+        .send_std_array_ref = get_op_id(kcl, dev.id, "SEND_STD_ARRAY"),
+        .set_buffer_ref = get_op_id(kcl, dev.id, "SET_BUFFER")
     };
 
     memcpy(ret_dev, &dev, sizeof(struct tests_device));
@@ -54,6 +56,30 @@ int tests_get_std_array(struct tests_device *dev)
     return 0;
 }
 
+#define BUFF_LEN 10
+
+int tests_set_buffer(struct tests_device *dev)
+{
+    int i;
+    uint32_t data[BUFF_LEN];
+
+    for (i=0; i<BUFF_LEN; i++)
+        data[i] = i*i;
+
+    struct command *cmd = init_command(dev->id);
+    cmd->op_ref = dev->set_buffer_ref;
+    if (add_parameter(cmd, BUFF_LEN) < 0) return -1;
+
+    if (kclient_send(dev->kcl, cmd) < 0)
+        return -1;
+
+    if (kclient_send_array(dev->kcl, data, BUFF_LEN) < 0)
+        return -1;
+
+    free_command(cmd);
+    return 0;
+}
+
 int main(void)
 {
     struct kclient *kcl = kclient_connect("127.0.0.1", 36100);
@@ -65,6 +91,7 @@ int main(void)
 
     struct tests_device *dev = tests_init(kcl);
     tests_get_std_array(dev);
+    tests_set_buffer(dev);
 
     free(dev);
     kclient_shutdown(kcl);

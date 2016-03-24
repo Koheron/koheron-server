@@ -172,6 +172,8 @@ int kclient_send(struct kclient *kcl, struct command *cmd)
         return -1;
     }
     
+    printf("%s\n", cmd_str);
+
     if (write(get_socket_fd(kcl), cmd_str, strlen(cmd_str)) < 0) {
         fprintf(stderr, "Can't send command to KServer\n");
         return -1;
@@ -187,7 +189,6 @@ int kclient_send(struct kclient *kcl, struct command *cmd)
 static void set_rcv_buff(struct kclient *kcl)
 {
     memset(kcl->buffer, 0, sizeof(char)*RCV_BUFFER_LEN);
-    (kcl->buffer)[0] = '\0';
     kcl->current_len = 0;
 }
 
@@ -201,6 +202,7 @@ int kclient_rcv_esc_seq(struct kclient *kcl, char *esc_seq)
     int num_dev = 0;
     char tmp_buff[RCV_LEN];
     set_rcv_buff(kcl);
+    (kcl->buffer)[0] = '\0';
     
     while (1) {
         int i;        
@@ -255,7 +257,7 @@ int kclient_rcv_esc_seq(struct kclient *kcl, char *esc_seq)
     return bytes_read;
 }
 
-int kclient_rcv_n_bytes(struct kclient *kcl, int n_bytes)
+int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes)
 {
     int bytes_rcv = 0;
     uint32_t bytes_read = 0;
@@ -288,10 +290,39 @@ int kclient_rcv_n_bytes(struct kclient *kcl, int n_bytes)
     return bytes_read;
 }
 
+int kclient_read_u32(struct kclient *kcl)
+{
+    if (kclient_rcv_n_bytes(kcl, sizeof(uint32_t)) < 0)
+        return -1;
+
+    return (uint32_t)kcl->buffer[3] + ((uint32_t)kcl->buffer[2] << 8)
+        + ((uint32_t)kcl->buffer[1] << 16) + ((uint32_t)kcl->buffer[0] << 24);
+}
+
+int kclient_send_array(struct kclient *kcl, uint32_t *array_ptr, uint32_t len)
+{
+    uint32_t rcv_len; 
+
+    if ((rcv_len = kclient_read_u32(kcl)) < 0)
+        return -1;
+
+    if (rcv_len == len) {
+        if (write(get_socket_fd(kcl), array_ptr, sizeof(uint32_t) * len) < 0) {
+            fprintf(stderr, "Can't send array to tcp-server\n");
+            return -1;
+        }
+    } else {
+        fprintf(stderr, "Invalid handshake\n");
+        return -1;
+    }
+
+    return 0;
+}
+
 int kclient_send_string(struct kclient *kcl, const char *str)
 {
     if (write(get_socket_fd(kcl), str, strlen(str)) < 0) {
-        fprintf(stderr, "Can't send command to KServer\n");
+        fprintf(stderr, "Can't send command to tcp-server\n");
         return -1;
     }
     

@@ -235,7 +235,9 @@ int kclient_rcv_esc_seq(struct kclient *kcl, char *esc_seq);
  *
  * Returns the number of bytes read on success. -1 if failure.
  */
-int kclient_rcv_n_bytes(struct kclient *kcl, int n_bytes);
+int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes);
+
+int kclient_read_u32(struct kclient *kcl);
 
 /**
  * kclient_rcv_array - Receive an array
@@ -246,7 +248,7 @@ int kclient_rcv_n_bytes(struct kclient *kcl, int n_bytes);
  * Returns the number of bytes read on success. -1 if failure.
  */
 #define kclient_rcv_array(kclient, len, data_type)              \
-        kclient_rcv_n_bytes(kclient, sizeof(data_type) * len);
+    kclient_rcv_n_bytes(kclient, sizeof(data_type) * len);
 
 /**
  * kclient_get_buffer - Return a casted pointer to the reception buffer
@@ -254,7 +256,7 @@ int kclient_rcv_n_bytes(struct kclient *kcl, int n_bytes);
  * @data_type Cast data type
  */
 #define kclient_get_buffer(kclient, data_type)                  \
-        (data_type *) kclient->buffer;
+    (data_type *) kclient->buffer;
 
 /**
  * kclient_get_len - Return the length of the received array
@@ -262,7 +264,9 @@ int kclient_rcv_n_bytes(struct kclient *kcl, int n_bytes);
  * @data_type Array data type
  */
 #define kclient_get_len(kclient, data_type)                     \
-        kclient->current_len / sizeof(data_type)
+    kclient->current_len / sizeof(data_type)
+
+int kclient_send_array(struct kclient *kcl, uint32_t *array_ptr, uint32_t len);
 
 #ifdef __cplusplus
 }
