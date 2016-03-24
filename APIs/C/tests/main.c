@@ -36,11 +36,11 @@ int tests_get_std_array(struct tests_device *dev)
 {
     int i;
     float *buff;
+    struct command cmd;
+    init_command(&cmd, dev->id);
+    cmd.op_ref = dev->send_std_array_ref;
 
-    struct command *cmd = init_command(dev->id);
-    cmd->op_ref = dev->send_std_array_ref;
-
-    if (kclient_send(dev->kcl, cmd) < 0)
+    if (kclient_send(dev->kcl, &cmd) < 0)
         return -1;
 
     if (kclient_rcv_array(dev->kcl, 10, float) < 0) {
@@ -52,7 +52,6 @@ int tests_get_std_array(struct tests_device *dev)
     for (i=0; i<kclient_get_len(dev->kcl, float); i++)
         printf("%i => %f\n", i, buff[i]);
 
-    free_command(cmd);
     return 0;
 }
 
@@ -62,40 +61,39 @@ int tests_set_buffer(struct tests_device *dev)
 {
     int i;
     uint32_t data[BUFF_LEN];
+    struct command cmd;
 
     for (i=0; i<BUFF_LEN; i++)
         data[i] = i*i;
 
-    struct command *cmd = init_command(dev->id);
-    cmd->op_ref = dev->set_buffer_ref;
-    if (add_parameter(cmd, BUFF_LEN) < 0) return -1;
+    init_command(&cmd, dev->id);
+    cmd.op_ref = dev->set_buffer_ref;
+    if (add_parameter(&cmd, BUFF_LEN) < 0) return -1;
 
-    if (kclient_send(dev->kcl, cmd) < 0)
+    if (kclient_send(dev->kcl, &cmd) < 0)
         return -1;
 
     if (kclient_send_array(dev->kcl, data, BUFF_LEN) < 0)
         return -1;
 
-    free_command(cmd);
     return 0;
 }
 
 int tests_read_int(struct tests_device *dev)
 {
     int8_t rcv_int;
+    struct command cmd;
 
-    struct command *cmd = init_command(dev->id);
-    cmd->op_ref = dev->read_int_ref;
+    init_command(&cmd, dev->id);
+    cmd.op_ref = dev->read_int_ref;
 
-    if (kclient_send(dev->kcl, cmd) < 0)
+    if (kclient_send(dev->kcl, &cmd) < 0)
         return -1;
 
     if (kclient_read_int(dev->kcl, &rcv_int))
         return -1;
 
     printf("Received int %i\n", rcv_int);
-
-    free_command(cmd);
     return 0;
 }
 

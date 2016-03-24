@@ -93,20 +93,11 @@ static void append_op_to_dev(struct device *dev, struct operation *op)
  *  --------- Receive/Send ---------
  */
  
-struct command* init_command(int dev_id)
-{
-    struct command *cmd = malloc(sizeof(*cmd));
-    
-    if (cmd == NULL) {
-        fprintf(stderr, "Can't allocate command memory\n");
-        return NULL;
-    }
-    
+void init_command(struct command *cmd, int dev_id)
+{   
     cmd->dev_id = dev_id;
     cmd->op_ref = 0;
     cmd->params_num = 0;
-    
-    return cmd;
 }
 
 int add_parameter(struct command *cmd, long param)
@@ -147,18 +138,22 @@ void free_command(struct command *cmd)
 
 static int build_command_string(struct command *cmd, char *cmd_str)
 {
-    int i;    
-    int ret = snprintf(cmd_str, CMD_LEN, "%i|%i|", 
-                       cmd->dev_id, cmd->op_ref);          
+    int i, ret;
+
+    memset(cmd_str, 0, CMD_LEN);
+    ret = snprintf(cmd_str, CMD_LEN, "%i|%i|", cmd->dev_id, cmd->op_ref);          
     CHECK_FORMAT(ret);
+
+    printf("%s\n", cmd_str);
     
     for (i=0; i<cmd->params_num; i++) {
-        ret = snprintf(cmd_str + strlen(cmd_str), CMD_LEN, "%lu|", 
-                       (cmd->params)[i]);
+        ret = snprintf(cmd_str + strlen(cmd_str), CMD_LEN, "%lu|", (cmd->params)[i]);
         CHECK_FORMAT(ret);
     }
+
+    printf("%s\n", cmd_str);
     
-    ret = snprintf(cmd_str+strlen(cmd_str), CMD_LEN, "\n");
+    ret = snprintf(cmd_str + strlen(cmd_str), CMD_LEN, "\n");
     CHECK_FORMAT(ret);
     
     return 0;
@@ -168,9 +163,8 @@ int kclient_send(struct kclient *kcl, struct command *cmd)
 {
     char cmd_str[CMD_LEN];
     
-    if (build_command_string(cmd, cmd_str) < 0) {
+    if (build_command_string(cmd, cmd_str) < 0)
         return -1;
-    }
     
     printf("%s\n", cmd_str);
 

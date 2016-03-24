@@ -178,12 +178,11 @@ struct command {
 };
  
 /**
- * init_command - Allocate and initialize a new command structure
+ * init_command - Initialize a command structure
+ * @cmd: The command to be initialized
  * @dev_id: ID of the target device
- *
- * Returns NULL on failure
  */
-struct command* init_command(int dev_id);
+void init_command(struct command *cmd, int dev_id);
  
 /**
  * add_parameter - Add a parameter to the command
@@ -199,11 +198,6 @@ static inline void reset_command(struct command *cmd, int op_ref)
     cmd->op_ref = op_ref;
     cmd->params_num = 0;
 }
-
-/**
- * free_command - Desallocate a command
- */
-void free_command(struct command *cmd);
  
 /**
  * kclient_send - Send a command to tcp-server

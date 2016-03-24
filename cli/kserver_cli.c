@@ -412,7 +412,7 @@ void ks_cli_init(int argc, char **argv)
 {   
     dev_id_t dev_id;
     op_id_t op_id;
-    struct command* cmd;
+    struct command cmd;
     
     struct kclient *kcl = __start_client();
     
@@ -433,19 +433,14 @@ void ks_cli_init(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
     
-    if ((cmd = init_command(dev_id)) == NULL) {
-        fprintf(stderr, "Cannot allocate common/ip_on_leds command\n");
-        exit(EXIT_FAILURE);
-    }
+    init_command(&cmd, dev_id);    
+    cmd.op_ref = op_id;
     
-    cmd->op_ref = op_id;
-    
-    if (kclient_send(kcl, cmd) < 0) {
+    if (kclient_send(kcl, &cmd) < 0) {
         fprintf(stderr, "Cannot execute common/ip_on_leds command\n");
         exit(EXIT_FAILURE);
     }
 
-    free_command(cmd);
     __stop_client(kcl);
 }
 
@@ -482,7 +477,7 @@ int __crash_kserver_daemon()
 {
     dev_id_t dev_id;
     op_id_t op_id;
-    struct command* cmd;
+    struct command cmd;
     
     struct kclient *kcl = __start_client();
     
@@ -501,19 +496,14 @@ int __crash_kserver_daemon()
         return -1;
     }
     
-    if ((cmd = init_command(dev_id)) == NULL) {
-        fprintf(stderr, "Cannot allocate crash command\n");
-        return -1;
-    }
-    
-    cmd->op_ref = op_id;
+    init_command(&cmd, dev_id)
+    cmd.op_ref = op_id;
     
     if (kclient_send(kcl, cmd) < 0) {
         fprintf(stderr, "Cannot send crash command\n");
         return -1;
     }
 
-    free_command(cmd);
     __stop_client(kcl);
     
     return 0;
