@@ -256,7 +256,7 @@ int kclient_read_int(struct kclient *kcl, int8_t *rcv_int);
  * Returns the number of bytes read on success. -1 if failure.
  */
 #define kclient_rcv_array(kclient, len, data_type)              \
-    kclient_rcv_n_bytes(kclient, sizeof(data_type) * len);
+    kclient_rcv_n_bytes(kclient, sizeof(data_type) * len)
 
 /**
  * kclient_get_buffer - Return a casted pointer to the reception buffer
@@ -264,7 +264,7 @@ int kclient_read_int(struct kclient *kcl, int8_t *rcv_int);
  * @data_type Cast data type
  */
 #define kclient_get_buffer(kclient, data_type)                  \
-    (data_type *) kclient->buffer;
+    (data_type *) kclient->buffer
 
 /**
  * kclient_get_len - Return the length of the received array

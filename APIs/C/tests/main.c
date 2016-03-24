@@ -34,7 +34,7 @@ struct tests_device* tests_init(struct kclient * kcl)
 
 int tests_get_std_array(struct tests_device *dev)
 {
-    int i, bytes_read;
+    int i;
     float *buff;
 
     struct command *cmd = init_command(dev->id);
@@ -43,9 +43,7 @@ int tests_get_std_array(struct tests_device *dev)
     if (kclient_send(dev->kcl, cmd) < 0)
         return -1;
 
-    bytes_read = kclient_rcv_array(dev->kcl, 10, float);
-
-    if (bytes_read < 0) {
+    if (kclient_rcv_array(dev->kcl, 10, float) < 0) {
         fprintf(stderr, "Cannot read data\n");
         return -1;
     }
