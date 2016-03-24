@@ -280,13 +280,8 @@ int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes)
 
 int kclient_read_u32(struct kclient *kcl, uint32_t *rcv_uint)
 {
-    int i;
-
     if (kclient_rcv_n_bytes(kcl, sizeof(uint32_t)) < 0)
         return -1;
-
-    for (i=0; i<4; i++)
-        printf("%i => %u\n", i, (uint32_t)kcl->buffer[i]);
 
     *rcv_uint = (uint32_t)kcl->buffer[0] + ((uint32_t)kcl->buffer[1] << 8)
                 + ((uint32_t)kcl->buffer[2] << 16) + ((uint32_t)kcl->buffer[3] << 24);
@@ -295,13 +290,8 @@ int kclient_read_u32(struct kclient *kcl, uint32_t *rcv_uint)
 
 int kclient_read_u32_big_endian(struct kclient *kcl, uint32_t *rcv_uint)
 {
-    int i;
-
     if (kclient_rcv_n_bytes(kcl, sizeof(uint32_t)) < 0)
         return -1;
-
-    for (i=0; i<4; i++)
-        printf("%i => %u\n", i, (uint32_t)kcl->buffer[i]);
 
     *rcv_uint = (uint32_t)kcl->buffer[3] + ((uint32_t)kcl->buffer[2] << 8)
                 + ((uint32_t)kcl->buffer[1] << 16) + ((uint32_t)kcl->buffer[0] << 24);
