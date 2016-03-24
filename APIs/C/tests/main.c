@@ -37,8 +37,7 @@ int tests_get_std_array(struct tests_device *dev)
     int i;
     float *buff;
     struct command cmd;
-    init_command(&cmd, dev->id);
-    cmd.op_ref = dev->send_std_array_ref;
+    init_command(&cmd, dev->id, dev->send_std_array_ref);
 
     if (kclient_send(dev->kcl, &cmd) < 0)
         return -1;
@@ -66,8 +65,7 @@ int tests_set_buffer(struct tests_device *dev)
     for (i=0; i<BUFF_LEN; i++)
         data[i] = i*i;
 
-    init_command(&cmd, dev->id);
-    cmd.op_ref = dev->set_buffer_ref;
+    init_command(&cmd, dev->id, dev->set_buffer_ref);
     if (add_parameter(&cmd, BUFF_LEN) < 0) return -1;
 
     if (kclient_send(dev->kcl, &cmd) < 0)
@@ -83,9 +81,7 @@ int tests_read_int(struct tests_device *dev)
 {
     int8_t rcv_int;
     struct command cmd;
-
-    init_command(&cmd, dev->id);
-    cmd.op_ref = dev->read_int_ref;
+    init_command(&cmd, dev->id, dev->read_int_ref);
 
     if (kclient_send(dev->kcl, &cmd) < 0)
         return -1;

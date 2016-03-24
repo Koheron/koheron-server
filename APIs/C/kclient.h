@@ -181,11 +181,12 @@ struct command {
  * init_command - Initialize a command structure
  * @cmd: The command to be initialized
  * @dev_id: ID of the target device
+ * @op_ref: Reference of the target operation
  */
-static inline void init_command(struct command *cmd, int dev_id)
+static inline void init_command(struct command *cmd, int dev_id, int op_ref)
 {   
     cmd->dev_id = dev_id;
-    cmd->op_ref = 0;
+    cmd->op_ref = op_ref;
     cmd->params_num = 0;
 }
  
