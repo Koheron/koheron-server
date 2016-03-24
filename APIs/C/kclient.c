@@ -135,15 +135,11 @@ static int build_command_string(struct command *cmd, char *cmd_str)
     memset(cmd_str, 0, CMD_LEN);
     ret = snprintf(cmd_str, CMD_LEN, "%i|%i|", cmd->dev_id, cmd->op_ref);          
     CHECK_FORMAT(ret);
-
-    printf("%s\n", cmd_str);
     
     for (i=0; i<cmd->params_num; i++) {
         ret = snprintf(cmd_str + strlen(cmd_str), CMD_LEN, "%lu|", (cmd->params)[i]);
         CHECK_FORMAT(ret);
     }
-
-    printf("%s\n", cmd_str);
     
     ret = snprintf(cmd_str + strlen(cmd_str), CMD_LEN, "\n");
     CHECK_FORMAT(ret);
@@ -158,7 +154,7 @@ int kclient_send(struct kclient *kcl, struct command *cmd)
     if (build_command_string(cmd, cmd_str) < 0)
         return -1;
     
-    printf("%s\n", cmd_str);
+    // printf("%s\n", cmd_str);
 
     if (write(get_socket_fd(kcl), cmd_str, strlen(cmd_str)) < 0) {
         fprintf(stderr, "Can't send command to tcp-server\n");
