@@ -172,7 +172,7 @@ int kclient_send(struct kclient *kcl, struct command *cmd)
         return -1;
     }
     
-    // printf("%s\n", cmd_str);
+    printf("%s\n", cmd_str);
 
     if (write(get_socket_fd(kcl), cmd_str, strlen(cmd_str)) < 0) {
         fprintf(stderr, "Can't send command to tcp-server\n");
@@ -261,6 +261,12 @@ int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes)
 {
     int bytes_rcv = 0;
     uint32_t bytes_read = 0;
+
+    if (n_bytes >= RCV_BUFFER_LEN) {
+        DEBUG_MSG("Receive buffer size too small\n");
+        return -1;
+    }
+
     set_rcv_buff(kcl);
     
     while (bytes_read < n_bytes) {                        
