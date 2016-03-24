@@ -63,10 +63,13 @@ void Tests::set_std_dev(float std_dev_)
     std_dev = std_dev_;
 }
 
-std::array<uint32_t, 10>& Tests::send_std_array()
+std::array<float, 10>& Tests::send_std_array()
 {    
+    std::default_random_engine generator(std::random_device{}());
+    std::normal_distribution<float> distribution(0.0, 10.0);
+
     for (uint32_t i=0; i<data_std_array.size(); i++)
-        data_std_array[i] = i*i;
+        data_std_array[i] = distribution(generator);
 
     return data_std_array;
 }
@@ -102,8 +105,10 @@ void Tests::set_buffer(const uint32_t *data, uint32_t len)
 {
     buffer.resize(len);
 
-    for (unsigned int i=0; i<buffer.size(); i++)
+    for (unsigned int i=0; i<buffer.size(); i++) {
         buffer[i] = data[i];
+        printf("%u => %u\n", i, buffer[i]);
+    }
 }
 
 const char* Tests::get_cstr()

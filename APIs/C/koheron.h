@@ -26,7 +26,7 @@ struct kclient;
  *
  * Returns a pointer to a kclient structure if success, NULL otherwise
  */
-struct kclient* kclient_connect(char *host, int port);
+struct kclient* kclient_connect(const char *host, int port);
 
 #if defined (__linux__)
 /**
