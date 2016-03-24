@@ -172,10 +172,10 @@ int kclient_send(struct kclient *kcl, struct command *cmd)
         return -1;
     }
     
-    printf("%s\n", cmd_str);
+    // printf("%s\n", cmd_str);
 
     if (write(get_socket_fd(kcl), cmd_str, strlen(cmd_str)) < 0) {
-        fprintf(stderr, "Can't send command to KServer\n");
+        fprintf(stderr, "Can't send command to tcp-server\n");
         return -1;
     }
     
@@ -290,20 +290,31 @@ int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes)
     return bytes_read;
 }
 
-int kclient_read_u32(struct kclient *kcl)
+int kclient_read_u32(struct kclient *kcl, uint32_t *rcv_uint)
 {
     if (kclient_rcv_n_bytes(kcl, sizeof(uint32_t)) < 0)
         return -1;
 
-    return (uint32_t)kcl->buffer[3] + ((uint32_t)kcl->buffer[2] << 8)
-           + ((uint32_t)kcl->buffer[1] << 16) + ((uint32_t)kcl->buffer[0] << 24);
+    *rcv_uint = (uint32_t)kcl->buffer[3] + ((uint32_t)kcl->buffer[2] << 8)
+                + ((uint32_t)kcl->buffer[1] << 16) + ((uint32_t)kcl->buffer[0] << 24);
+    return 0;
+}
+
+int kclient_read_int(struct kclient *kcl, int8_t *rcv_int)
+{
+    if (kclient_rcv_n_bytes(kcl, sizeof(uint32_t)) < 0)
+        return -1;
+
+    *rcv_int = (int8_t) ((uint32_t)kcl->buffer[0] + ((uint32_t)kcl->buffer[1] << 8)
+                + ((uint32_t)kcl->buffer[2] << 16) + ((uint32_t)kcl->buffer[3] << 24));
+    return 0;
 }
 
 int kclient_send_array(struct kclient *kcl, uint32_t *array_ptr, uint32_t len)
 {
     uint32_t rcv_len; 
 
-    if ((rcv_len = kclient_read_u32(kcl)) < 0)
+    if (kclient_read_u32(kcl, &rcv_len) < 0)
         return -1;
 
     if (rcv_len == len) {

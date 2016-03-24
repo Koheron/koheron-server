@@ -239,10 +239,13 @@ int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes);
 
 /**
  * kclient_read_u32 - Read a uint32_t
+ * @rcv_uint: Pointer to the received number
  *
  * Returns the read number on success. -1 if failure.
  */
-int kclient_read_u32(struct kclient *kcl);
+int kclient_read_u32(struct kclient *kcl, uint32_t *rcv_uint);
+
+int kclient_read_int(struct kclient *kcl, int8_t *rcv_int);
 
 /**
  * kclient_rcv_array - Receive an array

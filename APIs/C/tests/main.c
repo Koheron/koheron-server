@@ -8,6 +8,7 @@ struct tests_device {
     dev_id_t id;                // Device ID
     op_id_t send_std_array_ref; // "SEND_STD_ARRAY" reference
     op_id_t set_buffer_ref;     // "SET_BUFFER" reference
+    op_id_t read_int_ref;       // "READ_INT" reference
 };
 
 struct tests_device* tests_init(struct kclient * kcl)
@@ -23,7 +24,8 @@ struct tests_device* tests_init(struct kclient * kcl)
         .kcl = kcl,
         .id = get_device_id(kcl, "TESTS"),
         .send_std_array_ref = get_op_id(kcl, dev.id, "SEND_STD_ARRAY"),
-        .set_buffer_ref = get_op_id(kcl, dev.id, "SET_BUFFER")
+        .set_buffer_ref = get_op_id(kcl, dev.id, "SET_BUFFER"),
+        .read_int_ref = get_op_id(kcl, dev.id, "READ_INT")
     };
 
     memcpy(ret_dev, &dev, sizeof(struct tests_device));
@@ -80,6 +82,25 @@ int tests_set_buffer(struct tests_device *dev)
     return 0;
 }
 
+int tests_read_int(struct tests_device *dev)
+{
+    int8_t rcv_int;
+
+    struct command *cmd = init_command(dev->id);
+    cmd->op_ref = dev->read_int_ref;
+
+    if (kclient_send(dev->kcl, cmd) < 0)
+        return -1;
+
+    if (kclient_read_int(dev->kcl, &rcv_int))
+        return -1;
+
+    printf("Received int %i\n", rcv_int);
+
+    free_command(cmd);
+    return 0;
+}
+
 int main(void)
 {
     struct kclient *kcl = kclient_connect("127.0.0.1", 36100);
@@ -92,6 +113,7 @@ int main(void)
     struct tests_device *dev = tests_init(kcl);
     tests_get_std_array(dev);
     tests_set_buffer(dev);
+    tests_read_int(dev);
 
     free(dev);
     kclient_shutdown(kcl);
