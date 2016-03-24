@@ -31,8 +31,8 @@ extern "C" {
  * --------- Data structures ---------
  */
  
-#define MAX_DEV_NUM 128
-#define MAX_OP_NUM 128
+#define MAX_DEV_NUM     128
+#define MAX_OP_NUM      128
 #define MAX_NAME_LENGTH 512
 
 typedef int dev_id_t;   // Device ID type
@@ -77,18 +77,6 @@ struct device {
 #define RCV_BUFFER_LEN 16384    
 
 /**
- * struct rcv_buff - Reception buffer structure
- * @buffer: Received data buffer
- * @max_buff_len: Maximum length of the buffer (RCV_BUFFER_LEN)
- * @current_len: Length of the buffer including '\0' termination
- */
-struct rcv_buff {
-    char buffer[RCV_BUFFER_LEN];
-    int  max_buff_len;
-    int  current_len;
-};
-
-/**
  * struct kclient - KServer client structure
  * @sockfd: TCP socket file descriptor
  * @serveraddr: TCP socket structure
@@ -98,7 +86,8 @@ struct rcv_buff {
  * @devs_num: Number of available devices
  * @devices: Available devices
  * @conn_type: Connection type
- * @rcv_buff: Reception buffer
+ * @buffer: Received data buffer
+ * @current_len: Length of the buffer (including '\0' termination if any)
  */
 struct kclient {
 #if defined (__linux__)
@@ -118,7 +107,8 @@ struct kclient {
     
     connection_t         conn_type;
 
-    struct rcv_buff      rcv_buffer;
+    char                 buffer[RCV_BUFFER_LEN];
+    int                  current_len;
 };
 
 /**
@@ -264,7 +254,7 @@ int kclient_rcv_n_bytes(struct kclient *kcl, int n_bytes);
  * @data_type Cast data type
  */
 #define kclient_get_buffer(kclient, data_type)                  \
-        (data_type *) kclient->rcv_buffer.buffer;
+        (data_type *) kclient->buffer;
 
 /**
  * kclient_get_len - Return the length of the received array
@@ -272,7 +262,7 @@ int kclient_rcv_n_bytes(struct kclient *kcl, int n_bytes);
  * @data_type Array data type
  */
 #define kclient_get_len(kclient, data_type)                     \
-        kclient->rcv_buffer.current_len / sizeof(data_type)
+        kclient->current_len / sizeof(data_type)
 
 #ifdef __cplusplus
 }

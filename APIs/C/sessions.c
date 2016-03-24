@@ -76,7 +76,7 @@ struct running_sessions* kclient_get_running_sessions(struct kclient *kcl)
     struct session_status tmp_session;
     char tmp_buff[2048];
 
-    char *buffer = kcl->rcv_buffer.buffer;
+    char *buffer = kcl->buffer;
     int bytes_read = __get_sessions_data(kcl);
     
     if (bytes_read < 0) {
