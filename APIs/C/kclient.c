@@ -296,7 +296,7 @@ int kclient_read_u32(struct kclient *kcl)
         return -1;
 
     return (uint32_t)kcl->buffer[3] + ((uint32_t)kcl->buffer[2] << 8)
-        + ((uint32_t)kcl->buffer[1] << 16) + ((uint32_t)kcl->buffer[0] << 24);
+           + ((uint32_t)kcl->buffer[1] << 16) + ((uint32_t)kcl->buffer[0] << 24);
 }
 
 int kclient_send_array(struct kclient *kcl, uint32_t *array_ptr, uint32_t len)
@@ -316,7 +316,7 @@ int kclient_send_array(struct kclient *kcl, uint32_t *array_ptr, uint32_t len)
         return -1;
     }
 
-    return 0;
+    return rcv_len * sizeof(uint32_t);
 }
 
 int kclient_send_string(struct kclient *kcl, const char *str)

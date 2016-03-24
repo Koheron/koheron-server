@@ -237,6 +237,11 @@ int kclient_rcv_esc_seq(struct kclient *kcl, char *esc_seq);
  */
 int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes);
 
+/**
+ * kclient_read_u32 - Read a uint32_t
+ *
+ * Returns the read number on success. -1 if failure.
+ */
 int kclient_read_u32(struct kclient *kcl);
 
 /**
@@ -266,6 +271,19 @@ int kclient_read_u32(struct kclient *kcl);
 #define kclient_get_len(kclient, data_type)                     \
     kclient->current_len / sizeof(data_type)
 
+/**
+ * kclient_send_array - Send an array using the handshaking protocol:
+ *      1) The size of the buffer must have been send as a
+ *         command argument to tcp-server before calling this function
+ *      2) tcp-server acknowledges reception readiness by sending
+ *         the number of points to receive to the client
+ *      3) The client send the data buffer
+ * The two last steps are implemented by the function.
+ * @array_ptr Pointer to the first array element
+ * @len Length of the array (number of uint32_t it contains)
+ *
+ * Returns the number of bytes send on success. -1 if failure.
+ */
 int kclient_send_array(struct kclient *kcl, uint32_t *array_ptr, uint32_t len);
 
 #ifdef __cplusplus

@@ -56,7 +56,7 @@ int tests_get_std_array(struct tests_device *dev)
     return 0;
 }
 
-#define BUFF_LEN 10
+#define BUFF_LEN 20
 
 int tests_set_buffer(struct tests_device *dev)
 {
