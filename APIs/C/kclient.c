@@ -55,7 +55,7 @@ void debug_display_kclient(struct kclient *kcl)
 void debug_display_kclient(struct kclient *kcl) {}
 #endif
 
-dev_id_t get_device_id(struct kclient *kcl, char *dev_name)
+dev_id_t get_device_id(struct kclient *kcl, const char *dev_name)
 {
     int i;
     
@@ -66,7 +66,7 @@ dev_id_t get_device_id(struct kclient *kcl, char *dev_name)
     return -1;
 }
 
-op_id_t get_op_id(struct kclient *kcl, dev_id_t dev_id, char *op_name)
+op_id_t get_op_id(struct kclient *kcl, dev_id_t dev_id, const char *op_name)
 {
     int i, j;
     
@@ -195,7 +195,7 @@ static void set_rcv_buff(struct kclient *kcl)
 #define RCV_LEN 2048
 
 // TODO Add timeout 
-int kclient_rcv_esc_seq(struct kclient *kcl, char *esc_seq)
+int kclient_rcv_esc_seq(struct kclient *kcl, const char *esc_seq)
 {
     int bytes_rcv = 0;
     int bytes_read = 0;

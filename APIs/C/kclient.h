@@ -146,14 +146,14 @@ void debug_display_kclient(struct kclient *kcl);
  * get_device_id - Return the ID of a device
  * @dev_name: Device name
  */
-dev_id_t get_device_id(struct kclient *kcl, char *dev_name);
+dev_id_t get_device_id(struct kclient *kcl, const char *dev_name);
 
 /**
  * get_op_id - Return the ID of an operation
  * @dev_id ID of the device where to look for the operation
  * @op_name Name of the operation
  */
-op_id_t get_op_id(struct kclient *kcl, dev_id_t dev_id, char *op_name);
+op_id_t get_op_id(struct kclient *kcl, dev_id_t dev_id, const char *op_name);
 
 /* 
  *  --------- Receive/Send ---------
@@ -227,7 +227,7 @@ int kclient_send_string(struct kclient *kcl, const char *str);
  *
  * Returns the number of bytes read on success. -1 if failure.
  */
-int kclient_rcv_esc_seq(struct kclient *kcl, char *esc_seq);
+int kclient_rcv_esc_seq(struct kclient *kcl, const char *esc_seq);
 
 /**
  * kclient_rcv_n_bytes - Receive a fixed number of bytes
