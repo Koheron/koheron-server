@@ -7,9 +7,14 @@
 #ifndef __KCLIENT_H__
 #define __KCLIENT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "definitions.h"
 
 #include <time.h>
+#include <stdint.h>
 
 #if defined (__linux__)
 #include <sys/socket.h>
@@ -26,8 +31,8 @@
  * --------- Data structures ---------
  */
  
-#define MAX_DEV_NUM 128
-#define MAX_OP_NUM 128
+#define MAX_DEV_NUM     128
+#define MAX_OP_NUM      128
 #define MAX_NAME_LENGTH 512
 
 typedef int dev_id_t;   // Device ID type
@@ -68,6 +73,9 @@ struct device {
     struct operation     ops[MAX_OP_NUM];
 };
 
+/* Maximum length of the reception buffer */
+#define RCV_BUFFER_LEN 16384    
+
 /**
  * struct kclient - KServer client structure
  * @sockfd: TCP socket file descriptor
@@ -78,6 +86,8 @@ struct device {
  * @devs_num: Number of available devices
  * @devices: Available devices
  * @conn_type: Connection type
+ * @buffer: Received data buffer
+ * @current_len: Length of the buffer (including '\0' termination if any)
  */
 struct kclient {
 #if defined (__linux__)
@@ -96,7 +106,34 @@ struct kclient {
     struct device        devices[MAX_DEV_NUM];
     
     connection_t         conn_type;
+
+    char                 buffer[RCV_BUFFER_LEN];
+    int                  current_len;
 };
+
+/**
+ * kclient_connect - Initialize a TCP connection with KServer
+ * @host A string containing the IP address of the host
+ * @port Port of KServer on the host
+ *
+ * Returns a pointer to a kclient structure if success, NULL otherwise
+ */
+struct kclient* kclient_connect(const char *host, int port);
+
+#if defined (__linux__)
+/**
+ * kclient_unix_connect - Initialize a Unix socket connection with KServer
+ * @sock_path Path to the Unix socket file
+ *
+ * Returns a pointer to a kclient structure if success, NULL otherwise
+ */
+struct kclient* kclient_unix_connect(const char *sock_path);
+#endif
+ 
+/**
+ * kclient_shutdown - Shutdown the connection with the server
+ */
+void kclient_shutdown(struct kclient *kcl);
 
 /**
  * debug_display_kclient - Display structure kclient
@@ -169,7 +206,7 @@ static inline void reset_command(struct command *cmd, int op_ref)
 void free_command(struct command *cmd);
  
 /**
- * kclient_send - Send a command to KServer
+ * kclient_send - Send a command to tcp-server
  * @cmd: The command to send
  *
  * Returns 0 on success, -1 on failure
@@ -184,45 +221,74 @@ int kclient_send(struct kclient *kcl, struct command *cmd);
  */
 int kclient_send_string(struct kclient *kcl, const char *str);
 
-/* Maximum length of the reception buffer */
-#define RCV_BUFFER_LEN 8192
-
-/**
- * struct rcv_buff - Reception buffer structure
- * @buffer: Received data buffer
- * @max_buff_len: Maximum length of the buffer (RCV_BUFFER_LEN)
- * @current_len: Length of the buffer including '\0' termination
- */
-struct rcv_buff {
-    char buffer[RCV_BUFFER_LEN];
-    int  max_buff_len;
-    int  current_len;
-};
-
-/**
- * set_rcv_buff - Set the rcv_buff to default values
- * @buff: The buffer structure to initialize
- */
-void set_rcv_buff(struct rcv_buff *buff);
-
 /**
  * kclient_rcv_esc_seq - Receive data until an escape sequence is reached
- * @rcv_buffer Pointer to a rcv_buff structure
  * @esc_seq The escape sequence
  *
  * Returns the number of bytes read on success. -1 if failure.
  */
-int kclient_rcv_esc_seq(struct kclient *kcl, struct rcv_buff *rcv_buffer, 
-                        char *esc_seq);
+int kclient_rcv_esc_seq(struct kclient *kcl, char *esc_seq);
 
-//int kclient_rcv_n_bytes(struct kclient *kcl, struct rcv_buff *rcv_buffer, 
-//                        int n_bytes);
-
-/* 
- *  --------- Kill session ---------
+/**
+ * kclient_rcv_n_bytes - Receive a fixed number of bytes
+ * @n_bytes The number of bytes to receive
+ *
+ * Returns the number of bytes read on success. -1 if failure.
  */
- 
-int kill_session(struct kclient *kcl, int sess_id);
+int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes);
+
+/**
+ * kclient_read_u32 - Read a uint32_t
+ *
+ * Returns the read number on success. -1 if failure.
+ */
+int kclient_read_u32(struct kclient *kcl);
+
+/**
+ * kclient_rcv_array - Receive an array
+ * @kclient Pointer to a kclient structure
+ * @len Array length
+ * @data_type Array data type
+ *
+ * Returns the number of bytes read on success. -1 if failure.
+ */
+#define kclient_rcv_array(kclient, len, data_type)              \
+    kclient_rcv_n_bytes(kclient, sizeof(data_type) * len);
+
+/**
+ * kclient_get_buffer - Return a casted pointer to the reception buffer
+ * @kclient Pointer to a kclient structure
+ * @data_type Cast data type
+ */
+#define kclient_get_buffer(kclient, data_type)                  \
+    (data_type *) kclient->buffer;
+
+/**
+ * kclient_get_len - Return the length of the received array
+ * @kclient Pointer to a kclient structure
+ * @data_type Array data type
+ */
+#define kclient_get_len(kclient, data_type)                     \
+    kclient->current_len / sizeof(data_type)
+
+/**
+ * kclient_send_array - Send an array using the handshaking protocol:
+ *      1) The size of the buffer must have been send as a
+ *         command argument to tcp-server before calling this function
+ *      2) tcp-server acknowledges reception readiness by sending
+ *         the number of points to receive to the client
+ *      3) The client send the data buffer
+ * The two last steps are implemented by the function.
+ * @array_ptr Pointer to the first array element
+ * @len Length of the array (number of uint32_t it contains)
+ *
+ * Returns the number of bytes send on success. -1 if failure.
+ */
+int kclient_send_array(struct kclient *kcl, uint32_t *array_ptr, uint32_t len);
+
+#ifdef __cplusplus
+}
+#endif
  
 #endif /* __KCLIENT_H__ */
 
