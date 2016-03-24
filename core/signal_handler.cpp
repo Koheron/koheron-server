@@ -125,6 +125,9 @@ void crash_signal_handler(int sig)
       case SIGSEGV:
         sig_name = "(Segmentation Fault)";
         break;
+      case SIGABRT:
+        sig_name = "(Abort)";
+        break;
       default:
         sig_name = "(Unidentify signal)";
     }
