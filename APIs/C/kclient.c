@@ -66,7 +66,7 @@ dev_id_t get_device_id(struct kclient *kcl, const char *dev_name)
     return -1;
 }
 
-op_id_t get_op_id(struct kclient *kcl, dev_id_t dev_id, char *op_name)
+op_id_t get_op_id(struct kclient *kcl, dev_id_t dev_id, const char *op_name)
 {
     int i, j;
     
