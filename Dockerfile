@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM ubuntu:15.04
 #FROM armbuild/ubuntu:latest
 
 ENV work_dir /code
@@ -11,15 +11,17 @@ RUN apt-get update
 
 RUN apt-get -y install gcc-arm-linux-gnueabihf \
                        g++-arm-linux-gnueabihf \
-                       gcc-arm-linux-gnueabi \
-                       g++-arm-linux-gnueabi \
-                       make \
-                       wget \
-                       git \
-                       python-pip \
-                       python-dev \
-                       build-essential \
-                       libyaml-dev
+                       gcc-arm-linux-gnueabi   \
+                       g++-arm-linux-gnueabi   \
+                       make                    \
+                       wget                    \
+                       git                     \
+                       python-pip              \
+                       python-dev              \
+                       build-essential         \
+                       libyaml-dev             \
+                       mingw-w64
+
 RUN pip install --upgrade pip
 
 WORKDIR $work_dir/
@@ -43,6 +45,16 @@ RUN make DOCKER=True CONFIG=config_toolchain.yaml clean all
 RUN make -C cli TARGET_HOST=local clean all
 RUN make -C cli CROSS_COMPILE=arm-linux-gnueabihf- clean all
 RUN make -C cli CROSS_COMPILE=arm-linux-gnueabi- clean all
+
+# ---------------------------------------
+# Compile API Tests
+# ---------------------------------------
+
+RUN make -C APIs/C/tests TARGET_HOST=local clean all
+RUN make -C APIs/C/tests TARGET_HOST=arm clean all
+RUN make -C APIs/C/tests TARGET_HOST=armhf clean all
+RUN make -C APIs/C/tests TARGET_HOST=Win32 clean all
+RUN make -C APIs/C/tests TARGET_HOST=Win64 clean all
 
 # ---------------------------------------
 # Tests
