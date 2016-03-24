@@ -13,13 +13,7 @@
 #include <fcntl.h>
 #include <stdbool.h>
 #include <unistd.h>
- #include <assert.h>
-
- /**
- * set_rcv_buff - Set the rcv_buff to default values
- * @buff: The buffer structure to initialize
- */
-static void set_rcv_buff(struct rcv_buff *buff);
+#include <assert.h>
 
 /*
  * --------- Data structures ---------
@@ -90,7 +84,7 @@ op_id_t get_op_id(struct kclient *kcl, dev_id_t dev_id, char *op_name)
 }
 
 /**
- * @brief Add an operation to a device
+ * append_op_to_dev - Add an operation to a device
  */
 static void append_op_to_dev(struct device *dev, struct operation *op)
 {
@@ -98,22 +92,6 @@ static void append_op_to_dev(struct device *dev, struct operation *op)
     dev->ops[dev->ops_num].id = dev->ops_num;
     dev->ops_num++;
 }
-
-# if 0
-/**
- * @brief Get an operation from the device @dev
- * @op_num Operation ID
- * @return A pointer to the operation, NULL if the operation ID doesn't exist
- */
-struct operation * get_op(struct device * dev, int op_id)
-{
-    if(op_id >= dev->ops_num) {
-        return NULL;
-    }
-    
-    return &(dev->ops[op_id]);
-}
-#endif
 
 /* 
  *  --------- Receive/Send ---------
@@ -206,7 +184,11 @@ int kclient_send(struct kclient *kcl, struct command *cmd)
     return 0;
 }
 
-void set_rcv_buff(struct rcv_buff *rcv_buff)
+ /**
+ * set_rcv_buff - Set the rcv_buff to default values
+ * @buff: The buffer structure to initialize
+ */
+static void set_rcv_buff(struct rcv_buff *rcv_buff)
 {
     memset(rcv_buff->buffer, 0, sizeof(char)*RCV_BUFFER_LEN);
     (rcv_buff->buffer)[0] = '\0';
@@ -226,7 +208,7 @@ int kclient_rcv_esc_seq(struct kclient *kcl, char *esc_seq)
     char tmp_buff[RCV_LEN];
     set_rcv_buff(&kcl->rcv_buffer);
     
-    while(1) {
+    while (1) {
         int i;        
         tmp_buff[0] = '\0';
                         
@@ -285,7 +267,7 @@ int kclient_rcv_n_bytes(struct kclient *kcl, int n_bytes)
     uint32_t bytes_read = 0;
     set_rcv_buff(&kcl->rcv_buffer);
     
-    while(bytes_read < n_bytes) {                        
+    while (bytes_read < n_bytes) {                        
         bytes_rcv = read(kcl->sockfd, kcl->rcv_buffer.buffer + bytes_read, n_bytes - bytes_read);
         
         if (bytes_rcv == 0) {
