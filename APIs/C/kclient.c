@@ -344,11 +344,8 @@ static int kclient_get_devices(struct kclient *kcl)
     int i, tmp_buff_cnt;
     int bytes_read = 0;
     int dev_cnt = 0;
-    
     bool is_dev_id = 0, is_dev_name = 0;
-    
     struct operation tmp_op;
-    
     char tmp_buff[2048];
     
     const char cmd[] = "1|1|\n";
@@ -358,11 +355,8 @@ static int kclient_get_devices(struct kclient *kcl)
     
     bytes_read = kclient_rcv_esc_seq(kcl, "EOC");
     
-    if (bytes_read < 0) {
+    if (bytes_read < 0)
         return -1;
-    }
-
-    char *buffer = kcl->buffer;
     
     // Parse rcv_buffer
     tmp_buff[0] = '\0';
@@ -371,8 +365,8 @@ static int kclient_get_devices(struct kclient *kcl)
     
     for (i=0; i<bytes_read; i++) {
         if (line_cnt == 0) {
-            if (buffer[i] != '\n') {
-                tmp_buff[tmp_buff_cnt] = buffer[i];
+            if (kcl->buffer[i] != '\n') {
+                tmp_buff[tmp_buff_cnt] = kcl->buffer[i];
                 tmp_buff_cnt++;
             } else {
                 tmp_buff[tmp_buff_cnt] = '\0';
@@ -389,7 +383,7 @@ static int kclient_get_devices(struct kclient *kcl)
                 is_dev_id = 1;
             }
         } else {
-            if (buffer[i] == ':') {
+            if (kcl->buffer[i] == ':') {
                 if (is_dev_id) {
                     tmp_buff[tmp_buff_cnt] = '\0';
                     kcl->devices[dev_cnt].id 
@@ -414,7 +408,7 @@ static int kclient_get_devices(struct kclient *kcl)
                         tmp_buff_cnt = 0;
                     }
                 }
-            } else if (buffer[i] == '\n') {
+            } else if (kcl->buffer[i] == '\n') {
                 if (tmp_buff_cnt != 0) {
                     tmp_buff[tmp_buff_cnt] = '\0';
                     strcpy(tmp_op.name, tmp_buff);
@@ -432,7 +426,7 @@ static int kclient_get_devices(struct kclient *kcl)
                 is_dev_id = 1;
                 line_cnt++;                
             } else {
-                tmp_buff[tmp_buff_cnt] = buffer[i];
+                tmp_buff[tmp_buff_cnt] = kcl->buffer[i];
                 tmp_buff_cnt++;
             }
         }
