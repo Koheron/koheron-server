@@ -649,13 +649,11 @@ struct kclient* kclient_unix_connect(const char *sock_path)
 #if defined (__linux__)
 static void close_kclient_socket(struct kclient *kcl)
 {
-    if (kcl->conn_type == TCP && kcl->sockfd >= 0) {
+    if (kcl->conn_type == TCP && kcl->sockfd >= 0)
         close(kcl->sockfd);
-    }
     
-    if (kcl->conn_type == UNIX && kcl->unix_sockfd >= 0) {
+    if (kcl->conn_type == UNIX && kcl->unix_sockfd >= 0)
         close(kcl->unix_sockfd);
-    }
 }
 #elif defined (__MINGW32__)
 static void close_kclient_socket(struct kclient *kcl)
@@ -670,10 +668,9 @@ static void close_kclient_socket(struct kclient *kcl)
 
 KOHERON_LIB_EXPORT
 void kclient_shutdown(struct kclient *kcl)
-{
-    close_kclient_socket(kcl);
-    
+{    
     if (kcl != NULL) {
+        close_kclient_socket(kcl);
         free(kcl);
         kcl = NULL;
     }
