@@ -55,7 +55,7 @@ void debug_display_kclient(struct kclient *kcl)
 void debug_display_kclient(struct kclient *kcl) {}
 #endif
 
-dev_id_t get_device_id(struct kclient *kcl, char *dev_name)
+dev_id_t get_device_id(struct kclient *kcl, const char *dev_name)
 {
     int i;
     

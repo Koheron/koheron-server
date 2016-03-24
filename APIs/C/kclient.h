@@ -146,7 +146,7 @@ void debug_display_kclient(struct kclient *kcl);
  * get_device_id - Return the ID of a device
  * @dev_name: Device name
  */
-dev_id_t get_device_id(struct kclient *kcl, char *dev_name);
+dev_id_t get_device_id(struct kclient *kcl, const char *dev_name);
 
 /**
  * get_op_id - Return the ID of an operation
