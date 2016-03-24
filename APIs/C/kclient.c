@@ -195,7 +195,7 @@ static void set_rcv_buff(struct kclient *kcl)
 #define RCV_LEN 2048
 
 // TODO Add timeout 
-int kclient_rcv_esc_seq(struct kclient *kcl, char *esc_seq)
+int kclient_rcv_esc_seq(struct kclient *kcl, const char *esc_seq)
 {
     int bytes_rcv = 0;
     int bytes_read = 0;

@@ -227,7 +227,7 @@ int kclient_send_string(struct kclient *kcl, const char *str);
  *
  * Returns the number of bytes read on success. -1 if failure.
  */
-int kclient_rcv_esc_seq(struct kclient *kcl, char *esc_seq);
+int kclient_rcv_esc_seq(struct kclient *kcl, const char *esc_seq);
 
 /**
  * kclient_rcv_n_bytes - Receive a fixed number of bytes
