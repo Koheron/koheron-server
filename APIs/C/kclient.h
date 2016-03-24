@@ -245,6 +245,12 @@ int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes);
  */
 int kclient_read_u32(struct kclient *kcl, uint32_t *rcv_uint);
 
+/**
+ * kclient_read_u32 - Read a big endian uint32_t
+ * @rcv_uint: Pointer to the received number
+ *
+ * Returns the read number on success. -1 if failure.
+ */
 int kclient_read_u32_big_endian(struct kclient *kcl, uint32_t *rcv_uint);
 
 /**
