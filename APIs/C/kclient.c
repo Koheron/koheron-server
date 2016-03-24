@@ -92,13 +92,6 @@ static void append_op_to_dev(struct device *dev, struct operation *op)
 /* 
  *  --------- Receive/Send ---------
  */
- 
-void init_command(struct command *cmd, int dev_id)
-{   
-    cmd->dev_id = dev_id;
-    cmd->op_ref = 0;
-    cmd->params_num = 0;
-}
 
 int add_parameter(struct command *cmd, long param)
 {
@@ -108,8 +101,7 @@ int add_parameter(struct command *cmd, long param)
     }
     
     (cmd->params)[cmd->params_num] = param;
-    cmd->params_num++;    
-    
+    cmd->params_num++;
     return 0;
 }
 
