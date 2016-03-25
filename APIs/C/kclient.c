@@ -440,16 +440,13 @@ static int kclient_get_devices(struct kclient *kcl)
 #if defined (__linux__)
 static int open_kclient_tcp_socket(struct kclient *kcl)
 {
-    int sockfd;
-    kcl->sockfd = -1;
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    kcl->sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
-    if (sockfd < 0) {
+    if (kcl->sockfd < 0) {
         fprintf(stderr, "Can't open socket\n");		
         return -1;
     }
 
-    kcl->sockfd = sockfd;
     return 0;
 }
 #elif defined (__MINGW32__)
