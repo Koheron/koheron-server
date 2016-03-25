@@ -221,9 +221,8 @@ int kclient_rcv_esc_seq(struct kclient *kcl, const char *esc_seq)
         (kcl->buffer)[bytes_read] = '\0';
         kcl->current_len = bytes_read + 1;
         
-        if (strstr(kcl->buffer, esc_seq)) {
+        if (strstr(kcl->buffer, esc_seq))
             break;
-        }
     }
     
     // XXX It's a bit ugly to have this here !!
@@ -417,9 +416,8 @@ static int kclient_get_devices(struct kclient *kcl)
                     tmp_buff_cnt = 0;
                 }
                 
-                if (dev_cnt+1 == kcl->devs_num) {
+                if (dev_cnt+1 == kcl->devs_num)
                     break;
-                }
                 
                 dev_cnt++;
                 kcl->devices[dev_cnt].ops_num = 0;
@@ -483,18 +481,13 @@ static int open_kclient_tcp_socket(struct kclient *kcl)
 #if defined (__linux__)
 static int open_kclient_unix_socket(struct kclient *kcl)
 {
-    int unix_sockfd;
+    kcl->unix_sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
 
-    kcl->unix_sockfd = -1;
-
-    unix_sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-
-    if (unix_sockfd < 0) {
+    if (kcl->unix_sockfd < 0) {
         fprintf(stderr, "Can't open Unix socket\n");		
         return -1;
     }
 
-    kcl->unix_sockfd = unix_sockfd;
     return 0;
 }
 #endif // (__linux__)
