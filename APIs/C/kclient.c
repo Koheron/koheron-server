@@ -271,6 +271,7 @@ int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes)
         }
 
         kcl->current_len = bytes_read;
+        printf("kcl->current_len = %u\n", kcl->current_len);
     }
 
     assert(bytes_read == n_bytes);
