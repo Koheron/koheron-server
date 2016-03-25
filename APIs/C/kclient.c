@@ -244,6 +244,7 @@ int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes)
     uint32_t bytes_read = 0;
 
     printf(">>> kclient_rcv_n_bytes\n");
+    printf("n_bytes = %u\n", n_bytes);
 
     if (n_bytes >= RCV_BUFFER_LEN) {
         DEBUG_MSG("Receive buffer size too small\n");
