@@ -249,6 +249,8 @@ int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes)
     }
 
     set_rcv_buff(kcl);
+
+    printf("n_bytes = %u\n", n_bytes);
     
     while (bytes_read < n_bytes) {                        
         bytes_rcv = read(kcl->sockfd, kcl->buffer + bytes_read, n_bytes - bytes_read);
