@@ -243,17 +243,12 @@ int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes)
     int bytes_rcv = 0;
     uint32_t bytes_read = 0;
 
-    printf(">>> kclient_rcv_n_bytes\n");
-    printf("n_bytes = %u\n", n_bytes);
-
     if (n_bytes >= RCV_BUFFER_LEN) {
         DEBUG_MSG("Receive buffer size too small\n");
         return -1;
     }
 
     set_rcv_buff(kcl);
-
-    printf("n_bytes = %u\n", n_bytes);
     
     while (bytes_read < n_bytes) {                        
         bytes_rcv = read(kcl->sockfd, kcl->buffer + bytes_read, n_bytes - bytes_read);
@@ -278,7 +273,6 @@ int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes)
         }
 
         kcl->current_len = bytes_read;
-        printf("kcl->current_len = %u\n", kcl->current_len);
     }
 
     assert(bytes_read == n_bytes);
