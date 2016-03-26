@@ -93,13 +93,37 @@ static void append_op_to_dev(struct device *dev, struct operation *op)
  *  --------- Receive/Send ---------
  */
 
+/**
+ * init_command - Initialize a command structure
+ * @cmd: The command to be initialized
+ * @dev_id: ID of the target device
+ * @op_ref: Reference of the target operation
+ */
+static inline void init_command(struct command *cmd, dev_id_t dev_id, op_id_t op_ref)
+{   
+    cmd->dev_id = dev_id;
+    cmd->op_ref = op_ref;
+    cmd->params_num = 0;
+}
+
+/**
+ * add_parameter - Add a parameter to the command
+ * @cmd: The command to edit
+ * @param: The parameter to add
+ */
+static inline void add_parameter(struct command *cmd, long param)
+{   
+    (cmd->params)[cmd->params_num] = param;
+    cmd->params_num++;
+}
+
 int kclient_send_command(struct kclient *kcl, dev_id_t dev_id, 
                          op_id_t op_ref, const char *types, ...)
 {
     struct command cmd;
-    init_command(&cmd, dev_id, op_ref);
-
     va_list args;
+
+    init_command(&cmd, dev_id, op_ref);
     va_start(args, types);
  
     while (*types != '\0') {
@@ -128,18 +152,6 @@ int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
     if (kclient_send(kcl, &cmd) < 0)
         return -1;
 
-    return 0;
-}
-
-int add_parameter(struct command *cmd, long param)
-{
-    if (cmd->params_num >= MAX_PARAMS_NUM) {
-        DEBUG_MSG("Command parameters overflow\n");
-        return -1;
-    }
-    
-    (cmd->params)[cmd->params_num] = param;
-    cmd->params_num++;
     return 0;
 }
 

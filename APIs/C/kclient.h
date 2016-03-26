@@ -180,34 +180,6 @@ struct command {
  
 int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
                          op_id_t op_ref, const char *types, ...);
-
-/**
- * init_command - Initialize a command structure
- * @cmd: The command to be initialized
- * @dev_id: ID of the target device
- * @op_ref: Reference of the target operation
- */
-static inline void init_command(struct command *cmd, dev_id_t dev_id, op_id_t op_ref)
-{   
-    cmd->dev_id = dev_id;
-    cmd->op_ref = op_ref;
-    cmd->params_num = 0;
-}
- 
-/**
- * add_parameter - Add a parameter to the command
- * @cmd: The command to edit
- * @param: The parameter to add
- *
- * Returns 0 on success, -1 on failure 
- */
-int add_parameter(struct command *cmd, long param);
-
-static inline void reset_command(struct command *cmd, int op_ref)
-{
-    cmd->op_ref = op_ref;
-    cmd->params_num = 0;
-}
  
 /**
  * kclient_send - Send a command to tcp-server

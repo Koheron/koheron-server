@@ -26,10 +26,8 @@ int tests_get_std_array(struct tests_device *dev)
 {
     int i;
     float *buff;
-    struct command cmd;
-    init_command(&cmd, dev->id, dev->send_std_array_ref);
 
-    if (kclient_send(dev->kcl, &cmd) < 0)
+    if (kclient_send_command(dev->kcl, dev->id, dev->send_std_array_ref, "") < 0)
         return -1;
 
     if (kclient_rcv_array(dev->kcl, 10, float) < 0) {
@@ -66,10 +64,8 @@ int tests_set_buffer(struct tests_device *dev)
 int tests_read_int(struct tests_device *dev)
 {
     int8_t rcv_int;
-    struct command cmd;
-    init_command(&cmd, dev->id, dev->read_int_ref);
 
-    if (kclient_send(dev->kcl, &cmd) < 0)
+    if (kclient_send_command(dev->kcl, dev->id, dev->read_int_ref, "") < 0)
         return -1;
 
     if (kclient_read_int(dev->kcl, &rcv_int))
@@ -82,10 +78,8 @@ int tests_read_int(struct tests_device *dev)
 int tests_read_uint(struct tests_device *dev)
 {
     uint32_t rcv_uint;
-    struct command cmd;
-    init_command(&cmd, dev->id, dev->read_uint_ref);
 
-    if (kclient_send(dev->kcl, &cmd) < 0)
+    if (kclient_send_command(dev->kcl, dev->id, dev->read_uint_ref, "") < 0)
         return -1;
 
     if (kclient_read_u32(dev->kcl, &rcv_uint))
