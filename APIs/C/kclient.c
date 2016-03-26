@@ -93,6 +93,44 @@ static void append_op_to_dev(struct device *dev, struct operation *op)
  *  --------- Receive/Send ---------
  */
 
+int kclient_send_command(struct kclient *kcl, dev_id_t dev_id, 
+                         op_id_t op_ref, const char *types, ...)
+{
+    struct command cmd;
+    init_command(&cmd, dev_id, op_ref);
+
+    va_list args;
+    va_start(args, types);
+ 
+    while (*types != '\0') {
+        if (cmd.params_num >= MAX_PARAMS_NUM) {
+            DEBUG_MSG("Command parameters overflow\n");
+            return -1;
+        }
+
+        switch (*types) {
+          case 'u':
+            add_parameter(&cmd, (uint32_t)va_arg(args, uint32_t));
+            break;
+          case 'f':
+            add_parameter(&cmd, (uint32_t)va_arg(args, double));
+            break;
+          default:
+            fprintf(stderr, "Unknown type %c\n", *types);
+            return -1;
+        }
+
+        ++types;
+    }
+ 
+    va_end(args);
+
+    if (kclient_send(kcl, &cmd) < 0)
+        return -1;
+
+    return 0;
+}
+
 int add_parameter(struct command *cmd, long param)
 {
     if (cmd->params_num >= MAX_PARAMS_NUM) {
@@ -103,14 +141,6 @@ int add_parameter(struct command *cmd, long param)
     (cmd->params)[cmd->params_num] = param;
     cmd->params_num++;
     return 0;
-}
-
-void free_command(struct command *cmd)
-{
-    if (cmd != NULL) {
-        free(cmd);
-        cmd = NULL;
-    }
 }
 
 #define CMD_LEN 1024
@@ -126,7 +156,7 @@ void free_command(struct command *cmd)
           DEBUG_MSG("Buffer overflow\n");   \
           return -1;                        \
       }                                     \
-  } while(0)
+  } while (0)
 
 static int build_command_string(struct command *cmd, char *cmd_str)
 {

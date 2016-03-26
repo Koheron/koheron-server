@@ -50,15 +50,11 @@ int tests_set_buffer(struct tests_device *dev)
 {
     int i;
     uint32_t data[BUFF_LEN];
-    struct command cmd;
 
     for (i=0; i<BUFF_LEN; i++)
         data[i] = i*i;
 
-    init_command(&cmd, dev->id, dev->set_buffer_ref);
-    if (add_parameter(&cmd, BUFF_LEN) < 0) return -1;
-
-    if (kclient_send(dev->kcl, &cmd) < 0)
+    if (kclient_send_command(dev->kcl, dev->id, dev->set_buffer_ref, "u", BUFF_LEN) < 0)
         return -1;
 
     if (kclient_send_array(dev->kcl, data, BUFF_LEN) < 0)

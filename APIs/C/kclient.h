@@ -15,6 +15,7 @@ extern "C" {
 
 #include <time.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 #if defined (__linux__)
 #include <sys/socket.h>
@@ -170,20 +171,23 @@ op_id_t get_op_id(struct kclient *kcl, dev_id_t dev_id, const char *op_name);
  * @params: Array of stringified parameter values
  */
 struct command {
-    int             dev_id;
-    int             op_ref;
+    dev_id_t        dev_id;
+    op_id_t         op_ref;
 
     int             params_num;
     unsigned long   params[MAX_PARAMS_NUM];
 };
  
+int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
+                         op_id_t op_ref, const char *types, ...);
+
 /**
  * init_command - Initialize a command structure
  * @cmd: The command to be initialized
  * @dev_id: ID of the target device
  * @op_ref: Reference of the target operation
  */
-static inline void init_command(struct command *cmd, int dev_id, int op_ref)
+static inline void init_command(struct command *cmd, dev_id_t dev_id, op_id_t op_ref)
 {   
     cmd->dev_id = dev_id;
     cmd->op_ref = op_ref;
