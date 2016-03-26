@@ -160,34 +160,18 @@ op_id_t get_op_id(struct kclient *kcl, dev_id_t dev_id, const char *op_name);
  *  --------- Receive/Send ---------
  */
 
-/* Maximum number of parameters in a command */
-#define MAX_PARAMS_NUM 128
-
 /**
- * struct command - Command to be executed by KServer
+ * kclient_send_command - Send a command
  * @dev_id: ID of the target device
- * @op_ref: ID of the operation to execute
- * @params_num: Number of parameters
- * @params: Array of stringified parameter values
+ * @op_ref: Reference of the target operation
+ * @types: A string listing the parameter types
+ *     Ex.: - use "" if no parameter are send
+ *          - "uf" to send a unsigned and a float
+ * The variadic parameters are the command parameters
  */
-struct command {
-    dev_id_t        dev_id;
-    op_id_t         op_ref;
 
-    int             params_num;
-    unsigned long   params[MAX_PARAMS_NUM];
-};
- 
 int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
                          op_id_t op_ref, const char *types, ...);
- 
-/**
- * kclient_send - Send a command to tcp-server
- * @cmd: The command to send
- *
- * Returns 0 on success, -1 on failure
- */
-int kclient_send(struct kclient *kcl, struct command *cmd);
 
 /**
  * kclient_send_string - Send a null-terminated string to KServer

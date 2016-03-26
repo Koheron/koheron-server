@@ -93,6 +93,81 @@ static void append_op_to_dev(struct device *dev, struct operation *op)
  *  --------- Receive/Send ---------
  */
 
+/* Maximum number of parameters in a command */
+#define MAX_PARAMS_NUM 128
+
+/**
+ * struct command - Command to be executed by KServer
+ * @dev_id: ID of the target device
+ * @op_ref: ID of the operation to execute
+ * @params_num: Number of parameters
+ * @params: Array of stringified parameter values
+ */
+struct command {
+    dev_id_t        dev_id;
+    op_id_t         op_ref;
+
+    int             params_num;
+    unsigned long   params[MAX_PARAMS_NUM];
+};
+
+#define CMD_LEN 1024
+
+#define CHECK_FORMAT(ret)                   \
+  do {                                      \
+      if ((ret) < 0) {                      \
+          DEBUG_MSG("Format error\n");      \
+          return -1;                        \
+      }                                     \
+                                            \
+      if ((ret) >= CMD_LEN) {               \
+          DEBUG_MSG("Buffer overflow\n");   \
+          return -1;                        \
+      }                                     \
+  } while (0)
+
+static int build_command_string(struct command *cmd, char *cmd_str)
+{
+    int i, ret;
+
+    memset(cmd_str, 0, CMD_LEN);
+    ret = snprintf(cmd_str, CMD_LEN, "%i|%i|", cmd->dev_id, cmd->op_ref);          
+    CHECK_FORMAT(ret);
+    
+    for (i=0; i<cmd->params_num; i++) {
+        ret = snprintf(cmd_str + strlen(cmd_str), CMD_LEN, "%lu|", (cmd->params)[i]);
+        CHECK_FORMAT(ret);
+    }
+    
+    ret = snprintf(cmd_str + strlen(cmd_str), CMD_LEN, "\n");
+    CHECK_FORMAT(ret);
+    
+    return 0;
+}
+
+/**
+ * kclient_send - Send a command to tcp-server
+ * @cmd: The command to send
+ *
+ * Returns 0 on success, -1 on failure
+ */
+static int kclient_send(struct kclient *kcl, struct command *cmd)
+{
+    char cmd_str[CMD_LEN];
+    
+    if (build_command_string(cmd, cmd_str) < 0)
+        return -1;
+    
+    // printf("%s\n", cmd_str);
+
+    if (write(get_socket_fd(kcl), cmd_str, strlen(cmd_str)) < 0) {
+        fprintf(stderr, "Can't send command to tcp-server\n");
+        return -1;
+    }
+    
+    return 0;
+}
+
 /**
  * init_command - Initialize a command structure
  * @cmd: The command to be initialized
@@ -152,57 +227,6 @@ int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
     if (kclient_send(kcl, &cmd) < 0)
         return -1;
 
-    return 0;
-}
-
-#define CMD_LEN 1024
-
-#define CHECK_FORMAT(ret)                   \
-  do {                                      \
-      if ((ret) < 0) {                      \
-          DEBUG_MSG("Format error\n");      \
-          return -1;                        \
-      }                                     \
-                                            \
-      if ((ret) >= CMD_LEN) {               \
-          DEBUG_MSG("Buffer overflow\n");   \
-          return -1;                        \
-      }                                     \
-  } while (0)
-
-static int build_command_string(struct command *cmd, char *cmd_str)
-{
-    int i, ret;
-
-    memset(cmd_str, 0, CMD_LEN);
-    ret = snprintf(cmd_str, CMD_LEN, "%i|%i|", cmd->dev_id, cmd->op_ref);          
-    CHECK_FORMAT(ret);
-    
-    for (i=0; i<cmd->params_num; i++) {
-        ret = snprintf(cmd_str + strlen(cmd_str), CMD_LEN, "%lu|", (cmd->params)[i]);
-        CHECK_FORMAT(ret);
-    }
-    
-    ret = snprintf(cmd_str + strlen(cmd_str), CMD_LEN, "\n");
-    CHECK_FORMAT(ret);
-    
-    return 0;
-}
-
-int kclient_send(struct kclient *kcl, struct command *cmd)
-{
-    char cmd_str[CMD_LEN];
-    
-    if (build_command_string(cmd, cmd_str) < 0)
-        return -1;
-    
-    // printf("%s\n", cmd_str);
-
-    if (write(get_socket_fd(kcl), cmd_str, strlen(cmd_str)) < 0) {
-        fprintf(stderr, "Can't send command to tcp-server\n");
-        return -1;
-    }
-    
     return 0;
 }
 
