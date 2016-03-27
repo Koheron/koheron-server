@@ -128,6 +128,7 @@ uint64_t Tests::read64()
 
 int Tests::read_int()
 {
+    printf("Send -42\n");
     return -42;
 }
 

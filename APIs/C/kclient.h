@@ -15,6 +15,7 @@ extern "C" {
 
 #include <time.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 #if defined (__linux__)
 #include <sys/socket.h>
@@ -74,7 +75,7 @@ struct device {
 };
 
 /* Maximum length of the reception buffer */
-#define RCV_BUFFER_LEN 16384    
+#define RCV_BUFFER_LEN 262144
 
 /**
  * struct kclient - KServer client structure
@@ -159,59 +160,18 @@ op_id_t get_op_id(struct kclient *kcl, dev_id_t dev_id, const char *op_name);
  *  --------- Receive/Send ---------
  */
 
-/* Maximum number of parameters in a command */
-#define MAX_PARAMS_NUM 128
-
 /**
- * struct command - Command to be executed by KServer
+ * kclient_send_command - Send a command
  * @dev_id: ID of the target device
- * @op_ref: ID of the operation to execute
- * @params_num: Number of parameters
- * @params: Array of stringified parameter values
+ * @op_ref: Reference of the target operation
+ * @types: A string listing the parameter types
+ *     Ex.: - use "" if no parameter are send
+ *          - "uf" to send a unsigned and a float
+ * The variadic parameters are the command parameters
  */
-struct command {
-    int             dev_id;
-    int             op_ref;
 
-    int             params_num;
-    unsigned long   params[MAX_PARAMS_NUM];
-};
- 
-/**
- * init_command - Allocate and initialize a new command structure
- * @dev_id: ID of the target device
- *
- * Returns NULL on failure
- */
-struct command* init_command(int dev_id);
- 
-/**
- * add_parameter - Add a parameter to the command
- * @cmd: The command to edit
- * @param: The parameter to add
- *
- * Returns 0 on success, -1 on failure 
- */
-int add_parameter(struct command *cmd, long param);
-
-static inline void reset_command(struct command *cmd, int op_ref)
-{
-    cmd->op_ref = op_ref;
-    cmd->params_num = 0;
-}
-
-/**
- * free_command - Desallocate a command
- */
-void free_command(struct command *cmd);
- 
-/**
- * kclient_send - Send a command to tcp-server
- * @cmd: The command to send
- *
- * Returns 0 on success, -1 on failure
- */
-int kclient_send(struct kclient *kcl, struct command *cmd);
+int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
+                         op_id_t op_ref, const char *types, ...);
 
 /**
  * kclient_send_string - Send a null-terminated string to KServer
@@ -238,11 +198,28 @@ int kclient_rcv_esc_seq(struct kclient *kcl, const char *esc_seq);
 int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes);
 
 /**
- * kclient_read_u32 - Read a uint32_t
+ * kclient_read_u32 - Read a little endian uint32_t
+ * @rcv_uint: Pointer to the received number
  *
  * Returns the read number on success. -1 if failure.
  */
-int kclient_read_u32(struct kclient *kcl);
+int kclient_read_u32(struct kclient *kcl, uint32_t *rcv_uint);
+
+/**
+ * kclient_read_u32 - Read a big endian uint32_t
+ * @rcv_uint: Pointer to the received number
+ *
+ * Returns the read number on success. -1 if failure.
+ */
+int kclient_read_u32_big_endian(struct kclient *kcl, uint32_t *rcv_uint);
+
+/**
+ * kclient_read_int - Read a int
+ * @rcv_int: Pointer to the received number
+ *
+ * Returns the read number on success. -1 if failure.
+ */
+int kclient_read_int(struct kclient *kcl, int8_t *rcv_int);
 
 /**
  * kclient_rcv_array - Receive an array
@@ -253,7 +230,7 @@ int kclient_read_u32(struct kclient *kcl);
  * Returns the number of bytes read on success. -1 if failure.
  */
 #define kclient_rcv_array(kclient, len, data_type)              \
-    kclient_rcv_n_bytes(kclient, sizeof(data_type) * len);
+    kclient_rcv_n_bytes(kclient, sizeof(data_type) * len)
 
 /**
  * kclient_get_buffer - Return a casted pointer to the reception buffer
@@ -261,7 +238,7 @@ int kclient_read_u32(struct kclient *kcl);
  * @data_type Cast data type
  */
 #define kclient_get_buffer(kclient, data_type)                  \
-    (data_type *) kclient->buffer;
+    (data_type *) kclient->buffer
 
 /**
  * kclient_get_len - Return the length of the received array
