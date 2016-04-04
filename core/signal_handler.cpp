@@ -132,7 +132,7 @@ void crash_signal_handler(int sig)
         sig_name = "(Unidentify signal)";
     }
 
-    SignalHandler::kserver->syslog.print(SysLog::CRITICAL, 
+    SignalHandler::kserver->syslog.print(SysLog::PANIC, 
                               "CRASH: signal %d %s\n", sig, sig_name);
 
     void *buffer[BACKTRACE_BUFF_SIZE];

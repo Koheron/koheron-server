@@ -49,7 +49,7 @@ class Session
                     
     ~Session();
     
-    /// @brief Run the session
+    /// Run the session
     int Run();
     
     // --- Accessors

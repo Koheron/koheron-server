@@ -421,12 +421,12 @@ void WebSocket::reset_read_buff()
 
 int WebSocket::get_payload(char *payload_, unsigned int size)
 {
-    if (size <= header.payload_size+1) {
+    if (size <= header.payload_size + 1) {
         kserver->syslog.print(SysLog::CRITICAL, "Buffer overflow\n");
         return -1;
     }
     
-    memcpy(payload_, (const char*)&payload, header.payload_size+1);
+    memcpy(payload_, (const char*)&payload, header.payload_size + 1);
     payload_[header.payload_size] = '\0';
     
     return 0;

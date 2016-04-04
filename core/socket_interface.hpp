@@ -164,13 +164,13 @@ int TCPSocketInterface::SendArray(const T *data, unsigned int len)
     int bytes_send = sizeof(T)*len;
     int n_bytes_send = write(comm_fd, (void*)data, bytes_send);
         
-    if(n_bytes_send < 0) {
+    if (n_bytes_send < 0) {
        kserver->syslog.print(SysLog::ERROR, 
                              "SendArray: Can't write to client\n");
        return -1;
     }
             
-    if(n_bytes_send != bytes_send) {
+    if (n_bytes_send != bytes_send) {
         kserver->syslog.print(SysLog::ERROR, "Some bytes have not been sent\n");
         return -1;
     }
@@ -222,7 +222,7 @@ int WebSocketInterface::SendArray(const T *data, unsigned int len)
 {
     int bytes_send = websock.send<T>(data, len);
         
-    if(bytes_send < 0) {
+    if (bytes_send < 0) {
         kserver->syslog.print(SysLog::ERROR, 
                               "SendArray: Can't write to client\n");
         return -1;
