@@ -145,7 +145,7 @@ void crash_signal_handler(int sig)
         goto exit;
     }
     
-    for(unsigned int i = 0; i < size && messages != NULL; i++) {
+    for (unsigned int i = 0; i < size && messages != NULL; i++) {
         char *mangled_name = 0, *offset_begin = 0, *offset_end = 0;
 
         // Find parantheses and +address offset surrounding mangled name
