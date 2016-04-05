@@ -10,8 +10,7 @@ Javascript, Python and C APIs are provided to communicate with the server.
 
 ### Interfacing a driver
 
-Before compiling the server, you need to define in the configuration file the set of header files containing the classes of your API.
-After the build, each public function of a class can be accessed from the client with a simple command.
+Below is a simple example of a GPIO driver:
 
 ``` cpp
 // gpio.hpp
@@ -29,7 +28,6 @@ class Gpio
 
     int Open();
     
-    // The function Close() cannot be accessed from the client
     # pragma tcp-server exclude
     void Close();
 
@@ -47,12 +45,10 @@ class Gpio
 #endif // __GPIO_HPP__
 ```
 
-First, we need to add the path to the file `gpio.hpp` in the configuration file of the server.
-During the build the class will be integrated into the server.
-All the public functions (except the constructor, the destructor and `Close` which is explicitly excluded) will be callable from each communication interface.
+The class is integrated into the server during [build](doc/build.md).
+All the public functions (except the constructor, the destructor and `Close` which is explicitly excluded) can be accessed using any of the supported protocols.
 
-Once the server is [build and deployed](doc/build.md) we can interact with it.
-For example, we can build a Python TCP client calling the driver functions in the following way:
+Here is a example of a Python TCP client communicating with the GPIO driver:
 ``` py
 from koheron_tcp_client import KClient, command
 
