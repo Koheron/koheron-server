@@ -2,6 +2,7 @@
 # Client API for the DEV_MEM device
 
 import math
+import numpy as np
 from .kclient import reference_dict
 
 class DevMem:
@@ -80,7 +81,7 @@ class DevMem:
                                  self.ref['write'],
                                  mmap_idx, offset, reg_val)
 
-    def write_buffer(self, mmap_idx, offset, data):
+    def write_buffer(self, mmap_idx, offset, data, format_char='I', dtype=np.uint32):
         """ Write a buffer of registers
 
         Args:
@@ -92,7 +93,7 @@ class DevMem:
         self.client.send_command(self.ref['id'],
                                  self.ref['write_buffer'],
                                  mmap_idx, offset, len_data)
-        self.client.send_handshaking(data)
+        self.client.send_handshaking(data, format_char, dtype=dtype)
 
     def read_buffer(self, mmap_idx, offset, buff_size, data_type='uint32'):
         """ Read a buffer of registers
