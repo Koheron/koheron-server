@@ -22,7 +22,7 @@ class Tests
 
     // Send arrays
     std::vector<float>& read();
-    std::array<uint32_t, 10>& send_std_array();
+    std::array<float, 10>& send_std_array();
 
     #pragma tcp-server read_array 2*arg{n_pts}
     float* get_array(uint32_t n_pts);
@@ -64,7 +64,7 @@ class Tests
     float std_dev;
 
     std::vector<uint32_t> buffer;
-    std::array<uint32_t, 10> data_std_array;
+    std::array<float, 10> data_std_array;
 }; // class Tests
 
 #endif // __TESTS_TESTS_HPP__

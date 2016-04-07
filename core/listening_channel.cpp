@@ -152,15 +152,12 @@ void session_thread_call(int comm_fd, PeerInfo peer_info,
         listener->kserver->syslog.print(SysLog::ERROR, 
                                         "An error occured during session\n");
     
-    // Check the session has not been killed
-    if (listener->kserver->session_manager.IsAlive(sid)) {
-        listener->kserver->syslog.print(SysLog::INFO, 
-                    "Close session id = %u with #req = %u. #err = %u\n", 
-                    sid, session->RequestNum(), session->ErrorNum());
-                              
-        listener->stats.total_requests_num += session->RequestNum();
-        listener->kserver->session_manager.DeleteSession(sid); 
-    }
+    listener->kserver->syslog.print(SysLog::INFO, 
+                "Close session id = %u with #req = %u. #err = %u\n", 
+                sid, session->RequestNum(), session->ErrorNum());
+                          
+    listener->stats.total_requests_num += session->RequestNum();
+    listener->kserver->session_manager.DeleteSession(sid); 
        
     listener->dec_thread_num();
     listener->stats.opened_sessions_num--;

@@ -4,15 +4,14 @@
 
 #### `High performance TCP/Websocket server for instrument control`
 
-Koheron server aims at solving the problem of interfacing hardware drivers with communication protocols. Modern instruments require a fast, low-latency control, able to cope with large data set. Moreover, the user interface ranges from heavy TCP based to light browser embedded clients. Proposing various UI to the instruments often requires implementing several protocols on the client side.
-
-Koheron server is designed to interface C++ drivers with various communications protocols (TCP, WebSocket or UnixSockets), giving you a lot of flexibility in the way you control your instrument. Your driver is statically compiled into the server to maximize performances. When your driver is exposed via an API composed of a set of C++ classes, it is straighforward to build the reciprocal API on the client side. The client API can be in Javascript for browser-based clients using the WebSocket protocol, or in Python or C for use with the TCP or Unisocket protocols.
-
-Before compiling the server, you need to define in the config file the set of the header files containing the classes of your API. After the build, each class will be available as a device and each public function of the class will be a command associated to the related device. From the client side you can then call each command by sending the associated function arguments. If a non void value is returned by the function, then the server will send you back the result. If required, the behavior of each command can be tuned using a simple pragma language.
+Koheron tcp-server helps interfacing hardware drivers with standard communication protocols (WebSocket, TCP or UnixSockets).
+Drivers are statically compiled into the server for maximum performance. 
+Javascript, Python and C APIs are provided to communicate with the server.
 
 ### Interfacing a driver
 
-Let say we would like to interface the following GPIO driver:
+Below is a simple example of a GPIO driver:
+
 ``` cpp
 // gpio.hpp
 #ifndef __GPIO_HPP__
@@ -46,9 +45,10 @@ class Gpio
 #endif // __GPIO_HPP__
 ```
 
-First we need to add the path to the file `gpio.hpp` in the configuration file of the server. During the build the class will be integrated into the server. All the public functions (except the constructor, the destructor and `Close` which is explicitly excluded) will be callable from the various communication interfaces.
+The class is integrated into the server during [build](doc/build.md).
+All the public functions (except the constructor, the destructor and `Close` which is explicitly excluded) can be accessed using any of the supported protocols.
 
-Once the server is [build and deployed](doc/build.md) we can interact with it. For example, we can build a Python TCP client calling the driver functions in the following way:
+Here is a example of a Python TCP client communicating with the GPIO driver:
 ``` py
 from koheron_tcp_client import KClient, command
 

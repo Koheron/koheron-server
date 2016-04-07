@@ -211,9 +211,9 @@ def PrintExecute(file_id, device):
     file_id.write('        execute(const Command& cmd)\n' )
     file_id.write('{\n')
     
-#    file_id.write('#if KSERVER_HAS_THREADS\n')
-#    file_id.write('    std::lock_guard<std::mutex> lock(THIS->mutex);\n')
-#    file_id.write('#endif\n\n')
+    file_id.write('#if KSERVER_HAS_THREADS\n')
+    file_id.write('    std::lock_guard<std::mutex> lock(THIS->mutex);\n')
+    file_id.write('#endif\n\n')
     
     file_id.write('    int err;\n\n')
     

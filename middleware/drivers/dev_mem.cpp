@@ -92,7 +92,7 @@ MemMapID DevMem::AddMemoryMap(intptr_t addr, uint32_t size)
     }
 
     MemoryMap *mem_map = new MemoryMap(&fd, addr, size);
-    assert(mem_map != NULL);
+    assert(mem_map != nullptr);
 
     if (mem_map->GetStatus() != MemoryMap::MEMMAP_OPENED) {
         fprintf(stderr,"Can't open memory map\n");
@@ -107,16 +107,15 @@ MemMapID DevMem::AddMemoryMap(intptr_t addr, uint32_t size)
 
 MemoryMap& DevMem::GetMemMap(MemMapID id)
 {
-//    assert(id < num_maps);
-    assert(mem_maps.at(id) != NULL);
+    assert(mem_maps.at(id) != nullptr);
     return *mem_maps.at(id);
 }
 
 void DevMem::RmMemoryMap(MemMapID id)
 {
-    if (mem_maps[id] != NULL)
+    if (mem_maps[id] != nullptr)
         delete mem_maps[id];
-        
+
     mem_maps.erase(id);
     id_pool.release_id(id);
     num_maps--;
@@ -140,15 +139,13 @@ void DevMem::RemoveAll()
 
 uint32_t DevMem::GetBaseAddr(MemMapID id)
 {
-//    assert(id < num_maps);
-    assert(mem_maps.at(id) != NULL);
+    assert(mem_maps.at(id) != nullptr);
     return mem_maps.at(id)->GetBaseAddr();
 }
 
 int DevMem::GetStatus(MemMapID id)
 {
-//    assert(id < num_maps);
-    assert(mem_maps.at(id) != NULL);
+    assert(mem_maps.at(id) != nullptr);   
     return mem_maps.at(id)->GetStatus();
 }
 
@@ -157,7 +154,6 @@ int DevMem::IsFailed()
     for (unsigned int i=0; i<mem_maps.size(); i++)
         if (mem_maps[i]->GetStatus() == MemoryMap::MEMMAP_FAILURE)
             return 1;
-    
     return 0;
 }
 

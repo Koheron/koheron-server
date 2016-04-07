@@ -12,7 +12,6 @@
 
 #include <kclient.h>
 #include <sessions.h>
-#include <koheron.h>
 
 #include "definitions.h"
 #include "config_file.h"
@@ -397,62 +396,6 @@ void ks_cli_host(int argc, char **argv)
 
 /* 
  *  -------------------------------------------------
- *                      Kill
- *  -------------------------------------------------
- */
-
-/**
- * __kill_usage - Help for the kill command
- */
-void __kill_usage(void)
-{
-    printf("Kill a session\n");
-    printf("Usage: kserver kill session_id\n");
-}
-
-/* Kill options */
-#define IS_KILL_HELP   TEST_CMD("-h", "--help")
-
-/**
- * ks_cli_kill - Execute kill operations
- */
-void ks_cli_kill(int argc, char **argv)
-{
-    int sess_id;
-
-    if (argc != 2) {
-        fprintf(stderr, "Available commands:\n");
-        __kill_usage();
-        exit(EXIT_FAILURE);
-    }
-    
-    if (IS_KILL_HELP) {
-        __kill_usage();
-        exit(EXIT_SUCCESS);
-    }
-    
-    sess_id = (int) strtoul(argv[1], NULL, 10);
-    
-    struct kclient *kcl = __start_client();
-    
-    if (kcl == NULL) {
-        fprintf(stderr, "Connection failed\n");
-        exit(EXIT_FAILURE);
-    } 
-    
-    if (kill_session(kcl, sess_id) < 0) {
-        fprintf(stderr, "Cannot kill session %i\n", sess_id);
-        __stop_client(kcl);
-        exit(EXIT_FAILURE);
-    }
-    
-    __stop_client(kcl);
-    
-    exit(EXIT_SUCCESS);
-}
-
-/* 
- *  -------------------------------------------------
  *                   Init
  *  -------------------------------------------------
  */
@@ -469,40 +412,31 @@ void ks_cli_init(int argc, char **argv)
 {   
     dev_id_t dev_id;
     op_id_t op_id;
-    struct command* cmd;
-    
+
     struct kclient *kcl = __start_client();
-    
+
     if (kcl == NULL) {
         fprintf(stderr, "Connection failed\n");
         exit(EXIT_FAILURE);
     }
-    
+
     assert(strcmp(argv[0], "init") == 0);
-    
+
     if ((dev_id = get_device_id(kcl, "COMMON")) < 0) {
         fprintf(stderr, "Unknown device COMMON\n");
         exit(EXIT_FAILURE);
     }
-    
+
     if ((op_id = get_op_id(kcl, dev_id, "IP_ON_LEDS")) < 0) {
         fprintf(stderr, "Unknown operation IP_ON_LEDS\n");
         exit(EXIT_FAILURE);
     }
-    
-    if ((cmd = init_command(dev_id)) == NULL) {
-        fprintf(stderr, "Cannot allocate common/ip_on_leds command\n");
-        exit(EXIT_FAILURE);
-    }
-    
-    cmd->op_ref = op_id;
-    
-    if (kclient_send(kcl, cmd) < 0) {
+
+    if (kclient_send_command(kcl, dev_id, op_id, "") < 0) {
         fprintf(stderr, "Cannot execute common/ip_on_leds command\n");
         exit(EXIT_FAILURE);
     }
 
-    free_command(cmd);
     __stop_client(kcl);
 }
 
@@ -539,7 +473,6 @@ int __crash_kserver_daemon()
 {
     dev_id_t dev_id;
     op_id_t op_id;
-    struct command* cmd;
     
     struct kclient *kcl = __start_client();
     
@@ -558,19 +491,11 @@ int __crash_kserver_daemon()
         return -1;
     }
     
-    if ((cmd = init_command(dev_id)) == NULL) {
-        fprintf(stderr, "Cannot allocate crash command\n");
-        return -1;
-    }
-    
-    cmd->op_ref = op_id;
-    
-    if (kclient_send(kcl, cmd) < 0) {
+    if (kclient_send_command(kcl, dev_id, op_id, "") < 0) {
         fprintf(stderr, "Cannot send crash command\n");
         return -1;
     }
 
-    free_command(cmd);
     __stop_client(kcl);
     
     return 0;
@@ -619,7 +544,6 @@ void usage(void)
     
     printf("%-15s%-50s\n", "help", "Show this message");
     printf("%-15s%-50s\n", "status", "Display the current status of the server");
-    printf("%-15s%-50s\n", "kill", "Kill a session (UNSTABLE)");
     printf("%-15s%-50s\n", "host", "Set the connection parameters");
 #if KSERVER_CLI_HAS_INIT
     printf("%-15s%-50s\n", "init", "Tasks to be performed at system initialization");
@@ -643,9 +567,6 @@ int main(int argc, char **argv)
     }
     else if (strcmp(argv[1], "host") == 0) {
         ks_cli_host(argc-1, &argv[1]);
-    }
-    else if (strcmp(argv[1], "kill") == 0) {
-        ks_cli_kill(argc-1, &argv[1]);
     }
 #if KSERVER_CLI_HAS_INIT
     else if (strcmp(argv[1], "init") == 0) {

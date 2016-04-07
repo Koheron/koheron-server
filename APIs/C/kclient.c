@@ -13,25 +13,22 @@
 #include <fcntl.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <assert.h>
 
 /*
  * --------- Data structures ---------
  */
  
  int get_socket_fd(struct kclient *kcl)
- {
-    int fd;
-    
+ {    
 #if defined (__linux__)
     if (kcl->conn_type == TCP)
 #endif
-        fd = kcl->sockfd;
+        return kcl->sockfd;
 #if defined (__linux__)
     else // Unix socket
-        fd = kcl->unix_sockfd;
+        return kcl->unix_sockfd;
 #endif
-
-    return fd;
  }
 
 #ifdef DEBUG_KOHERON_API
@@ -55,11 +52,10 @@ void debug_display_kclient(struct kclient *kcl)
     }
 }
 #else
-void debug_display_kclient(struct kclient *kcl)
-{}
+void debug_display_kclient(struct kclient *kcl) {}
 #endif
 
-dev_id_t get_device_id(struct kclient *kcl, char *dev_name)
+dev_id_t get_device_id(struct kclient *kcl, const char *dev_name)
 {
     int i;
     
@@ -70,7 +66,7 @@ dev_id_t get_device_id(struct kclient *kcl, char *dev_name)
     return -1;
 }
 
-op_id_t get_op_id(struct kclient *kcl, dev_id_t dev_id, char *op_name)
+op_id_t get_op_id(struct kclient *kcl, dev_id_t dev_id, const char *op_name)
 {
     int i, j;
     
@@ -84,7 +80,7 @@ op_id_t get_op_id(struct kclient *kcl, dev_id_t dev_id, char *op_name)
 }
 
 /**
- * @brief Add an operation to a device
+ * append_op_to_dev - Add an operation to a device
  */
 static void append_op_to_dev(struct device *dev, struct operation *op)
 {
@@ -93,62 +89,27 @@ static void append_op_to_dev(struct device *dev, struct operation *op)
     dev->ops_num++;
 }
 
-# if 0
-/**
- * @brief Get an operation from the device @dev
- * @op_num Operation ID
- * @return A pointer to the operation, NULL if the operation ID doesn't exist
- */
-struct operation * get_op(struct device * dev, int op_id)
-{
-    if(op_id >= dev->ops_num) {
-        return NULL;
-    }
-    
-    return &(dev->ops[op_id]);
-}
-#endif
-
 /* 
  *  --------- Receive/Send ---------
  */
- 
-struct command* init_command(int dev_id)
-{
-    struct command *cmd = malloc(sizeof(*cmd));
-    
-    if (cmd == NULL) {
-        fprintf(stderr, "Can't allocate command memory\n");
-        return NULL;
-    }
-    
-    cmd->dev_id = dev_id;
-    cmd->op_ref = 0;
-    cmd->params_num = 0;
-    
-    return cmd;
-}
 
-int add_parameter(struct command *cmd, long param)
-{
-    if (cmd->params_num >= MAX_PARAMS_NUM) {
-        DEBUG_MSG("Command parameters overflow\n");
-        return -1;
-    }
-    
-    (cmd->params)[cmd->params_num] = param;
-    cmd->params_num++;    
-    
-    return 0;
-}
+/* Maximum number of parameters in a command */
+#define MAX_PARAMS_NUM 128
 
-void free_command(struct command *cmd)
-{
-    if (cmd != NULL) {
-        free(cmd);
-        cmd = NULL;
-    }
-}
+/**
+ * struct command - Command to be executed by KServer
+ * @dev_id: ID of the target device
+ * @op_ref: ID of the operation to execute
+ * @params_num: Number of parameters
+ * @params: Array of stringified parameter values
+ */
+struct command {
+    dev_id_t        dev_id;
+    op_id_t         op_ref;
+
+    int             params_num;
+    unsigned long   params[MAX_PARAMS_NUM];
+};
 
 #define CMD_LEN 1024
 
@@ -163,74 +124,142 @@ void free_command(struct command *cmd)
           DEBUG_MSG("Buffer overflow\n");   \
           return -1;                        \
       }                                     \
-  } while(0)
+  } while (0)
 
 static int build_command_string(struct command *cmd, char *cmd_str)
 {
-    int i;    
-    int ret = snprintf(cmd_str, CMD_LEN, "%i|%i|", 
-                       cmd->dev_id, cmd->op_ref);          
+    int i, ret;
+
+    memset(cmd_str, 0, CMD_LEN);
+    ret = snprintf(cmd_str, CMD_LEN, "%i|%i|", cmd->dev_id, cmd->op_ref);          
     CHECK_FORMAT(ret);
     
     for (i=0; i<cmd->params_num; i++) {
-        ret = snprintf(cmd_str + strlen(cmd_str), CMD_LEN, "%lu|", 
-                       (cmd->params)[i]);
+        ret = snprintf(cmd_str + strlen(cmd_str), CMD_LEN, "%lu|", (cmd->params)[i]);
         CHECK_FORMAT(ret);
     }
     
-    ret = snprintf(cmd_str+strlen(cmd_str), CMD_LEN, "\n");
+    ret = snprintf(cmd_str + strlen(cmd_str), CMD_LEN, "\n");
     CHECK_FORMAT(ret);
     
     return 0;
 }
 
-int kclient_send(struct kclient *kcl, struct command *cmd)
+/**
+ * kclient_send - Send a command to tcp-server
+ * @cmd: The command to send
+ *
+ * Returns 0 on success, -1 on failure
+ */
+static int kclient_send(struct kclient *kcl, struct command *cmd)
 {
     char cmd_str[CMD_LEN];
     
-    if (build_command_string(cmd, cmd_str) < 0) {
+    if (build_command_string(cmd, cmd_str) < 0)
         return -1;
-    }
     
+    // printf("%s\n", cmd_str);
+
     if (write(get_socket_fd(kcl), cmd_str, strlen(cmd_str)) < 0) {
-        fprintf(stderr, "Can't send command to KServer\n");
+        fprintf(stderr, "Can't send command to tcp-server\n");
         return -1;
     }
     
     return 0;
 }
 
-void set_rcv_buff(struct rcv_buff *rcv_buff)
+/**
+ * init_command - Initialize a command structure
+ * @cmd: The command to be initialized
+ * @dev_id: ID of the target device
+ * @op_ref: Reference of the target operation
+ */
+static inline void init_command(struct command *cmd, dev_id_t dev_id, op_id_t op_ref)
+{   
+    cmd->dev_id = dev_id;
+    cmd->op_ref = op_ref;
+    cmd->params_num = 0;
+}
+
+/**
+ * add_parameter - Add a parameter to the command
+ * @cmd: The command to edit
+ * @param: The parameter to add
+ */
+static inline void add_parameter(struct command *cmd, long param)
+{   
+    (cmd->params)[cmd->params_num] = param;
+    cmd->params_num++;
+}
+
+int kclient_send_command(struct kclient *kcl, dev_id_t dev_id, 
+                         op_id_t op_ref, const char *types, ...)
 {
-    memset(rcv_buff->buffer, 0, sizeof(char)*RCV_BUFFER_LEN);
-    (rcv_buff->buffer)[0] = '\0';
-    
-    rcv_buff->max_buff_len = RCV_BUFFER_LEN;
-    rcv_buff->current_len = 0;
+    struct command cmd;
+    va_list args;
+
+    init_command(&cmd, dev_id, op_ref);
+    va_start(args, types);
+ 
+    while (*types != '\0') {
+        if (cmd.params_num >= MAX_PARAMS_NUM) {
+            DEBUG_MSG("Command parameters overflow\n");
+            return -1;
+        }
+
+        switch (*types) {
+          case 'u':
+            add_parameter(&cmd, (uint32_t)va_arg(args, uint32_t));
+            break;
+          case 'f':
+            add_parameter(&cmd, (uint32_t)va_arg(args, double));
+            break;
+          default:
+            fprintf(stderr, "Unknown type %c\n", *types);
+            return -1;
+        }
+
+        ++types;
+    }
+ 
+    va_end(args);
+
+    if (kclient_send(kcl, &cmd) < 0)
+        return -1;
+
+    return 0;
+}
+
+ /**
+ * set_rcv_buff - Set the rcv_buff to default values
+ * @buff: The buffer structure to initialize
+ */
+static void set_rcv_buff(struct kclient *kcl)
+{
+    memset(kcl->buffer, 0, sizeof(char)*RCV_BUFFER_LEN);
+    kcl->current_len = 0;
 }
 
 #define RCV_LEN 2048
 
 // TODO Add timeout 
-int kclient_rcv_esc_seq(struct kclient *kcl, 
-                        struct rcv_buff *rcv_buffer, char *esc_seq)
+int kclient_rcv_esc_seq(struct kclient *kcl, const char *esc_seq)
 {
     int bytes_rcv = 0;
     int bytes_read = 0;
     int num_dev = 0;
-    
     char tmp_buff[RCV_LEN];
+    set_rcv_buff(kcl);
+    (kcl->buffer)[0] = '\0';
     
-    set_rcv_buff(rcv_buffer);
-    
-    while(1) {
+    while (1) {
         int i;        
         tmp_buff[0] = '\0';
                         
         bytes_rcv = recv(get_socket_fd(kcl), tmp_buff, RCV_LEN-1, 0);
         
         if (bytes_rcv == 0) {
-            fprintf(stderr, "Connection closed by KServer\n");
+            fprintf(stderr, "Connection closed by tcp-server\n");
             return -1;
         }
         
@@ -239,7 +268,7 @@ int kclient_rcv_esc_seq(struct kclient *kcl,
             return -1;
         }
         
-        if (bytes_read + bytes_rcv >= rcv_buffer->max_buff_len) {
+        if (bytes_read + bytes_rcv >= RCV_BUFFER_LEN) {
             DEBUG_MSG("Buffer overflow\n");
             return -1;
         }
@@ -248,19 +277,18 @@ int kclient_rcv_esc_seq(struct kclient *kcl,
         // concatenate result into rcv_buffer
         for (i=0; i<bytes_rcv; i++) {            
             if (tmp_buff[i] != '\0') {
-                (rcv_buffer->buffer)[bytes_read] = tmp_buff[i];
+                (kcl->buffer)[bytes_read] = tmp_buff[i];
                 bytes_read++;
             } else if (tmp_buff[i] != '\n') {
                 num_dev++;
             }
         }
         
-        (rcv_buffer->buffer)[bytes_read] = '\0';
-        rcv_buffer->current_len = bytes_read + 1;
+        (kcl->buffer)[bytes_read] = '\0';
+        kcl->current_len = bytes_read + 1;
         
-        if (strstr(rcv_buffer->buffer, esc_seq)) {
+        if (strstr(kcl->buffer, esc_seq))
             break;
-        }
     }
     
     // XXX It's a bit ugly to have this here !!
@@ -276,45 +304,99 @@ int kclient_rcv_esc_seq(struct kclient *kcl,
     return bytes_read;
 }
 
-#if 0
-int kclient_rcv_n_bytes(struct kclient *kcl, char *rcv_buffer, int n_bytes)
+int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes)
 {
     int bytes_rcv = 0;
-    int bytes_read = 0;
+    uint32_t bytes_read = 0;
+
+    if (n_bytes >= RCV_BUFFER_LEN) {
+        DEBUG_MSG("Receive buffer size too small\n");
+        return -1;
+    }
+
+    set_rcv_buff(kcl);
     
-    char tmp_buff[RCV_LEN];
-    
-    memset(rcv_buffer, 0, sizeof(char)*RCV_BUFFER_LEN);
-    rcv_buffer[0] = '\0';
-    
-    while(1) {
-        int i;        
-        tmp_buff[0] = '\0';
-                        
-        bytes_rcv = recv(kcl->sockfd, tmp_buff, RCV_LEN-1, 0);
+    while (bytes_read < n_bytes) {                        
+        bytes_rcv = read(kcl->sockfd, kcl->buffer + bytes_read, n_bytes - bytes_read);
         
-        if(bytes_rcv == 0) {
-            fprintf(stderr, "Connection closed by KServer\n");
+        if (bytes_rcv == 0) {
+            fprintf(stderr, "Connection closed by tcp-server\n");
             return -1;
         }
         
-        if(bytes_rcv < 0) {
+        if (bytes_rcv < 0) {
             fprintf(stderr, "Can't receive data\n");
             return -1;
         }
+
+        bytes_read += bytes_rcv;
         
-        if(bytes_read + bytes_rcv >= RCV_BUFFER_LEN) {
+        if (bytes_read >= RCV_BUFFER_LEN) {
             DEBUG_MSG("Buffer overflow\n");
             return -1;
         }
+
+        kcl->current_len = bytes_read;
     }
+
+    assert(bytes_read == n_bytes);
+    return bytes_read;
 }
-#endif
+
+int kclient_read_u32(struct kclient *kcl, uint32_t *rcv_uint)
+{
+    if (kclient_rcv_n_bytes(kcl, sizeof(uint32_t)) < 0)
+        return -1;
+
+    *rcv_uint = (uint32_t)kcl->buffer[0] + ((uint32_t)kcl->buffer[1] << 8)
+                + ((uint32_t)kcl->buffer[2] << 16) + ((uint32_t)kcl->buffer[3] << 24);
+    return 0;
+}
+
+int kclient_read_u32_big_endian(struct kclient *kcl, uint32_t *rcv_uint)
+{
+    if (kclient_rcv_n_bytes(kcl, sizeof(uint32_t)) < 0)
+        return -1;
+
+    *rcv_uint = (uint32_t)kcl->buffer[3] + ((uint32_t)kcl->buffer[2] << 8)
+                + ((uint32_t)kcl->buffer[1] << 16) + ((uint32_t)kcl->buffer[0] << 24);
+    return 0;
+}
+
+int kclient_read_int(struct kclient *kcl, int8_t *rcv_int)
+{
+    if (kclient_rcv_n_bytes(kcl, sizeof(uint32_t)) < 0)
+        return -1;
+
+    *rcv_int = (int8_t) ((uint32_t)kcl->buffer[0] + ((uint32_t)kcl->buffer[1] << 8)
+                + ((uint32_t)kcl->buffer[2] << 16) + ((uint32_t)kcl->buffer[3] << 24));
+    return 0;
+}
+
+int kclient_send_array(struct kclient *kcl, uint32_t *array_ptr, uint32_t len)
+{
+    uint32_t rcv_len;
+
+    if (kclient_read_u32_big_endian(kcl, &rcv_len) < 0)
+        return -1;
+
+    if (rcv_len == len) {
+        if (write(get_socket_fd(kcl), array_ptr, sizeof(uint32_t) * len) < 0) {
+            fprintf(stderr, "Can't send array to tcp-server\n");
+            return -1;
+        }
+    } else {
+        fprintf(stderr, "Invalid handshake\n");
+        return -1;
+    }
+
+    return rcv_len * sizeof(uint32_t);
+}
 
 int kclient_send_string(struct kclient *kcl, const char *str)
 {
     if (write(get_socket_fd(kcl), str, strlen(str)) < 0) {
-        fprintf(stderr, "Can't send command to KServer\n");
+        fprintf(stderr, "Can't send command to tcp-server\n");
         return -1;
     }
     
@@ -327,26 +409,19 @@ static int kclient_get_devices(struct kclient *kcl)
     int i, tmp_buff_cnt;
     int bytes_read = 0;
     int dev_cnt = 0;
-    
     bool is_dev_id = 0, is_dev_name = 0;
-    
     struct operation tmp_op;
-    
     char tmp_buff[2048];
     
     const char cmd[] = "1|1|\n";
-    struct rcv_buff rcv_buffer;
     
     if (kclient_send_string(kcl, cmd) < 0)
         return -1;
     
-    bytes_read = kclient_rcv_esc_seq(kcl, &rcv_buffer, "EOC");
+    bytes_read = kclient_rcv_esc_seq(kcl, "EOC");
     
-    if (bytes_read < 0) {
+    if (bytes_read < 0)
         return -1;
-    }
-    
-    char *buffer = rcv_buffer.buffer;
     
     // Parse rcv_buffer
     tmp_buff[0] = '\0';
@@ -355,8 +430,8 @@ static int kclient_get_devices(struct kclient *kcl)
     
     for (i=0; i<bytes_read; i++) {
         if (line_cnt == 0) {
-            if (buffer[i] != '\n') {
-                tmp_buff[tmp_buff_cnt] = buffer[i];
+            if (kcl->buffer[i] != '\n') {
+                tmp_buff[tmp_buff_cnt] = kcl->buffer[i];
                 tmp_buff_cnt++;
             } else {
                 tmp_buff[tmp_buff_cnt] = '\0';
@@ -373,7 +448,7 @@ static int kclient_get_devices(struct kclient *kcl)
                 is_dev_id = 1;
             }
         } else {
-            if (buffer[i] == ':') {
+            if (kcl->buffer[i] == ':') {
                 if (is_dev_id) {
                     tmp_buff[tmp_buff_cnt] = '\0';
                     kcl->devices[dev_cnt].id 
@@ -398,7 +473,7 @@ static int kclient_get_devices(struct kclient *kcl)
                         tmp_buff_cnt = 0;
                     }
                 }
-            } else if (buffer[i] == '\n') {
+            } else if (kcl->buffer[i] == '\n') {
                 if (tmp_buff_cnt != 0) {
                     tmp_buff[tmp_buff_cnt] = '\0';
                     strcpy(tmp_op.name, tmp_buff);
@@ -407,16 +482,15 @@ static int kclient_get_devices(struct kclient *kcl)
                     tmp_buff_cnt = 0;
                 }
                 
-                if (dev_cnt+1 == kcl->devs_num) {
+                if (dev_cnt+1 == kcl->devs_num)
                     break;
-                }
                 
                 dev_cnt++;
                 kcl->devices[dev_cnt].ops_num = 0;
                 is_dev_id = 1;
                 line_cnt++;                
             } else {
-                tmp_buff[tmp_buff_cnt] = buffer[i];
+                tmp_buff[tmp_buff_cnt] = kcl->buffer[i];
                 tmp_buff_cnt++;
             }
         }
@@ -428,41 +502,17 @@ static int kclient_get_devices(struct kclient *kcl)
     
     return 0;
 }
-
-/* 
- *  --------- Kill session ---------
- */
-
-int kill_session(struct kclient *kcl, int sess_id)
-{
-    char cmd[64];
-    snprintf(cmd, 64, "1|5|%i|\n", sess_id);
-    
-    if (kclient_send_string(kcl, cmd) < 0)
-        return -1;
-
-    return 0;
-}
-
-/*
- * External functions
- */
  
 #if defined (__linux__)
 static int open_kclient_tcp_socket(struct kclient *kcl)
 {
-    int sockfd;
-    
-    kcl->sockfd = -1;
-  
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    kcl->sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
-    if (sockfd < 0) {
+    if (kcl->sockfd < 0) {
         fprintf(stderr, "Can't open socket\n");		
         return -1;
     }
 
-    kcl->sockfd = sockfd;
     return 0;
 }
 #elif defined (__MINGW32__)
@@ -494,23 +544,18 @@ static int open_kclient_tcp_socket(struct kclient *kcl)
 #if defined (__linux__)
 static int open_kclient_unix_socket(struct kclient *kcl)
 {
-    int unix_sockfd;
+    kcl->unix_sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
 
-    kcl->unix_sockfd = -1;
-
-    unix_sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-
-    if (unix_sockfd < 0) {
+    if (kcl->unix_sockfd < 0) {
         fprintf(stderr, "Can't open Unix socket\n");		
         return -1;
     }
 
-    kcl->unix_sockfd = unix_sockfd;
     return 0;
 }
 #endif // (__linux__)
 
-static void set_serveraddr(struct kclient *kcl, char *host, int port)
+static void set_serveraddr(struct kclient *kcl, const char *host, int port)
 {    
     memset(&(kcl->serveraddr), 0, sizeof(kcl->serveraddr));
     (kcl->serveraddr).sin_family = AF_INET;
@@ -586,7 +631,7 @@ static int set_kclient_sock_options(struct kclient *kcl)
 #endif
 
 KOHERON_LIB_EXPORT
-struct kclient* kclient_connect(char *host, int port)
+struct kclient* kclient_connect(const char *host, int port)
 {  
     struct kclient *kcl = malloc(sizeof *kcl);
 
@@ -596,7 +641,9 @@ struct kclient* kclient_connect(char *host, int port)
     }
 
     kcl->conn_type = TCP;
+#if defined (__linux__)
     kcl->unix_sockfd = -1;
+#endif
 
     if (open_kclient_tcp_socket(kcl) < 0)
         return NULL;
@@ -644,13 +691,11 @@ struct kclient* kclient_unix_connect(const char *sock_path)
 #if defined (__linux__)
 static void close_kclient_socket(struct kclient *kcl)
 {
-    if (kcl->conn_type == TCP && kcl->sockfd >= 0) {
+    if (kcl->conn_type == TCP && kcl->sockfd >= 0)
         close(kcl->sockfd);
-    }
     
-    if (kcl->conn_type == UNIX && kcl->unix_sockfd >= 0) {
+    if (kcl->conn_type == UNIX && kcl->unix_sockfd >= 0)
         close(kcl->unix_sockfd);
-    }
 }
 #elif defined (__MINGW32__)
 static void close_kclient_socket(struct kclient *kcl)
@@ -665,10 +710,9 @@ static void close_kclient_socket(struct kclient *kcl)
 
 KOHERON_LIB_EXPORT
 void kclient_shutdown(struct kclient *kcl)
-{
-    close_kclient_socket(kcl);
-    
+{    
     if (kcl != NULL) {
+        close_kclient_socket(kcl);
         free(kcl);
         kcl = NULL;
     }
