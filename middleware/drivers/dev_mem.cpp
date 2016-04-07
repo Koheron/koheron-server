@@ -76,32 +76,6 @@ bool DevMem::__is_forbidden_address(intptr_t addr)
         return (addr > addr_limit_up) || (addr < addr_limit_down);
 }
 
-template<size_t N>
-std::array<MemMapID, N> 
-DevMem::RequestMemoryMaps(std::array<MemoryRegion, N> regions)
-{
-    auto map_ids = std::array<MemMapID, N>();
-    map_ids.fill(static_cast<MemMapID>(-1));
-    uint32_t i = 0;
-
-    for (auto& region : regions) {
-        for (auto& mem_map : mem_maps) {
-            // TODO Reallocate also if new range is larger
-            if (region.phys_addr == mem_map.second->PhysAddr()) {
-                map_ids[i] = mem_map.first;
-                break;
-            }
-        }
-
-        if (map_ids[i] < 0) // The required region is not mapped
-            map_ids[i] = AddMemoryMap(region.phys_addr, region.range);
-
-        i++;
-    }
-
-    return map_ids;
-}
-
 MemMapID DevMem::AddMemoryMap(intptr_t addr, uint32_t size)
 {
     if (__is_forbidden_address(addr)) {
