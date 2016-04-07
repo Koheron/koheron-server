@@ -63,6 +63,10 @@ class DevMem
     std::array<MemMapID, N> 
     RequestMemoryMaps(std::array<MemoryRegion, N> regions);
 
+    // Helper function to check the IDs returned by RequestMemoryMaps
+    template<size_t N>
+    int CheckMapIDs(std::array<MemMapID, N> ids);
+
     /// Create a new memory map
     /// @addr Base address of the map
     /// @size Size of the map 
@@ -132,6 +136,16 @@ DevMem::RequestMemoryMaps(std::array<MemoryRegion, N> regions)
     }
 
     return map_ids;
+}
+
+template<size_t N>
+int DevMem::CheckMapIDs(std::array<MemMapID, N> ids)
+{
+    for (auto& id : ids)
+        if (id < 0)
+            return -1;
+
+    return 0;
 }
 
 }; // namespace Klib
