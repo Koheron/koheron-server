@@ -24,7 +24,7 @@ namespace Klib {
 
 struct MemoryRegion {
     intptr_t phys_addr;
-    uint32_t size;
+    uint32_t range;
 };
 
 /// ID of a memory map
@@ -61,7 +61,7 @@ class DevMem
 
     template<size_t N>
     std::array<MemMapID, N> 
-    RequestMemoryMaps(std::array<MemoryRegion, N> regions, std::string dev_name);
+    RequestMemoryMaps(std::array<MemoryRegion, N> regions);
 
     /// Create a new memory map
     /// @addr Base address of the map

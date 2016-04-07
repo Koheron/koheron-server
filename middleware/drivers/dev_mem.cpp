@@ -78,7 +78,7 @@ bool DevMem::__is_forbidden_address(intptr_t addr)
 
 template<size_t N>
 std::array<MemMapID, N> 
-DevMem::RequestMemoryMaps(std::array<MemoryRegion, N> regions, std::string dev_name)
+DevMem::RequestMemoryMaps(std::array<MemoryRegion, N> regions)
 {
     auto map_ids = std::array<MemMapID, N>();
     map_ids.fill(static_cast<MemMapID>(-1));
@@ -94,7 +94,7 @@ DevMem::RequestMemoryMaps(std::array<MemoryRegion, N> regions, std::string dev_n
         }
 
         if (map_ids[i] < 0) // The required region is not mapped
-            map_ids[i] = AddMemoryMap(region.phys_addr, region.size);
+            map_ids[i] = AddMemoryMap(region.phys_addr, region.range);
 
         i++;
     }
