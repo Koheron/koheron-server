@@ -155,7 +155,7 @@ template<size_t N>
 int DevMem::CheckMapIDs(std::array<MemMapID, N> ids)
 {
     for (auto& id : ids)
-        if (id < 0)
+        if (static_cast<int>(id) < 0)
             return -1;
 
     return 0;
