@@ -22,10 +22,10 @@ extern "C" {
 /// @brief Namespace of the Koheron library
 namespace Klib {
 
-// struct MemoryRegion {
-//     intptr_t addr;
-//     uint32_t size;
-// };
+struct MemoryRegion {
+    intptr_t phys_addr;
+    uint32_t size;
+};
 
 /// ID of a memory map
 typedef uint32_t MemMapID;
@@ -59,9 +59,9 @@ class DevMem
     /// Current number of memory maps
     static unsigned int num_maps;
 
-    // template<size_t N>
-    // std::array<MemMapID, N> 
-    // RequestMemoryMaps(std::array<MemoryRegion, N> regions, std::string dev_name);
+    template<size_t N>
+    std::array<MemMapID, N> 
+    RequestMemoryMaps(std::array<MemoryRegion, N> regions, std::string dev_name);
 
     /// Create a new memory map
     /// @addr Base address of the map

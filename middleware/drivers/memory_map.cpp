@@ -2,14 +2,15 @@
 
 #include "memory_map.hpp"
 
-Klib::MemoryMap::MemoryMap(int *fd_, uint32_t dev_addr, uint32_t size_)
+Klib::MemoryMap::MemoryMap(int *fd_, intptr_t phys_addr_, uint32_t size_)
 {
     size = size_;
     fd = fd_;
+    phys_addr = phys_addr_;
 
-    if(dev_addr != 0x0) {
+    if(phys_addr != 0x0) {
         mapped_base = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, *fd, 
-                           dev_addr & ~MAP_MASK(size) );
+                           phys_addr & ~MAP_MASK(size) );
 
         if(mapped_base == (void *) -1) {
             fprintf(stderr, "Can't map the memory to user space.\n");
@@ -21,7 +22,7 @@ Klib::MemoryMap::MemoryMap(int *fd_, uint32_t dev_addr, uint32_t size_)
         status = MEMMAP_OPENED;
 
         // Device base address
-        mapped_dev_base = (intptr_t)mapped_base + (dev_addr & MAP_MASK(size));
+        mapped_dev_base = (intptr_t)mapped_base + (phys_addr & MAP_MASK(size));
     } else {
         status = MEMMAP_CLOSED;
         mapped_base = NULL;
