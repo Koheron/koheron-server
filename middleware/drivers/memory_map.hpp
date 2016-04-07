@@ -36,6 +36,8 @@ public:
     /// @bug Unmapping doesn't work sometimes
     int Unmap();
 
+    int Resize(uint32_t length);
+
     inline int GetStatus() const {return status;}
 
     /// Return the virtual memory base address of the device

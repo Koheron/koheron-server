@@ -67,6 +67,8 @@ class DevMem
     template<size_t N>
     int CheckMapIDs(std::array<MemMapID, N> ids);
 
+    int Resize(MemMapID id, uint32_t length);
+
     /// Create a new memory map
     /// @addr Base address of the map
     /// @size Size of the map 
@@ -122,7 +124,8 @@ DevMem::RequestMemoryMaps(std::array<MemoryRegion, N> regions)
 
     for (auto& region : regions) {
         for (auto& mem_map : mem_maps) {
-            // TODO Reallocate also if new range is larger
+            // TODO Reallocate also if new range is larger.
+            // Is it possible to use mremap (http://linux.die.net/man/2/mremap) ?
             if (region.phys_addr == mem_map.second->PhysAddr()) {
                 map_ids[i] = mem_map.first;
                 break;

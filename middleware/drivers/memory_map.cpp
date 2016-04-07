@@ -8,11 +8,11 @@ Klib::MemoryMap::MemoryMap(int *fd_, intptr_t phys_addr_, uint32_t size_)
     fd = fd_;
     phys_addr = phys_addr_;
 
-    if(phys_addr != 0x0) {
+    if (phys_addr != 0x0) {
         mapped_base = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, *fd, 
                            phys_addr & ~MAP_MASK(size) );
 
-        if(mapped_base == (void *) -1) {
+        if (mapped_base == (void *) -1) {
             fprintf(stderr, "Can't map the memory to user space.\n");
             close(*fd);
             status = MEMMAP_FAILURE;
@@ -37,10 +37,31 @@ Klib::MemoryMap::~MemoryMap()
 
 int Klib::MemoryMap::Unmap()
 {
-    if(status == MEMMAP_OPENED) {
+    if (status == MEMMAP_OPENED) {
         munmap(mapped_base, size);
         status = MEMMAP_CLOSED;
     }
 	
+    return 0;
+}
+
+int Klib::MemoryMap::Resize(uint32_t length)
+{
+    void *new_virt_addr = mremap((void *)mapped_dev_base, size, length, 0);
+
+    printf("old virt addr = %u\n", (uint32_t)mapped_dev_base);
+    printf("new virt addr = %u\n", (uint32_t)new_virt_addr);
+
+    if (mapped_base == (void *) -1) {
+        fprintf(stderr, "Can't resize memory map.\n");
+        return -1;
+    }
+
+    if (new_virt_addr != (void *)mapped_dev_base) {
+        fprintf(stderr, "New address shifted during resizing.\n");
+        return -1;
+    }
+
+    size = length;
     return 0;
 }
