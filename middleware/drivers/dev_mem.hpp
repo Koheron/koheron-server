@@ -22,7 +22,8 @@ extern "C" {
 /// @brief Namespace of the Koheron library
 namespace Klib {
 
-struct MemoryRegion {
+struct MemoryRegion
+{
     uintptr_t phys_addr;
     uint32_t range;
 };
