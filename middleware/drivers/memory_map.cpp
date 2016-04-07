@@ -2,7 +2,7 @@
 
 #include "memory_map.hpp"
 
-Klib::MemoryMap::MemoryMap(int *fd_, intptr_t phys_addr_, uint32_t size_)
+Klib::MemoryMap::MemoryMap(int *fd_, uintptr_t phys_addr_, uint32_t size_)
 {
     size = size_;
     fd = fd_;
@@ -22,7 +22,7 @@ Klib::MemoryMap::MemoryMap(int *fd_, intptr_t phys_addr_, uint32_t size_)
         status = MEMMAP_OPENED;
 
         // Device base address
-        mapped_dev_base = (intptr_t)mapped_base + (phys_addr & MAP_MASK(size));
+        mapped_dev_base = (uintptr_t)mapped_base + (phys_addr & MAP_MASK(size));
     } else {
         status = MEMMAP_CLOSED;
         mapped_base = NULL;

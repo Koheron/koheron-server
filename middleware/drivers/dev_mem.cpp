@@ -27,7 +27,7 @@ void MemMapIdPool::release_id(MemMapID id)
     reusable_ids.push_back(id);
 }
 
-DevMem::DevMem(intptr_t addr_limit_down_, intptr_t addr_limit_up_)
+DevMem::DevMem(uintptr_t addr_limit_down_, uintptr_t addr_limit_up_)
 : addr_limit_down(addr_limit_down_),
   addr_limit_up(addr_limit_up_),
   mem_maps()
@@ -68,7 +68,7 @@ int DevMem::Close()
 
 unsigned int DevMem::num_maps = 0;
 
-bool DevMem::__is_forbidden_address(intptr_t addr)
+bool DevMem::__is_forbidden_address(uintptr_t addr)
 {
     if (addr_limit_up == 0x0 && addr_limit_down == 0x0)
         return false; // No limit defined
@@ -76,7 +76,7 @@ bool DevMem::__is_forbidden_address(intptr_t addr)
         return (addr > addr_limit_up) || (addr < addr_limit_down);
 }
 
-MemMapID DevMem::AddMemoryMap(intptr_t addr, uint32_t size)
+MemMapID DevMem::AddMemoryMap(uintptr_t addr, uint32_t size)
 {
     if (__is_forbidden_address(addr)) {
         fprintf(stderr,"Forbidden memory region\n");

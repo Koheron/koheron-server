@@ -23,7 +23,7 @@ extern "C" {
 namespace Klib {
 
 struct MemoryRegion {
-    intptr_t phys_addr;
+    uintptr_t phys_addr;
     uint32_t range;
 };
 
@@ -46,7 +46,7 @@ class MemMapIdPool
 class DevMem
 {
   public:
-    DevMem(intptr_t addr_limit_down_=0x0, intptr_t addr_limit_up_=0x0);
+    DevMem(uintptr_t addr_limit_down_=0x0, uintptr_t addr_limit_up_=0x0);
     ~DevMem();
 
     /// Open the /dev/mem driver
@@ -74,7 +74,7 @@ class DevMem
     /// @size Size of the map 
     /// @return An ID to the created map,
     ///         or -1 if an error occured
-    MemMapID AddMemoryMap(intptr_t addr, uint32_t size);
+    MemMapID AddMemoryMap(uintptr_t addr, uint32_t size);
     
     /// Remove a memory map
     /// @id ID of the memory map to be removed
@@ -106,9 +106,9 @@ class DevMem
     bool is_open;   ///< True if /dev/mem open
     
     /// Limit addresses
-    intptr_t addr_limit_down;
-    intptr_t addr_limit_up;
-    bool __is_forbidden_address(intptr_t addr);
+    uintptr_t addr_limit_down;
+    uintptr_t addr_limit_up;
+    bool __is_forbidden_address(uintptr_t addr);
 
     std::map<MemMapID, MemoryMap*> mem_maps;
     MemMapIdPool id_pool;

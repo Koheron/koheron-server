@@ -25,9 +25,9 @@ class MemoryMap
 {
 public:
     /// Build a memory map
-    /// @phys_addr_ Physical base address of the device (XXX intptr_t better ?)
+    /// @phys_addr_ Physical base address of the device
     /// @size_ Map size in octets
-    MemoryMap(int *fd_, intptr_t phys_addr_, uint32_t size_ = DEFAULT_MAP_SIZE);
+    MemoryMap(int *fd_, uintptr_t phys_addr_, uint32_t size_ = DEFAULT_MAP_SIZE);
 
     ~MemoryMap();
 
@@ -46,7 +46,7 @@ public:
     /// Return the mapped size in octets
     inline uint32_t MappedSize() const {return size;}
 
-    inline intptr_t PhysAddr() const {return phys_addr;}
+    inline uintptr_t PhysAddr() const {return phys_addr;}
 	
     enum Status {
         MEMMAP_CLOSED,       ///< Memory map closed
@@ -61,7 +61,7 @@ private:
     uint32_t mapped_dev_base;   ///< Device base address
     int status;                 ///< Status
     uint32_t size;              ///< Map size
-    intptr_t phys_addr;         ///< Physical address
+    uintptr_t phys_addr;        ///< Physical address
 };
 
 }; // namespace Klib
