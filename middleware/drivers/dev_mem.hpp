@@ -143,7 +143,7 @@ DevMem::RequestMemoryMaps(std::array<MemoryRegion, N> regions)
             }
         }
 
-        printf("map_ids[i] = %i\n", static_cast<int>(region.range);
+        printf("map_ids[i] = %i\n", static_cast<int>(region.range));
         if (static_cast<int>(map_ids[i]) < 0) // The required region is not mapped
             map_ids[i] = AddMemoryMap(region.phys_addr, region.range);
 
