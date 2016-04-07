@@ -124,9 +124,13 @@ DevMem::RequestMemoryMaps(std::array<MemoryRegion, N> regions)
 
     for (auto& region : regions) {
         for (auto& mem_map : mem_maps) {
-            // TODO Reallocate also if new range is larger.
-            // Is it possible to use mremap (http://linux.die.net/man/2/mremap) ?
             if (region.phys_addr == mem_map.second->PhysAddr()) {
+                // we resize the map if the new range is large
+                // than the previously allocated one.
+                if (region.range > mem_map.second->MappedSize())
+                    if (Resize(mem_map.first, region.range) < 0)
+                        fprintf(stderr, "Memory map resizing failed\n"); // How should we handle this error ?
+
                 map_ids[i] = mem_map.first;
                 break;
             }
