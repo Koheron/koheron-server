@@ -124,6 +124,12 @@ DevMem::RequestMemoryMaps(std::array<MemoryRegion, N> regions)
 
     for (auto& region : regions) {
         for (auto& mem_map : mem_maps) {
+            printf("i = %u\n", i);
+            printf("region.phys_addr = %u\n", region.phys_addr);
+            printf("region.range = %u\n", region.range);
+            printf("mem_map.phys_addr = %u\n", mem_map.second->PhysAddr());
+            printf("mem_map.range = %u\n", mem_map.second->MappedSize());
+
             if (region.phys_addr == mem_map.second->PhysAddr()) {
                 // we resize the map if the new range is large
                 // than the previously allocated one.
