@@ -123,10 +123,11 @@ DevMem::RequestMemoryMaps(std::array<MemoryRegion, N> regions)
     uint32_t i = 0;
 
     for (auto& region : regions) {
+        printf("i = %u\n", i);
+        printf("region.phys_addr = %u\n", region.phys_addr);
+        printf("region.range = %u\n", region.range);
+
         for (auto& mem_map : mem_maps) {
-            printf("i = %u\n", i);
-            printf("region.phys_addr = %u\n", region.phys_addr);
-            printf("region.range = %u\n", region.range);
             printf("mem_map.phys_addr = %u\n", mem_map.second->PhysAddr());
             printf("mem_map.range = %u\n", mem_map.second->MappedSize());
 
@@ -142,7 +143,8 @@ DevMem::RequestMemoryMaps(std::array<MemoryRegion, N> regions)
             }
         }
 
-        if (map_ids[i] < 0) // The required region is not mapped
+        printf("map_ids[i] = %i\n", static_cast<int>(region.range);
+        if (static_cast<int>(map_ids[i]) < 0) // The required region is not mapped
             map_ids[i] = AddMemoryMap(region.phys_addr, region.range);
 
         i++;
