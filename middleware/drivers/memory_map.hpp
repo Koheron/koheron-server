@@ -58,7 +58,7 @@ public:
 private:
     int *fd;                    ///< /dev/mem file ID (Why is this a pointer ?)
     void* mapped_base;          ///< Map base address
-    uint32_t mapped_dev_base;   ///< Device base address
+    uintptr_t mapped_dev_base;  ///< Device base address
     int status;                 ///< Status
     uint32_t size;              ///< Map size
     uintptr_t phys_addr;        ///< Physical address

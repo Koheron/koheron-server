@@ -49,15 +49,15 @@ int Klib::MemoryMap::Resize(uint32_t length)
 {
     void *new_virt_addr = mremap((void *)mapped_dev_base, size, length, 0);
 
-    printf("old virt addr = %u\n", (uint32_t)mapped_dev_base);
-    printf("new virt addr = %u\n", (uint32_t)new_virt_addr);
+    // printf("old virt addr = %lu\n", (uintptr_t)mapped_dev_base);
+    // printf("new virt addr = %lu\n", (uintptr_t)new_virt_addr);
 
     if (mapped_base == (void *) -1) {
         fprintf(stderr, "Can't resize memory map.\n");
         return -1;
     }
 
-    if (new_virt_addr != (void *)mapped_dev_base) {
+    if ((uintptr_t)new_virt_addr != mapped_dev_base) {
         fprintf(stderr, "New address shifted during resizing.\n");
         return -1;
     }
