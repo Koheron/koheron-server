@@ -1,4 +1,3 @@
-/// Server session
 ///
 /// (c) Koheron
 
@@ -154,7 +153,7 @@ class Session
     /// Split the buffer into requests using the '\n' token
     /// Requests must be written as
     /// DEVICE|OPERATION|p1|p2|...|pn#\n
-    int parse_input_buffer(void);
+    int parse_input_buffer(int nb_bytes_rcvd);
     
     void execute_cmds();
     

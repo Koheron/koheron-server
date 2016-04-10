@@ -6,6 +6,8 @@ import math
 import numpy as np
 import functools
 import string
+import sys
+import traceback
 
 # --------------------------------------------
 # Decorators
@@ -52,7 +54,19 @@ def write_buffer(device_name, format_char='I', dtype=np.uint32):
 
 
 def make_command(*args):
-    return "|".join([str(arg) for arg in args])+'|\n'
+    # http://stackoverflow.com/questions/18310152/sending-binary-data-over-sockets-with-python
+    args_str = "|".join([str(arg) for arg in args[2:-1]])+'|\n'
+    print args[0]
+    print args[1]
+    print args_str
+
+    buff = bytearray()
+    buff.append((args[0] >> 8) & 0xff)
+    buff.append(args[0] & 0xff)
+    buff.append((args[1] >> 8) & 0xff)
+    buff.append(args[1] & 0xff)
+    #buff.append(args_str)
+    return buff
 
 def reference_dict(self):
     params = self.client.cmds.get_device(_class_to_device_name
@@ -162,7 +176,10 @@ class KClient:
 
         Raise RuntimeError if broken connection.
         """
-        sent = self.sock.send(cmd.encode('utf-8'))
+        # sent = self.sock.send(cmd.encode('utf-8'))
+        for char in cmd:
+            print char
+        sent = self.sock.send(cmd)
 
         if sent == 0:
             raise RuntimeError("kclient-send: Socket connection broken")
@@ -379,8 +396,12 @@ class Commands:
         self.success = True
 
         try:
-            client.send(make_command(1, 1))
+            # client.send(make_command(1, 1))
+            client.send(make_command(10, 20))
         except:
+            if client.verbose:
+                traceback.print_exc()
+
             print("Socket connection broken")
             self.success = False
             return
@@ -427,8 +448,7 @@ class DevParam:
     """
 
     def __init__(self, line):
-        """ Parse device informations sent by KServer
-        """
+        """ Parse device informations sent by tcp-server """
         tokens = line.split(':')
         self.id = int(tokens[0][1:])
         self.name = tokens[1].strip()

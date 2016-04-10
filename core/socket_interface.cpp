@@ -72,7 +72,7 @@ int TCPSocketInterface::read_data(char *buff_str, char *remain_str)
     }
 
     if (nb_bytes_rcvd == 0)
-        return 1; // Connection closed by client
+        return 0; // Connection closed by client
 
     kserver->syslog.print(SysLog::DEBUG, "[R@%u] [%d bytes]\n", 
                           id, nb_bytes_rcvd);
@@ -81,21 +81,24 @@ int TCPSocketInterface::read_data(char *buff_str, char *remain_str)
     //
     // XXX snprintf maybe not the fastest solution (but very safe)
     // --> Consider using strlen + memcpy
-    int ret = snprintf(buff_str, 2*KSERVER_READ_STR_LEN, "%s%s", 
-                       remain_str, read_str);
+    // int ret = snprintf(buff_str, 2*KSERVER_READ_STR_LEN, "%s%s", 
+    //                    remain_str, read_str);
+
+    // TODO Handle remain_str
+    memcpy(buff_str, read_str, nb_bytes_rcvd);
     bzero(read_str, KSERVER_READ_STR_LEN);
 
-    if (ret < 0) {
-        kserver->syslog.print(SysLog::CRITICAL, "Format error\n");
-    	return -1;
-    }
+    // if (ret < 0) {
+    //     kserver->syslog.print(SysLog::CRITICAL, "Format error\n");
+    // 	return -1;
+    // }
 
-    if (ret >= 2*KSERVER_READ_STR_LEN) {
-        kserver->syslog.print(SysLog::CRITICAL, "Buffer buff_str overflow\n");
-        return -1;
-    }
+    // if (ret >= 2*KSERVER_READ_STR_LEN) {
+    //     kserver->syslog.print(SysLog::CRITICAL, "Buffer buff_str overflow\n");
+    //     return -1;
+    // }
 
-    return 0;
+    return nb_bytes_rcvd;
 }
 
 int TCPSocketInterface::RcvDataBuffer(uint32_t n_bytes)
@@ -195,15 +198,12 @@ int WebSocketInterface::read_data(char *buff_str, char *remain_str)
 
     if (websock.receive() < 0) { 
         if (websock.is_closed())
-            return 1; // Connection closed by client
+            return 0; // Connection closed by client
         else
             return -1;
     }
 
-    if (websock.get_payload(buff_str, 2*KSERVER_READ_STR_LEN) < 0)
-        return -1;                                  
-
-    return 0;
+    return websock.get_payload(buff_str, 2*KSERVER_READ_STR_LEN);
 }
 
 const uint32_t* WebSocketInterface::RcvHandshake(uint32_t buff_size)
