@@ -24,26 +24,29 @@ namespace Klib {
 class MemoryMap
 {
 public:
-    /// @brief Build a memory map
-    /// @dev_addr Physical base address of the device (XXX intptr_t better ?)
+    /// Build a memory map
+    /// @phys_addr_ Physical base address of the device
     /// @size_ Map size in octets
-    MemoryMap(int *fd_, uint32_t dev_addr, uint32_t size_ = DEFAULT_MAP_SIZE);
+    MemoryMap(int *fd_, uintptr_t phys_addr_, uint32_t size_ = DEFAULT_MAP_SIZE);
 
     ~MemoryMap();
 
-    /// @brief Close the memory map
+    /// Close the memory map
     /// @return 0 if succeed, -1 else
     /// @bug Unmapping doesn't work sometimes
     int Unmap();
 
-    /// @brief Return the status
+    int Resize(uint32_t length);
+
     inline int GetStatus() const {return status;}
 
-    /// @brief Return the virtual memory base address of the device
+    /// Return the virtual memory base address of the device
     inline uint32_t GetBaseAddr() const {return mapped_dev_base;}
 
-    /// @brief Return the mapped size in octets
+    /// Return the mapped size in octets
     inline uint32_t MappedSize() const {return size;}
+
+    inline uintptr_t PhysAddr() const {return phys_addr;}
 	
     enum Status {
         MEMMAP_CLOSED,       ///< Memory map closed
@@ -55,9 +58,10 @@ public:
 private:
     int *fd;                    ///< /dev/mem file ID (Why is this a pointer ?)
     void* mapped_base;          ///< Map base address
-    uint32_t mapped_dev_base;   ///< Device base address
+    uintptr_t mapped_dev_base;  ///< Device base address
     int status;                 ///< Status
     uint32_t size;              ///< Map size
+    uintptr_t phys_addr;        ///< Physical address
 };
 
 }; // namespace Klib
