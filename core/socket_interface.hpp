@@ -74,7 +74,7 @@ class SocketInterface
     int init(void);                                                     \
     int exit(void);                                                     \
                                                                         \
-    int read_data(char *buff_str, char *remain_str);                    \
+    int read_data(char *buff_str);                                      \
                                                                         \
     int RcvDataBuffer(uint32_t n_bytes);                                \
     const uint32_t* RcvHandshake(uint32_t buff_size);                   \

@@ -76,7 +76,6 @@ Session::~Session()
 int Session::init_session(void)
 {    
     cmd_list = std::vector<Command>(0);
-    strcpy(remain_str, "");
 
     // Initialize monitoring
     errors_num = 0;
@@ -129,9 +128,12 @@ int Session::parse_input_buffer(int nb_bytes_rcvd)
 
     uint16_t dev_id = buff_str[1] + (buff_str[0] << 8);
     uint16_t op_id = buff_str[3] + (buff_str[2] << 8);
+    uint32_t payload_size = buff_str[7] + (buff_str[6] << 8) 
+                            + (buff_str[5] << 16) + (buff_str[4] << 24);
 
     printf("dev_id = %u\n", dev_id);
     printf("op_id = %u\n", op_id);
+    printf("payload_size = %u\n", payload_size);
 
     return 0;
 }
@@ -298,17 +300,17 @@ int Session::Run()
         switch (sock_type) {
 #if KSERVER_HAS_TCP
           case TCP:
-            nb_bytes_rcvd = TCPSOCKET->read_data(buff_str, remain_str);
+            nb_bytes_rcvd = TCPSOCKET->read_data(buff_str);
             break;
 #endif
 #if KSERVER_HAS_UNIX_SOCKET
           case UNIX:
-            nb_bytes_rcvd = UNIXSOCKET->read_data(buff_str, remain_str);
+            nb_bytes_rcvd = UNIXSOCKET->read_data(buff_str);
             break;
 #endif
 #if KSERVER_HAS_WEBSOCKET
           case WEBSOCK:
-            nb_bytes_rcvd = WEBSOCKET->read_data(buff_str, remain_str);
+            nb_bytes_rcvd = WEBSOCKET->read_data(buff_str);
             break;
 #endif
         }

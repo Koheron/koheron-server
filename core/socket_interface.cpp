@@ -53,12 +53,11 @@ SEND_SPECIALIZE_IMPL(TCPSocketInterface)
 int TCPSocketInterface::init(void) {return 0;}
 int TCPSocketInterface::exit(void) {return 0;}
 
-int TCPSocketInterface::read_data(char *buff_str, char *remain_str)
+int TCPSocketInterface::read_data(char *buff_str)
 {
     bzero(buff_str, 2*KSERVER_READ_STR_LEN);
-    bzero(read_str, KSERVER_READ_STR_LEN);
 
-    int nb_bytes_rcvd = read(comm_fd, read_str, KSERVER_READ_STR_LEN);
+    int nb_bytes_rcvd = read(comm_fd, buff_str, KSERVER_READ_STR_LEN);
 
     // Check reception ...
     if (nb_bytes_rcvd < 0) {
@@ -76,27 +75,6 @@ int TCPSocketInterface::read_data(char *buff_str, char *remain_str)
 
     kserver->syslog.print(SysLog::DEBUG, "[R@%u] [%d bytes]\n", 
                           id, nb_bytes_rcvd);
-
-    // Need a copy here for buffers concatenation (needed?) 
-    //
-    // XXX snprintf maybe not the fastest solution (but very safe)
-    // --> Consider using strlen + memcpy
-    // int ret = snprintf(buff_str, 2*KSERVER_READ_STR_LEN, "%s%s", 
-    //                    remain_str, read_str);
-
-    // TODO Handle remain_str
-    memcpy(buff_str, read_str, nb_bytes_rcvd);
-    bzero(read_str, KSERVER_READ_STR_LEN);
-
-    // if (ret < 0) {
-    //     kserver->syslog.print(SysLog::CRITICAL, "Format error\n");
-    // 	return -1;
-    // }
-
-    // if (ret >= 2*KSERVER_READ_STR_LEN) {
-    //     kserver->syslog.print(SysLog::CRITICAL, "Buffer buff_str overflow\n");
-    //     return -1;
-    // }
 
     return nb_bytes_rcvd;
 }
@@ -192,7 +170,7 @@ int WebSocketInterface::init(void)
 
 int WebSocketInterface::exit(void) {return 0;}
 
-int WebSocketInterface::read_data(char *buff_str, char *remain_str)
+int WebSocketInterface::read_data(char *buff_str)
 {
     bzero(buff_str, 2*KSERVER_READ_STR_LEN);
 

@@ -141,8 +141,7 @@ class Session
     
     // -------------------
     // Buffers
-    char remain_str[2*KSERVER_READ_STR_LEN]; ///< Remain part of the read buffer
-    char buff_str[2*KSERVER_READ_STR_LEN];   ///< Total buffer (remain+read)
+    char buff_str[2*KSERVER_READ_STR_LEN];
     // -------------------
     
     // -------------------

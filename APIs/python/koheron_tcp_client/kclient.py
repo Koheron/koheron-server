@@ -61,12 +61,22 @@ def make_command(*args):
     print args_str
 
     buff = bytearray()
-    buff.append((args[0] >> 8) & 0xff)
-    buff.append(args[0] & 0xff)
-    buff.append((args[1] >> 8) & 0xff)
-    buff.append(args[1] & 0xff)
+    _append_u16(buff, args[0])
+    _append_u16(buff, args[1])
+    _append_u32(buff, sys.getsizeof(args_str))
+
     #buff.append(args_str)
     return buff
+
+def _append_u16(buff, value):
+    buff.append((value >> 8) & 0xff)
+    buff.append(value & 0xff)
+
+def _append_u32(buff, value):
+    buff.append((value >> 24) & 0xff)
+    buff.append((value >> 16) & 0xff)
+    buff.append((value >> 8) & 0xff)
+    buff.append(value & 0xff)
 
 def reference_dict(self):
     params = self.client.cmds.get_device(_class_to_device_name
