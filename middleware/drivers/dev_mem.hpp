@@ -115,6 +115,20 @@ class DevMem
     MemMapIdPool id_pool;
 };
 
+// Helper to build an std::array of memmory regions without
+// specifying the length. Called as:
+// mem_regions(
+//     Klib::MemoryRegion({ ADDR1, RANGE1 }),
+//     ...
+//     Klib::MemoryRegion({ ADDRn, RANGEn })
+// )
+template<typename... region>
+constexpr auto mem_regions(region&&... args) 
+    -> std::array<Klib::MemoryRegion, sizeof...(args)>
+{
+    return {{std::forward<region>(args)...}};
+}
+
 template<size_t N>
 std::array<MemMapID, N> 
 DevMem::RequestMemoryMaps(std::array<MemoryRegion, N> regions)
