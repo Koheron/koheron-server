@@ -17,24 +17,24 @@ namespace Klib {
 /// Write a value in a 32 bits register
 /// @addr Absolute address of the register to be written
 /// @RegVal Value to be written (uint32)
-inline void WriteReg32(intptr_t addr, uint32_t reg_val)
+inline void WriteReg32(uintptr_t addr, uint32_t reg_val)
 {
-    *(volatile intptr_t *) addr = reg_val;
+    *(volatile uintptr_t *) addr = reg_val;
 }
 
 /// Write a value in a 32 bits register
 /// @addr Absolute address of the register to be written
 /// @reg_val Value to be written (bitset<32>)
-inline void WriteReg32(intptr_t addr, std::bitset<32> reg_val)
+inline void WriteReg32(uintptr_t addr, std::bitset<32> reg_val)
 {
-    *(volatile intptr_t *) addr = reg_val.to_ulong();
+    *(volatile uintptr_t *) addr = reg_val.to_ulong();
 }
 
 /// Write a buffer of 32 bits registers
 /// @addr Absolute address of the first register of the buffer
 /// @data_ptr Pointer to the data to be written
 /// @buff_size Number of data to write in the buffer
-inline void WriteBuff32(intptr_t addr, const uint32_t *data_ptr, 
+inline void WriteBuff32(uintptr_t addr, const uint32_t *data_ptr, 
                         uint32_t buff_size)
 {
     for(uint32_t i=0; i < buff_size; i++) {
@@ -44,9 +44,9 @@ inline void WriteBuff32(intptr_t addr, const uint32_t *data_ptr,
 
 /// Read a value in a 32 bits register
 /// @addr Absolute address of the register to be read
-inline uint32_t ReadReg32(intptr_t addr)
+inline uint32_t ReadReg32(uintptr_t addr)
 {
-    return *(volatile intptr_t *) addr;
+    return *(volatile uintptr_t *) addr;
 }
 
 // -- Bit manipulations
@@ -56,45 +56,45 @@ inline uint32_t ReadReg32(intptr_t addr)
 /// Set a bit in a 32 bits register
 /// @addr Absolute address of the register
 /// @index Index of the bit in the register
-inline void SetBit(intptr_t addr, uint32_t index)
+inline void SetBit(uintptr_t addr, uint32_t index)
 {
-    *(volatile intptr_t *) addr = *((volatile intptr_t *) addr) | (1 << index);
+    *(volatile uintptr_t *) addr = *((volatile uintptr_t *) addr) | (1 << index);
 }
 
 /// Clear a bit in a 32 bits register
 /// @addr Absolute address of the register
 /// @index Index of the bit in the register
-inline void ClearBit(intptr_t addr, uint32_t index)
+inline void ClearBit(uintptr_t addr, uint32_t index)
 {
-    *(volatile intptr_t *) addr = *((volatile intptr_t *) addr) & ~(1 << index);
+    *(volatile uintptr_t *) addr = *((volatile uintptr_t *) addr) & ~(1 << index);
 }
 
 /// Toggle a bit in a 32 bits register
 /// @addr Absolute address of the register
 /// @index Index of the bit in the register
-inline void ToggleBit(intptr_t addr, uint32_t index)
+inline void ToggleBit(uintptr_t addr, uint32_t index)
 {
-    *(volatile intptr_t *) addr = *((volatile intptr_t *) addr) ^ (1 << index);
+    *(volatile uintptr_t *) addr = *((volatile uintptr_t *) addr) ^ (1 << index);
 }
 
 /// Obtain the value of a bit
 /// @addr Absolute address of the register
 /// @index Index of the bit in the register
-inline bool ReadBit(intptr_t addr, uint32_t index)
+inline bool ReadBit(uintptr_t addr, uint32_t index)
 {
-    return *((volatile intptr_t *) addr) & (1 << index);
+    return *((volatile uintptr_t *) addr) & (1 << index);
 }
 
 // -- Masks
 
-inline void MaskAnd(intptr_t addr, uint32_t mask)
+inline void MaskAnd(uintptr_t addr, uint32_t mask)
 {
-    *(volatile intptr_t *) addr &= mask;
+    *(volatile uintptr_t *) addr &= mask;
 }
 
-inline void MaskOr(intptr_t addr, uint32_t mask)
+inline void MaskOr(uintptr_t addr, uint32_t mask)
 {
-    *(volatile intptr_t *) addr |= mask;
+    *(volatile uintptr_t *) addr |= mask;
 }
 
 }; // namespace Klib
