@@ -135,7 +135,7 @@ int DevMem::Resize(MemMapID id, uint32_t length)
     return mem_maps.at(id)->Resize(length);
 }
 
-uint32_t DevMem::GetBaseAddr(MemMapID id)
+uintptr_t DevMem::GetBaseAddr(MemMapID id)
 {
     assert(mem_maps.at(id) != nullptr);
     return mem_maps.at(id)->GetBaseAddr();

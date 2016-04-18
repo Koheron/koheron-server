@@ -90,7 +90,7 @@ class DevMem
     
     /// Return the base address of a map
     /// @id ID of the map
-    uint32_t GetBaseAddr(MemMapID id);
+    uintptr_t GetBaseAddr(MemMapID id);
     
     /// Return the status of a map
     /// @id ID of the map

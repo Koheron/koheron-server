@@ -41,7 +41,7 @@ public:
     inline int GetStatus() const {return status;}
 
     /// Return the virtual memory base address of the device
-    inline uint32_t GetBaseAddr() const {return mapped_dev_base;}
+    inline uintptr_t GetBaseAddr() const {return mapped_dev_base;}
 
     /// Return the mapped size in octets
     inline uint32_t MappedSize() const {return size;}
@@ -57,7 +57,7 @@ public:
 
 private:
     int *fd;                    ///< /dev/mem file ID (Why is this a pointer ?)
-    void* mapped_base;          ///< Map base address
+    void *mapped_base;          ///< Map base address
     uintptr_t mapped_dev_base;  ///< Device base address
     int status;                 ///< Status
     uint32_t size;              ///< Map size
