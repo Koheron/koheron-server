@@ -56,9 +56,6 @@ def write_buffer(device_name, format_char='I', dtype=np.uint32):
 def make_command(*args):
     # http://stackoverflow.com/questions/18310152/sending-binary-data-over-sockets-with-python
     args_str = "|".join([str(arg) for arg in args[2:-1]])+'|\n'
-    print args[0]
-    print args[1]
-    print args_str
 
     buff = bytearray()
     _append_u32(buff, 0)                        # RESERVED
