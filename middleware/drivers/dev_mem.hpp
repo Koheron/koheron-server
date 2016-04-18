@@ -90,7 +90,7 @@ class DevMem
     
     /// Return the base address of a map
     /// @id ID of the map
-    uint32_t GetBaseAddr(MemMapID id);
+    uintptr_t GetBaseAddr(MemMapID id);
     
     /// Return the status of a map
     /// @id ID of the map
@@ -114,6 +114,20 @@ class DevMem
     std::map<MemMapID, MemoryMap*> mem_maps;
     MemMapIdPool id_pool;
 };
+
+// Helper to build an std::array of memmory regions without
+// specifying the length. Called as:
+// mem_regions(
+//     Klib::MemoryRegion({ ADDR1, RANGE1 }),
+//     ...
+//     Klib::MemoryRegion({ ADDRn, RANGEn })
+// )
+template<typename... region>
+constexpr auto mem_regions(region&&... args) 
+    -> std::array<Klib::MemoryRegion, sizeof...(args)>
+{
+    return {{std::forward<region>(args)...}};
+}
 
 template<size_t N>
 std::array<MemMapID, N> 
