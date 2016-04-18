@@ -123,13 +123,18 @@ int Session::exit_session(void)
 int Session::parse_input_buffer(int nb_bytes_rcvd)
 {
     // Decode header
-    // | dev_id  |  op_id  |   payload_size    |       RESERVED         |   payload
+    // |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
     // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
-    uint16_t dev_id = buff_str[1] + (buff_str[0] << 8);
-    uint16_t op_id = buff_str[3] + (buff_str[2] << 8);
-    uint32_t payload_size = buff_str[7] + (buff_str[6] << 8) 
-                            + (buff_str[5] << 16) + (buff_str[4] << 24);
-    char *payload = &buff_str[13];
+    uint16_t dev_id = buff_str[5] + (buff_str[4] << 8);
+    uint16_t op_id = buff_str[7] + (buff_str[6] << 8);
+    uint32_t payload_size = buff_str[11] + (buff_str[10] << 8) 
+                            + (buff_str[9] << 16) + (buff_str[8] << 24);
+
+    if (payload_size + 12 >  static_cast<uint32_t>(nb_bytes_rcvd)) {
+        // TODO Handle that
+    }
+
+    char *payload = &buff_str[12];
     payload[payload_size] = '\0';
 
     printf("dev_id = %u\n", dev_id);

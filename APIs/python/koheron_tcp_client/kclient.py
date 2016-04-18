@@ -61,10 +61,10 @@ def make_command(*args):
     print args_str
 
     buff = bytearray()
+    _append_u32(buff, 0)                        # RESERVED
     _append_u16(buff, args[0])                  # dev_id
     _append_u16(buff, args[1])                  # op_id
     _append_u32(buff, sys.getsizeof(args_str))  # payload_size
-    _append_u32(buff, 0)                        # reserved
 
     buff.extend(bytes(args_str))
     return buff
