@@ -122,18 +122,30 @@ int Session::exit_session(void)
 
 int Session::parse_input_buffer(int nb_bytes_rcvd)
 {
-    printf("Buffer:\n");
-    for (int i=0; i<nb_bytes_rcvd; i++)
-        printf("%u\n", buff_str[i]);
-
+    // Decode header
+    // | dev_id  |  op_id  |   payload_size    |       RESERVED         |   payload
+    // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
     uint16_t dev_id = buff_str[1] + (buff_str[0] << 8);
     uint16_t op_id = buff_str[3] + (buff_str[2] << 8);
     uint32_t payload_size = buff_str[7] + (buff_str[6] << 8) 
                             + (buff_str[5] << 16) + (buff_str[4] << 24);
+    char *payload = &buff_str[13];
+    payload[payload_size] = '\0';
 
     printf("dev_id = %u\n", dev_id);
     printf("op_id = %u\n", op_id);
     printf("payload_size = %u\n", payload_size);
+    printf("package = %s\n", payload);
+
+    cmd_list = std::vector<Command>(0);
+    Command cmd;
+    cmd.sess_id = id;
+    cmd.device = static_cast<device_t>(dev_id);
+    cmd.operation = op_id;
+    cmd.parsing_err = 0;
+    cmd.status = exec_pending;
+    cmd.buffer = payload;
+    cmd_list.push_back(cmd);
 
     return 0;
 }

@@ -61,11 +61,12 @@ def make_command(*args):
     print args_str
 
     buff = bytearray()
-    _append_u16(buff, args[0])
-    _append_u16(buff, args[1])
-    _append_u32(buff, sys.getsizeof(args_str))
+    _append_u16(buff, args[0])                  # dev_id
+    _append_u16(buff, args[1])                  # op_id
+    _append_u32(buff, sys.getsizeof(args_str))  # payload_size
+    _append_u32(buff, 0)                        # reserved
 
-    #buff.append(args_str)
+    buff.extend(bytes(args_str))
     return buff
 
 def _append_u16(buff, value):
@@ -373,21 +374,11 @@ class KClient:
     # Current session information
     # -------------------------------------------------------
 
-    def get_session_status(self):
-        """ Status of the current session
-
-        Return: True if an error occured in the current session.
-        """
+    def get_stats(self):
+        """ Print server statistics """
         self.send(make_command(1, 2))
-        data_recv = self.sock.recv(3).decode('utf-8')
-
-        if data_recv == '':
-            raise RuntimeError("Socket connection broken")
-
-        if data_recv[:2] == 'OK':
-            return True
-        else:
-            return False
+        msg = self.recv_timeout('EOKS')
+        print msg
 
     def __del__(self):
         if hasattr(self, 'sock'):
@@ -406,8 +397,7 @@ class Commands:
         self.success = True
 
         try:
-            # client.send(make_command(1, 1))
-            client.send(make_command(10, 20))
+            client.send(make_command(1, 1))
         except:
             if client.verbose:
                 traceback.print_exc()

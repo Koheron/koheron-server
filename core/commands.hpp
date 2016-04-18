@@ -22,7 +22,7 @@ struct Command
     SessID sess_id = -1;            ///< ID of the session emitting the command  
     device_t device = NO_DEVICE;    ///< The device to control
     uint32_t operation = -1;        ///< Operation ID
-    char* buffer = nullptr;         ///< data buffer
+    char *buffer = nullptr;         ///< data buffer TODO: rename payload
 
     bool parsing_err = 0;           ///< True if parsing error
     exec_status_t status = exec_pending; ///< Execution status
