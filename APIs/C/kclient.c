@@ -97,7 +97,7 @@ static void append_op_to_dev(struct device *dev, struct operation *op)
 #define MAX_PARAMS_NUM 128
 
 /**
- * struct command - Command to be executed by KServer
+ * struct command - Command to be executed by tcp-server
  * @dev_id: ID of the target device
  * @op_ref: ID of the operation to execute
  * @params_num: Number of parameters
@@ -577,7 +577,6 @@ static int unix_socket_connect(struct kclient *kcl)
 
     if (connect(kcl->unix_sockfd, 
                 (struct sockaddr *)&kcl->unixserveraddr, len) < 0) {
-        fprintf(stderr, "Can't connect to KServer\n");
         close(kcl->unix_sockfd);
         return -1;
     }
@@ -593,7 +592,6 @@ static int set_kclient_sock_options(struct kclient *kcl)
 
     if (connect(kcl->sockfd, (struct sockaddr*) &(kcl->serveraddr), 
                 sizeof(kcl->serveraddr)) < 0) {
-        fprintf(stderr, "Can't connect to KServer\n");
         close(kcl->sockfd);
         return -1;
     }
@@ -614,7 +612,6 @@ static int set_kclient_sock_options(struct kclient *kcl)
 
     if (connect(kcl->sockfd, (SOCKADDR*)(&(kcl->serveraddr)), 
                 sizeof(kcl->serveraddr)) != 0) {
-        fprintf(stderr, "Can't connect to KServer\n");
         WSACleanup();
         return -1;
     }
