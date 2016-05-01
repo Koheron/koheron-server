@@ -80,6 +80,8 @@ class Session
     }
     
     // --- Receive 
+    int rcv_n_bytes(uint32_t n_bytes);
+
     // For large amount of data transfer
     
     /// Receive data from client with handshaking
@@ -135,29 +137,18 @@ class Session
     std::time_t start_time;     ///< Starting time od the session
     // -------------------
     
-    std::vector<Command> cmd_list; ///< Last received commands
-    
     SocketInterface *socket;
     
-    // -------------------
-    // Buffers
+    // Reception buffer
     char buff_str[2*KSERVER_READ_STR_LEN];
-    // -------------------
     
     // -------------------
     // Internal functions
-    int init_session(void);
-    int exit_session(void);
-    
-    /// Split the buffer into requests using the '\n' token
-    /// Requests must be written as
-    /// DEVICE|OPERATION|p1|p2|...|pn#\n
-    int parse_input_buffer(int nb_bytes_rcvd) {return 0;}
+    int init_session();
+    int exit_session();
 
     int read_command(Command& cmd);
-    
     void execute_cmd(Command& cmd);
-    void execute_cmds();
     
 friend class SessionManager;
 };

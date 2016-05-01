@@ -73,10 +73,8 @@ Session::~Session()
     }
 }
 
-int Session::init_session(void)
-{    
-    cmd_list = std::vector<Command>(0);
-
+int Session::init_session()
+{
     // Initialize monitoring
     errors_num = 0;
     requests_num = 0;
@@ -100,7 +98,7 @@ int Session::init_session(void)
     return -1;
 }
 
-int Session::exit_session(void)
+int Session::exit_session()
 {
     switch (sock_type) {
 #if KSERVER_HAS_TCP
@@ -125,7 +123,7 @@ int Session::exit_session(void)
 int Session::read_command(Command& cmd)
 {
     // Read header
-    int header_bytes = TCPSOCKET->rcv_n_bytes(buff_str, PROTOCOL_HEADER_LENGTH);
+    int header_bytes = rcv_n_bytes(PROTOCOL_HEADER_LENGTH);
 
     if (header_bytes <= 0)
         return header_bytes;
@@ -138,7 +136,7 @@ int Session::read_command(Command& cmd)
     uint32_t payload_size = buff_str[11] + (buff_str[10] << 8) 
                             + (buff_str[9] << 16) + (buff_str[8] << 24);
 
-    int payload_bytes = TCPSOCKET->rcv_n_bytes(buff_str, payload_size);
+    int payload_bytes = rcv_n_bytes(payload_size);
 
     if (payload_bytes <= 0) 
         return payload_bytes;
@@ -166,71 +164,49 @@ void Session::execute_cmd(Command& cmd)
         errors_num++;
 }
 
-void Session::execute_cmds()
-{
-    for (unsigned int i=0; i<cmd_list.size(); i++)
-        execute_cmd(cmd_list[i]);
-}
-
 int Session::Run()
 {
     if (init_session() < 0)
         return -1;
     
     while (!session_manager.kserver.exit_comm.load()) {    
-        // Read
-        int nb_bytes_rcvd = -1;
-        
-        switch (sock_type) {
-#if KSERVER_HAS_TCP
-          case TCP: {
-            Command cmd;
-            nb_bytes_rcvd = read_command(cmd);
+        Command cmd;
+        int nb_bytes_rcvd = read_command(cmd);
 
-            if (nb_bytes_rcvd == 0) {
-                goto exit;
-            } else if (nb_bytes_rcvd < 0) {
-                exit_session();
-                return nb_bytes_rcvd;
-            }
-
-            execute_cmd(cmd);
-
-            break;
-          }
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
-          case UNIX: {
-            nb_bytes_rcvd = UNIXSOCKET->read_data(buff_str);
-            break;
-          }
-#endif
-#if KSERVER_HAS_WEBSOCKET
-          case WEBSOCK: {
-            nb_bytes_rcvd = WEBSOCKET->read_data(buff_str);
-
-            if (nb_bytes_rcvd == 0) {
-                goto exit;
-            } else if (nb_bytes_rcvd < 0) {
-                exit_session();
-                return nb_bytes_rcvd;
-            }
-     
-            // Parse and execute
-            if (parse_input_buffer(nb_bytes_rcvd) == 1) // Request not complete
-                continue;
-            else
-                execute_cmds();
-
-            break;
-          }
-#endif
+        if (nb_bytes_rcvd == 0) { // Connection closed by client
+            goto exit;
+        } else if (nb_bytes_rcvd < 0) {
+            exit_session();
+            return nb_bytes_rcvd;
         }
+
+        execute_cmd(cmd);
     }
 
 exit:
     exit_session(); 
     return 0;
+}
+
+int Session::rcv_n_bytes(uint32_t n_bytes)
+{
+    switch (sock_type) {
+#if KSERVER_HAS_TCP
+      case TCP:
+        return TCPSOCKET->rcv_n_bytes(buff_str, n_bytes);
+#endif
+#if KSERVER_HAS_UNIX_SOCKET
+      case UNIX:
+        return UNIXSOCKET->rcv_n_bytes(buff_str, n_bytes);
+#endif
+#if KSERVER_HAS_WEBSOCKET
+      case WEBSOCK:
+        return -1;
+        // return WEBSOCKET->rcv_n_bytes(buff_str, n_bytes); // TODO
+#endif
+    }
+
+    return -1;
 }
 
 const uint32_t* Session::RcvHandshake(uint32_t buff_size)
