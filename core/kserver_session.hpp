@@ -148,7 +148,6 @@ class Session
     int exit_session();
 
     int read_command(Command& cmd);
-    void execute_cmd(Command& cmd);
     
 friend class SessionManager;
 };

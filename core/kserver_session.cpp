@@ -4,6 +4,7 @@
 
 #include "kserver_session.hpp"
 #include "websocket.hpp"
+#include "binary_parser.hpp"
 
 namespace kserver {
 
@@ -131,10 +132,9 @@ int Session::read_command(Command& cmd)
     // Decode header
     // |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
     // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
-    uint16_t dev_id = buff_str[5] + (buff_str[4] << 8);
-    uint16_t op_id = buff_str[7] + (buff_str[6] << 8);
-    uint32_t payload_size = buff_str[11] + (buff_str[10] << 8) 
-                            + (buff_str[9] << 16) + (buff_str[8] << 24);
+    uint16_t dev_id = parse_u16(&buff_str[4]);
+    uint16_t op_id = parse_u16(&buff_str[6]);
+    uint32_t payload_size = parse_u32(&buff_str[8]);
 
     int payload_bytes = rcv_n_bytes(payload_size);
 
@@ -156,14 +156,6 @@ int Session::read_command(Command& cmd)
     return header_bytes + payload_bytes;
 }
 
-void Session::execute_cmd(Command& cmd)
-{    
-    int exec_status = session_manager.dev_manager.Execute(cmd);
-    
-    if (exec_status < 0)
-        errors_num++;
-}
-
 int Session::Run()
 {
     if (init_session() < 0)
@@ -173,18 +165,15 @@ int Session::Run()
         Command cmd;
         int nb_bytes_rcvd = read_command(cmd);
 
-        if (nb_bytes_rcvd == 0) { // Connection closed by client
-            goto exit;
-        } else if (nb_bytes_rcvd < 0) {
+        if (nb_bytes_rcvd <= 0) {
             exit_session();
             return nb_bytes_rcvd;
         }
 
-        execute_cmd(cmd);
+        if (session_manager.dev_manager.Execute(cmd) < 0)
+            errors_num++;
     }
 
-exit:
-    exit_session(); 
     return 0;
 }
 
@@ -250,4 +239,3 @@ int Session::SendCstr(const char* string)
 }
 
 } // namespace kserver
-
