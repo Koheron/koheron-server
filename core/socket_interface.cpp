@@ -79,6 +79,43 @@ int TCPSocketInterface::read_data(char *buff_str)
     return nb_bytes_rcvd;
 }
 
+int TCPSocketInterface::rcv_n_bytes(char *buff_str, uint32_t n_bytes)
+{
+    int bytes_rcv = 0;
+    uint32_t bytes_read = 0;
+
+    if (n_bytes >= KSERVER_READ_STR_LEN) {
+        DEBUG_MSG("Receive buffer size too small\n");
+        return -1;
+    }
+
+    bzero(buff_str, 2*KSERVER_READ_STR_LEN);
+    
+    while (bytes_read < n_bytes) {                        
+        bytes_rcv = read(comm_fd, buff_str + bytes_read, n_bytes - bytes_read);
+        
+        if (bytes_rcv == 0) {
+            fprintf(stderr, "Connection closed by client\n");
+            return 0;
+        }
+        
+        if (bytes_rcv < 0) {
+            fprintf(stderr, "Can't receive data\n");
+            return -1;
+        }
+
+        bytes_read += bytes_rcv;
+        
+        if (bytes_read >= KSERVER_READ_STR_LEN) {
+            DEBUG_MSG("Buffer overflow\n");
+            return -1;
+        }
+    }
+
+    assert(bytes_read == n_bytes);
+    return bytes_read;
+}
+
 int TCPSocketInterface::RcvDataBuffer(uint32_t n_bytes)
 {
     uint32_t bytes_read = 0;

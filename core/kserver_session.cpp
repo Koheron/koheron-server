@@ -120,8 +120,16 @@ int Session::exit_session(void)
     return -1;
 }
 
-int Session::parse_input_buffer(int nb_bytes_rcvd)
+#define PROTOCOL_HEADER_LENGTH 12
+
+int Session::read_command(Command& cmd)
 {
+    // Read header
+    int header_bytes = TCPSOCKET->rcv_n_bytes(buff_str, PROTOCOL_HEADER_LENGTH);
+
+    if (header_bytes <= 0)
+        return header_bytes;
+
     // Decode header
     // |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
     // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
@@ -130,179 +138,38 @@ int Session::parse_input_buffer(int nb_bytes_rcvd)
     uint32_t payload_size = buff_str[11] + (buff_str[10] << 8) 
                             + (buff_str[9] << 16) + (buff_str[8] << 24);
 
-    if (payload_size + 12 >  static_cast<uint32_t>(nb_bytes_rcvd)) {
-        // TODO Handle that
-    }
+    int payload_bytes = TCPSOCKET->rcv_n_bytes(buff_str, payload_size);
 
-    char *payload = &buff_str[12];
-    payload[payload_size] = '\0';
+    if (payload_bytes <= 0) 
+        return payload_bytes;
+
+    buff_str[payload_size] = '\0';
 
     printf("dev_id = %u\n", dev_id);
     printf("op_id = %u\n", op_id);
     printf("payload_size = %u\n", payload_size);
-    printf("package = %s\n", payload);
+    printf("payload = %s\n", buff_str);
 
-    cmd_list = std::vector<Command>(0);
-    Command cmd;
     cmd.sess_id = id;
     cmd.device = static_cast<device_t>(dev_id);
     cmd.operation = op_id;
-    cmd.parsing_err = 0;
-    cmd.status = exec_pending;
-    cmd.buffer = payload;
-    cmd_list.push_back(cmd);
+    cmd.buffer = buff_str;
 
-    return 0;
+    return header_bytes + payload_bytes;
 }
 
-// int Session::parse_input_buffer(void)
-// {
-//     // XXX Should probably preallocate a non-empty vector here...
-//     cmd_list = std::vector<Command>(0);
+void Session::execute_cmd(Command& cmd)
+{    
+    int exec_status = session_manager.dev_manager.Execute(cmd);
     
-//     uint32_t i = 0;
-//     Command cmd;
-    
-//     // Set cmd
-//     cmd.sess_id = id;
-    
-//     bool get_dev_num = 1;
-//     char dev_num_str[N_CHAR_DEV];
-//     char op_num_str[N_CHAR_OP];
-    
-//     char *remain_ptr = &buff_str[0];
-    
-//     // Split the buffer replacing '\n' by '\0' 
-//     // and set a pointer on the following character
-//     while (1) {        
-//         if (buff_str[i] == '\0') {      
-//             if (i>0) {
-//                 assert((buff_str[i-1] != '\n' && strlen(remain_ptr) != 0) ||
-//                        (buff_str[i-1] == '\0' && strlen(remain_ptr) == 0)    );
-//             }
-        
-//             goto exit_loop;
-//         }
-//         else if (get_dev_num) {
-//             // Get device number
-//             unsigned int cnt_dev = 0;
-            
-//             while (1) {
-//                 if (cnt_dev >= N_CHAR_DEV) {
-//                     syslog_ptr->print(SysLog::CRITICAL,
-//                                       "Buffer dev_num_str overflow\n");
-//                     cmd.parsing_err = 1;
-//                     break;
-//                 }
-                
-//                 if (buff_str[cnt_dev+i] == '\0') {
-//                     goto exit_loop;
-//                 }
-//                 else if (buff_str[cnt_dev+i] == '|') {
-//                     dev_num_str[cnt_dev] = '\0';
-//                     cnt_dev++;
-//                     break;
-//                 } else {
-//                     dev_num_str[cnt_dev] = buff_str[cnt_dev+i];
-//                     cnt_dev++;
-//                 }
-//             }
-                
-//             cmd.device = (device_t) strtoul(dev_num_str, NULL, 10);
-            
-//             // Get operation number
-//             unsigned int cnt_op = 0;
-            
-//             while (1) {
-//                 if (cnt_op >= N_CHAR_OP) {
-//                     syslog_ptr->print(SysLog::CRITICAL, 
-//                                       "Buffer op_num_str overflow\n");
-//                     cmd.parsing_err = 1;
-//                     break;
-//                 }
-            
-//                 if (buff_str[cnt_op+cnt_dev+i] == '\0') {
-//                     goto exit_loop;
-//                 }
-//                 else if (buff_str[cnt_op+cnt_dev+i] == '|') {
-//                     op_num_str[cnt_op] = '\0';
-//                     cnt_op++; 
-//                     break;
-//                 } else {
-//                     op_num_str[cnt_op] = buff_str[cnt_op+cnt_dev+i];
-//                     cnt_op++; 
-//                 }
-//             }
-                
-//             cmd.operation = (uint32_t) strtoul(op_num_str, NULL, 10);
-            
-//             if (cmd.device < device_num) {
-//                 cmd.buffer = &buff_str[i + cnt_dev + cnt_op];
-//             } else {
-//                 syslog_ptr->print(SysLog::ERROR, "Unknown device number %u\n",
-//                                   cmd.device);
-//                 cmd.parsing_err = 1;
-//             }
-            
-//             get_dev_num = 0;
-//             i += cnt_dev + cnt_op;
-//         } 
-//         else if (buff_str[i] == '\n') {
-//             buff_str[i] = '\0';
-            
-//             syslog_ptr->print(SysLog::DEBUG, "[R@%u] %s for device #%u\n", 
-//                               id, cmd.buffer, (uint32_t)cmd.device);
-                        
-//             cmd_list.push_back(cmd);
-//             requests_num++;
-            
-//             remain_ptr = &buff_str[i+1];
-            
-//             // Reset cmd
-//             cmd.sess_id = id;
-//             cmd.device = NO_DEVICE;
-//             cmd.buffer = NULL;
-//             cmd.parsing_err = 0;
-//             cmd.status = exec_pending;
-        
-//             get_dev_num = 1;                
-//             i++;
-//         } else {
-//             i++;
-//         }
-//     }
-
-// exit_loop:
-//     assert(strlen(remain_ptr) + 1 <= 2 * KSERVER_READ_STR_LEN);
-//     strcpy(remain_str, remain_ptr);
-        
-//     if (cmd_list.size() == 0) // Didn't receive a full request      
-//         return 1;
-    
-//     return 0;
-// }
+    if (exec_status < 0)
+        errors_num++;
+}
 
 void Session::execute_cmds()
 {
-    for (unsigned int i=0; i<cmd_list.size(); i++) {
-//        printf("Command #%u\n",i);
-//        cmd_list[i].print();
-        
-        if (cmd_list[i].parsing_err == 1) {
-            cmd_list[i].status = exec_skip;
-            errors_num++;
-        } else {       
-            int exec_status 
-                = session_manager.dev_manager.Execute(cmd_list[i]);
-            
-            if (exec_status < 0) {
-                cmd_list[i].status = exec_err;
-                errors_num++;
-            } else {
-                cmd_list[i].status = exec_done;
-            }
-        }
-    }
+    for (unsigned int i=0; i<cmd_list.size(); i++)
+        execute_cmd(cmd_list[i]);
 }
 
 int Session::Run()
@@ -316,36 +183,52 @@ int Session::Run()
         
         switch (sock_type) {
 #if KSERVER_HAS_TCP
-          case TCP:
-            nb_bytes_rcvd = TCPSOCKET->read_data(buff_str);
+          case TCP: {
+            Command cmd;
+            nb_bytes_rcvd = read_command(cmd);
+
+            if (nb_bytes_rcvd == 0) {
+                goto exit;
+            } else if (nb_bytes_rcvd < 0) {
+                exit_session();
+                return nb_bytes_rcvd;
+            }
+
+            execute_cmd(cmd);
+
             break;
+          }
 #endif
 #if KSERVER_HAS_UNIX_SOCKET
-          case UNIX:
+          case UNIX: {
             nb_bytes_rcvd = UNIXSOCKET->read_data(buff_str);
             break;
+          }
 #endif
 #if KSERVER_HAS_WEBSOCKET
-          case WEBSOCK:
+          case WEBSOCK: {
             nb_bytes_rcvd = WEBSOCKET->read_data(buff_str);
+
+            if (nb_bytes_rcvd == 0) {
+                goto exit;
+            } else if (nb_bytes_rcvd < 0) {
+                exit_session();
+                return nb_bytes_rcvd;
+            }
+     
+            // Parse and execute
+            if (parse_input_buffer(nb_bytes_rcvd) == 1) // Request not complete
+                continue;
+            else
+                execute_cmds();
+
             break;
+          }
 #endif
         }
-        
-        if (nb_bytes_rcvd == 0) {
-            break;
-        } else if (nb_bytes_rcvd < 0) {
-            exit_session();
-            return nb_bytes_rcvd;
-        }
- 
-        // Parse and execute
-        if (parse_input_buffer(nb_bytes_rcvd) == 1) // Request not complete
-            continue;
-        else
-            execute_cmds();
     }
 
+exit:
     exit_session(); 
     return 0;
 }

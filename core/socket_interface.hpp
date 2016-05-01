@@ -148,6 +148,7 @@ class TCPSocketInterface : public SocketInterface
         bzero(read_str, KSERVER_READ_STR_LEN);
     }
     
+    int rcv_n_bytes(char *buff_str, uint32_t n_bytes);
   private:
     char read_str[KSERVER_READ_STR_LEN];  ///< Read string
 }; // TCPSocketInterface

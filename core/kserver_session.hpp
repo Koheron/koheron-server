@@ -152,8 +152,11 @@ class Session
     /// Split the buffer into requests using the '\n' token
     /// Requests must be written as
     /// DEVICE|OPERATION|p1|p2|...|pn#\n
-    int parse_input_buffer(int nb_bytes_rcvd);
+    int parse_input_buffer(int nb_bytes_rcvd) {return 0;}
+
+    int read_command(Command& cmd);
     
+    void execute_cmd(Command& cmd);
     void execute_cmds();
     
 friend class SessionManager;

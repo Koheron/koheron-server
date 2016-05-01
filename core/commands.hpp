@@ -23,12 +23,8 @@ struct Command
     device_t device = NO_DEVICE;    ///< The device to control
     uint32_t operation = -1;        ///< Operation ID
     char *buffer = nullptr;         ///< data buffer TODO: rename payload
-
-    bool parsing_err = 0;           ///< True if parsing error
-    exec_status_t status = exec_pending; ///< Execution status
     
-    /// @brief Print the content of the command
-    void print(void);
+    void print() const;
 };
 
 #if USE_BOOST

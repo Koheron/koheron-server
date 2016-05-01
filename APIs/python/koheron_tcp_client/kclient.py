@@ -28,7 +28,7 @@ def command(device_name):
         @functools.wraps(func)
         def wrapper(self, *args, **kwargs):
             params = self.client.cmds.get_device(device_name)
-            device_id = str(params.id)
+            device_id = int(params.id)
             cmd_id = params.get_op_ref(func.__name__.upper())
             self.client.send_command(device_id, cmd_id, *(args + tuple(kwargs.values())))
             return func(self, *args, **kwargs)
@@ -39,7 +39,7 @@ def write_buffer(device_name, format_char='I', dtype=np.uint32):
     def command_wrap(func):
         def wrapper(self, *args, **kwargs):
             params = self.client.cmds.get_device(device_name)
-            device_id = str(params.id)
+            device_id = int(params.id)
             cmd_id = params.get_op_ref(func.__name__.upper())
             args_ = args[1:] + tuple(kwargs.values()) + (len(args[0]),)
             self.client.send_command(device_id, cmd_id, *args_)
@@ -52,16 +52,18 @@ def write_buffer(device_name, format_char='I', dtype=np.uint32):
 # Helper functions
 # --------------------------------------------
 
-
 def make_command(*args):
     # http://stackoverflow.com/questions/18310152/sending-binary-data-over-sockets-with-python
-    args_str = "|".join([str(arg) for arg in args[2:-1]])+'|\n'
+    args_str = "|".join([str(arg) for arg in args[2:]])+'|\n'
+
+    print args
+    print args_str
 
     buff = bytearray()
-    _append_u32(buff, 0)                        # RESERVED
-    _append_u16(buff, args[0])                  # dev_id
-    _append_u16(buff, args[1])                  # op_id
-    _append_u32(buff, sys.getsizeof(args_str))  # payload_size
+    _append_u32(buff, 0)                             # RESERVED
+    _append_u16(buff, args[0])                       # dev_id
+    _append_u16(buff, args[1])                       # op_id
+    _append_u32(buff, len(args_str.encode("utf8")))  # payload_size
 
     buff.extend(bytes(args_str))
     return buff
@@ -108,16 +110,14 @@ def _class_to_device_name(classname):
 
     return ''.join(dev_name)
 
-
 # --------------------------------------------
 # KClient
 # --------------------------------------------
 
-
 class KClient:
-    """ KServer client
+    """ tcp-server client
 
-    Initializes the connection with KServer, then retrieves
+    Initializes the connection with tcp-server, then retrieves
     the current configuration: that is the available devices and
     the commands associated.
 
@@ -125,7 +125,7 @@ class KClient:
     """
 
     def __init__(self, host, port=36000, verbose=False, timeout=2.0):
-        """ Initialize connection with KServer
+        """ Initialize connection with tcp-server
 
         Args:
             host: A string with the IP address
@@ -176,7 +176,7 @@ class KClient:
     # Send/Receive
     # -------------------------------------------------------
 
-    def send(self, cmd):
+    def send_command(self, device_id, operation_ref, *args):
         """ Send a command
 
         Args:
@@ -184,16 +184,8 @@ class KClient:
 
         Raise RuntimeError if broken connection.
         """
-        # sent = self.sock.send(cmd.encode('utf-8'))
-        for char in cmd:
-            print char
-        sent = self.sock.send(cmd)
-
-        if sent == 0:
-            raise RuntimeError("kclient-send: Socket connection broken")
-
-    def send_command(self, device_id, operation_ref, *args):
-        self.send(make_command(device_id, operation_ref, *args))
+        if self.sock.send(make_command(device_id, operation_ref, *args)) == 0:
+            raise RuntimeError("kclient-send_command: Socket connection broken")
 
     def recv_int(self, buff_size, err_msg=None, fmt="I"):
         """ Receive an integer
@@ -373,7 +365,7 @@ class KClient:
 
     def get_stats(self):
         """ Print server statistics """
-        self.send(make_command(1, 2))
+        self.send_command(1, 2)
         msg = self.recv_timeout('EOKS')
         print msg
 
@@ -394,7 +386,7 @@ class Commands:
         self.success = True
 
         try:
-            client.send(make_command(1, 1))
+            client.send_command(1, 1)
         except:
             if client.verbose:
                 traceback.print_exc()
@@ -476,3 +468,5 @@ class DevParam:
         print('\n> ' + self.name)
         print('ID: ' + str(self.id))
         print('Operations:')
+        for op in self.operations:
+            print(op)
