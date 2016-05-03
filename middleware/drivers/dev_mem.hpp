@@ -138,20 +138,25 @@ DevMem::RequestMemoryMaps(std::array<MemoryRegion, N> regions)
     uint32_t i = 0;
 
     for (auto& region : regions) {
+        bool region_is_mapped = false;
+
         for (auto& mem_map : mem_maps) {
             if (region.phys_addr == mem_map.second->PhysAddr()) {
                 // we resize the map if the new range is large
                 // than the previously allocated one.
                 if (region.range > mem_map.second->MappedSize())
                     if (Resize(mem_map.first, region.range) < 0)
-                        fprintf(stderr, "Memory map resizing failed\n"); // How should we handle this error ?
+                        fprintf(stderr, "Memory map resizing failed\n");
+                        region_is_mapped = true;
+                        break;
 
                 map_ids[i] = mem_map.first;
+                region_is_mapped = true;
                 break;
             }
         }
 
-        if (static_cast<int>(map_ids[i]) < 0) // The required region is not mapped
+        if (!region_is_mapped)
             map_ids[i] = AddMemoryMap(region.phys_addr, region.range);
 
         i++;
