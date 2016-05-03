@@ -7,9 +7,11 @@ A list of the available commands can be obtained by executing:
 $ kserver --help
 ```
 
-Note that, beyond the CLI capabilities, signals can be send directly to the daemon. To nicely stop the daemon run:
+To start, restart and stop the server service use
 ```
-$ pkill -SIGINT kserverd
+$ systemctl start tcp-server
+$ systemctl restart tcp-server
+$ systemctl stop tcp-server
 ```
 
 ## Host
@@ -20,15 +22,15 @@ The Unix socket listens to `unix:///var/run/kserver.sock`.
 
 The configuration is saved in the file `.kserver_cli` in the directory that contains the executable `kserver` of the CLI.
 
-To select the Unix socket connection run:
+For an Unix socket connection run
 ```
 $ kserver host --unix
 ```
-Whereas the TCP connection is activated by:
+and for a TCP connection use
 ```
 $ kserver host --tcp [IP] [Port]
 ```
-To check the current configuration use:
+Check the current connection configuration:
 ```
 $ kserver host --status
 ```
@@ -37,33 +39,38 @@ $ kserver host --status
 
 Provides information about the current status of the server.
 
-To obtain the available options, run:
+Check whether the server is running:
+```
+$ kserver status
+```
+
+Available options:
 ```
 $ kserver status --help
 ```
 
 ### Devices
 
-To obtain the list of the available devices:
+List the available devices:
 ```
 $ kserver status --devices
 ```
 
-The commands of a given device:
+List the commands of a given device:
 ```
 $ kserver status --devices [DEVICE_NAME]
 ```
 
 ### Sessions
 
-To display the running sessions:
+Display the running sessions:
 ```
 $ kserver status --sessions
 ```
 
 ## Init
 
-This command is called at network connection post-up. It is definec in the `INIT` device. Call:
+This command is called at network connection post-up. It is defined in the `INIT` device. Call:
 ```
 $ kserver init
 ```
