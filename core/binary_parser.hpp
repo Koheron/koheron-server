@@ -37,7 +37,7 @@ constexpr size_t size_of<uint32_t> = 4;
 template<>
 float parse<float>(char *buff)
 {
-	return static_cast<float>(parse<uint32_t>(buff));
+    return static_cast<float>(parse<uint32_t>(buff));
 }
 
 template<>
@@ -46,17 +46,33 @@ constexpr size_t size_of<float> = 4;
 template<>
 bool parse<bool>(char *buff)
 {
-	return buff[0] == 0;
+    return buff[0] == 0;
 }
 
 template<>
 constexpr size_t size_of<bool> = 1;
 
-/*template<typename... Tp>
-std::tuple<Tp...>& parse_buffer(char *buff)
+/*template<size_t position = 0, typename... Tp>
+inline typename std::enable_if<sizeof...(Tp) == 0, std::tuple<Tp...>&>::type
+parse_buffer(char *buff)
 {
-
+    return make_tuple(0);
 }*/
+
+template<size_t position = 0, typename Tp0, typename... Tp>
+inline typename std::enable_if<0 == sizeof...(Tp), std::tuple<Tp0, Tp...>>::type
+parse_buffer(char *buff)
+{
+    return std::make_tuple(parse<Tp0>(&buff[position]));
+}
+
+template<size_t position = 0, typename Tp0, typename... Tp>
+inline typename std::enable_if<0 < sizeof...(Tp), std::tuple<Tp0, Tp...>>::type
+parse_buffer(char *buff)
+{
+    return std::tuple_cat(std::make_tuple(parse<Tp0>(&buff[position])),
+                          parse_buffer<position + size_of<Tp0>, Tp...>(buff));
+}
 
 } // namespace kserver
 

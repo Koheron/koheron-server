@@ -136,6 +136,9 @@ int Session::read_command(Command& cmd)
     uint16_t op_id = parse<uint16_t>(&buff_str[4 + size_of<uint16_t>]);
     uint32_t payload_size = parse<uint32_t>(&buff_str[4 + 2 * size_of<uint16_t>]);
 
+    auto header = parse_buffer<4, uint16_t, uint16_t, uint32_t>(&buff_str[0]);
+    printf("header dev_id = %u\n", std::get<0>(header));
+
     int payload_bytes = rcv_n_bytes(payload_size);
 
     if (payload_bytes <= 0) 
