@@ -115,7 +115,7 @@ else
   CFLAGS += -Os
 endif
 
-CPPFLAGS=$(CFLAGS) -std=c++11 -pthread
+CPPFLAGS=$(CFLAGS) -std=c++14 -pthread
 
 # --------------------------------------------------------------
 # Libraries

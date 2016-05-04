@@ -12,6 +12,9 @@ namespace kserver {
 template<typename Tp>
 Tp parse(char *buff);
 
+template<typename Tp>
+constexpr size_t size_of;
+
 // Specializations
 template<>
 uint16_t parse<uint16_t>(char *buff)
@@ -20,10 +23,16 @@ uint16_t parse<uint16_t>(char *buff)
 }
 
 template<>
+constexpr size_t size_of<uint16_t> = 2;
+
+template<>
 uint32_t parse<uint32_t>(char *buff)
 {
     return buff[3] + (buff[2] << 8) + (buff[1] << 16) + (buff[0] << 24);
 }
+
+template<>
+constexpr size_t size_of<uint32_t> = 4;
 
 template<>
 float parse<float>(char *buff)
@@ -31,12 +40,17 @@ float parse<float>(char *buff)
 	return static_cast<float>(parse<uint32_t>(buff));
 }
 
-// Bool are encode on 1 byte
+template<>
+constexpr size_t size_of<float> = 4;
+
 template<>
 bool parse<bool>(char *buff)
 {
 	return buff[0] == 0;
 }
+
+template<>
+constexpr size_t size_of<bool> = 1;
 
 /*template<typename... Tp>
 std::tuple<Tp...>& parse_buffer(char *buff)

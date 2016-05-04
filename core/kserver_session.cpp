@@ -133,8 +133,8 @@ int Session::read_command(Command& cmd)
     // |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
     // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
     uint16_t dev_id = parse<uint16_t>(&buff_str[4]);
-    uint16_t op_id = parse<uint16_t>(&buff_str[6]);
-    uint32_t payload_size = parse<uint32_t>(&buff_str[8]);
+    uint16_t op_id = parse<uint16_t>(&buff_str[4 + size_of<uint16_t>]);
+    uint32_t payload_size = parse<uint32_t>(&buff_str[4 + 2 * size_of<uint16_t>]);
 
     int payload_bytes = rcv_n_bytes(payload_size);
 
