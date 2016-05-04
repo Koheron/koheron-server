@@ -119,12 +119,13 @@ int Session::exit_session()
     return -1;
 }
 
-#define PROTOCOL_HEADER_LENGTH 12
+#define HEADER_LENGTH 12
+#define HEADER_START  4  // First 4 bytes are reserved
 
 int Session::read_command(Command& cmd)
 {
     // Read header
-    int header_bytes = rcv_n_bytes(PROTOCOL_HEADER_LENGTH);
+    int header_bytes = rcv_n_bytes(HEADER_LENGTH);
 
     if (header_bytes <= 0)
         return header_bytes;
@@ -132,10 +133,8 @@ int Session::read_command(Command& cmd)
     // Decode header
     // |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
     // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
-    auto header = parse_buffer<4, uint16_t, uint16_t, uint32_t>(&buff_str[0]);
-    uint16_t dev_id = std::get<0>(header);
-    uint16_t op_id = std::get<1>(header);
-    uint32_t payload_size = std::get<2>(header);
+    auto header_tuple = parse_buffer<HEADER_START, uint16_t, uint16_t, uint32_t>(&buff_str[0]);
+    uint32_t payload_size = std::get<2>(header_tuple);
 
     int payload_bytes = rcv_n_bytes(payload_size);
 
@@ -144,15 +143,15 @@ int Session::read_command(Command& cmd)
 
     buff_str[payload_size] = '\0';
 
-    printf("dev_id = %u\n", dev_id);
-    printf("op_id = %u\n", op_id);
+    cmd.sess_id = id;
+    cmd.device = static_cast<device_t>(std::get<0>(header_tuple));
+    cmd.operation = std::get<1>(header_tuple);
+    cmd.buffer = buff_str;
+
+    printf("dev_id = %u\n", cmd.device);
+    printf("op_id = %u\n", cmd.operation);
     printf("payload_size = %u\n", payload_size);
     printf("payload = %s\n", buff_str);
-
-    cmd.sess_id = id;
-    cmd.device = static_cast<device_t>(dev_id);
-    cmd.operation = op_id;
-    cmd.buffer = buff_str;
 
     return header_bytes + payload_bytes;
 }
