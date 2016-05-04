@@ -9,7 +9,7 @@ ENV work_dir /code
 
 RUN apt-get update
 
-RUN apt-get -y install gcc-5 g++-5
+RUN apt-get -y install g++-5
 
 RUN apt-get -y install gcc-arm-linux-gnueabihf \
                        g++-arm-linux-gnueabihf \
