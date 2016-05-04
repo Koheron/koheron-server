@@ -1,4 +1,4 @@
-FROM ubuntu:15.04
+FROM ubuntu:16.04
 #FROM armbuild/ubuntu:latest
 
 ENV work_dir /code
@@ -9,9 +9,15 @@ ENV work_dir /code
 
 RUN apt-get update
 
-RUN apt-get -y install gcc-5.3 g++-5.3
--RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5.3 60 \
--                        --slave /usr/bin/g++ g++ /usr/bin/g++-5.3
+# GCC 5
+# http://askubuntu.com/questions/623350/how-to-install-g-5-1-on-ubuntu-desktop-15-04-64-bit
+RUN apt-get -y install gcc-5 g++-5
+#RUN update-alternatives --remove-all gcc
+#RUN update-alternatives --remove-all g++
+#RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 20
+#RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 20
+#RUN update-alternatives --config gcc
+#RUN update-alternatives --config g++
 
 RUN apt-get -y install gcc-arm-linux-gnueabihf \
                        g++-arm-linux-gnueabihf \
