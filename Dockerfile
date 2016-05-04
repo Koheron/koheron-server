@@ -9,6 +9,10 @@ ENV work_dir /code
 
 RUN apt-get update
 
+RUN apt-get -y install gcc-5.3 g++-5.3
+-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5.3 60 \
+-                        --slave /usr/bin/g++ g++ /usr/bin/g++-5.3
+
 RUN apt-get -y install gcc-arm-linux-gnueabihf \
                        g++-arm-linux-gnueabihf \
                        gcc-arm-linux-gnueabi   \
