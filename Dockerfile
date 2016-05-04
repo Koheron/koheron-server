@@ -11,7 +11,7 @@ RUN apt-get update
 
 # GCC 5
 # http://askubuntu.com/questions/623350/how-to-install-g-5-1-on-ubuntu-desktop-15-04-64-bit
-RUN apt-get install gcc-5 g++-5
+RUN apt-get -y install gcc-5 g++-5
 RUN update-alternatives 
 RUN update-alternatives --remove-all gcc
 RUN update-alternatives --remove-all g++
