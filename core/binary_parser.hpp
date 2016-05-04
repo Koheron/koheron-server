@@ -52,13 +52,6 @@ bool parse<bool>(char *buff)
 template<>
 constexpr size_t size_of<bool> = 1;
 
-/*template<size_t position = 0, typename... Tp>
-inline typename std::enable_if<sizeof...(Tp) == 0, std::tuple<Tp...>&>::type
-parse_buffer(char *buff)
-{
-    return make_tuple(0);
-}*/
-
 template<size_t position = 0, typename Tp0, typename... Tp>
 inline typename std::enable_if<0 == sizeof...(Tp), std::tuple<Tp0, Tp...>>::type
 parse_buffer(char *buff)

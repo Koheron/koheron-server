@@ -132,12 +132,10 @@ int Session::read_command(Command& cmd)
     // Decode header
     // |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
     // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
-    uint16_t dev_id = parse<uint16_t>(&buff_str[4]);
-    uint16_t op_id = parse<uint16_t>(&buff_str[4 + size_of<uint16_t>]);
-    uint32_t payload_size = parse<uint32_t>(&buff_str[4 + 2 * size_of<uint16_t>]);
-
     auto header = parse_buffer<4, uint16_t, uint16_t, uint32_t>(&buff_str[0]);
-    printf("header dev_id = %u\n", std::get<0>(header));
+    uint16_t dev_id = std::get<0>(header);
+    uint16_t op_id = std::get<1>(header);
+    uint32_t payload_size = std::get<2>(header);
 
     int payload_bytes = rcv_n_bytes(payload_size);
 
