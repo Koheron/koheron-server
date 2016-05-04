@@ -145,10 +145,11 @@ DevMem::RequestMemoryMaps(std::array<MemoryRegion, N> regions)
                 // we resize the map if the new range is large
                 // than the previously allocated one.
                 if (region.range > mem_map.second->MappedSize())
-                    if (Resize(mem_map.first, region.range) < 0)
+                    if (Resize(mem_map.first, region.range) < 0) {
                         fprintf(stderr, "Memory map resizing failed\n");
                         region_is_mapped = true;
                         break;
+                    }
 
                 map_ids[i] = mem_map.first;
                 region_is_mapped = true;
