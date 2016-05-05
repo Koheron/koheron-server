@@ -75,13 +75,22 @@ def PrintParseArg(file_id, device, operation):
     file_id.write('    return 0;\n')
     file_id.write('}\n\n')
     
-def PrintParserCore(file_id, device, operation): 
-    # TODO Check payload size vs tuple size
-
+def PrintParserCore(file_id, device, operation):
     arg_num = GetTotalArgNum(operation)
     
     if arg_num == 0:
         return
+
+    file_id.write('    if (required_buffer_size<')
+    for idx, arg in enumerate(operation["arguments"]):
+        if idx < arg_num - 1:   
+            file_id.write(arg["type"] + ',')
+        else:
+            file_id.write(arg["type"])
+    file_id.write('>() != cmd.payload_size) {\n')
+    file_id.write("        kserver->syslog.print(SysLog::ERROR, \"Invalid payload size\\n\");\n")
+    file_id.write("        return -1;\n")
+    file_id.write("    }\n\n")
 
     file_id.write('    auto args_tuple = parse_buffer<0, ')
     for idx, arg in enumerate(operation["arguments"]):

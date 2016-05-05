@@ -123,6 +123,9 @@ int Session::exit_session()
 
 int Session::read_command(Command& cmd)
 {
+    static_assert(required_buffer_size<uint16_t, uint16_t, uint32_t>() == HEADER_LENGTH - HEADER_START,
+                  "Unexpected header length");
+
     // Read header
     int header_bytes = rcv_n_bytes(HEADER_LENGTH);
 

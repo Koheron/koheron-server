@@ -39,6 +39,7 @@ template<> constexpr size_t size_of<bool> = 1;
 
 // -- into tuple
 
+// Parse
 template<size_t position = 0, typename Tp0, typename... Tp>
 inline std::enable_if_t<0 == sizeof...(Tp), std::tuple<Tp0, Tp...>>
 parse_buffer(char *buff)
@@ -54,7 +55,20 @@ parse_buffer(char *buff)
                           parse_buffer<position + size_of<Tp0>, Tp...>(buff));
 }
 
-// TODO Add get size of elements in tuple
+// Required buffer size
+template<typename Tp0, typename... Tp>
+constexpr std::enable_if_t<0 == sizeof...(Tp), size_t>
+required_buffer_size()
+{
+    return size_of<Tp0>;
+}
+
+template<typename Tp0, typename... Tp>
+constexpr std::enable_if_t<0 < sizeof...(Tp), size_t>
+required_buffer_size()
+{
+    return size_of<Tp0> + required_buffer_size<Tp...>();
+}
 
 } // namespace kserver
 
