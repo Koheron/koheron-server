@@ -5,19 +5,6 @@
 import os
 import device as dev_utils
 
-# Associate a conversion macro to a type
-conv_macros = {
-    'unsigned int': 'CSTRING_TO_UINT',
-    'const unsigned int': 'CSTRING_TO_UINT',
-    'uint32_t': 'CSTRING_TO_UINT',
-    'const uint32_t': 'CSTRING_TO_UINT',
-    'float': 'CSTRING_TO_FLOAT',
-    'const float': 'CSTRING_TO_FLOAT',
-    'bool': 'CSTRING_TO_BOOL',
-    'unsigned long': 'CSTRING_TO_ULONG',
-    'uint64_t': 'CSTRING_TO_ULONG'
-}
-
 def Generate(device, directory):
     filename = os.path.join(directory, device.class_name.lower() + '.cpp')
     f = open(filename, 'w')
@@ -29,7 +16,8 @@ def Generate(device, directory):
         
         f.write('#include "../core/commands.hpp"\n')
         f.write('#include "../core/kserver.hpp"\n')
-        f.write('#include "../core/kserver_session.hpp"\n\n')
+        f.write('#include "../core/kserver_session.hpp"\n')
+        #f.write('#include "../core/binary_parser.hpp"\n\n')
         
         f.write('namespace kserver {\n\n')
         
@@ -88,77 +76,83 @@ def PrintParseArg(file_id, device, operation):
     file_id.write('}\n\n')
     
 def PrintParserCore(file_id, device, operation): 
-    # Check number of arguments
+    # TODO Check payload size vs tuple size
+
     arg_num = GetTotalArgNum(operation)
     
     if arg_num == 0:
         return
-    
-    #PrintArgNumTest(file_id, arg_num, device.class_name, operation)
-    file_id.write("    char tmp_str[2*KSERVER_READ_STR_LEN];\n\n")
-    
-    file_id.write("    uint32_t i = 0;\n")
-    file_id.write("    uint32_t cnt = 0;\n")
-    file_id.write("    uint32_t param_num = 0;\n\n")
-    
-    file_id.write("    while(1) {\n")
-    file_id.write("        if(cmd.buffer[i]=='\\0') {\n")
-    file_id.write("            break;\n")
-    file_id.write("        }\n")
-    file_id.write("        else if(cmd.buffer[i]=='|') {\n")
-    file_id.write("            tmp_str[cnt] = '\\0';\n\n")
 
-    file_id.write("            switch(param_num)\n")
-    file_id.write("            {\n")
-    
-    for idx, arg in enumerate(operation["arguments"]):   
-        if "flag" in arg and arg["flag"] == 'CLIENT_ONLY':
-            continue
-                    
-        macro_name = GetConvMacro(arg["type"])
-        
-        if macro_name == 'Type error':
-            raise TypeError('\nIn device ' + device.class_name + ':\n' \
-                            + 'In operation ' + operation["name"] + ':\n' \
-                            + 'Invalid type for "' + arg["name"] \
-                                    + '" -> ' + arg["type"])
-                                    
-        file_id.write("              case " + str(idx) + ": {\n")
-            
-        if not "cast" in arg:
-            file_id.write("                  args." + arg["name"] +\
-                                     " = " + macro_name + "(tmp_str);\n")
+    file_id.write('    auto args_tuple = parse_buffer<0, ')
+    for idx, arg in enumerate(operation["arguments"]):
+        if idx < arg_num - 1:   
+            file_id.write(arg["type"] + ',')
         else:
-            file_id.write("                  args." + arg["name"] +\
-                                     " = static_cast<" + arg["cast"] + ">("\
-                                         + macro_name + "(tmp_str));\n")
+            file_id.write(arg["type"])
+    file_id.write('>(&cmd.buffer[0]);\n')
+
+    for idx, arg in enumerate(operation["arguments"]):
+        file_id.write('    args.' + arg["name"] + ' = ' + 'std::get<' + str(idx) + '>(args_tuple);\n');
+
+    
+    # #PrintArgNumTest(file_id, arg_num, device.class_name, operation)
+    # file_id.write("    char tmp_str[2*KSERVER_READ_STR_LEN];\n\n")
+    
+    # file_id.write("    uint32_t i = 0;\n")
+    # file_id.write("    uint32_t cnt = 0;\n")
+    # file_id.write("    uint32_t param_num = 0;\n\n")
+    
+    # file_id.write("    while(1) {\n")
+    # file_id.write("        if(cmd.buffer[i]=='\\0') {\n")
+    # file_id.write("            break;\n")
+    # file_id.write("        }\n")
+    # file_id.write("        else if(cmd.buffer[i]=='|') {\n")
+    # file_id.write("            tmp_str[cnt] = '\\0';\n\n")
+
+    # file_id.write("            switch(param_num)\n")
+    # file_id.write("            {\n")
+    
+    # for idx, arg in enumerate(operation["arguments"]):   
+    #     if "flag" in arg and arg["flag"] == 'CLIENT_ONLY':
+    #         continue
+                    
+    #     macro_name = GetConvMacro(arg["type"])
+        
+    #     if macro_name == 'Type error':
+    #         raise TypeError('\nIn device ' + device.class_name + ':\n' \
+    #                         + 'In operation ' + operation["name"] + ':\n' \
+    #                         + 'Invalid type for "' + arg["name"] \
+    #                                 + '" -> ' + arg["type"])
+                                    
+    #     file_id.write("              case " + str(idx) + ": {\n")
             
-        file_id.write("                  break;\n")
-        file_id.write("              }\n")
+    #     if not "cast" in arg:
+    #         file_id.write("                  args." + arg["name"] +\
+    #                                  " = " + macro_name + "(tmp_str);\n")
+    #     else:
+    #         file_id.write("                  args." + arg["name"] +\
+    #                                  " = static_cast<" + arg["cast"] + ">("\
+    #                                      + macro_name + "(tmp_str));\n")
+            
+    #     file_id.write("                  break;\n")
+    #     file_id.write("              }\n")
     
-    file_id.write("            }\n\n")
+    # file_id.write("            }\n\n")
     
-    file_id.write("            param_num++;\n")
-    file_id.write("            cnt = 0;\n")
-    file_id.write("            i++;\n")
-    file_id.write("        } else {\n")
-    file_id.write("            tmp_str[cnt] = cmd.buffer[i];\n")
-    file_id.write("            i++;\n")
-    file_id.write("            cnt++;\n")
-    file_id.write("        }\n")
-    file_id.write("    }\n\n")
+    # file_id.write("            param_num++;\n")
+    # file_id.write("            cnt = 0;\n")
+    # file_id.write("            i++;\n")
+    # file_id.write("        } else {\n")
+    # file_id.write("            tmp_str[cnt] = cmd.buffer[i];\n")
+    # file_id.write("            i++;\n")
+    # file_id.write("            cnt++;\n")
+    # file_id.write("        }\n")
+    # file_id.write("    }\n\n")
     
-    file_id.write("    if(param_num == 0 || param_num > " + str(arg_num) + ") {\n")
-    file_id.write("        kserver->syslog.print(SysLog::ERROR, \"Invalid number of parameters\\n\");\n")
-    file_id.write("        return -1;\n")
-    file_id.write("    }\n\n")
-    
-def GetConvMacro(type_name):    
-    for conv_type in conv_macros:
-        if conv_type == type_name:
-            return conv_macros[conv_type]
-    
-    return 'Type error'
+    # file_id.write("    if(param_num == 0 || param_num > " + str(arg_num) + ") {\n")
+    # file_id.write("        kserver->syslog.print(SysLog::ERROR, \"Invalid number of parameters\\n\");\n")
+    # file_id.write("        return -1;\n")
+    # file_id.write("    }\n\n")
     
 def GetTotalArgNum(operation):
     if not dev_utils.IsArgs(operation):

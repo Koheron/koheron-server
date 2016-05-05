@@ -4,7 +4,6 @@
 
 #include "kserver_session.hpp"
 #include "websocket.hpp"
-#include "binary_parser.hpp"
 
 namespace kserver {
 
@@ -146,6 +145,7 @@ int Session::read_command(Command& cmd)
     cmd.sess_id = id;
     cmd.device = static_cast<device_t>(std::get<0>(header_tuple));
     cmd.operation = std::get<1>(header_tuple);
+    cmd.payload_size = payload_size;
     cmd.buffer = buff_str;
 
     printf("dev_id = %u\n", cmd.device);
