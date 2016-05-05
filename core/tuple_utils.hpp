@@ -19,12 +19,12 @@ namespace kserver {
 
 // Initialize recursion
 template<std::size_t I = 0, typename... Tp>
-inline typename std::enable_if<I == sizeof...(Tp), void>::type
+inline std::enable_if_t<I == sizeof...(Tp), void>
 stringify_tuple(const std::tuple<Tp...>& t, std::stringstream& ss)
 {}
 
 template<std::size_t I = 0, typename... Tp>
-inline typename std::enable_if<I < sizeof...(Tp), void>::type
+inline std::enable_if_t<I < sizeof...(Tp), void>
 stringify_tuple(const std::tuple<Tp...>& t, std::stringstream& ss)
 {
     using type = typename std::tuple_element<I, std::tuple<Tp...>>::type;
