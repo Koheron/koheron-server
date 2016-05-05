@@ -209,8 +209,6 @@ def PrintExecute(file_id, device):
     file_id.write('    std::lock_guard<std::mutex> lock(THIS->mutex);\n')
     file_id.write('#endif\n\n')
     
-    file_id.write('    int err;\n\n')
-    
     file_id.write('    switch(cmd.operation) {\n')
     
     for operation in device.operations:
@@ -218,13 +216,11 @@ def PrintExecute(file_id, device):
                                 + operation["name"] + ': {\n')
         file_id.write('        Argument<' + device.class_name + '::' \
                                 + operation["name"] + '> args;\n\n')
-        file_id.write('        if(parse_arg<' + device.class_name + '::' \
-                                + operation["name"] + '>(cmd, args) < 0) {\n')
-        file_id.write('            return -1;\n')  
-        file_id.write('        }\n\n')  
-        file_id.write('        err = execute_op<' + device.class_name + '::' \
-                                + operation["name"] + '>(args, cmd.sess_id);\n')                      
-        file_id.write('        return err;\n')                           
+        file_id.write('        if (parse_arg<' + device.class_name + '::' \
+                                + operation["name"] + '>(cmd, args) < 0)\n')
+        file_id.write('            return -1;\n\n')
+        file_id.write('        return execute_op<' + device.class_name + '::' \
+                                + operation["name"] + '>(args, cmd.sess_id);\n')                                             
         file_id.write('      }\n')
         
     file_id.write('      case ' + device.class_name + '::' \
