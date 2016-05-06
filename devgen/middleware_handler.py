@@ -48,7 +48,7 @@ class MiddlewareHppParser:
         self.device = self._get_device()
 
     def _get_include(self, hppfile):
-        folders = hppfile.split('/')        
+        folders = hppfile.split('/')
         middleware_idx = -1
         for idx, folder in enumerate(folders):
             if folder == "middleware":

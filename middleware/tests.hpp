@@ -4,7 +4,7 @@
 #include <array>
 #include <vector>
 
-#include <drivers/dev_mem.hpp> 
+#include <drivers/lib/dev_mem.hpp> 
 
 class Tests
 {

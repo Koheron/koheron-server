@@ -10,7 +10,7 @@
 host: local
 
 devices:
-    - ../middleware/tests/tests.hpp
-    - ../middleware/tests/tuple_tests.hpp
-    #- ../middleware/tests/eigen_tests.hpp
+    - ../middleware/tests.hpp
+    - ../middleware/tuple_tests.hpp
+    #- ../middleware/eigen_tests.hpp
 

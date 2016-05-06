@@ -4,11 +4,23 @@
 CONFIG=config_local.yaml
 
 DOCKER=False
+BUILD_LOCAL=False
 USE_EIGEN = False
 
 MIDWARE_PATH = middleware
+REMOTE_DRIVERS = $(MIDWARE_PATH)/drivers
+ZYNQ_SDK_PATH = tmp/zynq-sdk
 
 all: kserverd
+
+$(REMOTE_DRIVERS):
+ifeq ($(BUILD_LOCAL),True)
+	git clone https://github.com/Koheron/zynq-sdk.git $(ZYNQ_SDK_PATH)
+	cd $(ZYNQ_SDK_PATH) && git checkout devmem_driver
+	mkdir -p $(REMOTE_DRIVERS)/lib
+	cp -r $(ZYNQ_SDK_PATH)/drivers/lib/. $(REMOTE_DRIVERS)/lib
+	cp -r $(ZYNQ_SDK_PATH)/drivers/device_memory/. $(REMOTE_DRIVERS)
+endif
 
 libraries:
 ifeq ($(USE_EIGEN),True)
@@ -26,7 +38,7 @@ else # No virtualenv required when running in a Docker container
 venv:
 endif
 
-kserverd: venv libraries
+kserverd: venv libraries $(REMOTE_DRIVERS)
 ifeq ($(DOCKER),False)
 	venv/bin/python kmake.py kserver -c config/$(CONFIG) $(MIDWARE_PATH)
 else
@@ -35,5 +47,6 @@ endif
 
 clean:
 	rm -rf tmp
+	rm -rf $(REMOTE_DRIVERS)
 	# rm -rf venv
 
