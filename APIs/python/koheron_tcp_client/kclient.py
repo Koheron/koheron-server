@@ -63,7 +63,6 @@ def make_command(*args):
     # Payload
     if len(args[2:]) > 0:
         payload, payload_size = _build_payload(args[2:])
-        print "Payload size = " + str(payload_size)
         _append_u32(buff, payload_size)
         buff.extend(payload)
     else:
@@ -100,6 +99,11 @@ def _build_payload(args):
             size += _append_u32(payload, arg)
         elif type(arg) is float:
             size += _append_float(payload, arg)
+        elif type(arg) is bool:
+            if arg:
+                size += _append_u32(payload, 1)
+            else:
+                size += _append_u32(payload, 0)
         else:
             raise ValueError('Unsupported type' + type(arg))
 
