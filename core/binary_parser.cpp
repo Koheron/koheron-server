@@ -29,7 +29,7 @@ float parse<float>(char *buff)
 template<>
 bool parse<bool>(char *buff)
 {
-    return buff[0] == 0;
+    return buff[0] == 1;
 }
 
 } // namespace kserver
