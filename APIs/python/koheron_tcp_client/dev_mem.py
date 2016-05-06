@@ -1,27 +1,14 @@
 # dev_mem.py
-# Client API for the DEV_MEM device
+# Client API for the DEVICE_MEMORY device
 
-import math
 import numpy as np
-from .kclient import reference_dict
+from .kclient import command, write_buffer
 
 class DevMem:
-    """
-    Map and access physical memory
-    """
     def __init__(self, client):
         self.client = client
 
-        # Dictionnary of references
-        self.ref = reference_dict(self)
-
-        self.open()
-        return
-
-    def open(self):
-        self.client.send_command(self.ref['id'], self.ref['open'])
-        return self.client.recv_int(4)
-
+    @command('DEVICE_MEMORY')
     def add_memory_map(self, device_addr, map_size):
         """ Add a memory map
 
@@ -32,28 +19,14 @@ class DevMem:
         Return:
             The ID of the memory map
         """
-        self.client.send_command(self.ref['id'],
-                                 self.ref['add_memory_map'],
-                                 device_addr, map_size)
+        map_id = self.client.recv_int(4)
 
-        map_id = self.client.recv_int(4, 'ERR')
-
-        if math.isnan(map_id):
+        if map_id < 0:
             print("Can't open memory map")
 
         return map_id
 
-
-    def rm_memory_map(self, mmap_idx):
-        """ Remove a memory map
-
-        Args:
-            mmap_idx: Index of Memory Map
-        """
-        self.client.send_command(self.ref['id'],
-                                 self.ref['rm_memory_map'],
-                                 mmap_idx)
-
+    @command('DEVICE_MEMORY')
     def read(self, mmap_idx, offset):
         """ Read a register
 
@@ -64,11 +37,9 @@ class DevMem:
         Return:
             The value of the register (integer)
         """
-        self.client.send_command(self.ref['id'],
-                                 self.ref['read'],
-                                 mmap_idx, offset)
         return self.client.recv_int(4)
 
+    @command('DEVICE_MEMORY')
     def write(self, mmap_idx, offset, reg_val):
         """ Write a register
 
@@ -77,9 +48,7 @@ class DevMem:
             offset: Offset of the register to read
             reg_val: Value to write in the register
         """
-        self.client.send_command(self.ref['id'],
-                                 self.ref['write'],
-                                 mmap_idx, offset, reg_val)
+        pass
 
     def write_buffer(self, mmap_idx, offset, data, format_char='I', dtype=np.uint32):
         """ Write a buffer of registers
@@ -87,14 +56,13 @@ class DevMem:
         Args:
             mmap_idx: Index of Memory Map
             offset: Offset of the register to write
-            len_data: Size of the buffer data. To be used for the handshaking.
         """
-        len_data = len(data)
-        self.client.send_command(self.ref['id'],
-                                 self.ref['write_buffer'],
-                                 mmap_idx, offset, len_data)
-        self.client.send_handshaking(data, format_char, dtype=dtype)
+        @write_buffer('DEVICE_MEMORY', format_char=format_char, dtype=dtype)
+        def write_buffer(self, data, mmap_idx, offset): pass
 
+        write_buffer(self, data, mmap_idx, offset)
+
+    @command('DEVICE_MEMORY')
     def read_buffer(self, mmap_idx, offset, buff_size, data_type='uint32'):
         """ Read a buffer of registers
 
@@ -106,13 +74,10 @@ class DevMem:
 
         Returns:
             A Numpy array with the data on success.
-            A Numpy array of NaNs on failure.
         """
-        self.client.send_command(self.ref['id'],
-                                 self.ref['read_buffer'],
-                                 mmap_idx, offset, buff_size)
         return self.client.recv_buffer(buff_size, data_type)
 
+    @command('DEVICE_MEMORY')
     def set_bit(self, mmap_idx, offset, index):
         """ Set a bit (bit = 1)
 
@@ -121,10 +86,9 @@ class DevMem:
             offset: Offset of the register
             index: Index of the bit to set in the register
         """
-        self.client.send_command(self.ref['id'],
-                                 self.ref['set_bit'],
-                                 mmap_idx, offset, index)
+        pass
 
+    @command('DEVICE_MEMORY')
     def clear_bit(self, mmap_idx, offset, index):
         """ Clear a bit (bit = 0)
 
@@ -133,10 +97,9 @@ class DevMem:
             offset: Offset of the register
             index: Index of the bit to cleared in the register
         """
-        self.client.send_command(self.ref['id'],
-                                 self.ref['clear_bit'],
-                                 mmap_idx, offset, index)
+        pass
 
+    @command('DEVICE_MEMORY')
     def toggle_bit(self, mmap_idx, offset, index):
         """ Toggle the value of a bit
 
@@ -145,6 +108,10 @@ class DevMem:
             offset: Offset of the register
             index: Index of the bit to set in the register
         """
-        self.client.send_command(self.ref['id'],
-                                 self.ref['toggle_bit'],
-                                 mmap_idx, offset, index)
+        pass
+
+    @command('DEVICE_MEMORY')
+    def mask_and(self, mmap_idx, offset, mask): pass
+
+    @command('DEVICE_MEMORY')
+    def mask_or(self, mmap_idx, offset, mask): pass
