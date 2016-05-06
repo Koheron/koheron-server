@@ -10,7 +10,7 @@
 host: local
 
 devices:
-    - ../drivers/tests.hpp
-    - ../drivers/tuple_tests.hpp
-    #- ../drivers/eigen_tests.hpp
+    - ../middleware/tests.hpp
+    - ../middleware/tuple_tests.hpp
+    #- ../middleware/eigen_tests.hpp
 

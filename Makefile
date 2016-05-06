@@ -7,8 +7,8 @@ DOCKER=False
 BUILD_LOCAL=False
 USE_EIGEN = False
 
-DRIVERS_PATH = drivers
-REMOTE_DRIVERS = $(DRIVERS_PATH)/drivers
+MIDWARE_PATH = middleware
+REMOTE_DRIVERS = $(MIDWARE_PATH)/drivers
 ZYNQ_SDK_PATH = tmp/zynq-sdk
 
 all: kserverd
@@ -40,9 +40,9 @@ endif
 
 kserverd: venv libraries $(REMOTE_DRIVERS)
 ifeq ($(DOCKER),False)
-	venv/bin/python kmake.py kserver -c config/$(CONFIG) $(DRIVERS_PATH)
+	venv/bin/python kmake.py kserver -c config/$(CONFIG) $(MIDWARE_PATH)
 else
-	python kmake.py kserver -c config/$(CONFIG) $(DRIVERS_PATH)
+	python kmake.py kserver -c config/$(CONFIG) $(MIDWARE_PATH)
 endif
 
 clean:

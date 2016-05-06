@@ -51,12 +51,12 @@ class MiddlewareHppParser:
         folders = hppfile.split('/')
         middleware_idx = -1
         for idx, folder in enumerate(folders):
-            if folder == "drivers":
+            if folder == "middleware":
                 middleware_idx = idx
                 break
 
         if middleware_idx == -1:
-            raise ValueError("Source file must be in the drivers folder")
+            raise ValueError("Source file must be in the middleware folder")
 
         return '/'.join(folders[(middleware_idx+1):])
 
