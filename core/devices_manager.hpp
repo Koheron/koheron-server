@@ -18,7 +18,7 @@
 #  include <mutex>
 #endif
 
-#include <drivers/dev_mem.hpp>
+#include <drivers/lib/dev_mem.hpp>
 
 namespace kserver {
 
