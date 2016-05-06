@@ -95,12 +95,6 @@ operations:
       - name: buff_size
         type: unsigned int
         description: Number of registers to read
-                  
-      - name: data_type
-        type: string
-        flag: CLIENT_ONLY # Only used by the client API
-        default: uint32
-        description: Type of received data
 
   - name: SET_BIT
     description: Set the value of a bit
