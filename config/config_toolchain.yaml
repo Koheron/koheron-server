@@ -6,8 +6,5 @@
 cross-compile: arm-linux-gnueabihf-
 
 devices:
-    # Core devices
-    - ../devices/dev_mem.yaml
-    
-    # Misc
-    - ../middleware/tests/tests.hpp
+    - ../drivers/drivers/device_memory.hpp
+    - ../drivers/tests.hpp

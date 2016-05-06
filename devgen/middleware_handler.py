@@ -48,15 +48,15 @@ class MiddlewareHppParser:
         self.device = self._get_device()
 
     def _get_include(self, hppfile):
-        folders = hppfile.split('/')        
+        folders = hppfile.split('/')
         middleware_idx = -1
         for idx, folder in enumerate(folders):
-            if folder == "middleware":
+            if folder == "drivers":
                 middleware_idx = idx
                 break
 
         if middleware_idx == -1:
-            raise ValueError("Source file must be in the middleware folder")
+            raise ValueError("Source file must be in the drivers folder")
 
         return '/'.join(folders[(middleware_idx+1):])
 

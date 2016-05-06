@@ -105,8 +105,6 @@ class Session
     
     /// Send Arrays
     template<typename T> int SendArray(const T* data, unsigned int len);
-    
-    template<typename T> int Send(const Klib::KVector<T>& vect);
     template<typename T> int Send(const std::vector<T>& vect);
     template<typename T, size_t N> int Send(const std::array<T, N>& vect);
     
@@ -203,27 +201,6 @@ int Session::SendArray(const T* data, unsigned int len)
 #if KSERVER_HAS_WEBSOCKET
       case WEBSOCK:
         return WEBSOCKET->template SendArray<T>(data, len);
-#endif
-    }
-    
-    return -1;
-}
-
-template<typename T>
-int Session::Send(const Klib::KVector<T>& vect)
-{
-    switch (sock_type) {
-#if KSERVER_HAS_TCP
-      case TCP:
-        return TCPSOCKET->template Send<T>(vect);
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
-      case UNIX:
-        return UNIXSOCKET->template Send<T>(vect);
-#endif
-#if KSERVER_HAS_WEBSOCKET
-      case WEBSOCK:
-        return WEBSOCKET->template Send<T>(vect);
 #endif
     }
     

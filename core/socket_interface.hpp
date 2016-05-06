@@ -17,8 +17,6 @@
 #include "websocket.hpp"
 #endif
 
-#include <signal/kvector.hpp>
-
 namespace kserver {
 
 // TV, 16/08/2015
@@ -80,7 +78,6 @@ class SocketInterface
     const uint32_t* RcvHandshake(uint32_t buff_size);                   \
                                                                         \
     template<class T> int Send(const T& data);                          \
-    template<typename T> int Send(const Klib::KVector<T>& vect);        \
     template<typename T> int Send(const std::vector<T>& vect);          \
                                                                         \
     template<typename T, std::size_t N>                                 \
@@ -89,13 +86,6 @@ class SocketInterface
     int SendCstr(const char *string);                                   \
     template<class T> int SendArray(const T *data, unsigned int len);   \
     template<typename... Tp> int Send(const std::tuple<Tp...>& t);
-
-#define SEND_KVECTOR(sock_interf)                       \
-  template<typename T>                                  \
-  int sock_interf::Send(const Klib::KVector<T>& vect)   \
-  {                                                     \
-      return SendArray<T>(vect.get_ptr(), vect.size()); \
-  } 
   
 #define SEND_STD_VECTOR(sock_interf)                    \
   template<typename T>                                  \
@@ -152,7 +142,6 @@ class TCPSocketInterface : public SocketInterface
     char read_str[KSERVER_READ_STR_LEN];  ///< Read string
 }; // TCPSocketInterface
 
-SEND_KVECTOR(TCPSocketInterface)
 SEND_STD_VECTOR(TCPSocketInterface)
 SEND_STD_ARRAY(TCPSocketInterface)
 SEND_TUPLE(TCPSocketInterface)
@@ -211,7 +200,6 @@ class WebSocketInterface : public SocketInterface
     WebSocket websock;
 }; // WebSocketInterface
 
-SEND_KVECTOR(WebSocketInterface)
 SEND_STD_VECTOR(WebSocketInterface)
 SEND_STD_ARRAY(WebSocketInterface)
 SEND_TUPLE(WebSocketInterface)
