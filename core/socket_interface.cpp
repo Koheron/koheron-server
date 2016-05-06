@@ -81,6 +81,11 @@ int TCPSocketInterface::read_data(char *buff_str)
 
 int TCPSocketInterface::rcv_n_bytes(char *buff_str, uint32_t n_bytes)
 {
+    if (n_bytes == 0) {
+        bzero(buff_str, 2*KSERVER_READ_STR_LEN);
+        return 0;
+    }
+
     int bytes_rcv = 0;
     uint32_t bytes_read = 0;
 

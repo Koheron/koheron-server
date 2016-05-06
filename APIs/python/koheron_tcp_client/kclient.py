@@ -53,30 +53,57 @@ def write_buffer(device_name, format_char='I', dtype=np.uint32):
 # --------------------------------------------
 
 def make_command(*args):
-    # http://stackoverflow.com/questions/18310152/sending-binary-data-over-sockets-with-python
-    args_str = "|".join([str(arg) for arg in args[2:]])+'|\n'
-
     print args
-    print args_str
 
     buff = bytearray()
-    _append_u32(buff, 0)                             # RESERVED
-    _append_u16(buff, args[0])                       # dev_id
-    _append_u16(buff, args[1])                       # op_id
-    _append_u32(buff, len(args_str.encode("utf8")))  # payload_size
+    _append_u32(buff, 0)        # RESERVED
+    _append_u16(buff, args[0])  # dev_id
+    _append_u16(buff, args[1])  # op_id
 
-    buff.extend(bytes(args_str))
+    # Payload
+    if len(args[2:]) > 0:
+        payload, payload_size = _build_payload(args[2:])
+        print "Payload size = " + str(payload_size)
+        _append_u32(buff, payload_size)
+        buff.extend(payload)
+    else:
+        _append_u32(buff, 0)
+
     return buff
 
 def _append_u16(buff, value):
     buff.append((value >> 8) & 0xff)
     buff.append(value & 0xff)
+    return 2
 
 def _append_u32(buff, value):
     buff.append((value >> 24) & 0xff)
     buff.append((value >> 16) & 0xff)
     buff.append((value >> 8) & 0xff)
     buff.append(value & 0xff)
+    return 4
+
+# http://stackoverflow.com/questions/14431170/get-the-bits-of-a-float-in-python
+def float_to_bits(f):
+    return struct.unpack('>l', struct.pack('>f', f))[0]
+
+def _append_float(buff, value):
+    return _append_u32(buff, float_to_bits(value))
+
+def _build_payload(args):
+    size = 0
+    payload = bytearray()
+
+    # http://stackoverflow.com/questions/402504/how-to-determine-the-variable-type-in-python
+    for arg in args:
+        if type(arg) is int:
+            size += _append_u32(payload, arg)
+        elif type(arg) is float:
+            size += _append_float(payload, arg)
+        else:
+            raise ValueError('Unsupported type' + type(arg))
+
+    return payload, size
 
 def reference_dict(self):
     params = self.client.cmds.get_device(_class_to_device_name

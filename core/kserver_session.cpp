@@ -27,21 +27,21 @@ Session::Session(KServerConfig *config_, int comm_fd_,
     switch (sock_type) {
 #if KSERVER_HAS_TCP
       case TCP: {
-        socket = new TCPSocketInterface(config_, &session_manager.kserver, 
+        socket = new TCPSocketInterface(config_, &session_manager.kserver,
                                         comm_fd, id_);
         break;
       }
 #endif
 #if KSERVER_HAS_UNIX_SOCKET
       case UNIX: {
-        socket = new UnixSocketInterface(config_, &session_manager.kserver, 
+        socket = new UnixSocketInterface(config_, &session_manager.kserver,
                                          comm_fd, id_);
         break;
       }
 #endif
 #if KSERVER_HAS_WEBSOCKET
       case WEBSOCK: {
-        socket = new WebSocketInterface(config_, &session_manager.kserver, 
+        socket = new WebSocketInterface(config_, &session_manager.kserver,
                                         comm_fd, id_);
         break;
       }
@@ -118,14 +118,17 @@ int Session::exit_session()
     return -1;
 }
 
-#define HEADER_LENGTH 12
-#define HEADER_START  4  // First 4 bytes are reserved
+#define HEADER_LENGTH    12
+#define HEADER_START     4  // First 4 bytes are reserved
+#define HEADER_TYPE_LIST uint16_t, uint16_t, uint32_t
+
+static_assert(
+    required_buffer_size<HEADER_TYPE_LIST>() == HEADER_LENGTH - HEADER_START,
+    "Unexpected header length"
+);
 
 int Session::read_command(Command& cmd)
 {
-    static_assert(required_buffer_size<uint16_t, uint16_t, uint32_t>() == HEADER_LENGTH - HEADER_START,
-                  "Unexpected header length");
-
     // Read header
     int header_bytes = rcv_n_bytes(HEADER_LENGTH);
 
@@ -135,15 +138,13 @@ int Session::read_command(Command& cmd)
     // Decode header
     // |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
     // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
-    auto header_tuple = parse_buffer<HEADER_START, uint16_t, uint16_t, uint32_t>(&buff_str[0]);
-    uint32_t payload_size = std::get<2>(header_tuple);
+    auto header_tuple = parse_buffer<HEADER_START, HEADER_TYPE_LIST>(buff_str);
 
+    uint32_t payload_size = std::get<2>(header_tuple);
     int payload_bytes = rcv_n_bytes(payload_size);
 
-    if (payload_bytes <= 0) 
+    if (payload_size > 0 && payload_bytes <= 0) 
         return payload_bytes;
-
-    buff_str[payload_size] = '\0';
 
     cmd.sess_id = id;
     cmd.device = static_cast<device_t>(std::get<0>(header_tuple));

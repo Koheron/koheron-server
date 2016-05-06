@@ -88,7 +88,7 @@ def PrintParserCore(file_id, device, operation):
 
     file_id.write('    auto args_tuple = parse_buffer<0, ')
     PrintTypeList(file_id, operation)
-    file_id.write('>(&cmd.buffer[0]);\n')
+    file_id.write('>(cmd.buffer);\n')
 
     for idx, arg in enumerate(operation["arguments"]):
         file_id.write('    args.' + arg["name"] + ' = ' + 'std::get<' + str(idx) + '>(args_tuple);\n');

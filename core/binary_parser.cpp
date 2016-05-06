@@ -12,24 +12,19 @@ uint16_t parse<uint16_t>(char *buff)
     return buff[1] + (buff[0] << 8);
 }
 
-// uint32_t
-
 template<>
 uint32_t parse<uint32_t>(char *buff)
 {
     return buff[3] + (buff[2] << 8) + (buff[1] << 16) + (buff[0] << 24);
 }
 
-// float
-
 template<>
 float parse<float>(char *buff)
 {
-    return static_cast<float>(parse<uint32_t>(buff));
+    uint32_t value = parse<uint32_t>(buff);
+    float *result = reinterpret_cast<float*>(&value);
+    return *result;
 }
-
-// bool
-// Coded on 1 byte
 
 template<>
 bool parse<bool>(char *buff)

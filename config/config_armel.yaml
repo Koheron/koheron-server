@@ -8,7 +8,7 @@ host: armel
 devices:
     # Core devices
     - ../devices/dev_mem.yaml
-    
+
     # Misc
     - ../middleware/tests/tests.hpp
 
