@@ -11,7 +11,7 @@
 {% for include in device.includes -%}
 #include <{{ include }}>
 {% endfor -%}
-#include <drivers/dev_mem.hpp>
+#include <drivers/lib/dev_mem.hpp>
 
 #if KSERVER_HAS_THREADS
 #include <mutex>
