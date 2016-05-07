@@ -21,9 +21,9 @@ uint32_t parse<uint32_t>(char *buff)
 template<>
 float parse<float>(char *buff)
 {
-    uint32_t value = parse<uint32_t>(buff);
-    float *result = reinterpret_cast<float*>(&value);
-    return *result;
+    static_assert(sizeof(float) == size_of<uint32_t>,
+                  "Invalid float size");
+    return pseudo_cast<float>(parse<uint32_t>(buff));
 }
 
 template<>

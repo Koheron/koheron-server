@@ -5,6 +5,7 @@
 #ifndef __BINARY_PARSER_HPP__
 #define __BINARY_PARSER_HPP__
 
+#include <cstring>
 #include <tuple>
 
 namespace kserver {
@@ -18,6 +19,15 @@ Tp parse(char *buff);
 
 template<typename Tp>
 constexpr size_t size_of;
+
+// http://stackoverflow.com/questions/17789928/whats-a-proper-way-of-type-punning-a-float-to-an-int-and-vice-versa
+template <typename T, typename U>
+inline T pseudo_cast(const U &x)
+{
+    T to = T(0);
+    std::memcpy(&to, &x, (sizeof(T) < sizeof(U)) ? sizeof(T) : sizeof(U));
+    return to;
+}
 
 // -- Specializations
 
