@@ -16,7 +16,7 @@ all: kserverd
 $(REMOTE_DRIVERS):
 ifeq ($(BUILD_LOCAL),True)
 	git clone https://github.com/Koheron/zynq-sdk.git $(ZYNQ_SDK_PATH)
-	cd $(ZYNQ_SDK_PATH) && git checkout devmem_driver
+	cd $(ZYNQ_SDK_PATH) && git checkout master
 	mkdir -p $(REMOTE_DRIVERS)/lib
 	cp -r $(ZYNQ_SDK_PATH)/drivers/lib/. $(REMOTE_DRIVERS)/lib
 	cp -r $(ZYNQ_SDK_PATH)/drivers/device_memory/. $(REMOTE_DRIVERS)
