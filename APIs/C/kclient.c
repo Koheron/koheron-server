@@ -530,7 +530,7 @@ static int open_kclient_tcp_socket(struct kclient *kcl)
     }
 
     Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (Socket == INVALID_SOCKET) {
+    if (Socket == INVALID_SOCKET) {
         fprintf(stderr, "Can't open socket\n");
         WSACleanup();
         return  -1;
