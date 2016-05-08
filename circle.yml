@@ -9,7 +9,4 @@ dependencies:
 test:
   pre:
     - docker build -t koheron/tcp-server .
-    - docker run -p 36000:36000 koheron/tcp-server tmp/server/kserverd -c config/kserver_docker.conf
-    - docker run -p 36000:36000 koheron/tcp-server cli/kserver host --tcp localhost 36000
-    - docker run -p 36000:36000 koheron/tcp-server cli/kserver host --status
-    - docker run -p 36000:36000 koheron/tcp-server cli/kserver status --sessions
+    - docker run koheron/tcp-server bash docker_tests.sh
