@@ -61,7 +61,7 @@ RUN make -C APIs/C/tests TARGET_HOST=Win64 clean all
 # ---------------------------------------
 
 # Compile server in local
-RUN make DOCKER=True CONFIG=config_local.yaml clean all
+RUN make BUILD_LOCAL=True DOCKER=True CONFIG=config_local.yaml clean all
 RUN make -C cli TARGET_HOST=local clean all
 
 # Launch kserver
