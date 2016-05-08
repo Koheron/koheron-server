@@ -485,7 +485,7 @@ static int open_kclient_tcp_socket(struct kclient *kcl)
     }
 
     Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (Socket == INVALID_SOCKET) {
+    if (Socket == INVALID_SOCKET) {
         fprintf(stderr, "Can't open socket\n");
         WSACleanup();
         return  -1;
@@ -532,7 +532,6 @@ static int unix_socket_connect(struct kclient *kcl)
 
     if (connect(kcl->unix_sockfd, 
                 (struct sockaddr *)&kcl->unixserveraddr, len) < 0) {
-        fprintf(stderr, "Can't connect to KServer\n");
         close(kcl->unix_sockfd);
         return -1;
     }
@@ -548,7 +547,6 @@ static int set_kclient_sock_options(struct kclient *kcl)
 
     if (connect(kcl->sockfd, (struct sockaddr*) &(kcl->serveraddr), 
                 sizeof(kcl->serveraddr)) < 0) {
-        fprintf(stderr, "Can't connect to KServer\n");
         close(kcl->sockfd);
         return -1;
     }
@@ -569,7 +567,6 @@ static int set_kclient_sock_options(struct kclient *kcl)
 
     if (connect(kcl->sockfd, (SOCKADDR*)(&(kcl->serveraddr)), 
                 sizeof(kcl->serveraddr)) != 0) {
-        fprintf(stderr, "Can't connect to KServer\n");
         WSACleanup();
         return -1;
     }

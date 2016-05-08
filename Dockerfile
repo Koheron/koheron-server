@@ -33,10 +33,10 @@ RUN pip install -r requirements.txt
 # Compile kserverd
 # ---------------------------------------
 
-RUN make DOCKER=True CONFIG=config_local.yaml clean all
-RUN make DOCKER=True CONFIG=config_armel.yaml clean all
-RUN make DOCKER=True CONFIG=config_armhf.yaml clean all
-RUN make DOCKER=True CONFIG=config_toolchain.yaml clean all
+RUN make BUILD_LOCAL=True DOCKER=True CONFIG=config_local.yaml clean all
+RUN make BUILD_LOCAL=True DOCKER=True CONFIG=config_armel.yaml clean all
+RUN make BUILD_LOCAL=True DOCKER=True CONFIG=config_armhf.yaml clean all
+RUN make BUILD_LOCAL=True DOCKER=True CONFIG=config_toolchain.yaml clean all
 
 # ---------------------------------------
 # Compile CLI

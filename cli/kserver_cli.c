@@ -212,6 +212,24 @@ void __display_sessions(struct running_sessions *sessions)
     }
 }
 
+// http://stackoverflow.com/questions/3585846/color-text-in-terminal-applications-in-unix
+#define RED   "\x1B[31m"
+#define GRN   "\x1B[32m"
+#define RESET "\x1B[0m"
+
+void __display_connect_status()
+{
+    struct kclient *kcl = __start_client();
+        
+    if (kcl == NULL) {
+        printf(RED "Not running\n" RESET);
+    } else {
+        printf(GRN "Running\n" RESET);
+    }
+
+    __stop_client(kcl);
+}
+
 /**
  * ks_cli_status - Execute status operations
  */
@@ -220,9 +238,8 @@ void ks_cli_status(int argc, char **argv)
     assert(strcmp(argv[0], "status") == 0);
     
     if (argc < 2) {
-        fprintf(stderr, "Available commands:\n\n");
-        __status_usage();
-        exit(EXIT_FAILURE);
+        __display_connect_status();
+        return;
     }
     
     if (IS_STATUS_DEVICES) {
