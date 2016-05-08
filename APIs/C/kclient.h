@@ -36,8 +36,8 @@ extern "C" {
 #define MAX_OP_NUM      128
 #define MAX_NAME_LENGTH 512
 
-typedef int dev_id_t;   // Device ID type
-typedef int op_id_t;    // Operation ID type
+typedef uint16_t dev_id_t;   // Device ID type
+typedef uint16_t op_id_t;    // Operation ID type
 
 typedef enum conn_type {
     NONE,
@@ -163,7 +163,7 @@ op_id_t get_op_id(struct kclient *kcl, dev_id_t dev_id, const char *op_name);
 /**
  * kclient_send_command - Send a command
  * @dev_id: ID of the target device
- * @op_ref: Reference of the target operation
+ * @op_id: ID of the target operation
  * @types: A string listing the parameter types
  *     Ex.: - use "" if no parameter are send
  *          - "uf" to send a unsigned and a float
@@ -171,7 +171,7 @@ op_id_t get_op_id(struct kclient *kcl, dev_id_t dev_id, const char *op_name);
  */
 
 int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
-                         op_id_t op_ref, const char *types, ...);
+                         op_id_t op_id, const char *types, ...);
 
 /**
  * kclient_send_string - Send a null-terminated string to KServer
