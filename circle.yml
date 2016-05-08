@@ -9,4 +9,7 @@ dependencies:
 test:
   pre:
     - docker build -t koheron/tcp-server .
-    #- docker run -t -d -p 9200:9200 koheron/tcp-server make DOCKER=True CONFIG=config_local.yaml clean all
+    - docker run -d -p 36000:36000 koheron/tcp-server cli/kserver host --tcp localhost 36000
+    - docker run -d -p 36000:36000 koheron/tcp-server cli/kserver host --tcp localhost 36000
+    - docker run -d -p 36000:36000 koheron/tcp-server cli/kserver host --status
+    - docker run -d -p 36000:36000 koheron/tcp-server cli/kserver status --sessions

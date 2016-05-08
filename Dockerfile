@@ -69,6 +69,6 @@ RUN $work_dir/tmp/server/kserverd -c $work_dir/config/kserver_docker.conf &
 EXPOSE 36000
 #RUN ps -A | grep kserverd
 
-RUN $work_dir/cli/kserver host --tcp localhost 36000
-RUN $work_dir/cli/kserver host --status
-RUN $work_dir/cli/kserver status --sessions
+#RUN $work_dir/cli/kserver host --tcp localhost 36000
+#RUN $work_dir/cli/kserver host --status
+#RUN $work_dir/cli/kserver status --sessions
