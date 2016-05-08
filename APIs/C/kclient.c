@@ -93,34 +93,6 @@ static void append_op_to_dev(struct device *dev, struct operation *op)
  *  --------- Receive/Send ---------
  */
 
-#define CMD_BUFFER_LEN 1024
-
-/**
- * struct command - Command to be executed by KServer
- * @buffer Binary buffer containing the command
- * @buffer_len Length of the buffer
- */
-struct command {
-    char   buffer[CMD_BUFFER_LEN];
-    size_t buffer_len;
-};
-
-/**
- * kclient_send - Send a command to tcp-server
- * @cmd: The command to send
- *
- * Returns 0 on success, -1 on failure
- */
-static int kclient_send(struct kclient *kcl, struct command *cmd)
-{
-    if (write(get_socket_fd(kcl), cmd->buffer, cmd->buffer_len) < 0) {
-        fprintf(stderr, "Can't send command to tcp-server\n");
-        return -1;
-    }
-    
-    return 0;
-}
-
 // |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
 // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
 
@@ -160,34 +132,37 @@ static size_t append_float(char *buff, float value)
     return append_u32(buff, __value.u);
 }
 
+#define CMD_BUFFER_LEN 1024
+
 int kclient_send_command(struct kclient *kcl, dev_id_t dev_id, 
                          op_id_t op_id, const char *types, ...)
 {
-    struct command cmd;
-    va_list args;
+    char   buffer[CMD_BUFFER_LEN];
+    size_t buffer_len = 0;
     uint32_t payload_size = 0;
+    va_list args;
 
-    cmd.buffer_len = append_u32(cmd.buffer, 0);  // RESERVED
-    cmd.buffer_len += append_u16(cmd.buffer + DEV_ID_OFFSET, dev_id);
-    cmd.buffer_len += append_u16(cmd.buffer + OP_ID_OFFSET, op_id);
+    buffer_len = append_u32(buffer, 0);  // RESERVED
+    buffer_len += append_u16(buffer + DEV_ID_OFFSET, dev_id);
+    buffer_len += append_u16(buffer + OP_ID_OFFSET, op_id);
 
     va_start(args, types);
  
     while (*types != '\0') {
         uint32_t len;
 
-        if (cmd.buffer_len >= CMD_BUFFER_LEN) {
+        if (buffer_len >= CMD_BUFFER_LEN) {
             DEBUG_MSG("Command buffer overflow\n");
             return -1;
         }
 
         switch (*types) {
           case 'u':
-            len = append_u32(cmd.buffer + PAYLOAD_OFFSET + payload_size,
+            len = append_u32(buffer + PAYLOAD_OFFSET + payload_size,
                              va_arg(args, uint32_t));
             break;
           case 'f':
-            len = append_float(cmd.buffer + PAYLOAD_OFFSET + payload_size,
+            len = append_float(buffer + PAYLOAD_OFFSET + payload_size,
                                (float)va_arg(args, double));
             break;
           default:
@@ -195,18 +170,20 @@ int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
             return -1;
         }
 
-        cmd.buffer_len += len;
+        buffer_len += len;
         payload_size += len;
         ++types;
     }
  
     va_end(args);
 
-    cmd.buffer_len += append_u32(cmd.buffer + PAYLOAD_SIZE_OFFSET, payload_size);
+    buffer_len += append_u32(buffer + PAYLOAD_SIZE_OFFSET, payload_size);
 
-    if (kclient_send(kcl, &cmd) < 0)
+    if (write(get_socket_fd(kcl), buffer, buffer_len) < 0) {
+        fprintf(stderr, "Can't send command to tcp-server\n");
         return -1;
-
+    }
+    
     return 0;
 }
 
