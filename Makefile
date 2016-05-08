@@ -30,12 +30,10 @@ ifeq ($(USE_EIGEN),True)
 	cp -r tmp/eigen-eigen-c58038c56923/Eigen $(MIDWARE_PATH)/libraries
 endif
 
-ifeq ($(DOCKER),False)
 venv:
+ifeq ($(DOCKER),False)
 	virtualenv venv
 	venv/bin/pip install -r requirements.txt
-else # No virtualenv required when running in a Docker container
-venv:
 endif
 
 kserverd: venv libraries $(REMOTE_DRIVERS)
