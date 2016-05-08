@@ -84,8 +84,8 @@ CCPP=$(CROSS_COMPILE)g++
 # GCC compiling & linking flags
 # --------------------------------------------------------------
 
-DEFINES = -DDEBUG_KSERVER 
-#DEFINES = -DRELEASE_KSERVER
+DEFINES += -DDEBUG_KSERVER 
+#DEFINES += -DRELEASE_KSERVER
 
 CFLAGS= -Wall -Werror -Wno-unknown-pragmas \
         -I$(MIDWARE_INC_PATH) -I$(MIDWARE_INC_PATH)/libraries $(DEFINES)
