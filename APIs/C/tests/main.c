@@ -93,7 +93,7 @@ int main(void)
 {
     struct tests_device dev;
 
-    struct kclient *kcl = kclient_connect("127.0.0.1", 36100);
+    struct kclient *kcl = kclient_connect("127.0.0.1", 36000);
 
     if (kcl == NULL) {
         fprintf(stderr, "Can't connect to server\n");
