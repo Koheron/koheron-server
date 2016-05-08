@@ -65,8 +65,8 @@ RUN make BUILD_LOCAL=True DOCKER=True CONFIG=config_local.yaml clean all
 RUN make -C cli TARGET_HOST=local clean all
 
 # Launch kserver
-RUN $work_dir/tmp/server/kserverd -c $work_dir/config/kserver_docker.conf &
-EXPOSE 36000
+#RUN $work_dir/tmp/server/kserverd -c $work_dir/config/kserver_docker.conf &
+#EXPOSE 36000
 #RUN ps -A | grep kserverd
 
 #RUN $work_dir/cli/kserver host --tcp localhost 36000
