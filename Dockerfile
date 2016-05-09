@@ -25,9 +25,9 @@ RUN apt-get -y install gcc-5 g++-5             \
                        python-numpy
 
 # NodeJS for javascript API
-RUN apt-get -y install npm                     \
+RUN apt-get -y install nodejs-legacy           \
+                       npm                     \
                        node                    \
-                       nodejs-legacy           \
                        default-jre
 RUN npm install -g gulp
 # Upgrade to Node 5 for Google closure compiler
