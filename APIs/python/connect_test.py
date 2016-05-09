@@ -18,16 +18,3 @@ client.get_stats()
 tests = Tests(client)
 tests.set_mean(12.5)
 print tests.send_std_array()
-
-
-# x = 10
-# y = 20
-
-# buff = bytearray()
-# buff.append((x >> 8) & 0xff)
-# buff.append(x & 0xff)
-# buff.append((y >> 8) & 0xff)
-# buff.append(y & 0xff)
-
-# for char in buff:
-#     print char
