@@ -11,7 +11,7 @@ gulp.task('compile-lib-js', function() {
     .pipe(coffee())
     .pipe(gulp.dest('./lib'))
     .pipe(concat('koheron-websocket-client.js'))
-    // .pipe(closureCompiler('koheron-websocket-client.js'))
+    .pipe(closureCompiler('koheron-websocket-client.js'))
     .pipe(gulp.dest('./lib'));
 });
 

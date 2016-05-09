@@ -27,11 +27,11 @@ RUN apt-get -y install gcc-5 g++-5             \
 # NodeJS for javascript API
 RUN apt-get -y install nodejs-legacy           \
                        npm                     \
-                       node                    \
+                       nodejs                  \
                        default-jre
 RUN npm install -g gulp
 # Upgrade to Node 5 for Google closure compiler
-RUN curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -
+RUN curl -sL https://deb.nodesource.com/setup_5.x | bash -
 RUN apt-get install -y nodejs
 
 RUN pip install --upgrade pip
@@ -59,7 +59,7 @@ RUN make -C cli CROSS_COMPILE=arm-linux-gnueabihf- clean all
 RUN make -C cli CROSS_COMPILE=arm-linux-gnueabi- clean all
 
 # ---------------------------------------
-# Compile API Tests
+# Compile C API Tests
 # ---------------------------------------
 
 RUN make -C APIs/C/tests TARGET_HOST=local clean all
