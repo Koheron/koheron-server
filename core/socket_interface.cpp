@@ -53,32 +53,6 @@ SEND_SPECIALIZE_IMPL(TCPSocketInterface)
 int TCPSocketInterface::init(void) {return 0;}
 int TCPSocketInterface::exit(void) {return 0;}
 
-// int TCPSocketInterface::read_data(char *buff_str)
-// {
-//     bzero(buff_str, 2*KSERVER_READ_STR_LEN);
-
-//     int nb_bytes_rcvd = read(comm_fd, buff_str, KSERVER_READ_STR_LEN);
-
-//     // Check reception ...
-//     if (nb_bytes_rcvd < 0) {
-//         kserver->syslog.print(SysLog::CRITICAL, "Read error\n");
-//         return -1;
-//     }
-
-//     if (nb_bytes_rcvd == KSERVER_READ_STR_LEN) {
-//         kserver->syslog.print(SysLog::CRITICAL, "Read buffer overflow\n");
-//         return -1;
-//     }
-
-//     if (nb_bytes_rcvd == 0)
-//         return 0; // Connection closed by client
-
-//     kserver->syslog.print(SysLog::DEBUG, "[R@%u] [%d bytes]\n", 
-//                           id, nb_bytes_rcvd);
-
-//     return nb_bytes_rcvd;
-// }
-
 #define HEADER_LENGTH    12
 #define HEADER_START     4  // First 4 bytes are reserved
 #define HEADER_TYPE_LIST uint16_t, uint16_t, uint32_t
@@ -268,27 +242,47 @@ int WebSocketInterface::exit(void) {return 0;}
 
 int WebSocketInterface::read_command(Command& cmd)
 {
-    // int bytes_rcv = 0;
-    // uint32_t bytes_read = 0;
+    if (websock.receive() < 0) { 
+        if (websock.is_closed())
+            return 0; // Connection closed by client
+        else
+            return -1;
+    }
 
-    // if (n_bytes >= KSERVER_READ_STR_LEN) {
-    //     DEBUG_MSG("Receive buffer size too small\n");
-    //     return -1;
-    // }
+    if (websock.payload_size() < HEADER_LENGTH) {
+        kserver->syslog.print(SysLog::ERROR, "Websocket: Command too small\n");
+        return -1;
+    }
 
-    // while (bytes_read < n_bytes) {
-    //     if (websock.receive() < 0) { 
-    //         if (websock.is_closed())
-    //             return 0; // Connection closed by client
-    //         else
-    //             return -1;
-    //     }
+    auto header_tuple = parse_buffer<HEADER_START, HEADER_TYPE_LIST>(websock.get_payload_no_copy());
 
-    //     bytes_rcv = websock.get_payload(buff_str, 2*KSERVER_READ_STR_LEN);
-    // }
+    uint32_t payload_size = std::get<2>(header_tuple);
 
-    return 0;
+    if (payload_size > CMD_PAYLOAD_BUFFER_LEN) {
+        DEBUG_MSG("Receive command payload buffer size too small\n");
+        return -1;
+    }
 
+    if (payload_size + HEADER_LENGTH > websock.payload_size()) {
+        // XXX Should I receive until payload is complete
+        kserver->syslog.print(SysLog::ERROR, "Websocket: Command payload reception incomplete\n");
+        return -1;
+    }
+
+    bzero(cmd.buffer, CMD_PAYLOAD_BUFFER_LEN);
+    memcpy(cmd.buffer, websock.get_payload_no_copy() + HEADER_LENGTH, payload_size);
+
+    cmd.sess_id = id;
+    cmd.device = static_cast<device_t>(std::get<0>(header_tuple));
+    cmd.operation = std::get<1>(header_tuple);
+    cmd.payload_size = payload_size;
+
+    printf("dev_id = %u\n", cmd.device);
+    printf("op_id = %u\n", cmd.operation);
+    printf("payload_size = %u\n", payload_size);
+    printf("payload = %s\n", cmd.buffer);
+
+    return HEADER_LENGTH + payload_size;
 }
 
 const uint32_t* WebSocketInterface::RcvHandshake(uint32_t buff_size)

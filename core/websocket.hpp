@@ -71,6 +71,9 @@ class WebSocket
     
     template<class T>
     int send(const T *data, unsigned int len);
+
+    char *get_payload_no_copy() {return payload;}
+    unsigned int payload_size() const {return header.payload_size;}
     
     /// Copy the received payload
     /// @payload_ Buffer where the payload must be copied
