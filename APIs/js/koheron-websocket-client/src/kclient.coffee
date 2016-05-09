@@ -103,6 +103,18 @@ if window?
         msg += "\n"
         return msg
 else # NodeJS
+    appendUint16 = (buffer, value) ->
+        buffer.push((value >> 8) & 0xff)
+        buffer.push(value & 0xff)
+        return 2
+
+    appendUint32 = (buffer, value) ->
+        buffer.push((value >> 24) & 0xff)
+        buffer.push((value >> 16) & 0xff)
+        buffer.push((value >> 8) & 0xff)
+        buffer.push(value & 0xff)
+        return 4
+
     Command = (dev_id, cmd_ref, types_str, params...) ->
 
         buffer = []
@@ -112,6 +124,7 @@ else # NodeJS
             appendUint16(buffer, dev_id)
             appendUint16(buffer, cmd_ref)
             appendUint32(buffer, 0) # Payload size
+            return Uint8Array(buffer)
 
         for i in [0..(types_str.length-1)]
             switch types_str[i]
@@ -123,18 +136,6 @@ else # NodeJS
                     throw "Unknown type " + types_str[i]
 
         return Uint8Array(buffer)
-
-appendUint16: (buffer, value) ->
-    buffer.push((value >> 8) & 0xff)
-    buffer.push(value & 0xff)
-    return 2
-
-appendUint32: (buffer, value) ->
-    buffer.push((value >> 24) & 0xff)
-    buffer.push((value >> 16) & 0xff)
-    buffer.push((value >> 8) & 0xff)
-    buffer.push(value & 0xff)
-    return 4
 
 class @KClient
     "use strict"
@@ -273,7 +274,7 @@ class @KClient
     getCmds: (callback) ->
          @websockpool.requestSocket( (sockid) =>
             websocket = @websockpool.getSocket(sockid)
-            websocket.send(Command(1,1))
+            websocket.send(Command(1,1,''))
             msg_num = 0
 
             websocket.onmessage = (evt) =>
@@ -309,7 +310,7 @@ class @KClient
     getDevStatus: (callback) ->
         @websockpool.requestSocket( (sockid) =>
             websocket = @websockpool.getSocket(sockid)
-            websocket.send(Command(1,3))
+            websocket.send(Command(1,3,''))
 
             @websocket.onmessage = (evt) =>
                 if evt.data != "EODS\n"

@@ -12,7 +12,7 @@ class Tests:
 		return client.recv_buffer(10, data_type='float32')
 
 
-client = KClient('127.0.0.1', 36000, verbose=True)
+client = KClient('127.0.0.1', 36100, verbose=True)
 client.get_stats()
 
 tests = Tests(client)

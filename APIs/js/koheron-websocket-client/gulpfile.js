@@ -3,7 +3,7 @@
 var gulp = require('gulp');
 var coffee = require('gulp-coffee');
 var concat = require('gulp-concat');
-var closureCompiler = require('gulp-closure-compiler'); // Google closure compiler
+// var closureCompiler = require('gulp-closure-compiler'); // Google closure compiler
 
 gulp.task('compile-lib-js', function() {
     gulp.src('src/*.coffee')
