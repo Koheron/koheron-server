@@ -27,7 +27,10 @@ class WebSocketPool
     "use strict"
 
     constructor: (@pool_size, url, onopen_callback) ->
-        if not window.WebSocket then throw "WebSocket not supported"
+        if window?
+            if not window.WebSocket then throw "WebSocket not supported"
+        else # NodeJS
+            WebSocket = require('websocket').w3cwebsocket;
 
         @pool = []
         @free_sockets = []
@@ -90,11 +93,18 @@ class WebSocketPool
             websocket.onclose = () =>
                 websocket.close()
 
-window.Command = (dev_id, cmd_ref, params...) ->
-    msg = dev_id.toString() + "|" + cmd_ref.toString() + "|"
-    (msg += par.toString() + "|" for par in params)
-    msg += "\n"
-    return msg
+if window?
+    window.Command = (dev_id, cmd_ref, params...) ->
+        msg = dev_id.toString() + "|" + cmd_ref.toString() + "|"
+        (msg += par.toString() + "|" for par in params)
+        msg += "\n"
+        return msg
+else # NodeJS
+    exports.Command = (dev_id, cmd_ref, params...) ->
+        msg = dev_id.toString() + "|" + cmd_ref.toString() + "|"
+        (msg += par.toString() + "|" for par in params)
+        msg += "\n"
+        return msg
 
 class @KClient
     "use strict"

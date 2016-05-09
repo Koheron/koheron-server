@@ -8,9 +8,9 @@ init:
 
 build: init
 	gulp compile-lib-js
+	gulp compile-tests-js
 
 tests: build
-	gulp compile-tests-js
 	node tests/tests.js
 
 clean:
