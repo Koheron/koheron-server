@@ -105,10 +105,13 @@ if window?
 else # NodeJS
     Command = (dev_id, cmd_ref, types_str, params...) ->
 
-        buffer = new Uint8Array()
+        buffer = []
 
-        if types_str.length == 0:
-            
+        if types_str.length == 0
+            appendUint32(buffer, 0) # RESERVED
+            appendUint16(buffer, dev_id)
+            appendUint16(buffer, cmd_ref)
+            appendUint32(buffer, 0) # Payload size
 
         for i in [0..(types_str.length-1)]
             switch types_str[i]
@@ -119,7 +122,19 @@ else # NodeJS
                 else
                     throw "Unknown type " + types_str[i]
 
-        return msg
+        return Uint8Array(buffer)
+
+appendUint16: (buffer, value) ->
+    buffer.push((value >> 8) & 0xff)
+    buffer.push(value & 0xff)
+    return 2
+
+appendUint32: (buffer, value) ->
+    buffer.push((value >> 24) & 0xff)
+    buffer.push((value >> 16) & 0xff)
+    buffer.push((value >> 8) & 0xff)
+    buffer.push(value & 0xff)
+    return 4
 
 class @KClient
     "use strict"

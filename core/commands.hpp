@@ -16,9 +16,6 @@
 
 namespace kserver {
 
-
-
-/// @brief Command parameters
 struct Command
 {
     SessID sess_id = -1;                  ///< ID of the session emitting the command  
