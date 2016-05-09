@@ -1,0 +1,29 @@
+{
+    "author": "T. Vanderbruggen <thomas.vanderbruggen@koheron.com> (http://www.koheron.com/)",
+    "name": "koheron-websocket-client",
+    "description": "Websocket client for Koheron server",
+    "version": "0.1.0",
+    "repository": "https://github.com/Koheron/tcp-server/tree/master/APIs/js/koheron-websocket-client",
+    "license": "MIT",
+    "homepage": "https://github.com/Koheron/tcp-server",
+
+    "engines": {
+        "node": ">= 0.8.0"
+    },
+
+    "dependencies": {
+    },
+
+    "devDependencies": {
+        "gulp": "~3.9.1",
+        "gulp-concat": "~2.6.0",
+        "gulp-coffee": "~2.3.1",
+        "gulp-closure-compiler": "0.4.0"
+    },
+
+    "bugs": {
+        "url": "https://github.com/Koheron/tcp-server/issues"
+    },
+
+    "keywords": ["websocket"]
+}
