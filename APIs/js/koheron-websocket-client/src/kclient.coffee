@@ -90,52 +90,7 @@ class WebSocketPool
 
     exit: ->
         for websocket in @pool
-            websocket.onclose = () =>
-                websocket.close()
-
-
-# |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
-# |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
-if window?
-    window.Command = (dev_id, cmd_ref, params...) ->
-        msg = dev_id.toString() + "|" + cmd_ref.toString() + "|"
-        (msg += par.toString() + "|" for par in params)
-        msg += "\n"
-        return msg
-else # NodeJS
-    appendUint16 = (buffer, value) ->
-        buffer.push((value >> 8) & 0xff)
-        buffer.push(value & 0xff)
-        return 2
-
-    appendUint32 = (buffer, value) ->
-        buffer.push((value >> 24) & 0xff)
-        buffer.push((value >> 16) & 0xff)
-        buffer.push((value >> 8) & 0xff)
-        buffer.push(value & 0xff)
-        return 4
-
-    Command = (dev_id, cmd_ref, types_str, params...) ->
-
-        buffer = []
-
-        if types_str.length == 0
-            appendUint32(buffer, 0) # RESERVED
-            appendUint16(buffer, dev_id)
-            appendUint16(buffer, cmd_ref)
-            appendUint32(buffer, 0) # Payload size
-            return Uint8Array(buffer)
-
-        for i in [0..(types_str.length-1)]
-            switch types_str[i]
-                when 'u'
-                    console.log 'unsigned'
-                when 'f'
-                    console.log 'signed'
-                else
-                    throw "Unknown type " + types_str[i]
-
-        return Uint8Array(buffer)
+            websocket.close()
 
 class @KClient
     "use strict"
@@ -338,3 +293,49 @@ class @KClient
             if device.id == id then return device
 
         throw "Device ID " + id + " not found"
+
+# ----------------------------------------------------------------------------
+# Binary command build
+# ----------------------------------------------------------------------------
+
+# |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
+# |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
+if window?
+    window.Command = (dev_id, cmd_ref, params...) ->
+        msg = dev_id.toString() + "|" + cmd_ref.toString() + "|"
+        (msg += par.toString() + "|" for par in params)
+        msg += "\n"
+        return msg
+else # NodeJS
+    appendUint16 = (buffer, value) ->
+        buffer.push((value >> 8) & 0xff)
+        buffer.push(value & 0xff)
+        return 2
+
+    appendUint32 = (buffer, value) ->
+        buffer.push((value >> 24) & 0xff)
+        buffer.push((value >> 16) & 0xff)
+        buffer.push((value >> 8) & 0xff)
+        buffer.push(value & 0xff)
+        return 4
+
+    Command = (dev_id, cmd_ref, types_str, params...) ->
+        buffer = []
+
+        if types_str.length == 0
+            appendUint32(buffer, 0) # RESERVED
+            appendUint16(buffer, dev_id)
+            appendUint16(buffer, cmd_ref)
+            appendUint32(buffer, 0) # Payload size
+            return Uint8Array(buffer)
+
+        for i in [0..(types_str.length-1)]
+            switch types_str[i]
+                when 'u'
+                    console.log 'unsigned'
+                when 'f'
+                    console.log 'signed'
+                else
+                    throw "Unknown type " + types_str[i]
+
+        return Uint8Array(buffer)
