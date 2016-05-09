@@ -14,7 +14,6 @@
 #include "kserver.hpp"
 #include "socket_interface.hpp"
 #include "peer_info.hpp"
-#include "binary_parser.hpp"
 
 namespace kserver {
 

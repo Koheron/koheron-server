@@ -16,14 +16,16 @@
 
 namespace kserver {
 
+
+
 /// @brief Command parameters
 struct Command
 {
-    SessID sess_id = -1;            ///< ID of the session emitting the command  
-    device_t device = NO_DEVICE;    ///< The device to control
-    uint32_t operation = -1;        ///< Operation ID
+    SessID sess_id = -1;                  ///< ID of the session emitting the command  
+    device_t device = NO_DEVICE;          ///< The device to control
+    uint32_t operation = -1;              ///< Operation ID
     uint32_t payload_size;
-    char *buffer = nullptr;         ///< data buffer TODO: rename payload
+    char buffer[CMD_PAYLOAD_BUFFER_LEN];  ///< data buffer TODO: rename payload
     
     void print() const;
 };

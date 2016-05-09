@@ -426,10 +426,8 @@ int WebSocket::get_payload(char *payload_, unsigned int size)
         return -1;
     }
     
-    memcpy(payload_, (const char*)&payload, header.payload_size + 1);
-    payload_[header.payload_size] = '\0';
-    
-    return header.payload_size + 1;
+    memcpy(payload_, (const char*)&payload, header.payload_size );
+    return header.payload_size;
 }
 
 } // namespace kserver
