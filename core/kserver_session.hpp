@@ -80,8 +80,6 @@ class Session
     }
     
     // --- Receive 
-    int rcv_n_bytes(uint32_t n_bytes);
-
     // For large amount of data transfer
     
     /// Receive data from client with handshaking
@@ -112,11 +110,6 @@ class Session
     /// Send a std::tuple
     template<typename... Tp> int Send(const std::tuple<Tp...>& t);
     
-    // --- Internal use
-    int init(void);
-    int exit(void);
-    int read_data(char *buff_str, char *remain_str);
-    
   private:
     KServerConfig *config;
     int comm_fd;                ///< Socket file descriptor
@@ -136,9 +129,6 @@ class Session
     // -------------------
     
     SocketInterface *socket;
-    
-    // Reception buffer
-    char buff_str[2*KSERVER_READ_STR_LEN];
     
     // -------------------
     // Internal functions

@@ -264,7 +264,7 @@ int WebSocketInterface::read_command(Command& cmd)
     }
 
     if (payload_size + HEADER_LENGTH > websock.payload_size()) {
-        // XXX Should I receive until payload is complete
+        // XXX I should receive until payload is complete
         kserver->syslog.print(SysLog::ERROR, "Websocket: Command payload reception incomplete\n");
         return -1;
     }

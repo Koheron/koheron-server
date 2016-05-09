@@ -152,8 +152,7 @@ int Session::read_command(Command& cmd)
 #endif
 #if KSERVER_HAS_WEBSOCKET
       case WEBSOCK:
-        return -1;
-        // return WEBSOCKET->read_command(cmd); // TODO
+        return WEBSOCKET->read_command(cmd);
 #endif
     }
 

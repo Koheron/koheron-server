@@ -93,6 +93,9 @@ class WebSocketPool
             websocket.onclose = () =>
                 websocket.close()
 
+
+# |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
+# |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
 if window?
     window.Command = (dev_id, cmd_ref, params...) ->
         msg = dev_id.toString() + "|" + cmd_ref.toString() + "|"
@@ -100,10 +103,22 @@ if window?
         msg += "\n"
         return msg
 else # NodeJS
-    exports.Command = (dev_id, cmd_ref, params...) ->
-        msg = dev_id.toString() + "|" + cmd_ref.toString() + "|"
-        (msg += par.toString() + "|" for par in params)
-        msg += "\n"
+    Command = (dev_id, cmd_ref, types_str, params...) ->
+
+        buffer = new Uint8Array()
+
+        if types_str.length == 0:
+            
+
+        for i in [0..(types_str.length-1)]
+            switch types_str[i]
+                when 'u'
+                    console.log 'unsigned'
+                when 'f'
+                    console.log 'signed'
+                else
+                    throw "Unknown type " + types_str[i]
+
         return msg
 
 class @KClient
