@@ -327,7 +327,8 @@ else # NodeJS
 
         if types_str.length == 0
             appendUint32(buffer, 0) # Payload size
-            return Uint8Array(buffer)
+            ret = new Uint8Array(buffer)
+            return ret
 
         if types_str.length != params.length
             throw 'Invalid types string length'
@@ -344,4 +345,5 @@ else # NodeJS
                     throw "Unknown type " + types_str[i]
 
         appendUint32(buffer, payload_size)
-        return Uint8Array(buffer.concat(payload))
+        ret = new Uint8Array(buffer.concat(payload))
+        return ret
