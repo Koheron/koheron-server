@@ -13,54 +13,27 @@ Tests::Tests(Klib::DevMem& dvm_unused_)
     waveform_size = 0;
     mean = 0;
     std_dev = 0;
-    status = CLOSED;
-}
- 
-Tests::~Tests()
-{
-    Close();
 }
 
 int Tests::Open(uint32_t waveform_size_)
-{
-    // Reopening
-    if (status == OPENED && waveform_size_ != waveform_size)
-        Close();
-
-    if (status == CLOSED) {
-        waveform_size = waveform_size_;        
-        data = std::vector<float>(waveform_size);       
-        status = OPENED;
-    }
-    
+{ 
+    data = std::vector<float>(waveform_size);
     return 0;
 }
 
-void Tests::Close()
+bool Tests::set_float(float f)
 {
-    if (status == OPENED)
-        status = CLOSED;
+    return f == 12.5;
 }
 
-std::vector<float>& Tests::read()
+std::vector<float>& Tests::send_std_vector()
 {
-    std::default_random_engine generator(std::random_device{}());
-    std::normal_distribution<float> distribution(mean, std_dev);
+    data.resize(10);
 
     for (unsigned int i=0; i<data.size(); i++)
-        data[i] = distribution(generator);
+        data[i] = i*i*i;
 
     return data;
-}
-
-void Tests::set_mean(float mean_)
-{
-    mean = mean_;
-}
-
-void Tests::set_std_dev(float std_dev_)
-{
-    std_dev = std_dev_;
 }
 
 std::array<float, 10>& Tests::send_std_array()
@@ -71,18 +44,13 @@ std::array<float, 10>& Tests::send_std_array()
     return data_std_array;
 }
 
-float* Tests::get_array(uint32_t n_pts)
+float* Tests::send_c_array1(uint32_t n_pts)
 {
     if (data.size() < 2*n_pts)
         data.resize(2*n_pts);
 
-    std::default_random_engine generator(std::random_device{}());
-    std::normal_distribution<float> distribution(mean, std_dev);
-
-    for (unsigned int i=0; i<n_pts; i++) {
-       data[i] = distribution(generator);
-       data[i + n_pts] = distribution(generator);
-    }
+    for (unsigned int i=0; i<2*n_pts; i++)
+        data[i] = static_cast<float>(i)/2;
 
     return data.data();
 }

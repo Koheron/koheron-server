@@ -11,22 +11,17 @@ class Tests
 {
   public:
     Tests(Klib::DevMem& dvm_unused_);
-    ~Tests();
 
     int Open(uint32_t waveform_size_);
-    
-    #pragma tcp-server exclude
-    void Close();
 
-    void set_mean(float mean_);
-    void set_std_dev(float mean_);
+    bool set_float(float f);
 
     // Send arrays
-    std::vector<float>& read();
+    std::vector<float>& send_std_vector();
     std::array<float, 10>& send_std_array();
 
     #pragma tcp-server read_array 2*arg{n_pts}
-    float* get_array(uint32_t n_pts);
+    float* send_c_array1(uint32_t n_pts);
 
     #pragma tcp-server read_array this{data.size()}
     float* get_array_bis();

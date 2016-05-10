@@ -17,23 +17,27 @@ class Tests
         @id = @device.id
     
         @cmds =
-            set_mean       : @device.getCmdRef( "SET_MEAN"       )
-            set_std_dev    : @device.getCmdRef( "SET_STD_DEV"    )
-            send_std_array : @device.getCmdRef( "SEND_STD_ARRAY" )
-            set_buffer     : @device.getCmdRef( "SET_BUFFER"     )
-            read_uint      : @device.getCmdRef( "READ_UINT"      )
-            read_int       : @device.getCmdRef( "READ_INT"       )
-            get_cstr       : @device.getCmdRef( "GET_CSTR"       )
-            get_tuple      : @device.getCmdRef( "GET_TUPLE"      )
+            set_float       : @device.getCmdRef( "SET_FLOAT"       )
+            send_std_vector : @device.getCmdRef( "SEND_STD_VECTOR" )
+            send_std_array  : @device.getCmdRef( "SEND_STD_ARRAY"  )
+            send_c_array1   : @device.getCmdRef( "SEND_C_ARRAY1"   )
+            set_buffer      : @device.getCmdRef( "SET_BUFFER"      )
+            read_uint       : @device.getCmdRef( "READ_UINT"       )
+            read_int        : @device.getCmdRef( "READ_INT"        )
+            get_cstr        : @device.getCmdRef( "GET_CSTR"        )
+            get_tuple       : @device.getCmdRef( "GET_TUPLE"       )
 
-    setMean : (mean) ->
-        @kclient.send(Command(@id, @cmds.set_mean, 'f', mean))
+    setFloat : (f, cb) ->
+        @kclient.readBool(Command(@id, @cmds.set_float, 'f', f), cb)
 
-    setStdDev : (std) ->
-        @kclient.send(Command(@id, @cmds.set_std_dev, 'f', std))
+    rcvStdVector : (cb) ->
+        @kclient.readFloat32Array(Command(@id, @cmds.send_std_vector), cb)
 
     rcvStdArray : (cb) ->
         @kclient.readFloat32Array(Command(@id, @cmds.send_std_array), cb)
+
+    rcvCArray : (len, cb) ->
+        @kclient.readFloat32Array(Command(@id, @cmds.send_c_array1, 'u', len), cb)
 
     sendBuffer : (len) ->
         buffer = new Uint32Array(len)
@@ -84,6 +88,40 @@ exports.readInt = (assert) ->
         )
     )
 
+exports.setFloat = (assert) ->
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.setFloat( 12.5, (is_ok) =>
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.rcvStdVector = (assert) ->
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.rcvStdVector( (array) =>
+                is_ok = true
+                for i in [0..array.length-1]
+                    if array[i] != i*i*i
+                        is_ok = false
+                        break
+
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
 exports.rcvStdArray = (assert) ->
     assert.expect(2)
 
@@ -94,6 +132,28 @@ exports.rcvStdArray = (assert) ->
                 is_ok = true
                 for i in [0..array.length-1]
                     if array[i] != i*i
+                        is_ok = false
+                        break
+
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.rcvCArray = (assert) ->
+    assert.expect(3)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            len = 10
+            tests.rcvCArray( len, (array) =>
+                assert.equal(array.length, 2*len)
+                is_ok = true
+                for i in [0..2*len-1]
+                    if array[i] != i/2
                         is_ok = false
                         break
 

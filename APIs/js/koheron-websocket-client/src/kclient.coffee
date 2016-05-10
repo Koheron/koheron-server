@@ -286,6 +286,11 @@ class @KClient
                 @websockpool.freeSocket(sockid)
         )
 
+    readBool: (cmd, fn) ->
+        @readUint32(cmd, (num) ->
+            fn(num == 1)
+        )
+
     readTuple: (cmd, fn) ->
         @websockpool.requestSocket( (sockid) =>
             websocket = @websockpool.getSocket(sockid)
