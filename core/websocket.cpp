@@ -97,8 +97,7 @@ int WebSocket::authenticate()
 
     if (send_request(oss.str()) < 0)
         return -1;
-        
-    kserver->syslog.print(SysLog::DEBUG, "Websocket communication authenticated\n");
+
     return 0;
 }
 

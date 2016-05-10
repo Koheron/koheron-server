@@ -149,6 +149,9 @@ appendFloat32 = (buffer, value) ->
     appendUint32(buffer, floatToBytes(value))
 
 class CommandBase
+    "use strict"
+
+    # Binary buffer structure:
     # |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
     # |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
 
@@ -158,8 +161,6 @@ class CommandBase
     # @type {function(number, string=, ...(number|boolean)):Uint8Array}
     ###
     constructor: (dev_id, cmd_ref, types_str='', params...) ->
-        console.log "dev_id = " + dev_id.toString()
-        console.log "cmd_ref = " + cmd_ref.toString() 
         buffer = []
         appendUint32(buffer, 0) # RESERVED
         appendUint16(buffer, dev_id)
@@ -199,6 +200,8 @@ else # NodeJS
     ###* @param {...*} var_args ###
     Command = (var_args) ->
         CommandBase.apply(Object.create(Command.prototype), arguments)
+
+    exports.Command = Command
 
 class @KClient
     "use strict"

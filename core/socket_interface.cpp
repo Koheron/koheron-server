@@ -50,8 +50,8 @@ namespace kserver {
 
 SEND_SPECIALIZE_IMPL(TCPSocketInterface)
 
-int TCPSocketInterface::init(void) {return 0;}
-int TCPSocketInterface::exit(void) {return 0;}
+int TCPSocketInterface::init() {return 0;}
+int TCPSocketInterface::exit() {return 0;}
 
 #define HEADER_LENGTH    12
 #define HEADER_START     4  // First 4 bytes are reserved
@@ -211,7 +211,7 @@ int TCPSocketInterface::SendCstr(const char *string)
 
 SEND_SPECIALIZE_IMPL(WebSocketInterface)
 
-int WebSocketInterface::init(void)
+int WebSocketInterface::init()
 {    
     websock.set_id(comm_fd);
 
@@ -224,21 +224,7 @@ int WebSocketInterface::init(void)
     return 0;
 }
 
-int WebSocketInterface::exit(void) {return 0;}
-
-// int WebSocketInterface::read_data(char *buff_str)
-// {
-//     bzero(buff_str, 2*KSERVER_READ_STR_LEN);
-
-//     if (websock.receive() < 0) { 
-//         if (websock.is_closed())
-//             return 0; // Connection closed by client
-//         else
-//             return -1;
-//     }
-
-//     return websock.get_payload(buff_str, 2*KSERVER_READ_STR_LEN);
-// }
+int WebSocketInterface::exit() {return 0;}
 
 int WebSocketInterface::read_command(Command& cmd)
 {
@@ -264,10 +250,13 @@ int WebSocketInterface::read_command(Command& cmd)
     }
 
     if (payload_size + HEADER_LENGTH > websock.payload_size()) {
-        // XXX I should receive until payload is complete
         kserver->syslog.print(SysLog::ERROR, "Websocket: Command payload reception incomplete\n");
         return -1;
     }
+
+    if (payload_size + HEADER_LENGTH < websock.payload_size())
+        kserver->syslog.print(SysLog::WARNING, "Websocket: Received more data than expected\n");
+
 
     bzero(cmd.buffer, CMD_PAYLOAD_BUFFER_LEN);
     memcpy(cmd.buffer, websock.get_payload_no_copy() + HEADER_LENGTH, payload_size);

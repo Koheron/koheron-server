@@ -71,8 +71,8 @@ class SocketInterface
 
 #define _SOCKET_INTERF_OBJ                                              \
   public:                                                               \
-    int init(void);                                                     \
-    int exit(void);                                                     \
+    int init();                                                         \
+    int exit();                                                         \
                                                                         \
     int read_command(Command& cmd);                                     \
     int read_data(char *buff_str);                                      \
