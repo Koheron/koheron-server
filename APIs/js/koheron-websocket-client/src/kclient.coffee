@@ -92,6 +92,114 @@ class WebSocketPool
         for websocket in @pool
             websocket.close()
 
+# === Helper functions to build binary buffer ===
+
+###*
+# Append an Uint8 to the binary buffer
+# @param {Array.<number>} buffer The binary buffer
+# @param {number} value The Uint8 to append
+# @return {number} Number of bytes
+###
+appendUint8 = (buffer, value) ->
+    buffer.push(value & 0xff)
+    return 1
+
+###*
+# Append an Uint16 to the binary buffer
+# @param {Array.<number>} buffer The binary buffer
+# @param {number} value The Uint16 to append
+# @return {number} Number of bytes
+###
+appendUint16 = (buffer, value) ->
+    buffer.push((value >> 8) & 0xff)
+    buffer.push(value & 0xff)
+    return 2
+
+###*
+# Append an Uint32 to the binary buffer
+# @param {Array.<number>} buffer The binary buffer
+# @param {number} value The Uint32 to append
+# @return {number} Number of bytes
+###
+appendUint32 = (buffer, value) ->
+    buffer.push((value >> 24) & 0xff)
+    buffer.push((value >> 16) & 0xff)
+    buffer.push((value >> 8) & 0xff)
+    buffer.push(value & 0xff)
+    return 4
+
+###*
+# Convert a float to its binary representation
+# http://stackoverflow.com/questions/2003493/javascript-float-from-to-bits
+# @param {number} f The float to convert
+# @return {number} Uint32 containing the float binary representation
+###
+floatToBytes = (f) ->
+    buf = new ArrayBuffer(4);
+    (new Float32Array(buf))[0] = f;
+    return (new Uint32Array(buf))[0];
+
+###*
+# Append a Float32 to the binary buffer
+# @param {Array.<number>} buffer The binary buffer
+# @param {number} value The float to append
+# @return {number} Number of bytes
+###
+appendFloat32 = (buffer, value) ->
+    appendUint32(buffer, floatToBytes(value))
+
+class CommandBase
+    # |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
+    # |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
+
+    # http://stackoverflow.com/questions/27050784/closure-annotation-for-variadic-function
+    ###*
+    # Build the binary buffer of a command
+    # @type {function(number, string=, ...(number|boolean)):Uint8Array}
+    ###
+    constructor: (dev_id, cmd_ref, types_str='', params...) ->
+        console.log "dev_id = " + dev_id.toString()
+        console.log "cmd_ref = " + cmd_ref.toString() 
+        buffer = []
+        appendUint32(buffer, 0) # RESERVED
+        appendUint16(buffer, dev_id)
+        appendUint16(buffer, cmd_ref)
+
+        if types_str.length == 0
+            appendUint32(buffer, 0) # Payload size
+            return new Uint8Array(buffer)
+
+        if types_str.length != params.length
+            throw 'Invalid types string length'
+
+        payload_size = 0
+        payload = []
+        for i in [0..(types_str.length-1)]
+            switch types_str[i]
+                when 'u'
+                    payload_size += appendUint32(payload, params[i])
+                when 'f'
+                    payload_size += appendFloat32(payload, params[i])
+                when 'b'
+                    if params[i]
+                        payload_size += appendUint8(payload, 1)
+                    else
+                        payload_size += appendUint8(payload, 0)
+                else
+                    throw "Unknown type " + types_str[i]
+
+        appendUint32(buffer, payload_size)
+        return new Uint8Array(buffer.concat(payload))
+
+if window?
+    ###* @param {...*} var_args ###
+    window.Command = (var_args) ->
+        CommandBase.apply(Object.create(Command.prototype), arguments)
+else # NodeJS
+    ###* @param {...*} var_args ###
+    Command = (var_args) ->
+        CommandBase.apply(Object.create(Command.prototype), arguments)
+
 class @KClient
     "use strict"
 
@@ -229,7 +337,7 @@ class @KClient
     getCmds: (callback) ->
          @websockpool.requestSocket( (sockid) =>
             websocket = @websockpool.getSocket(sockid)
-            websocket.send(Command(1,1,''))
+            websocket.send(Command(1,1))
             msg_num = 0
 
             websocket.onmessage = (evt) =>
@@ -265,7 +373,7 @@ class @KClient
     getDevStatus: (callback) ->
         @websockpool.requestSocket( (sockid) =>
             websocket = @websockpool.getSocket(sockid)
-            websocket.send(Command(1,3,''))
+            websocket.send(Command(1,3))
 
             @websocket.onmessage = (evt) =>
                 if evt.data != "EODS\n"
@@ -293,57 +401,3 @@ class @KClient
             if device.id == id then return device
 
         throw "Device ID " + id + " not found"
-
-# ----------------------------------------------------------------------------
-# Binary command build
-# ----------------------------------------------------------------------------
-
-# |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
-# |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
-if window?
-    window.Command = (dev_id, cmd_ref, params...) ->
-        msg = dev_id.toString() + "|" + cmd_ref.toString() + "|"
-        (msg += par.toString() + "|" for par in params)
-        msg += "\n"
-        return msg
-else # NodeJS
-    appendUint16 = (buffer, value) ->
-        buffer.push((value >> 8) & 0xff)
-        buffer.push(value & 0xff)
-        return 2
-
-    appendUint32 = (buffer, value) ->
-        buffer.push((value >> 24) & 0xff)
-        buffer.push((value >> 16) & 0xff)
-        buffer.push((value >> 8) & 0xff)
-        buffer.push(value & 0xff)
-        return 4
-
-    Command = (dev_id, cmd_ref, types_str, params...) ->
-        buffer = []
-        appendUint32(buffer, 0) # RESERVED
-        appendUint16(buffer, dev_id)
-        appendUint16(buffer, cmd_ref)
-
-        if types_str.length == 0
-            appendUint32(buffer, 0) # Payload size
-            ret = new Uint8Array(buffer)
-            return ret
-
-        if types_str.length != params.length
-            throw 'Invalid types string length'
-
-        payload_size = 0
-        payload = []
-        for i in [0..(types_str.length-1)]
-            switch types_str[i]
-                when 'u'
-                    payload_size += appendUint32(payload, params[i])
-                when 'f'
-                    console.log 'signed TODO'
-                else
-                    throw "Unknown type " + types_str[i]
-
-        appendUint32(buffer, payload_size)
-        ret = new Uint8Array(buffer.concat(payload))
-        return ret

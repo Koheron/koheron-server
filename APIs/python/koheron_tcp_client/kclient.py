@@ -70,6 +70,10 @@ def make_command(*args):
 
     return buff
 
+def _append_u8(buff, value):
+    buff.append(value & 0xff)
+    return 1
+
 def _append_u16(buff, value):
     buff.append((value >> 8) & 0xff)
     buff.append(value & 0xff)
@@ -101,9 +105,9 @@ def _build_payload(args):
             size += _append_float(payload, arg)
         elif type(arg) is bool:
             if arg:
-                size += _append_u32(payload, 1)
+                size += _append_u8(payload, 1)
             else:
-                size += _append_u32(payload, 0)
+                size += _append_u8(payload, 0)
         else:
             raise ValueError('Unsupported type' + type(arg))
 
