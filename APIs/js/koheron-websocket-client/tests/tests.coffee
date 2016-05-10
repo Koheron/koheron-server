@@ -1,6 +1,11 @@
 # Websocket client tests
 # (c) Koheron
 
+# http://stackoverflow.com/questions/19971713/nodeunit-runtime-thrown-errors-in-test-function-are-silent/20038890#20038890
+process.on('uncaughtException', (err) ->
+  console.error err.stack
+)
+
 websock_client = require('../lib/koheron-websocket-client.js')
 Command = websock_client.Command
 
@@ -18,6 +23,8 @@ class Tests
             set_buffer     : @device.getCmdRef( "SET_BUFFER"     )
             read_uint      : @device.getCmdRef( "READ_UINT"      )
             read_int       : @device.getCmdRef( "READ_INT"       )
+            get_cstr       : @device.getCmdRef( "GET_CSTR"       )
+            get_tuple      : @device.getCmdRef( "GET_TUPLE"      )
 
     setMean : (mean) ->
         @kclient.send(Command(@id, @cmds.set_mean, 'f', mean))
@@ -39,25 +46,15 @@ class Tests
     readInt : (cb) ->
         @kclient.readInt32(Command(@id, @cmds.read_int), cb)
 
-# Tests
+    readString : (cb) ->
+        @kclient.readString(Command(@id, @cmds.get_cstr), cb)
 
-# socketpool_size = 4
-# client = new websock_client.KClient('127.0.0.1', socketpool_size)
+    readTuple : (cb) ->
+        @kclient.readTuple(Command(@id, @cmds.get_tuple), cb)
 
-# client.init( ->
-#     console.log "Connection initialized"
+# Unit tests
 
-#     tests = new Tests(client)
-#     tests.setMean(12.5)
-#     tests.setStdDev(2.3)
-#     tests.rcvStdArray( (array) -> console.log array )
-#     tests.sendBuffer(10)
-#     tests.readUint( (num) -> console.log num)
-
-#     # client.exit()
-# )
-
-client = new websock_client.KClient('127.0.0.1', 2)
+client = new websock_client.KClient('127.0.0.1', 1)
 
 exports.readUint = (assert) ->
     assert.expect(2)
@@ -67,8 +64,8 @@ exports.readUint = (assert) ->
             tests = new Tests(client)
             tests.readUint( (num) =>
                 assert.equals(num, 42)
-                assert.done()
                 client.exit()
+                assert.done()
             )
         )
     )
@@ -81,20 +78,61 @@ exports.readInt = (assert) ->
             tests = new Tests(client)
             tests.readInt( (num) =>
                 assert.equals(num, -42)
-                assert.done()
                 client.exit()
+                assert.done()
             )
         )
     )
 
-exports.setMean = (assert) ->
-    assert.expect(1)
+exports.rcvStdArray = (assert) ->
+    assert.expect(2)
 
     assert.doesNotThrow( =>
         client.init( =>
             tests = new Tests(client)
-            tests.setMean(12.5)
-            assert.done()
-            client.exit()
+            tests.rcvStdArray( (array) =>
+                is_ok = true
+                for i in [0..array.length-1]
+                    if array[i] != i*i
+                        is_ok = false
+                        break
+
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.readString = (assert) ->
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.readString( (str) =>
+                assert.equals(str, 'Hello !')
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.readTuple = (assert) ->
+    assert.expect(7)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.readTuple( (tuple) =>
+                assert.equals(tuple[0].type, 'int')
+                assert.equals(tuple[0].value, 2)
+                assert.equals(tuple[1].type, 'float')
+                assert.equals(tuple[1].value, 3.14159)
+                assert.equals(tuple[2].type, 'double')
+                assert.equals(tuple[2].value, 2345.6)
+                client.exit()
+                assert.done()
+            )
         )
     )

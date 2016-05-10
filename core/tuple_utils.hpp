@@ -17,6 +17,8 @@ namespace kserver {
 // Compile time recursion
 // http://stackoverflow.com/questions/1198260/iterate-over-tuple
 
+// TODO Send in binary: precision issues on numbers
+
 // Initialize recursion
 template<std::size_t I = 0, typename... Tp>
 inline std::enable_if_t<I == sizeof...(Tp), void>

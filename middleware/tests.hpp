@@ -3,6 +3,7 @@
 
 #include <array>
 #include <vector>
+#include <tuple>
 
 #include <drivers/lib/dev_mem.hpp> 
 
@@ -36,6 +37,12 @@ class Tests
 
     // Send strings
     const char* get_cstr();
+
+    std::tuple<int, float, double>
+    get_tuple()
+    {
+        return std::make_tuple(2, 3.14159F, 2345.6);
+    }
 
     // Send integers
     uint64_t read64();

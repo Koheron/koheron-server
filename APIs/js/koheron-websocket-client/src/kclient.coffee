@@ -66,8 +66,7 @@ class WebSocketPool
         if sockid not in @free_sockets and sockid >= 0 and sockid < @pool_size
             return @pool[sockid]
         else
-            console.error "Socket ID " + sockid.toString() + " not available"
-            return
+            throw "Socket ID " + sockid.toString() + " not available"
 
     requestSocket: (callback) ->
         if @free_sockets? and @free_sockets.length > 0
@@ -330,6 +329,17 @@ class @KClient
                 fn(tuple)
                 @websockpool.freeSocket(sockid)
         )
+
+    readString: (cmd, fn) ->
+        @websockpool.requestSocket( (sockid) =>
+            websocket = @websockpool.getSocket(sockid)
+            websocket.send(cmd)
+
+            websocket.onmessage = (evt) =>
+                fn(evt.data.toString())
+                @websockpool.freeSocket(sockid)
+        )
+
 
     # ------------------------
     #  Devices
