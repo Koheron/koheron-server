@@ -321,21 +321,27 @@ else # NodeJS
 
     Command = (dev_id, cmd_ref, types_str, params...) ->
         buffer = []
+        appendUint32(buffer, 0) # RESERVED
+        appendUint16(buffer, dev_id)
+        appendUint16(buffer, cmd_ref)
 
         if types_str.length == 0
-            appendUint32(buffer, 0) # RESERVED
-            appendUint16(buffer, dev_id)
-            appendUint16(buffer, cmd_ref)
             appendUint32(buffer, 0) # Payload size
             return Uint8Array(buffer)
 
+        if types_str.length != params.length
+            throw 'Invalid types string length'
+
+        payload_size = 0
+        payload = []
         for i in [0..(types_str.length-1)]
             switch types_str[i]
                 when 'u'
-                    console.log 'unsigned'
+                    payload_size += appendUint32(payload, params[i])
                 when 'f'
-                    console.log 'signed'
+                    console.log 'signed TODO'
                 else
                     throw "Unknown type " + types_str[i]
 
-        return Uint8Array(buffer)
+        appendUint32(buffer, payload_size)
+        return Uint8Array(buffer.concat(payload))

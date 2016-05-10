@@ -15,5 +15,8 @@ cli/kserver status --devices TESTS
 echo "== Test C API =="
 APIs/C/tests/tests
 
+echo "== Test Javascript API =="
+make -C APIs/js/koheron-websocket-client tests
+
 echo "== Test Python API =="
 cd APIs/python && python connect_test.py
