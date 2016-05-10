@@ -30,6 +30,7 @@ RUN apt-get -y install nodejs-legacy           \
                        nodejs                  \
                        default-jre
 RUN npm install -g gulp
+RUN npm install -g nodeunit
 # Upgrade to Node 5 for Google closure compiler
 RUN curl -sL https://deb.nodesource.com/setup_5.x | bash -
 RUN apt-get install -y nodejs

@@ -42,13 +42,13 @@ class WebSocketPool
             @pool.push(websocket)
 
             websocket.onopen = (evt) =>
-                console.log "WebSocket " + @socket_counter.toString() + " connected to " + url + "\n"
+                # console.log "WebSocket " + @socket_counter.toString() + " connected to " + url + "\n"
                 @free_sockets.push(@socket_counter)
                 if @socket_counter == 0 then @waitForConnection(websocket, 100, onopen_callback)
                 @socket_counter++
 
-            websocket.onclose = (evt) =>
-                console.log "disconnected\n"
+            # websocket.onclose = (evt) =>
+            #     console.log "disconnected\n"
 
             websocket.onerror = (evt) =>
                 console.error "error: " + evt.data + "\n"
@@ -192,15 +192,13 @@ class CommandBase
         appendUint32(buffer, payload_size)
         return new Uint8Array(buffer.concat(payload))
 
-if window?
-    ###* @param {...*} var_args ###
-    window.Command = (var_args) ->
-        CommandBase.apply(Object.create(Command.prototype), arguments)
-else # NodeJS
-    ###* @param {...*} var_args ###
-    Command = (var_args) ->
-        CommandBase.apply(Object.create(Command.prototype), arguments)
+###* @param {...*} var_args ###
+Command = (var_args) ->
+    CommandBase.apply(Object.create(Command.prototype), arguments)
 
+if window? # Browser
+    window.Command = Command
+else # NodeJS
     exports.Command = Command
 
 class @KClient
@@ -361,7 +359,6 @@ class @KClient
                     @devices_list.push(dev)
 
                 if evt.data == "EOC\n"
-                    console.log "Devices loaded\n"
                     callback()
                     @websockpool.freeSocket(sockid)
         )

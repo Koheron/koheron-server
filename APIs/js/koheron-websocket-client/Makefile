@@ -11,7 +11,7 @@ build: init
 	gulp compile-tests-js
 
 tests: build
-	node tests/tests.js
+	nodeunit tests/tests.js
 
 clean:
 	rm -rf lib/
