@@ -42,9 +42,9 @@ def write_buffer(device_name, type_str='', format_char='I', dtype=np.uint32):
             device_id = int(params.id)
             cmd_id = params.get_op_ref(func.__name__.upper())
             args_ = args[1:] + tuple(kwargs.values()) + (len(args[0]),)
-            self.client.send_command(device_id, cmd_id, type_str, *args_)
+            self.client.send_command(device_id, cmd_id, type_str + 'u', *args_)
             self.client.send_handshaking(args[0], format_char=format_char, dtype=dtype)
-            func(self, *args, **kwargs)
+            return func(self, *args, **kwargs)
         return wrapper
     return command_wrap
 
@@ -260,7 +260,9 @@ class KClient:
         return u - (u >> 31) * 4294967296
 
     def recv_bool(self):
-        return self.recv_uint32() == 1
+        val = self.recv_uint32()
+        assert val == 0 or val == 1
+        return val == 1
 
     def recv_n_bytes(self, n_bytes):
         """ Receive exactly n bytes
@@ -325,6 +327,9 @@ class KClient:
 
         return ''.join(total_data)
 
+    def recv_string(self):
+        return self.recv_timeout('\0')[:-1]
+
     def recv_buffer(self, buff_size, data_type='uint32'):
         """ Receive a buffer of uint32
 
@@ -362,7 +367,7 @@ class KClient:
 
                 if elmt_type == 'i' or elmt_type == 'j':
                     res_tuple.append(int(toks[1]))
-                elif elmt_type == 'f':
+                elif elmt_type == 'f' or elmt_type == 'd':
                     res_tuple.append(float(toks[1]))
                 else:  # String
                     res_tuple.append(toks[1])
