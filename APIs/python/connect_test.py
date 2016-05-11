@@ -1,3 +1,5 @@
+import sys
+
 from koheron_tcp_client import KClient, command
 
 class Tests:
@@ -13,9 +15,14 @@ class Tests:
 		return client.recv_buffer(10, data_type='float32')
 
 
-client = KClient('127.0.0.1', 36100, verbose=True)
-client.get_stats()
+if __name__ == "__main__":
+	toks = sys.argv[1].split('=')
+	assert(toks[0] == '--port')
+	port = int(toks[1])
 
-tests = Tests(client)
-print tests.set_float(12.54)
-print tests.send_std_array()
+	client = KClient('127.0.0.1', port, verbose=True)
+	client.get_stats()
+
+	tests = Tests(client)
+	print tests.set_float(12.54)
+	print tests.send_std_array()
