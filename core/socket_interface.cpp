@@ -94,9 +94,9 @@ int TCPSocketInterface::read_command(Command& cmd)
     cmd.operation = std::get<1>(header_tuple);
     cmd.payload_size = payload_size;
 
-    printf("dev_id = %u\n", cmd.device);
-    printf("op_id = %u\n", cmd.operation);
-    printf("payload_size = %u\n", payload_size);
+    // printf("dev_id = %u\n", cmd.device);
+    // printf("op_id = %u\n", cmd.operation);
+    // printf("payload_size = %u\n", payload_size);
 
     return header_bytes + payload_bytes;
 }
@@ -265,10 +265,10 @@ int WebSocketInterface::read_command(Command& cmd)
     cmd.operation = std::get<1>(header_tuple);
     cmd.payload_size = payload_size;
 
-    printf("dev_id = %u\n", cmd.device);
-    printf("op_id = %u\n", cmd.operation);
-    printf("payload_size = %u\n", payload_size);
-    printf("payload = %s\n", cmd.buffer);
+    // printf("dev_id = %u\n", cmd.device);
+    // printf("op_id = %u\n", cmd.operation);
+    // printf("payload_size = %u\n", payload_size);
+    // printf("payload = %s\n", cmd.buffer);
 
     return HEADER_LENGTH + payload_size;
 }
