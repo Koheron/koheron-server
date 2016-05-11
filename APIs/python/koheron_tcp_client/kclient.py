@@ -53,8 +53,6 @@ def write_buffer(device_name, format_char='I', dtype=np.uint32):
 # --------------------------------------------
 
 def make_command(*args):
-    print args
-
     buff = bytearray()
     _append_u32(buff, 0)        # RESERVED
     _append_u16(buff, args[0])  # dev_id
@@ -80,20 +78,10 @@ def _append_u16(buff, value):
     return 2
 
 def _append_u32(buff, value):
-    print value
-    # print (value >> 24) & 0xff
-    # print (value >> 16) & 0xff
-    # print (value >> 8) & 0xff
-    # print value & 0xff
     buff.append((value >> 24) & 0xff)
     buff.append((value >> 16) & 0xff)
     buff.append((value >> 8) & 0xff)
     buff.append(value & 0xff)
-
-    # buff.append((value & 0xff000000) >> 24)
-    # buff.append((value & 0x00ff0000) >> 16)
-    # buff.append((value & 0x0000ff00) >> 8)
-    # buff.append((value & 0x000000ff))
     return 4
 
 # http://stackoverflow.com/questions/14431170/get-the-bits-of-a-float-in-python
@@ -120,10 +108,6 @@ def _build_payload(args):
                 size += _append_u8(payload, 0)
         else:
             raise ValueError('Unsupported type' + type(arg))
-
-    print "Payload:"
-    for byte in payload:
-        print str(byte)
 
     return payload, size
 

@@ -41,6 +41,7 @@ WORKDIR $work_dir/
 COPY . $work_dir/
 
 RUN pip install -r requirements.txt
+RUN pip install pytest
 
 # ---------------------------------------
 # Compile kserverd
