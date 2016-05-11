@@ -28,7 +28,7 @@ class Tests
 
     // Receive array
     #pragma tcp-server write_array arg{data} arg{len}
-    void set_buffer(const uint32_t *data, uint32_t len);
+    bool set_buffer(const uint32_t *data, uint32_t len);
 
     // Send strings
     const char* get_cstr();

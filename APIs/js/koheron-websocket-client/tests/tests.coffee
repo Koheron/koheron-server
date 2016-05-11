@@ -39,10 +39,13 @@ class Tests
     rcvCArray : (len, cb) ->
         @kclient.readFloat32Array(Command(@id, @cmds.send_c_array1, 'u', len), cb)
 
-    sendBuffer : (len) ->
+    sendBuffer : (len, cb) ->
         buffer = new Uint32Array(len)
         (buffer[i] = i*i for i in [0..len])
-        @kclient.sendArray(Command(@id, @cmds.set_buffer, 'u', buffer.length), buffer)
+        @kclient.sendArray(Command(@id, @cmds.set_buffer, 'u', buffer.length), buffer, (ok) -> cb(ok==1))
+
+    checkBuffer : (cb) ->
+        @kclient.readBool(Command(@id, @cmds.set_buffer), cb)
 
     readUint : (cb) ->
         @kclient.readUint32(Command(@id, @cmds.read_uint), cb)
@@ -149,7 +152,7 @@ exports.rcvCArray = (assert) ->
         client.init( =>
             tests = new Tests(client)
             len = 10
-            tests.rcvCArray( len, (array) =>
+            tests.rcvCArray(len, (array) =>
                 assert.equal(array.length, 2*len)
                 is_ok = true
                 for i in [0..2*len-1]
@@ -157,6 +160,21 @@ exports.rcvCArray = (assert) ->
                         is_ok = false
                         break
 
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.sendBuffer = (assert) ->
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            len = 10
+            tests.sendBuffer(len, (is_ok) =>
                 assert.ok(is_ok)
                 client.exit()
                 assert.done()

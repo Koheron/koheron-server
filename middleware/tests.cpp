@@ -66,14 +66,18 @@ float* Tests::get_array_bis()
     return data.data();
 }
 
-void Tests::set_buffer(const uint32_t *data, uint32_t len)
+bool Tests::set_buffer(const uint32_t *data, uint32_t len)
 {
-    buffer.resize(len);
+    bool is_ok = true;
 
-    for (unsigned int i=0; i<buffer.size(); i++) {
-        buffer[i] = data[i];
-        printf("%u => %u\n", i, buffer[i]);
+    for (unsigned int i=0; i<len; i++) {
+        if (data[i] != i*i) {
+            is_ok = false;
+            break;
+        }
     }
+
+    return is_ok;
 }
 
 const char* Tests::get_cstr()

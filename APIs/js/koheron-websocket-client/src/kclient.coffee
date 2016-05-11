@@ -21,7 +21,7 @@ class Device
         for cmd, idx in @cmds
             if cmd == cmd_name then return idx
 
-        throw cmd_name + " : command not found"
+        throw new ReferenceError(cmd_name + ': command not found')
 
 class WebSocketPool
     "use strict"
@@ -66,7 +66,7 @@ class WebSocketPool
         if sockid not in @free_sockets and sockid >= 0 and sockid < @pool_size
             return @pool[sockid]
         else
-            throw "Socket ID " + sockid.toString() + " not available"
+            throw new ReferenceError('Socket ID ' + sockid.toString() + ' not available')
 
     requestSocket: (callback) ->
         if @free_sockets? and @free_sockets.length > 0
@@ -170,7 +170,7 @@ class CommandBase
             return new Uint8Array(buffer)
 
         if types_str.length != params.length
-            throw 'Invalid types string length'
+            throw new Error('Invalid types string length')
 
         payload_size = 0
         payload = []
@@ -186,7 +186,7 @@ class CommandBase
                     else
                         payload_size += appendUint8(payload, 0)
                 else
-                    throw "Unknown type " + types_str[i]
+                    throw new TypeError('Unknown type ' + types_str[i])
 
         appendUint32(buffer, payload_size)
         return new Uint8Array(buffer.concat(payload))
@@ -225,7 +225,20 @@ class @KClient
             @websockpool.freeSocket(sockid)
         )
 
-    sendArray: (cmd, array) ->
+    ###*
+    # Send an array
+    # @param {Uint8Array} cmd - The command containing the array length
+    # @param {
+    #          Array.<number>|
+    #          Uint32Array|Int32Array|
+    #          Uint16Array|Int16Array|
+    #          Uint8Array |Int8Array |
+    #          Float32Array|Float64Array
+    #        } array - The array to be send
+    # @param {function(*)|null} cb - Optionnal callback if the command receiving the 
+    #     array sends data back (must be of interger type).
+    ###
+    sendArray: (cmd, array, cb=null) ->
         @websockpool.requestSocket( (sockid) =>
             websocket = @websockpool.getSocket(sockid)
             websocket.send(cmd)
@@ -233,9 +246,16 @@ class @KClient
             websocket.onmessage = (evt) =>
                 tmp_array = new Uint32Array evt.data
                 if tmp_array[0] != array.length
-                    throw "Invalid handshake"
+                    throw new Error('Invalid handshake')
                 websocket.send(array.buffer)
-                @websockpool.freeSocket(sockid)
+
+                if cb != null
+                    websocket.onmessage = (evt) =>
+                        array = new Uint32Array evt.data
+                        cb(array[0])
+                        @websockpool.freeSocket(sockid)
+                else
+                    @websockpool.freeSocket(sockid)
         )
 
     # ------------------------
@@ -409,10 +429,10 @@ class @KClient
         for device in @devices_list
             if device.devname == devname then return device
 
-        throw "Device " + devname + " not found"
+        throw new Error('Device ' + devname + ' not found')
 
     getDeviceById: (id) ->
         for device in @devices_list
             if device.id == id then return device
 
-        throw "Device ID " + id + " not found"
+        throw new ReferenceError('Device ID ' + id + ' not found')
