@@ -97,7 +97,6 @@ int TCPSocketInterface::read_command(Command& cmd)
     printf("dev_id = %u\n", cmd.device);
     printf("op_id = %u\n", cmd.operation);
     printf("payload_size = %u\n", payload_size);
-    printf("payload = %s\n", cmd.buffer);
 
     return header_bytes + payload_bytes;
 }

@@ -267,7 +267,7 @@ class FragmentsGenerator:
                 or operation["prototype"]["ret_type"] == "int"
                 or operation["prototype"]["ret_type"] == "int32_t"
                 or operation["prototype"]["ret_type"] == "bool"):
-                frag.append("    return SEND<uint32_t>(" + self._build_write_array_func_call(operation) + ");")
+                frag.append("    return SEND<uint32_t>(" + self._build_write_array_func_call(operation) + ");\n")
             else:
                 frag.append("    " + self._build_write_array_func_call(operation) + ";\n\n")
                 frag.append("    return 0;\n")

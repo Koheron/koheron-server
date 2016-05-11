@@ -5,16 +5,17 @@ class Tests:
 		self.client = client
 
 	@command('TESTS')
-	def set_mean(self, mean): pass
+	def set_float(self, f):
+		return client.recv_int(4)
 
 	@command('TESTS')
 	def send_std_array(self):
 		return client.recv_buffer(10, data_type='float32')
 
 
-client = KClient('127.0.0.1', 36000, verbose=True)
+client = KClient('127.0.0.1', 36100, verbose=True)
 client.get_stats()
 
 tests = Tests(client)
-tests.set_mean(12.5)
+print tests.set_float(12.54)
 print tests.send_std_array()

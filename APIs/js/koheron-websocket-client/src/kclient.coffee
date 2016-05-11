@@ -138,6 +138,11 @@ floatToBytes = (f) ->
     (new Float32Array(buf))[0] = f;
     return (new Uint32Array(buf))[0];
 
+bytesTofloat = (bytes) ->
+    buffer = new ArrayBuffer(4);
+    (new Uint32Array(buffer))[0] = bytes;
+    return new Float32Array(buffer)[0];
+
 ###*
 # Append a Float32 to the binary buffer
 # @param {Array.<number>} buffer The binary buffer

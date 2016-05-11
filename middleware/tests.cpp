@@ -11,6 +11,11 @@ Tests::Tests(Klib::DevMem& dvm_unused_)
 , buffer(0)
 {}
 
+bool Tests::rcv_many_params(uint32_t u1, uint32_t u2, float f, bool b)
+{
+    return u1 == 42 && u2 == 2048 && trunc(f * 1E6) == 3140000 && b;
+}
+
 bool Tests::set_float(float f)
 {
     return f == 12.5;

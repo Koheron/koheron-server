@@ -12,6 +12,7 @@ class Tests
   public:
     Tests(Klib::DevMem& dvm_unused_);
 
+    bool rcv_many_params(uint32_t u1, uint32_t u2, float f, bool b);
     bool set_float(float f);
 
     // Send arrays

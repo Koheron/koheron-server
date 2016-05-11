@@ -17,6 +17,7 @@ class Tests
         @id = @device.id
     
         @cmds =
+            rcv_many_params : @device.getCmdRef( "RCV_MANY_PARAMS" )
             set_float       : @device.getCmdRef( "SET_FLOAT"       )
             send_std_vector : @device.getCmdRef( "SEND_STD_VECTOR" )
             send_std_array  : @device.getCmdRef( "SEND_STD_ARRAY"  )
@@ -27,6 +28,9 @@ class Tests
             read_int        : @device.getCmdRef( "READ_INT"        )
             get_cstr        : @device.getCmdRef( "GET_CSTR"        )
             get_tuple       : @device.getCmdRef( "GET_TUPLE"       )
+
+    sendManyParams : (u1, u2, f, b, cb) ->
+        @kclient.readBool(Command(@id, @cmds.rcv_many_params, 'uufb', u1, u2, f, b), cb)
 
     setFloat : (f, cb) ->
         @kclient.readBool(Command(@id, @cmds.set_float, 'f', f), cb)
@@ -66,6 +70,20 @@ class Tests
 # Unit tests
 
 client = new websock_client.KClient('127.0.0.1', 1)
+
+exports.sendManyParams = (assert) ->
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.sendManyParams(42, 2048, 3.14, true, (is_ok) =>
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
 
 exports.readUint = (assert) ->
     assert.expect(2)
