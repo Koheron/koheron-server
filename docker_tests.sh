@@ -1,7 +1,7 @@
 # /bin/bash
 
 echo "== Start server =="
-tmp/server/kserverd -c config/kserver_docker.conf&
+nohup tmp/server/kserverd -c config/kserver_docker.conf > /dev/null 2>server.log &
 ps -A
 
 echo "== Test CLI =="
@@ -20,3 +20,6 @@ make -C APIs/js/koheron-websocket-client tests
 
 echo "== Test Python API =="
 cd APIs/python && python connect_test.py --port=36000
+
+echo "== Server log =="
+cat server.log
