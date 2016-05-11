@@ -21,6 +21,7 @@ class Tests
             send_std_vector : @device.getCmdRef( "SEND_STD_VECTOR" )
             send_std_array  : @device.getCmdRef( "SEND_STD_ARRAY"  )
             send_c_array1   : @device.getCmdRef( "SEND_C_ARRAY1"   )
+            send_c_array2   : @device.getCmdRef( "SEND_C_ARRAY2"   )
             set_buffer      : @device.getCmdRef( "SET_BUFFER"      )
             read_uint       : @device.getCmdRef( "READ_UINT"       )
             read_int        : @device.getCmdRef( "READ_INT"        )
@@ -36,8 +37,11 @@ class Tests
     rcvStdArray : (cb) ->
         @kclient.readFloat32Array(Command(@id, @cmds.send_std_array), cb)
 
-    rcvCArray : (len, cb) ->
+    rcvCArray1 : (len, cb) ->
         @kclient.readFloat32Array(Command(@id, @cmds.send_c_array1, 'u', len), cb)
+
+    rcvCArray2 : (cb) ->
+        @kclient.readFloat32Array(Command(@id, @cmds.send_c_array2), cb)
 
     sendBuffer : (len, cb) ->
         buffer = new Uint32Array(len)
@@ -145,18 +149,39 @@ exports.rcvStdArray = (assert) ->
         )
     )
 
-exports.rcvCArray = (assert) ->
+exports.rcvCArray1 = (assert) ->
     assert.expect(3)
 
     assert.doesNotThrow( =>
         client.init( =>
             tests = new Tests(client)
             len = 10
-            tests.rcvCArray(len, (array) =>
+            tests.rcvCArray1(len, (array) =>
                 assert.equal(array.length, 2*len)
                 is_ok = true
                 for i in [0..2*len-1]
                     if array[i] != i/2
+                        is_ok = false
+                        break
+
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.rcvCArray2 = (assert) ->
+    assert.expect(3)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.rcvCArray2((array) =>
+                assert.equal(array.length, 10)
+                is_ok = true
+                for i in [0..10-1]
+                    if array[i] != i/4
                         is_ok = false
                         break
 

@@ -252,8 +252,8 @@ class FragmentsGenerator:
             else: # Length is a constant independent of a parameter
                 length = remaining
             
-            frag.append("    return SEND_ARRAY<" + ptr_type + ">(" 
-                        + self._build_func_call(operation) + ", " + length + ");\n")
+            frag.append("    auto ptr = " + self._build_func_call(operation) + ";\n")
+            frag.append("    return SEND_ARRAY<" + ptr_type + ">(ptr, " + length + ");\n")
                             
         elif operation["io_type"]["value"] == "WRITE_ARRAY":
             len_name = operation["array_params"]['length']['length']

@@ -12,8 +12,6 @@ class Tests
   public:
     Tests(Klib::DevMem& dvm_unused_);
 
-    int Open(uint32_t waveform_size_);
-
     bool set_float(float f);
 
     // Send arrays
@@ -24,22 +22,19 @@ class Tests
     float* send_c_array1(uint32_t n_pts);
 
     #pragma tcp-server read_array this{data.size()}
-    float* get_array_bis();
+    float* send_c_array2();
 
     // Receive array
     #pragma tcp-server write_array arg{data} arg{len}
     bool set_buffer(const uint32_t *data, uint32_t len);
 
-    // Send strings
+    // Send string
     const char* get_cstr();
 
-    std::tuple<int, float, double>
-    get_tuple()
-    {
-        return std::make_tuple(2, 3.14159F, 2345.6);
-    }
+    // Send tuple
+    std::tuple<int, float, double> get_tuple();
 
-    // Send integers
+    // Send numbers
     uint64_t read64();
     int read_int();
     unsigned int read_uint();
@@ -48,23 +43,9 @@ class Tests
     float read_float();
     bool read_bool();
 
-    enum Status {
-        CLOSED,
-        OPENED,
-        FAILED
-    };
-
-    #pragma tcp-server is_failed
-    bool IsFailed() const {return status == FAILED;}
-
-
     std::vector<float> data;
-  private:
-    int status;
-    uint32_t waveform_size;
-    float mean;
-    float std_dev;
 
+  private:
     std::vector<uint32_t> buffer;
     std::array<float, 10> data_std_array;
 }; // class Tests

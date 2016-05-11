@@ -9,17 +9,7 @@
 Tests::Tests(Klib::DevMem& dvm_unused_)
 : data(0)
 , buffer(0)
-{
-    waveform_size = 0;
-    mean = 0;
-    std_dev = 0;
-}
-
-int Tests::Open(uint32_t waveform_size_)
-{ 
-    data = std::vector<float>(waveform_size);
-    return 0;
-}
+{}
 
 bool Tests::set_float(float f)
 {
@@ -55,19 +45,21 @@ float* Tests::send_c_array1(uint32_t n_pts)
     return data.data();
 }
 
-float* Tests::get_array_bis()
+float* Tests::send_c_array2()
 {
-    std::default_random_engine generator(std::random_device{}());
-    std::normal_distribution<float> distribution(mean, std_dev);
+    data.resize(10);
 
     for (unsigned int i=0; i<data.size(); i++)
-       data[i] = distribution(generator);
+       data[i] = static_cast<float>(i)/4;
 
     return data.data();
 }
 
 bool Tests::set_buffer(const uint32_t *data, uint32_t len)
 {
+    if (len != 10)
+        return false;
+
     bool is_ok = true;
 
     for (unsigned int i=0; i<len; i++) {
@@ -85,43 +77,15 @@ const char* Tests::get_cstr()
     return "Hello !";
 }
 
-// -----------------------------------------------
-// Send integers
-// -----------------------------------------------
-
-uint64_t Tests::read64()
+std::tuple<int, float, double> Tests::get_tuple()
 {
-    return (1ULL << 63);
+    return std::make_tuple(2, 3.14159F, 2345.6);
 }
 
-
-int Tests::read_int()
-{
-    printf("Send -42\n");
-    return -42;
-}
-
-unsigned int Tests::read_uint()
-{
-    return 42;
-}
-
-unsigned long Tests::read_ulong()
-{
-    return 2048;
-}
-
-unsigned long long Tests::read_ulonglong()
-{
-    return (1ULL << 63);
-}
-
-float Tests::read_float()
-{
-    return 0.42;
-}
-
-bool Tests::read_bool()
-{
-    return true;   
-}
+uint64_t           Tests::read64()         { return (1ULL << 63); }
+int                Tests::read_int()       { return -42;          }
+unsigned int       Tests::read_uint()      { return 42;           }
+unsigned long      Tests::read_ulong()     { return 2048;         }
+unsigned long long Tests::read_ulonglong() { return (1ULL << 63); }
+float              Tests::read_float()     { return 0.42;         }
+bool               Tests::read_bool()      { return true;         }
