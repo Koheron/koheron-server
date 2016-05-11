@@ -20,6 +20,7 @@ make -C APIs/js/koheron-websocket-client tests
 
 echo "== Test Python API =="
 cd APIs/python && python connect_test.py --port=36000
+cd ../..
 
 echo "== Server log =="
 cat server.log
