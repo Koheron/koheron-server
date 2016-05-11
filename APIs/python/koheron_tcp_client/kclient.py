@@ -16,7 +16,7 @@ import traceback
 # http://stackoverflow.com/questions/5929107/python-decorators-with-parameters
 # http://www.artima.com/weblogs/viewpost.jsp?thread=240845
 
-def command(device_name):
+def command(device_name, type_str=''):
     def real_command(func):
         """ Decorate commands
 
@@ -30,19 +30,19 @@ def command(device_name):
             params = self.client.cmds.get_device(device_name)
             device_id = int(params.id)
             cmd_id = params.get_op_ref(func.__name__.upper())
-            self.client.send_command(device_id, cmd_id, *(args + tuple(kwargs.values())))
+            self.client.send_command(device_id, cmd_id, type_str, *(args + tuple(kwargs.values())))
             return func(self, *args, **kwargs)
         return wrapper
     return real_command
 
-def write_buffer(device_name, format_char='I', dtype=np.uint32):
+def write_buffer(device_name, type_str='', format_char='I', dtype=np.uint32):
     def command_wrap(func):
         def wrapper(self, *args, **kwargs):
             params = self.client.cmds.get_device(device_name)
             device_id = int(params.id)
             cmd_id = params.get_op_ref(func.__name__.upper())
             args_ = args[1:] + tuple(kwargs.values()) + (len(args[0]),)
-            self.client.send_command(device_id, cmd_id, *args_)
+            self.client.send_command(device_id, cmd_id, type_str, *args_)
             self.client.send_handshaking(args[0], format_char=format_char, dtype=dtype)
             func(self, *args, **kwargs)
         return wrapper
@@ -60,7 +60,7 @@ def make_command(*args):
 
     # Payload
     if len(args[2:]) > 0:
-        payload, payload_size = _build_payload(args[2:])
+        payload, payload_size = _build_payload(args[2], args[3:])
         _append_u32(buff, payload_size)
         buff.extend(payload)
     else:
@@ -91,18 +91,20 @@ def float_to_bits(f):
 def _append_float(buff, value):
     return _append_u32(buff, float_to_bits(value))
 
-def _build_payload(args):
+def _build_payload(type_str, args):
     size = 0
     payload = bytearray()
 
+    assert len(type_str) == len(args)
+
     # http://stackoverflow.com/questions/402504/how-to-determine-the-variable-type-in-python
-    for arg in args:
-        if type(arg) is int:
-            size += _append_u32(payload, arg)
-        elif type(arg) is float:
-            size += _append_float(payload, arg)
-        elif type(arg) is bool:
-            if arg:
+    for i, type_ in enumerate(type_str):
+        if type_ is 'u': # Unsigned
+            size += _append_u32(payload, args[i])
+        elif type_ is 'f': # float
+            size += _append_float(payload, args[i])
+        elif type_ is 'b': # bool
+            if args[i]:
                 size += _append_u8(payload, 1)
             else:
                 size += _append_u8(payload, 0)
@@ -209,7 +211,7 @@ class KClient:
     # Send/Receive
     # -------------------------------------------------------
 
-    def send_command(self, device_id, operation_ref, *args):
+    def send_command(self, device_id, operation_ref, type_str='', *args):
         """ Send a command
 
         Args:
@@ -217,7 +219,7 @@ class KClient:
 
         Raise RuntimeError if broken connection.
         """
-        if self.sock.send(make_command(device_id, operation_ref, *args)) == 0:
+        if self.sock.send(make_command(device_id, operation_ref, type_str, *args)) == 0:
             raise RuntimeError("kclient-send_command: Socket connection broken")
 
     def recv_int(self, buff_size, err_msg=None, fmt="I"):
@@ -249,6 +251,16 @@ class KClient:
                 return struct.unpack(fmt, data_recv)[0]
         except:
             raise RuntimeError("kclient-recv_int: Reception error")
+
+    def recv_uint32(self):
+        return self.recv_int(4)
+
+    def recv_int32(self):
+        u = self.recv_uint32()
+        return u - (u >> 31) * 4294967296
+
+    def recv_bool(self):
+        return self.recv_uint32() == 1
 
     def recv_n_bytes(self, n_bytes):
         """ Receive exactly n bytes
