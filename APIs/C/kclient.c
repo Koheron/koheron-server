@@ -101,6 +101,16 @@ static void append_op_to_dev(struct device *dev, struct operation *op)
 #define PAYLOAD_SIZE_OFFSET 8
 #define PAYLOAD_OFFSET      12
 
+ /**
+ * Add an u8 to a buffer
+ * Return the size (in bytes) of the append number
+ */
+static size_t append_u8(char *buff, uint8_t value)
+{
+    buff[0] = value & 0xff;
+    return 1;
+}
+
 /**
  * Add an u16 to a buffer
  * Return the size (in bytes) of the append number
@@ -125,11 +135,24 @@ static size_t append_u32(char *buff, uint32_t value)
     return 4;
 }
 
+/**
+ * Add a float to a buffer
+ * Return the size (in bytes) of the append number
+ */
 static size_t append_float(char *buff, float value)
 {
     assert(sizeof(float) == 4);
     union { float f; uint32_t u; } __value = {value};
     return append_u32(buff, __value.u);
+}
+
+/**
+ * Add a bool to a buffer
+ * Return the size (in bytes) of the append number
+ */
+static size_t append_bool(char *buff, bool value)
+{
+    return append_u8(buff, (uint8_t)value);
 }
 
 #define CMD_BUFFER_LEN 1024
@@ -164,6 +187,10 @@ int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
           case 'f':
             len = append_float(buffer + PAYLOAD_OFFSET + payload_size,
                                (float)va_arg(args, double));
+            break;
+          case 'b':
+            len = append_bool(buffer + PAYLOAD_OFFSET + payload_size,
+                              (bool)va_arg(args, uint32_t));
             break;
           default:
             fprintf(stderr, "kclient_send_command: Unknown type %c\n", *types);
