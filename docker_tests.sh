@@ -3,7 +3,7 @@ set -e
 
 echo "== Start server =="
 nohup tmp/server/kserverd -c config/kserver_docker.conf > /dev/null 2>server.log &
-ps -A | grep kserver
+ps -A | grep -w "kserver"
 
 echo "== Test CLI =="
 cli/kserver host --tcp localhost 36000
