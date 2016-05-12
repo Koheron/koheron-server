@@ -24,9 +24,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.7"
-     inkscape:cx="470.82044"
-     inkscape:cy="741.03743"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="471.4849"
+     inkscape:cy="831.84"
      inkscape:document-units="px"
      inkscape:current-layer="g3075"
      showgrid="false"
@@ -319,29 +319,29 @@
           <text
              xml:space="preserve"
              style="font-size:13px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Lato;-inkscape-font-specification:Lato"
-             x="528.04724"
-             y="-141.13457"
+             x="549.27197"
+             y="-72.026604"
              id="text4064"
              sodipodi:linespacing="125%"
-             transform="matrix(0.86112494,0.50839338,-0.50839338,0.86112494,0,0)"><tspan
+             transform="matrix(0.9144785,0.40463449,-0.40463449,0.9144785,0,0)"><tspan
                sodipodi:role="line"
                id="tspan4066"
-               x="528.04724"
-               y="-141.13457"
+               x="549.27197"
+               y="-72.026604"
                style="font-size:20px">WebSockets</tspan></text>
           <text
              xml:space="preserve"
              style="font-size:13px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Lato;-inkscape-font-specification:Lato"
-             x="378.82907"
-             y="423.49219"
+             x="421.20908"
+             y="366.93848"
              id="text4064-7"
              sodipodi:linespacing="125%"
-             transform="matrix(0.95389489,-0.30014087,0.30014087,0.95389489,0,0)"><tspan
+             transform="matrix(0.98308289,-0.1831612,0.1831612,0.98308289,0,0)"><tspan
                sodipodi:role="line"
                id="tspan4066-5"
-               x="378.82907"
-               y="423.49219"
-               style="font-size:20px">TCP/UniSocket</tspan></text>
+               x="421.20908"
+               y="366.93848"
+               style="font-size:20px">TCP/Unix Sockets</tspan></text>
         </g>
       </g>
     </g>
