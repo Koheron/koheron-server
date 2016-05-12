@@ -260,7 +260,7 @@ class KClient:
         return u - (u >> 31) * 4294967296
 
     def recv_bool(self):
-        val = self.recv_uint32()
+        val = self.recv_int(4)
         assert val == 0 or val == 1
         return val == 1
 
@@ -376,6 +376,7 @@ class KClient:
             else:
                 tmp_buffer.append(char)
 
+        self.recv_n_bytes(1) # Read '\0'
         return tuple(res_tuple)
 
     def send_handshaking(self, data, format_char='I', dtype=np.uint32):

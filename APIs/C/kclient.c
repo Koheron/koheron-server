@@ -332,7 +332,7 @@ int kclient_read_int(struct kclient *kcl, int32_t *rcv_int)
 
 int kclient_read_bool(struct kclient *kcl, bool *rcv_bool)
 {
-    if (kclient_rcv_n_bytes(kcl, 1) < 0)
+    if (kclient_rcv_n_bytes(kcl, 4) < 0)
         return -1;
 
     *rcv_bool = (unsigned char)kcl->buffer[0] == 1;

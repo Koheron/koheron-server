@@ -94,11 +94,17 @@ int TCPSocketInterface::read_command(Command& cmd)
     cmd.operation = std::get<1>(header_tuple);
     cmd.payload_size = payload_size;
 
+    kserver->syslog.print(SysLog::DEBUG, 
+        "TCPSocket: Receive command for device %u, operation %u [%u bytes]\n", 
+        cmd.device, cmd.operation, cmd.payload_size);
+
     return header_bytes + payload_bytes;
 }
 
 int TCPSocketInterface::rcv_n_bytes(char *buffer, uint32_t n_bytes)
 {
+    printf("n_bytes = %u\n", n_bytes);
+
     if (n_bytes == 0)
         return 0;
 

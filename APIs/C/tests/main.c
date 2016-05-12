@@ -104,22 +104,54 @@ int tests_read_uint(struct tests_device *dev)
     return 0;
 }
 
+// http://stackoverflow.com/questions/3585846/color-text-in-terminal-applications-in-unix
+#define RED   "\x1B[31m"
+#define GRN   "\x1B[32m"
+#define RESET "\x1B[0m"
+
+#define SETUP                                                       \
+    struct tests_device dev;                                        \
+    struct kclient *kcl = kclient_connect("127.0.0.1", 36000);      \
+                                                                    \
+    if (kcl == NULL) {                                              \
+        fprintf(stderr, "Can't connect to server\n");               \
+        exit(EXIT_FAILURE);                                         \
+    }                                                               \
+                                                                    \
+    tests_init(&dev, kcl);                                          \
+
+#define TEARDOWN                                                    \
+    kclient_shutdown(kcl);
+
+#define TEST(NAME)                                                  \
+do {                                                                \
+    SETUP                                                           \
+    if (tests_ ##NAME(&dev) == 0)                                   \
+        printf(GRN "\xE2\x9C\x93" RESET " %s\n", #NAME);            \
+    else {                                                          \
+        printf(RED "\xE2\x98\x93" RESET " %s\n", #NAME);            \
+        tests_fail++;                                               \
+    }                                                               \
+    tests_num++;                                                    \
+    TEARDOWN                                                        \
+} while(0);
+
 int main(void)
 {
-    struct tests_device dev;
-    struct kclient *kcl = kclient_connect("127.0.0.1", 36000);
+    int tests_num  = 0;
+    int tests_fail = 0;
 
-    if (kcl == NULL) {
-        fprintf(stderr, "Can't connect to server\n");
+    TEST(get_std_array)
+    TEST(set_buffer)
+    TEST(read_int)
+    TEST(read_uint)
+
+    if (tests_fail == 0)
+        printf(GRN "OK" RESET " -- %u tests passed\n", tests_num);
+    else {
+        printf(RED "FAIL" RESET " -- %u tests passed - %u failed\n", tests_num - tests_fail, tests_fail);
         exit(EXIT_FAILURE);
     }
 
-    tests_init(&dev, kcl);
-    assert(tests_get_std_array(&dev) == 0);
-    // assert(tests_set_buffer(&dev) == 0); // BUG
-    assert(tests_read_int(&dev) == 0);
-    assert(tests_read_uint(&dev) == 0);
-
-    kclient_shutdown(kcl);
     return 0;
 }
