@@ -79,7 +79,7 @@ int TCPSocketInterface::read_command(Command& cmd)
     uint32_t payload_size = std::get<2>(header_tuple);
 
     if (payload_size > CMD_PAYLOAD_BUFFER_LEN) {
-        DEBUG_MSG("Receive command payload buffer size too small\n");
+        DEBUG_MSG("TCPSocket: Command payload buffer size too small\n");
         return -1;
     }
 
@@ -109,24 +109,29 @@ int TCPSocketInterface::rcv_n_bytes(char *buffer, uint32_t n_bytes)
         bytes_rcv = read(comm_fd, buffer + bytes_read, n_bytes - bytes_read);
         
         if (bytes_rcv == 0) {
-            fprintf(stderr, "Connection closed by client\n");
+            kserver->syslog.print(SysLog::INFO, 
+                "TCPSocket: Connection closed by client\n");
             return 0;
         }
         
         if (bytes_rcv < 0) {
-            fprintf(stderr, "Can't receive data\n");
+            kserver->syslog.print(SysLog::ERROR, 
+                "TCPSocket: Can't receive data\n");
             return -1;
         }
 
         bytes_read += bytes_rcv;
         
         if (bytes_read >= KSERVER_READ_STR_LEN) {
-            DEBUG_MSG("Buffer overflow\n");
+            DEBUG_MSG("TCPSocket: Buffer overflow\n");
             return -1;
         }
     }
 
     assert(bytes_read == n_bytes);
+    kserver->syslog.print(SysLog::DEBUG, "[R@%u] [%u bytes]\n", 
+                          id, bytes_read);
+
     return bytes_read;
 }
 
@@ -139,13 +144,13 @@ int TCPSocketInterface::RcvDataBuffer(uint32_t n_bytes)
                           n_bytes-bytes_read);
         // Check reception ...
         if (result < -1) {
-            kserver->syslog.print(SysLog::ERROR, "Read error\n");
+            kserver->syslog.print(SysLog::ERROR, "TCPSocket: Read error\n");
             return -1;
         }
 
         if (result == 0) {
             kserver->syslog.print(SysLog::WARNING, 
-                                  "Connection closed by client\n");
+                                  "TCPSocket: Connection closed by client\n");
             return -1;
         }
 
@@ -153,7 +158,7 @@ int TCPSocketInterface::RcvDataBuffer(uint32_t n_bytes)
         
         if (bytes_read > KSERVER_RECV_DATA_BUFF_LEN) {
             kserver->syslog.print(SysLog::CRITICAL, 
-                                  "Receive data buffer overflow\n");
+                                  "TCPSocket: Receive data buffer overflow\n");
             return -1;
         }
     }
@@ -166,7 +171,7 @@ const uint32_t* TCPSocketInterface::RcvHandshake(uint32_t buff_size)
 {
     // Handshaking
     if (Send<uint32_t>(htonl(buff_size)) < 0) {
-        kserver->syslog.print(SysLog::ERROR, "Cannot send buffer size\n");
+        kserver->syslog.print(SysLog::ERROR, "TCPSocket: Cannot send buffer size\n");
         return nullptr;
     }
 
@@ -189,7 +194,7 @@ int TCPSocketInterface::SendCstr(const char *string)
 
     if (err < 0) {
         kserver->syslog.print(SysLog::ERROR, 
-                              "SendCstr: Can't write to client\n");
+                              "TCPSocket::SendCstr: Can't write to client\n");
         return -1;
     }
 
@@ -231,7 +236,7 @@ int WebSocketInterface::read_command(Command& cmd)
     }
 
     if (websock.payload_size() < HEADER_LENGTH) {
-        kserver->syslog.print(SysLog::ERROR, "Websocket: Command too small\n");
+        kserver->syslog.print(SysLog::ERROR, "WebSocket: Command too small\n");
         return -1;
     }
 
@@ -240,17 +245,17 @@ int WebSocketInterface::read_command(Command& cmd)
     uint32_t payload_size = std::get<2>(header_tuple);
 
     if (payload_size > CMD_PAYLOAD_BUFFER_LEN) {
-        DEBUG_MSG("Receive command payload buffer size too small\n");
+        DEBUG_MSG("WebSocket: Command payload buffer size too small\n");
         return -1;
     }
 
     if (payload_size + HEADER_LENGTH > websock.payload_size()) {
-        kserver->syslog.print(SysLog::ERROR, "Websocket: Command payload reception incomplete\n");
+        kserver->syslog.print(SysLog::ERROR, "WebSocket: Command payload reception incomplete\n");
         return -1;
     }
 
     if (payload_size + HEADER_LENGTH < websock.payload_size())
-        kserver->syslog.print(SysLog::WARNING, "Websocket: Received more data than expected\n");
+        kserver->syslog.print(SysLog::WARNING, "WebSocket: Received more data than expected\n");
 
 
     bzero(cmd.buffer, CMD_PAYLOAD_BUFFER_LEN);
@@ -268,7 +273,7 @@ const uint32_t* WebSocketInterface::RcvHandshake(uint32_t buff_size)
 {
     // Handshaking
     if (Send<uint32_t>(buff_size) < 0) {
-        kserver->syslog.print(SysLog::ERROR, "Error sending the buffer size\n");
+        kserver->syslog.print(SysLog::ERROR, "WebSocket: Error sending the buffer size\n");
         return nullptr;
     }
 
@@ -278,7 +283,7 @@ const uint32_t* WebSocketInterface::RcvHandshake(uint32_t buff_size)
         return nullptr;
 
     if (static_cast<uint32_t>(payload_size) != sizeof(uint32_t)*buff_size) {
-        kserver->syslog.print(SysLog::ERROR, "Invalid data size received\n");
+        kserver->syslog.print(SysLog::ERROR, "WebSocket: Invalid data size received\n");
         return nullptr;
     }
 
@@ -294,7 +299,7 @@ int WebSocketInterface::SendCstr(const char *string)
 
     if (err < 0) {
         kserver->syslog.print(SysLog::ERROR, 
-                              "SendCstr: Can't write to client\n");
+                              "WebSocket::SendCstr: Can't write to client\n");
         return -1;
     }
 

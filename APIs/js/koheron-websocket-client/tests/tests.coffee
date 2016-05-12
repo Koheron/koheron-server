@@ -52,9 +52,6 @@ class Tests
         (buffer[i] = i*i for i in [0..len])
         @kclient.sendArray(Command(@id, @cmds.set_buffer, 'u', buffer.length), buffer, (ok) -> cb(ok==1))
 
-    checkBuffer : (cb) ->
-        @kclient.readBool(Command(@id, @cmds.set_buffer), cb)
-
     readUint : (cb) ->
         @kclient.readUint32(Command(@id, @cmds.read_uint), cb)
 

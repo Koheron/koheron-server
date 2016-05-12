@@ -159,14 +159,17 @@ int TCPSocketInterface::SendArray(const T *data, unsigned int len)
         
     if (n_bytes_send < 0) {
        kserver->syslog.print(SysLog::ERROR, 
-                             "SendArray: Can't write to client\n");
+          "TCPSocket::SendArray: Can't write to client\n");
        return -1;
     }
             
     if (n_bytes_send != bytes_send) {
-        kserver->syslog.print(SysLog::ERROR, "Some bytes have not been sent\n");
+        kserver->syslog.print(SysLog::ERROR, 
+            "TCPSocket::SendArray: Some bytes have not been sent\n");
         return -1;
     }
+
+    kserver->syslog.print(SysLog::DEBUG, "[S] [%u bytes]\n", bytes_send);
 
     return bytes_send;
 }
