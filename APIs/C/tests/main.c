@@ -199,7 +199,7 @@ bool test_read_string(struct tests_device *dev)
         || kclient_read_string(dev->kcl) < 0)
         return false;
 
-    return strcmp(dev->kcl->buffer, "Hello !") == 0;
+    return strcmp(dev->kcl->buffer, "Helo !") == 0;
 }
 
 // http://stackoverflow.com/questions/1961209/making-some-text-in-printf-appear-in-green-and-red

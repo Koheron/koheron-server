@@ -1,4 +1,5 @@
-# /bin/bash
+#!/bin/bash
+set -e
 
 echo "== Start server =="
 nohup tmp/server/kserverd -c config/kserver_docker.conf > /dev/null 2>server.log &
