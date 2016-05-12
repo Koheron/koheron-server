@@ -229,7 +229,7 @@ exports.readString = (assert) ->
         client.init( =>
             tests = new Tests(client)
             tests.readString( (str) =>
-                assert.equals(str, 'Helo !')
+                assert.equals(str, 'Hello !')
                 client.exit()
                 assert.done()
             )
