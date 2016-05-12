@@ -13,7 +13,7 @@ Tests::Tests(Klib::DevMem& dvm_unused_)
 
 bool Tests::rcv_many_params(uint32_t u1, uint32_t u2, float f, bool b)
 {
-    return u1 == 42 && u2 == 2048 && trunc(f * 1E6) == 3140000 && b;
+    return u1 == 429496729 && u2 == 2048 && trunc(f * 1E6) == 3140000 && b;
 }
 
 bool Tests::set_float(float f)
@@ -88,8 +88,8 @@ std::tuple<int, float, double> Tests::get_tuple()
 }
 
 uint64_t           Tests::read64()         { return (1ULL << 63); }
-int                Tests::read_int()       { return -42;          }
-unsigned int       Tests::read_uint()      { return 42;           }
+int                Tests::read_int()       { return -214748364;   }
+unsigned int       Tests::read_uint()      { return 301062138;    }
 unsigned long      Tests::read_ulong()     { return 2048;         }
 unsigned long long Tests::read_ulonglong() { return (1ULL << 63); }
 float              Tests::read_float()     { return 0.42;         }

@@ -59,16 +59,16 @@ tests = Tests(client)
 
 @pytest.mark.parametrize('tests', [tests])
 def test_send_many_params(tests):
-    assert tests.rcv_many_params(42, 2048, 3.14, True)
+    assert tests.rcv_many_params(429496729, 2048, 3.14, True)
 
 @pytest.mark.parametrize('tests', [tests])
 def test_read_uint(tests):
-    assert tests.read_uint() == 42
+    assert tests.read_uint() == 301062138
 
 @pytest.mark.parametrize('tests', [tests])
 def test_read_int(tests):
     print tests.read_int()
-    assert tests.read_int() == -42
+    assert tests.read_int() == -214748364
 
 @pytest.mark.parametrize('tests', [tests])
 def test_set_float(tests):

@@ -74,7 +74,7 @@ exports.sendManyParams = (assert) ->
     assert.doesNotThrow( =>
         client.init( =>
             tests = new Tests(client)
-            tests.sendManyParams(42, 2048, 3.14, true, (is_ok) =>
+            tests.sendManyParams(429496729, 2048, 3.14, true, (is_ok) =>
                 assert.ok(is_ok)
                 client.exit()
                 assert.done()
@@ -89,7 +89,7 @@ exports.readUint = (assert) ->
         client.init( =>
             tests = new Tests(client)
             tests.readUint( (num) =>
-                assert.equals(num, 42)
+                assert.equals(num, 301062138)
                 client.exit()
                 assert.done()
             )
@@ -103,7 +103,7 @@ exports.readInt = (assert) ->
         client.init( =>
             tests = new Tests(client)
             tests.readInt( (num) =>
-                assert.equals(num, -42)
+                assert.equals(num, -214748364)
                 client.exit()
                 assert.done()
             )
