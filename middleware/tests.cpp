@@ -9,106 +9,72 @@
 Tests::Tests(Klib::DevMem& dvm_unused_)
 : data(0)
 , buffer(0)
+{}
+
+bool Tests::rcv_many_params(uint32_t u1, uint32_t u2, float f, bool b)
 {
-    waveform_size = 0;
-    mean = 0;
-    std_dev = 0;
-    status = CLOSED;
-}
- 
-Tests::~Tests()
-{
-    Close();
+    return u1 == 429496729 && u2 == 2048 && trunc(f * 1E6) == 3140000 && b;
 }
 
-int Tests::Open(uint32_t waveform_size_)
+bool Tests::set_float(float f)
 {
-    // Reopening
-    if (status == OPENED && waveform_size_ != waveform_size)
-        Close();
-
-    if (status == CLOSED) {
-        waveform_size = waveform_size_;        
-        data = std::vector<float>(waveform_size);       
-        status = OPENED;
-    }
-    
-    return 0;
+    return f == 12.5;
 }
 
-void Tests::Close()
+std::vector<float>& Tests::send_std_vector()
 {
-    if (status == OPENED)
-        status = CLOSED;
-}
-
-std::vector<float>& Tests::read()
-{
-    std::default_random_engine generator(std::random_device{}());
-    std::normal_distribution<float> distribution(mean, std_dev);
+    data.resize(10);
 
     for (unsigned int i=0; i<data.size(); i++)
-        data[i] = distribution(generator);
+        data[i] = i*i*i;
 
     return data;
 }
 
-void Tests::set_mean(float mean_)
-{
-    mean = mean_;
-}
-
-void Tests::set_std_dev(float std_dev_)
-{
-    std_dev = std_dev_;
-}
-
 std::array<float, 10>& Tests::send_std_array()
 {    
-    std::default_random_engine generator(std::random_device{}());
-    std::normal_distribution<float> distribution(0.0, 10.0);
-
     for (uint32_t i=0; i<data_std_array.size(); i++)
-        data_std_array[i] = distribution(generator);
+        data_std_array[i] = i*i;
 
     return data_std_array;
 }
 
-float* Tests::get_array(uint32_t n_pts)
+float* Tests::send_c_array1(uint32_t n_pts)
 {
     if (data.size() < 2*n_pts)
         data.resize(2*n_pts);
 
-    std::default_random_engine generator(std::random_device{}());
-    std::normal_distribution<float> distribution(mean, std_dev);
-
-    for (unsigned int i=0; i<n_pts; i++) {
-       data[i] = distribution(generator);
-       data[i + n_pts] = distribution(generator);
-    }
+    for (unsigned int i=0; i<2*n_pts; i++)
+        data[i] = static_cast<float>(i)/2;
 
     return data.data();
 }
 
-float* Tests::get_array_bis()
+float* Tests::send_c_array2()
 {
-    std::default_random_engine generator(std::random_device{}());
-    std::normal_distribution<float> distribution(mean, std_dev);
+    data.resize(10);
 
     for (unsigned int i=0; i<data.size(); i++)
-       data[i] = distribution(generator);
+       data[i] = static_cast<float>(i)/4;
 
     return data.data();
 }
 
-void Tests::set_buffer(const uint32_t *data, uint32_t len)
+bool Tests::set_buffer(const uint32_t *data, uint32_t len)
 {
-    buffer.resize(len);
+    if (len != 10)
+        return false;
 
-    for (unsigned int i=0; i<buffer.size(); i++) {
-        buffer[i] = data[i];
-        printf("%u => %u\n", i, buffer[i]);
+    bool is_ok = true;
+
+    for (unsigned int i=0; i<len; i++) {
+        if (data[i] != i*i) {
+            is_ok = false;
+            break;
+        }
     }
+
+    return is_ok;
 }
 
 const char* Tests::get_cstr()
@@ -116,43 +82,15 @@ const char* Tests::get_cstr()
     return "Hello !";
 }
 
-// -----------------------------------------------
-// Send integers
-// -----------------------------------------------
-
-uint64_t Tests::read64()
+std::tuple<int, float, double> Tests::get_tuple()
 {
-    return (1ULL << 63);
+    return std::make_tuple(2, 3.14159F, 2345.6);
 }
 
-
-int Tests::read_int()
-{
-    printf("Send -42\n");
-    return -42;
-}
-
-unsigned int Tests::read_uint()
-{
-    return 42;
-}
-
-unsigned long Tests::read_ulong()
-{
-    return 2048;
-}
-
-unsigned long long Tests::read_ulonglong()
-{
-    return (1ULL << 63);
-}
-
-float Tests::read_float()
-{
-    return 0.42;
-}
-
-bool Tests::read_bool()
-{
-    return true;   
-}
+uint64_t           Tests::read64()         { return (1ULL << 63); }
+int                Tests::read_int()       { return -214748364;   }
+unsigned int       Tests::read_uint()      { return 301062138;    }
+unsigned long      Tests::read_ulong()     { return 2048;         }
+unsigned long long Tests::read_ulonglong() { return (1ULL << 63); }
+float              Tests::read_float()     { return 0.42;         }
+bool               Tests::read_bool()      { return true;         }

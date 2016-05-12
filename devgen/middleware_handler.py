@@ -252,8 +252,8 @@ class FragmentsGenerator:
             else: # Length is a constant independent of a parameter
                 length = remaining
             
-            frag.append("    return SEND_ARRAY<" + ptr_type + ">(" 
-                        + self._build_func_call(operation) + ", " + length + ");\n")
+            frag.append("    auto ptr = " + self._build_func_call(operation) + ";\n")
+            frag.append("    return SEND_ARRAY<" + ptr_type + ">(ptr, " + length + ");\n")
                             
         elif operation["io_type"]["value"] == "WRITE_ARRAY":
             len_name = operation["array_params"]['length']['length']
@@ -261,8 +261,16 @@ class FragmentsGenerator:
             frag.append("    const uint32_t *data_ptr = RCV_HANDSHAKE(args." + len_name + ");\n\n")
             frag.append("    if (data_ptr == nullptr)\n")
             frag.append("       return -1;\n\n")
-            frag.append("    " + self._build_write_array_func_call(operation) + ";\n\n")
-            frag.append("    return 0;\n")
+            if (operation["prototype"]["ret_type"] == "uint32_t"
+                or operation["prototype"]["ret_type"] == "unsigned int"
+                or operation["prototype"]["ret_type"] == "unsigned long"
+                or operation["prototype"]["ret_type"] == "int"
+                or operation["prototype"]["ret_type"] == "int32_t"
+                or operation["prototype"]["ret_type"] == "bool"):
+                frag.append("    return SEND<uint32_t>(" + self._build_write_array_func_call(operation) + ");\n")
+            else:
+                frag.append("    " + self._build_write_array_func_call(operation) + ";\n\n")
+                frag.append("    return 0;\n")
                             
         # self._show_fragment(frag)
         return frag

@@ -111,11 +111,11 @@ def main(argv):
         print usage
         return
     
-    if argv[0] == 'kserver':        
+    if argv[0] == 'kserver':
         kmake_kserver(argv[1:])
         return
         
-    if argv[0] == 'fragments':        
+    if argv[0] == 'fragments':
         kmake_fragments(argv[1:])
         return
 

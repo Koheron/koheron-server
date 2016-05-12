@@ -39,7 +39,8 @@ OBJS_KSERVER = core/kserver.o              \
                core/crypto/sha1.o          \
                core/kserver_syslog.o       \
                core/socket_interface.o     \
-               core/signal_handler.o       
+               core/signal_handler.o       \
+               core/binary_parser.o
                
 # Object in KServer/devices
 OBJS_KS_DEV ?= {% for obj in objs_list %} {{ obj }} {% endfor %}
@@ -83,8 +84,8 @@ CCPP=$(CROSS_COMPILE)g++
 # GCC compiling & linking flags
 # --------------------------------------------------------------
 
-DEFINES = -DDEBUG_KSERVER 
-#DEFINES = -DRELEASE_KSERVER
+DEFINES += -DDEBUG_KSERVER 
+#DEFINES += -DRELEASE_KSERVER
 
 CFLAGS= -Wall -Werror -Wno-unknown-pragmas \
         -I$(MIDWARE_INC_PATH) -I$(MIDWARE_INC_PATH)/libraries $(DEFINES)
@@ -115,7 +116,7 @@ else
   CFLAGS += -Os
 endif
 
-CPPFLAGS=$(CFLAGS) -std=c++11 -pthread
+CPPFLAGS=$(CFLAGS) -std=c++14 -pthread
 
 # --------------------------------------------------------------
 # Libraries
