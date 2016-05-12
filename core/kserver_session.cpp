@@ -132,6 +132,8 @@ int Session::Run()
             return nb_bytes_rcvd;
         }
 
+        requests_num++;
+
         if (session_manager.dev_manager.Execute(cmd) < 0)
             errors_num++;
     }

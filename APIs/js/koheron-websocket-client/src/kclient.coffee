@@ -27,17 +27,19 @@ class WebSocketPool
     "use strict"
 
     constructor: (@pool_size, url, onopen_callback) ->
-        if window?
-            if not window.WebSocket then throw "WebSocket not supported"
-        else # NodeJS
-            WebSocket = require('websocket').w3cwebsocket;
+        if window? and not window.WebSocket then throw "WebSocket not supported"
 
         @pool = []
         @free_sockets = []
         @socket_counter = 0
 
         for i in [0..@pool_size-1]
-            websocket = new WebSocket url
+            if window?
+                websocket = new WebSocket url
+            else # Node
+                __WebSocket = require('websocket').w3cwebsocket
+                websocket = new __WebSocket url
+            
             websocket.binaryType = 'arraybuffer'
             @pool.push(websocket)
 
