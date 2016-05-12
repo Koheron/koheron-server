@@ -199,6 +199,16 @@ int kclient_rcv_esc_seq(struct kclient *kcl, const char *esc_seq);
 int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes);
 
 /**
+ * kclient_read_string - Receive a null-terminated string
+ *
+ * The received string is stored in kcl->buffer.
+ *
+ * Returns the string length (including the null-terminating character) 
+ * on success. -1 if failure.
+ */
+int kclient_read_string(struct kclient *kcl);
+
+/**
  * kclient_read_u32 - Read a little endian uint32_t
  * @rcv_uint: Pointer to the received number
  *

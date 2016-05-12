@@ -103,8 +103,6 @@ int TCPSocketInterface::read_command(Command& cmd)
 
 int TCPSocketInterface::rcv_n_bytes(char *buffer, uint32_t n_bytes)
 {
-    printf("n_bytes = %u\n", n_bytes);
-
     if (n_bytes == 0)
         return 0;
 

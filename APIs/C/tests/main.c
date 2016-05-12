@@ -16,6 +16,7 @@ struct tests_device {
     op_id_t send_c_array1_ref;   // "SEND_C_ARRAY1" reference
     op_id_t send_c_array2_ref;   // "SEND_C_ARRAY2" reference
     op_id_t set_buffer_ref;      // "SET_BUFFER" reference
+    op_id_t get_cstr_ref;        // "GET_CSTR" reference
 };
 
 void tests_init(struct tests_device *dev, struct kclient *kcl)
@@ -31,6 +32,7 @@ void tests_init(struct tests_device *dev, struct kclient *kcl)
     dev->send_c_array1_ref = get_op_id(kcl, dev->id, "SEND_C_ARRAY1");
     dev->send_c_array2_ref = get_op_id(kcl, dev->id, "SEND_C_ARRAY2");
     dev->set_buffer_ref = get_op_id(kcl, dev->id, "SET_BUFFER");
+    dev->get_cstr_ref = get_op_id(kcl, dev->id, "GET_CSTR");
 
     assert(dev->send_std_array_ref    >= 0 
            && dev->set_buffer_ref     >= 0
@@ -193,7 +195,11 @@ bool test_send_buffer(struct tests_device *dev)
 
 bool test_read_string(struct tests_device *dev)
 {
-    return false;
+    if (kclient_send_command(dev->kcl, dev->id, dev->get_cstr_ref, "") < 0
+        || kclient_read_string(dev->kcl) < 0)
+        return false;
+
+    return strcmp(dev->kcl->buffer, "Hello !") == 0;
 }
 
 // http://stackoverflow.com/questions/1961209/making-some-text-in-printf-appear-in-green-and-red

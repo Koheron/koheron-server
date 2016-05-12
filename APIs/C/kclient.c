@@ -294,7 +294,7 @@ int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes)
     uint32_t bytes_read = 0;
 
     if (n_bytes >= RCV_BUFFER_LEN) {
-        DEBUG_MSG("Receive buffer size too small\n");
+        DEBUG_MSG("kclient_rcv_n_bytes: Receive buffer size too small\n");
         return -1;
     }
 
@@ -304,19 +304,19 @@ int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes)
         bytes_rcv = read(kcl->sockfd, kcl->buffer + bytes_read, n_bytes - bytes_read);
         
         if (bytes_rcv == 0) {
-            fprintf(stderr, "Connection closed by tcp-server\n");
+            fprintf(stderr, "kclient_rcv_n_bytes: Connection closed by tcp-server\n");
             return -1;
         }
         
         if (bytes_rcv < 0) {
-            fprintf(stderr, "Can't receive data\n");
+            fprintf(stderr, "kclient_rcv_n_bytes: Can't receive data\n");
             return -1;
         }
 
         bytes_read += bytes_rcv;
         
         if (bytes_read >= RCV_BUFFER_LEN) {
-            DEBUG_MSG("Buffer overflow\n");
+            DEBUG_MSG("kclient_rcv_n_bytes: Buffer overflow\n");
             return -1;
         }
 
@@ -325,6 +325,41 @@ int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes)
 
     assert(bytes_read == n_bytes);
     return bytes_read;
+}
+
+int kclient_read_string(struct kclient *kcl)
+{
+    int bytes_rcv = 0;
+    int bytes_read = 0;
+    set_rcv_buff(kcl);
+
+    while(1) {
+        bytes_rcv = recv(get_socket_fd(kcl), kcl->buffer + bytes_read, 1, 0);
+        
+        if (bytes_rcv == 0) {
+            fprintf(stderr, "kclient_read_string: Connection closed by tcp-server\n");
+            return -1;
+        }
+        
+        if (bytes_rcv < 0) {
+            fprintf(stderr, "kclient_read_string: Can't receive data\n");
+            return -1;
+        }
+        
+        bytes_read += bytes_rcv;
+
+        if (bytes_read >= RCV_BUFFER_LEN) {
+            DEBUG_MSG("kclient_read_string: Buffer overflow string too long\n");
+            return -1;
+        }
+
+        kcl->current_len = bytes_read;
+
+        if (kcl->buffer[kcl->current_len - 1] == '\0')
+            break;
+    }
+
+    return kcl->current_len;
 }
 
 int kclient_read_u32(struct kclient *kcl, uint32_t *rcv_uint)
