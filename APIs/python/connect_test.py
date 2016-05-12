@@ -110,7 +110,7 @@ def test_send_buffer(tests):
 
 @pytest.mark.parametrize('tests', [tests])
 def test_read_string(tests):
-    assert tests.get_cstr() == 'Helo !'
+    assert tests.get_cstr() == 'Hello !'
 
 @pytest.mark.parametrize('tests', [tests])
 def test_read_tuple(tests):
