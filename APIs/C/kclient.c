@@ -152,7 +152,7 @@ int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
         uint32_t len;
 
         if (buffer_len >= CMD_BUFFER_LEN) {
-            DEBUG_MSG("Command buffer overflow\n");
+            DEBUG_MSG("kclient_send_command: Command buffer overflow\n");
             return -1;
         }
 
@@ -166,7 +166,7 @@ int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
                                (float)va_arg(args, double));
             break;
           default:
-            fprintf(stderr, "Unknown type %c\n", *types);
+            fprintf(stderr, "kclient_send_command: Unknown type %c\n", *types);
             return -1;
         }
 
@@ -180,7 +180,7 @@ int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
     buffer_len += append_u32(buffer + PAYLOAD_SIZE_OFFSET, payload_size);
 
     if (write(get_socket_fd(kcl), buffer, buffer_len) < 0) {
-        fprintf(stderr, "Can't send command to tcp-server\n");
+        fprintf(stderr, "kclient_send_command:Can't send command to tcp-server\n");
         return -1;
     }
     
@@ -216,17 +216,17 @@ int kclient_rcv_esc_seq(struct kclient *kcl, const char *esc_seq)
         bytes_rcv = recv(get_socket_fd(kcl), tmp_buff, RCV_LEN-1, 0);
         
         if (bytes_rcv == 0) {
-            fprintf(stderr, "Connection closed by tcp-server\n");
+            fprintf(stderr, "kclient_rcv_esc_seq: Connection closed by tcp-server\n");
             return -1;
         }
         
         if (bytes_rcv < 0) {
-            fprintf(stderr, "Can't receive data\n");
+            fprintf(stderr, "kclient_rcv_esc_seq: Can't receive data\n");
             return -1;
         }
         
         if (bytes_read + bytes_rcv >= RCV_BUFFER_LEN) {
-            DEBUG_MSG("Buffer overflow\n");
+            DEBUG_MSG("kclient_rcv_esc_seq: Buffer overflow\n");
             return -1;
         }
 
@@ -254,7 +254,7 @@ int kclient_rcv_esc_seq(struct kclient *kcl, const char *esc_seq)
     kcl->devs_num = num_dev-2;
     
     if (kcl->devs_num > MAX_DEV_NUM) {
-        DEBUG_MSG("MAX_DEV_NUM overflow\n");
+        DEBUG_MSG("kclient_rcv_esc_seq: MAX_DEV_NUM overflow\n");
         return -1;
     }
     
@@ -305,8 +305,8 @@ int kclient_read_u32(struct kclient *kcl, uint32_t *rcv_uint)
     if (kclient_rcv_n_bytes(kcl, sizeof(uint32_t)) < 0)
         return -1;
 
-    *rcv_uint = (uint32_t)kcl->buffer[0] + ((uint32_t)kcl->buffer[1] << 8)
-                + ((uint32_t)kcl->buffer[2] << 16) + ((uint32_t)kcl->buffer[3] << 24);
+    *rcv_uint = (unsigned char)kcl->buffer[0] + ((unsigned char)kcl->buffer[1] << 8)
+                + ((unsigned char)kcl->buffer[2] << 16) + ((unsigned char)kcl->buffer[3] << 24);
     return 0;
 }
 
@@ -315,20 +315,30 @@ int kclient_read_u32_big_endian(struct kclient *kcl, uint32_t *rcv_uint)
     if (kclient_rcv_n_bytes(kcl, sizeof(uint32_t)) < 0)
         return -1;
 
-    *rcv_uint = (uint32_t)kcl->buffer[3] + ((uint32_t)kcl->buffer[2] << 8)
-                + ((uint32_t)kcl->buffer[1] << 16) + ((uint32_t)kcl->buffer[0] << 24);
+    *rcv_uint = (unsigned char)kcl->buffer[3] + ((unsigned char)kcl->buffer[2] << 8)
+                + ((unsigned char)kcl->buffer[1] << 16) + ((unsigned char)kcl->buffer[0] << 24);
     return 0;
 }
 
-int kclient_read_int(struct kclient *kcl, int8_t *rcv_int)
+int kclient_read_int(struct kclient *kcl, int32_t *rcv_int)
 {
     if (kclient_rcv_n_bytes(kcl, sizeof(uint32_t)) < 0)
         return -1;
 
-    *rcv_int = (int8_t) ((uint32_t)kcl->buffer[0] + ((uint32_t)kcl->buffer[1] << 8)
-                + ((uint32_t)kcl->buffer[2] << 16) + ((uint32_t)kcl->buffer[3] << 24));
+    *rcv_int = (int32_t) ((unsigned char)kcl->buffer[0] + ((unsigned char)kcl->buffer[1] << 8)
+                + ((unsigned char)kcl->buffer[2] << 16) + ((unsigned char)kcl->buffer[3] << 24));
     return 0;
 }
+
+int kclient_read_bool(struct kclient *kcl, bool *rcv_bool)
+{
+    if (kclient_rcv_n_bytes(kcl, 1) < 0)
+        return -1;
+
+    *rcv_bool = (unsigned char)kcl->buffer[0] == 1;
+    return 0;
+}
+
 
 int kclient_send_array(struct kclient *kcl, uint32_t *array_ptr, uint32_t len)
 {

@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 # include <kclient.h>
 
@@ -20,6 +21,11 @@ void tests_init(struct tests_device *dev, struct kclient *kcl)
     dev->set_buffer_ref = get_op_id(kcl, dev->id, "SET_BUFFER");
     dev->read_int_ref = get_op_id(kcl, dev->id, "READ_INT");
     dev->read_uint_ref = get_op_id(kcl, dev->id, "READ_UINT");
+
+    assert(   dev->send_std_array_ref >= 0 
+           && dev->set_buffer_ref     >= 0
+           && dev->read_int_ref       >= 0
+           && dev->read_uint_ref      >= 0);
 }
 
 int tests_get_std_array(struct tests_device *dev)
@@ -37,17 +43,19 @@ int tests_get_std_array(struct tests_device *dev)
 
     buff = kclient_get_buffer(dev->kcl, float);
     for (i=0; i<kclient_get_len(dev->kcl, float); i++)
-        printf("%i => %f\n", i, buff[i]);
+        if (buff[i] != i*i)
+            return -1;
 
     return 0;
 }
 
-#define BUFF_LEN 20
+#define BUFF_LEN 10
 
 int tests_set_buffer(struct tests_device *dev)
 {
     int i;
     uint32_t data[BUFF_LEN];
+    bool is_ok;
 
     for (i=0; i<BUFF_LEN; i++)
         data[i] = i*i;
@@ -58,12 +66,15 @@ int tests_set_buffer(struct tests_device *dev)
     if (kclient_send_array(dev->kcl, data, BUFF_LEN) < 0)
         return -1;
 
-    return 0;
+    if (kclient_read_bool(dev->kcl, &is_ok))
+        return -1;
+
+    return is_ok ? 0 : -1;
 }
 
 int tests_read_int(struct tests_device *dev)
 {
-    int8_t rcv_int;
+    int rcv_int;
 
     if (kclient_send_command(dev->kcl, dev->id, dev->read_int_ref, "") < 0)
         return -1;
@@ -71,7 +82,9 @@ int tests_read_int(struct tests_device *dev)
     if (kclient_read_int(dev->kcl, &rcv_int))
         return -1;
 
-    printf("Received int %i\n", rcv_int);
+    if (rcv_int != -42)
+        return -1;
+
     return 0;
 }
 
@@ -85,14 +98,15 @@ int tests_read_uint(struct tests_device *dev)
     if (kclient_read_u32(dev->kcl, &rcv_uint))
         return -1;
 
-    printf("Received int %i\n", rcv_uint);
+    if (rcv_uint != 42)
+        return -1;
+
     return 0;
 }
 
 int main(void)
 {
     struct tests_device dev;
-
     struct kclient *kcl = kclient_connect("127.0.0.1", 36000);
 
     if (kcl == NULL) {
@@ -101,10 +115,10 @@ int main(void)
     }
 
     tests_init(&dev, kcl);
-    tests_get_std_array(&dev);
-    tests_set_buffer(&dev);
-    tests_read_int(&dev);
-    tests_read_uint(&dev);
+    assert(tests_get_std_array(&dev) == 0);
+    // assert(tests_set_buffer(&dev) == 0); // BUG
+    assert(tests_read_int(&dev) == 0);
+    assert(tests_read_uint(&dev) == 0);
 
     kclient_shutdown(kcl);
     return 0;

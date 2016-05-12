@@ -16,6 +16,7 @@ extern "C" {
 #include <time.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #if defined (__linux__)
 #include <sys/socket.h>
@@ -201,7 +202,7 @@ int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes);
  * kclient_read_u32 - Read a little endian uint32_t
  * @rcv_uint: Pointer to the received number
  *
- * Returns the read number on success. -1 if failure.
+ * Returns 0 on success and -1 if failure.
  */
 int kclient_read_u32(struct kclient *kcl, uint32_t *rcv_uint);
 
@@ -209,7 +210,7 @@ int kclient_read_u32(struct kclient *kcl, uint32_t *rcv_uint);
  * kclient_read_u32 - Read a big endian uint32_t
  * @rcv_uint: Pointer to the received number
  *
- * Returns the read number on success. -1 if failure.
+ * Returns 0 on success and -1 if failure.
  */
 int kclient_read_u32_big_endian(struct kclient *kcl, uint32_t *rcv_uint);
 
@@ -217,9 +218,17 @@ int kclient_read_u32_big_endian(struct kclient *kcl, uint32_t *rcv_uint);
  * kclient_read_int - Read a int
  * @rcv_int: Pointer to the received number
  *
- * Returns the read number on success. -1 if failure.
+ * Returns 0 on success and -1 if failure.
  */
-int kclient_read_int(struct kclient *kcl, int8_t *rcv_int);
+int kclient_read_int(struct kclient *kcl, int32_t *rcv_int);
+
+/**
+ * kclient_read_bool - Read a boolean
+ * @rcv_bool: Pointer to the received boolean
+ *
+ * Returns 0 on success and -1 if failure.
+ */
+int kclient_read_bool(struct kclient *kcl, bool *rcv_bool);
 
 /**
  * kclient_rcv_array - Receive an array
