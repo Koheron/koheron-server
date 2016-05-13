@@ -30,7 +30,7 @@ class Tests
             get_tuple       : @device.getCmdRef( "GET_TUPLE"       )
 
     sendManyParams : (u1, u2, f, b, cb) ->
-        @kclient.readBool(Command(@id, @cmds.rcv_many_params, 'uufb', u1, u2, f, b), cb)
+        @kclient.readBool(Command(@id, @cmds.rcv_many_params, 'IIf?', u1, u2, f, b), cb)
 
     setFloat : (f, cb) ->
         @kclient.readBool(Command(@id, @cmds.set_float, 'f', f), cb)
@@ -42,7 +42,7 @@ class Tests
         @kclient.readFloat32Array(Command(@id, @cmds.send_std_array), cb)
 
     rcvCArray1 : (len, cb) ->
-        @kclient.readFloat32Array(Command(@id, @cmds.send_c_array1, 'u', len), cb)
+        @kclient.readFloat32Array(Command(@id, @cmds.send_c_array1, 'I', len), cb)
 
     rcvCArray2 : (cb) ->
         @kclient.readFloat32Array(Command(@id, @cmds.send_c_array2), cb)
@@ -50,7 +50,7 @@ class Tests
     sendBuffer : (len, cb) ->
         buffer = new Uint32Array(len)
         (buffer[i] = i*i for i in [0..len])
-        @kclient.sendArray(Command(@id, @cmds.set_buffer, 'u', buffer.length), buffer, (ok) -> cb(ok==1))
+        @kclient.sendArray(Command(@id, @cmds.set_buffer, 'I', buffer.length), buffer, (ok) -> cb(ok==1))
 
     readUint : (cb) ->
         @kclient.readUint32(Command(@id, @cmds.read_uint), cb)
