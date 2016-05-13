@@ -1,6 +1,40 @@
 #!/bin/bash
 set -e
 
+# ---------------------------------------
+# Build
+# ---------------------------------------
+
+# Compile kserverd
+RUN make BUILD_LOCAL=True DOCKER=True CONFIG=config_local.yaml clean all
+RUN make BUILD_LOCAL=True DOCKER=True CONFIG=config_armel.yaml clean all
+RUN make BUILD_LOCAL=True DOCKER=True CONFIG=config_armhf.yaml clean all
+RUN make BUILD_LOCAL=True DOCKER=True CONFIG=config_toolchain.yaml clean all
+
+# Compile CLI
+RUN make -C cli TARGET_HOST=local clean all
+RUN make -C cli CROSS_COMPILE=arm-linux-gnueabihf- clean all
+RUN make -C cli CROSS_COMPILE=arm-linux-gnueabi- clean all
+
+# Compile C API Tests
+RUN make -C APIs/C/tests TARGET_HOST=local clean all
+RUN make -C APIs/C/tests TARGET_HOST=arm clean all
+RUN make -C APIs/C/tests TARGET_HOST=armhf clean all
+RUN make -C APIs/C/tests TARGET_HOST=Win32 clean all
+RUN make -C APIs/C/tests TARGET_HOST=Win64 clean all
+
+# Build js API
+RUN make -C APIs/js/koheron-websocket-client build
+
+# ---------------------------------------
+# Tests
+# ---------------------------------------
+
+# Compile executables in local for tests
+RUN make BUILD_LOCAL=True DOCKER=True CONFIG=config_local.yaml clean all
+RUN make -C cli TARGET_HOST=local clean all
+RUN make -C APIs/C/tests TARGET_HOST=local clean all
+
 echo "== Start server =="
 nohup tmp/server/kserverd -c config/kserver_docker.conf > /dev/null 2>server.log &
 ps -A | grep -w "kserverd"
