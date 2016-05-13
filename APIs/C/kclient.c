@@ -180,7 +180,7 @@ int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
         }
 
         switch (*types) {
-          case 'u':
+          case 'I':
             len = append_u32(buffer + PAYLOAD_OFFSET + payload_size,
                              va_arg(args, uint32_t));
             break;
@@ -188,7 +188,7 @@ int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
             len = append_float(buffer + PAYLOAD_OFFSET + payload_size,
                                (float)va_arg(args, double));
             break;
-          case 'b':
+          case '?':
             len = append_bool(buffer + PAYLOAD_OFFSET + payload_size,
                               (bool)va_arg(args, uint32_t));
             break;

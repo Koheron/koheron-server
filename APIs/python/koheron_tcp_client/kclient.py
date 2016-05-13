@@ -99,11 +99,11 @@ def _build_payload(type_str, args):
 
     # http://stackoverflow.com/questions/402504/how-to-determine-the-variable-type-in-python
     for i, type_ in enumerate(type_str):
-        if type_ is 'u': # Unsigned
+        if type_ is 'I': # Unsigned
             size += _append_u32(payload, args[i])
         elif type_ is 'f': # float
             size += _append_float(payload, args[i])
-        elif type_ is 'b': # bool
+        elif type_ is '?': # bool
             if args[i]:
                 size += _append_u8(payload, 1)
             else:
