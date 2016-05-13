@@ -5,16 +5,16 @@ machine:
 dependencies:
   override:
     - docker info
-    #- docker pull jeanminet/tcp-server
-    - docker build -t jeanminet/tcp-server .
+    - docker pull jeanminet/tcp-server
+    #- docker build -t jeanminet/tcp-server .
 
 test:
   pre:
-#    - docker run jeanminet/tcp-server bash docker_tests.sh
+    - docker run jeanminet/tcp-server bash docker_tests.sh
     
-deployment:
-  hub:
-    branch: v0.4
-    commands:
-      - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
-      - docker push jeanminet/tcp-server
+#deployment:
+#  hub:
+#    branch: v0.4
+#    commands:
+#      - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+#      - docker push jeanminet/tcp-server
