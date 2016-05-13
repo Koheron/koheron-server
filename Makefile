@@ -40,6 +40,7 @@ kserverd: venv libraries $(REMOTE_DRIVERS)
 ifeq ($(DOCKER),False)
 	venv/bin/python kmake.py kserver -c config/$(CONFIG) $(MIDWARE_PATH)
 else
+	pip install -r requirements.txt
 	python kmake.py kserver -c config/$(CONFIG) $(MIDWARE_PATH)
 endif
 
