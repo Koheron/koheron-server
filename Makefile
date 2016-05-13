@@ -11,6 +11,10 @@ MIDWARE_PATH = middleware
 REMOTE_DRIVERS = $(MIDWARE_PATH)/drivers
 ZYNQ_SDK_PATH = tmp/zynq-sdk
 
+# http://stackoverflow.com/questions/18136918/how-to-get-current-relative-directory-of-your-makefile
+mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
+current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
+
 all: kserverd
 
 $(REMOTE_DRIVERS):
@@ -35,7 +39,7 @@ ifeq ($(DOCKER),False)
 	virtualenv venv
 	venv/bin/pip install -r requirements.txt
 else
-	pip install -r $(shell pwd)/requirements.txt
+	pip install -r $(current_dir)/requirements.txt
 endif
 
 kserverd: venv libraries $(REMOTE_DRIVERS)
