@@ -42,7 +42,7 @@ def write_buffer(device_name, type_str='', format_char='I', dtype=np.uint32):
             device_id = int(params.id)
             cmd_id = params.get_op_ref(func.__name__.upper())
             args_ = args[1:] + tuple(kwargs.values()) + (len(args[0]),)
-            self.client.send_command(device_id, cmd_id, type_str + 'u', *args_)
+            self.client.send_command(device_id, cmd_id, type_str + 'I', *args_)
             self.client.send_handshaking(args[0], format_char=format_char, dtype=dtype)
             return func(self, *args, **kwargs)
         return wrapper
