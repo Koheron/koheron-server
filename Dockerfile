@@ -37,3 +37,6 @@ RUN apt-get install -y nodejs
 
 RUN pip install --upgrade pip
 RUN pip install pytest
+
+WORKDIR $work_dir/
+COPY . $work_dir/
