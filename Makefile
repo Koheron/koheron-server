@@ -35,7 +35,7 @@ ifeq ($(DOCKER),False)
 	virtualenv venv
 	venv/bin/pip install -r requirements.txt
 else
-	pip install -r requirements.txt
+	pip install -r $(shell pwd)/requirements.txt
 endif
 
 kserverd: venv libraries $(REMOTE_DRIVERS)
