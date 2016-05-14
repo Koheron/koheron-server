@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-#include <time.h>
+#if defined (__linux__)
+  #include <time.h>
+#endif
 
 #include <kclient.h>
 
@@ -263,6 +265,7 @@ void unit_tests()
     }
 }
 
+#if defined (__linux__)
 void speed_tests()
 {
     unsigned int i;
@@ -283,13 +286,16 @@ void speed_tests()
 
     printf("Time: %lu ns to read an uint\n", (t_end - t_start)/N);
 }
+#endif
 
 int main(int argc, char **argv)
 {
     if (strcmp(argv[1], "--unit") == 0)
         unit_tests();
+#if defined (__linux__)
     else if (strcmp(argv[1], "--speed") == 0)
         speed_tests();
+#endif
 
     return 0;
 }
