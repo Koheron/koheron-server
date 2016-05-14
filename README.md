@@ -63,19 +63,19 @@ class Gpio(object):
 
         open(self)
 
-    @command('GPIO')
+    @command('GPIO','II')
     def set_bit(self, index, channel): pass
 
-    @command('GPIO')
+    @command('GPIO','II')
     def clear_bit(self, index, channel): pass
 
-    @command('GPIO')
+    @command('GPIO','II')
     def toggle_bit(self, index, channel): pass
 
-    @command('GPIO')
+    @command('GPIO','II')
     def set_as_input(self, index, channel): pass
 
-    @command('GPIO')
+    @command('GPIO','II')
     def set_as_output(self, index, channel): pass
 
 if __name__ == "__main__":
