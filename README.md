@@ -85,4 +85,4 @@ if __name__ == "__main__":
 	gpio.set_bit(0, 2)
 ```
 
-Check our [drivers folder](https://github.com/Koheron/zynq-sdk/tree/master/devices) to find several complete examples.
+Check our [drivers folder](https://github.com/Koheron/zynq-sdk/tree/master/drivers) to find several complete examples.
