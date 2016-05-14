@@ -235,7 +235,7 @@ do {                                                                \
     TEARDOWN                                                        \
 } while(0);
 
-int main(void)
+void unit_tests()
 {
     int tests_num  = 0;
     int tests_fail = 0;
@@ -260,6 +260,12 @@ int main(void)
                tests_num - tests_fail, tests_fail);
         exit(EXIT_FAILURE);
     }
+}
+
+int main(int argc, char **argv)
+{
+    if (strcmp(argv[1], "--unit") == 0)
+        unit_tests();
 
     return 0;
 }
