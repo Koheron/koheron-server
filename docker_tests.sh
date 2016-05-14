@@ -48,7 +48,7 @@ cli/kserver status --devices KSERVER
 cli/kserver status --devices TESTS
 
 echo "== Test C API =="
-APIs/C/tests/tests
+APIs/C/tests/tests --unit
 
 echo "== Test Javascript API =="
 make -C APIs/js/koheron-websocket-client tests
@@ -56,6 +56,9 @@ make -C APIs/js/koheron-websocket-client tests
 echo "== Test Python API =="
 cd APIs/python && py.test -r connect_test.py
 cd ../..
+
+echo "== Speed tests =="
+APIs/C/tests/tests --speed
 
 echo "== Server log =="
 cat server.log

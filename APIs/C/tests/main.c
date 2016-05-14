@@ -1,8 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <time.h>
 
-# include <kclient.h>
+#include <kclient.h>
 
 struct tests_device {
     struct kclient *kcl;         // KClient
@@ -262,10 +263,33 @@ void unit_tests()
     }
 }
 
+void speed_tests()
+{
+    unsigned int i;
+    long t_start, t_end;
+    struct timespec _time;
+    unsigned int N = 10000;
+
+    SETUP
+
+    clock_gettime(CLOCK_REALTIME, &(_time));
+    t_start = _time.tv_nsec;
+    for (i=0; i<1000; i++)
+        test_read_uint(&dev);
+    clock_gettime(CLOCK_REALTIME, &(_time));
+    t_end = _time.tv_nsec;
+
+    TEARDOWN
+
+    printf("Time: %lu ns to read an uint\n", (t_end - t_start)/N);
+}
+
 int main(int argc, char **argv)
 {
     if (strcmp(argv[1], "--unit") == 0)
         unit_tests();
+    else if (strcmp(argv[1], "--speed") == 0)
+        speed_tests();
 
     return 0;
 }
