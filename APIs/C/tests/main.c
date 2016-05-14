@@ -225,7 +225,7 @@ bool test_read_string(struct tests_device *dev)
 #define TEARDOWN                                                    \
     kclient_shutdown(kcl);
 
-#define TEST(NAME)                                                  \
+#define UNIT_TEST(NAME)                                             \
 do {                                                                \
     SETUP                                                           \
     if (test_##NAME(&dev)) {                                        \
@@ -245,16 +245,16 @@ void unit_tests()
 
     printf(BOLDWHITE "\nStart tests\n\n" RESET);
 
-    TEST(send_many_params)
-    TEST(read_uint)
-    TEST(read_int)
-    TEST(set_float)
-    TEST(rcv_std_vector)
-    TEST(rcv_std_array)
-    TEST(rcv_c_array1)
-    TEST(rcv_c_array2)
-    TEST(send_buffer)
-    TEST(read_string)
+    UNIT_TEST(send_many_params)
+    UNIT_TEST(read_uint)
+    UNIT_TEST(read_int)
+    UNIT_TEST(set_float)
+    UNIT_TEST(rcv_std_vector)
+    UNIT_TEST(rcv_std_array)
+    UNIT_TEST(rcv_c_array1)
+    UNIT_TEST(rcv_c_array2)
+    UNIT_TEST(send_buffer)
+    UNIT_TEST(read_string)
     
     if (tests_fail == 0) {
         printf("\n" BOLDGRN "OK" RESET " -- %u tests passed\n", tests_num);
@@ -265,24 +265,28 @@ void unit_tests()
     }
 }
 
+#define SPEED_TEST(NAME)                                            \
+do {                                                                \
+    tic = clock();                                                  \
+    for (i=0; i<N; i++)                                             \
+        test_##NAME(&dev);                                          \
+    toc = clock();                                                  \
+                                                                    \
+    printf("%s: %f us\n", #NAME,                                    \
+           ((double) (toc - tic)) * 1E6 / (N * CLOCKS_PER_SEC));    \
+} while(0);
+
 #if defined (__linux__)
 void speed_tests()
 {
     unsigned int i;
     unsigned int N = 10000;
-
     clock_t tic, toc;
 
     SETUP
-    tic = clock();
-
-    for (i=0; i<N; i++)
-        test_read_uint(&dev);
-
-    toc = clock();
+    SPEED_TEST(read_uint)
+    SPEED_TEST(send_many_params)
     TEARDOWN
-
-    printf("Time: %f us to read an uint\n", ((double) (toc - tic)) * 1E6 / (N * CLOCKS_PER_SEC));
 }
 #endif
 
