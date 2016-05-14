@@ -42,7 +42,7 @@ def write_buffer(device_name, type_str='', format_char='I', dtype=np.uint32):
             device_id = int(params.id)
             cmd_id = params.get_op_ref(func.__name__.upper())
             args_ = args[1:] + tuple(kwargs.values()) + (len(args[0]),)
-            self.client.send_command(device_id, cmd_id, type_str + 'u', *args_)
+            self.client.send_command(device_id, cmd_id, type_str + 'I', *args_)
             self.client.send_handshaking(args[0], format_char=format_char, dtype=dtype)
             return func(self, *args, **kwargs)
         return wrapper
@@ -99,11 +99,11 @@ def _build_payload(type_str, args):
 
     # http://stackoverflow.com/questions/402504/how-to-determine-the-variable-type-in-python
     for i, type_ in enumerate(type_str):
-        if type_ is 'u': # Unsigned
+        if type_ is 'I': # Unsigned
             size += _append_u32(payload, args[i])
         elif type_ is 'f': # float
             size += _append_float(payload, args[i])
-        elif type_ is 'b': # bool
+        elif type_ is '?': # bool
             if args[i]:
                 size += _append_u8(payload, 1)
             else:

@@ -11,6 +11,8 @@ MIDWARE_PATH = middleware
 REMOTE_DRIVERS = $(MIDWARE_PATH)/drivers
 ZYNQ_SDK_PATH = tmp/zynq-sdk
 
+current_dir := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+
 all: kserverd
 
 $(REMOTE_DRIVERS):
@@ -34,6 +36,8 @@ venv:
 ifeq ($(DOCKER),False)
 	virtualenv venv
 	venv/bin/pip install -r requirements.txt
+else
+	pip install -r $(current_dir)/requirements.txt
 endif
 
 kserverd: venv libraries $(REMOTE_DRIVERS)

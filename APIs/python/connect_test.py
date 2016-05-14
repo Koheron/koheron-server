@@ -8,7 +8,7 @@ class Tests:
     def __init__(self, client):
         self.client = client
 
-    @command('TESTS', 'uufb')
+    @command('TESTS', 'IIf?')
     def rcv_many_params(self, u1, u2, f, b):
         return client.recv_bool()
 
@@ -32,7 +32,7 @@ class Tests:
     def send_std_vector(self):
         return client.recv_buffer(10, data_type='float32')
 
-    @command('TESTS', 'u')
+    @command('TESTS', 'I')
     def send_c_array1(self, len_):
         return client.recv_buffer(2*len_, data_type='float32')
 

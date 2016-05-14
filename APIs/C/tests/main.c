@@ -45,7 +45,7 @@ bool test_send_many_params(struct tests_device *dev)
     bool is_ok;
 
     if (kclient_send_command(dev->kcl, dev->id, dev->rcv_many_params_ref, 
-                             "uufb", 429496729, 2048, 3.14, true) < 0
+                             "IIf?", 429496729, 2048, 3.14, true) < 0
         || kclient_read_bool(dev->kcl, &is_ok))
         return false;
 
@@ -133,7 +133,7 @@ bool test_rcv_c_array1(struct tests_device *dev)
     int len_exp = 10;
     int len;
 
-    if (kclient_send_command(dev->kcl, dev->id, dev->send_c_array1_ref, "u", len_exp) < 0
+    if (kclient_send_command(dev->kcl, dev->id, dev->send_c_array1_ref, "I", len_exp) < 0
         || kclient_rcv_array(dev->kcl, 2*len_exp, float) < 0)
         return false;
 
@@ -185,7 +185,7 @@ bool test_send_buffer(struct tests_device *dev)
     for (i=0; i<BUFF_LEN; i++)
         data[i] = i*i;
 
-    if (kclient_send_command(dev->kcl, dev->id, dev->set_buffer_ref, "u", BUFF_LEN) < 0
+    if (kclient_send_command(dev->kcl, dev->id, dev->set_buffer_ref, "I", BUFF_LEN) < 0
         || kclient_send_array(dev->kcl, data, BUFF_LEN) < 0
         || kclient_read_bool(dev->kcl, &is_ok))
         return false;

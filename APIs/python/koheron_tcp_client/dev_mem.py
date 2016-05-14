@@ -8,7 +8,7 @@ class DevMem:
     def __init__(self, client):
         self.client = client
 
-    @command('DEVICE_MEMORY')
+    @command('DEVICE_MEMORY', 'II')
     def add_memory_map(self, device_addr, map_size):
         """ Add a memory map
 
@@ -26,7 +26,7 @@ class DevMem:
 
         return map_id
 
-    @command('DEVICE_MEMORY')
+    @command('DEVICE_MEMORY', 'II')
     def read(self, mmap_idx, offset):
         """ Read a register
 
@@ -39,7 +39,7 @@ class DevMem:
         """
         return self.client.recv_int(4)
 
-    @command('DEVICE_MEMORY')
+    @command('DEVICE_MEMORY', 'III')
     def write(self, mmap_idx, offset, reg_val):
         """ Write a register
 
@@ -77,7 +77,7 @@ class DevMem:
         """
         return self.client.recv_buffer(buff_size, data_type)
 
-    @command('DEVICE_MEMORY')
+    @command('DEVICE_MEMORY', 'III')
     def set_bit(self, mmap_idx, offset, index):
         """ Set a bit (bit = 1)
 
@@ -88,7 +88,7 @@ class DevMem:
         """
         pass
 
-    @command('DEVICE_MEMORY')
+    @command('DEVICE_MEMORY', 'III')
     def clear_bit(self, mmap_idx, offset, index):
         """ Clear a bit (bit = 0)
 
@@ -99,7 +99,7 @@ class DevMem:
         """
         pass
 
-    @command('DEVICE_MEMORY')
+    @command('DEVICE_MEMORY', 'III')
     def toggle_bit(self, mmap_idx, offset, index):
         """ Toggle the value of a bit
 
@@ -110,8 +110,8 @@ class DevMem:
         """
         pass
 
-    @command('DEVICE_MEMORY')
+    @command('DEVICE_MEMORY', 'III')
     def mask_and(self, mmap_idx, offset, mask): pass
 
-    @command('DEVICE_MEMORY')
+    @command('DEVICE_MEMORY', 'III')
     def mask_or(self, mmap_idx, offset, mask): pass
