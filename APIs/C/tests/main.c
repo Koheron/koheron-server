@@ -269,22 +269,20 @@ void unit_tests()
 void speed_tests()
 {
     unsigned int i;
-    long t_start, t_end;
-    struct timespec _time;
     unsigned int N = 10000;
 
+    clock_t tic, toc;
+
     SETUP
+    tic = clock();
 
-    clock_gettime(CLOCK_REALTIME, &(_time));
-    t_start = _time.tv_nsec;
-    for (i=0; i<1000; i++)
+    for (i=0; i<N; i++)
         test_read_uint(&dev);
-    clock_gettime(CLOCK_REALTIME, &(_time));
-    t_end = _time.tv_nsec;
 
+    toc = clock();
     TEARDOWN
 
-    printf("Time: %lu ns to read an uint\n", (t_end - t_start)/N);
+    printf("Time: %f us to read an uint\n", ((double) (toc - tic)) * 1E6 / (N * CLOCKS_PER_SEC));
 }
 #endif
 
