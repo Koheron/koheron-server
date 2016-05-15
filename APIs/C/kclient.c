@@ -301,7 +301,7 @@ int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes)
     set_rcv_buff(kcl);
     
     while (bytes_read < n_bytes) {                        
-        bytes_rcv = read(kcl->sockfd, kcl->buffer + bytes_read, n_bytes - bytes_read);
+        bytes_rcv = read(get_socket_fd(kcl), kcl->buffer + bytes_read, n_bytes - bytes_read);
         
         if (bytes_rcv == 0) {
             fprintf(stderr, "kclient_rcv_n_bytes: Connection closed by tcp-server\n");

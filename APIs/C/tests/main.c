@@ -213,7 +213,7 @@ bool test_read_string(struct tests_device *dev)
 
 #define SETUP_TCP                                                   \
     struct tests_device dev;                                        \
-    struct kclient *kcl = kclient_connect("127.0.0.1", 36000);      \
+    struct kclient *kcl = kclient_connect(IP, port);                \
                                                                     \
     if (kcl == NULL) {                                              \
         fprintf(stderr, "Can't connect to server\n");               \
@@ -224,7 +224,7 @@ bool test_read_string(struct tests_device *dev)
 
 #define SETUP_UNIX                                                  \
     struct tests_device dev;                                        \
-    struct kclient *kcl = kclient_unix_connect("/home/vanderbruggen/kserver_local.sock"); \
+    struct kclient *kcl = kclient_unix_connect(unix_sock_path); \
                                                                     \
     if (kcl == NULL) {                                              \
         fprintf(stderr, "Can't connect to server\n");               \
@@ -249,7 +249,7 @@ do {                                                                \
     TEARDOWN                                                        \
 } while(0);
 
-void unit_tests()
+void unit_tests(char *IP, unsigned int port)
 {
     int tests_num  = 0;
     int tests_fail = 0;
@@ -288,13 +288,35 @@ do {                                                                \
 } while(0);
 
 #if defined (__linux__)
-void speed_tests()
+void speed_tests_tcp(char *IP, unsigned int port)
 {
     unsigned int i;
     unsigned int N = 10000;
     clock_t tic, toc;
 
+    printf(BOLDWHITE "\nTCP socket speed\n" RESET);
     SETUP_TCP
+    SPEED_TEST(send_many_params)
+    SPEED_TEST(read_uint)
+    SPEED_TEST(read_int)
+    SPEED_TEST(set_float)
+    SPEED_TEST(rcv_std_vector)
+    SPEED_TEST(rcv_std_array)
+    SPEED_TEST(rcv_c_array1)
+    SPEED_TEST(rcv_c_array2)
+    SPEED_TEST(send_buffer)
+    SPEED_TEST(read_string)
+    TEARDOWN
+}
+
+void speed_tests_unix(char *unix_sock_path)
+{
+    unsigned int i;
+    unsigned int N = 10000;
+    clock_t tic, toc;
+
+    printf(BOLDWHITE "\nUnix socket speed\n" RESET);
+    SETUP_UNIX
     SPEED_TEST(send_many_params)
     SPEED_TEST(read_uint)
     SPEED_TEST(read_int)
@@ -311,11 +333,20 @@ void speed_tests()
 
 int main(int argc, char **argv)
 {
+    char IP[256];
+    unsigned int port;
+
+    char *token = strtok(argv[2], ":");
+    strcpy(IP, token);
+    port = (unsigned int)strtoul(strtok(NULL, ":"), NULL, 10);
+
     if (strcmp(argv[1], "--unit") == 0)
-        unit_tests();
+        unit_tests(IP, port);
 #if defined (__linux__)
-    else if (strcmp(argv[1], "--speed") == 0)
-        speed_tests();
+    else if (strcmp(argv[1], "--speed") == 0) {
+        speed_tests_tcp(IP, port);
+        speed_tests_unix(argv[3]);
+    }
 #endif
 
     return 0;
