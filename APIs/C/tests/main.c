@@ -220,7 +220,7 @@ bool test_read_string(struct tests_device *dev)
         exit(EXIT_FAILURE);                                         \
     }                                                               \
                                                                     \
-    tests_init(&dev, kcl);                                          \
+    tests_init(&dev, kcl);
 
 #define SETUP_UNIX                                                  \
     struct tests_device dev;                                        \
@@ -231,7 +231,7 @@ bool test_read_string(struct tests_device *dev)
         exit(EXIT_FAILURE);                                         \
     }                                                               \
                                                                     \
-    tests_init(&dev, kcl);                                          \
+    tests_init(&dev, kcl);
 
 #define TEARDOWN                                                    \
     kclient_shutdown(kcl);
@@ -275,6 +275,7 @@ void unit_tests_tcp(char *IP, unsigned int port)
     }
 }
 
+#if defined (__linux__)
 void unit_tests_unix(char *unix_sock_path)
 {
     int tests_num  = 0;
@@ -302,6 +303,7 @@ void unit_tests_unix(char *unix_sock_path)
         exit(EXIT_FAILURE);
     }
 }
+#endif
 
 #define SPEED_TEST(NAME)                                            \
 do {                                                                \
@@ -369,7 +371,9 @@ int main(int argc, char **argv)
 
     if (strcmp(argv[1], "--unit") == 0) {
         unit_tests_tcp(IP, port);
+#if defined (__linux__)
         unit_tests_unix(argv[3]);
+#endif
     }
 #if defined (__linux__)
     else if (strcmp(argv[1], "--speed") == 0) {
