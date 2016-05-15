@@ -73,12 +73,12 @@ endif
 
 # Main GCC executable (used for compiling and linking)
 
-CC=$(CROSS_COMPILE)gcc
-CCPP=$(CROSS_COMPILE)g++
+# CC=$(CROSS_COMPILE)gcc
+# CCPP=$(CROSS_COMPILE)g++
 
 # Use Link Time Optimization
-#CC=$(CROSS_COMPILE)gcc -flto
-#CCPP=$(CROSS_COMPILE)g++ -flto
+CC=$(CROSS_COMPILE)gcc -flto
+CCPP=$(CROSS_COMPILE)g++ -flto
 
 # --------------------------------------------------------------
 # GCC compiling & linking flags
@@ -113,7 +113,7 @@ ifeq ($(ADD_DEBUG_FLAGS),true)
     CFLAGS +=-mapcs-frame
   endif
 else
-  CFLAGS += -Os
+  CFLAGS += -O3
 endif
 
 CPPFLAGS=$(CFLAGS) -std=c++14 -pthread

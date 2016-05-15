@@ -68,7 +68,6 @@ int TCPSocketInterface::read_command(Command& cmd)
     // |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
     // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
     char header_buff[HEADER_LENGTH];
-    bzero(header_buff, HEADER_LENGTH);
     int header_bytes = rcv_n_bytes(header_buff, HEADER_LENGTH);
 
     if (header_bytes <= 0)
@@ -83,7 +82,6 @@ int TCPSocketInterface::read_command(Command& cmd)
         return -1;
     }
 
-    bzero(cmd.buffer, CMD_PAYLOAD_BUFFER_LEN);
     int payload_bytes = rcv_n_bytes(cmd.buffer, payload_size);
 
     if (payload_size > 0 && payload_bytes <= 0) 

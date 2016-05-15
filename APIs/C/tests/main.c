@@ -320,7 +320,7 @@ do {                                                                \
 void speed_tests_tcp(char *IP, unsigned int port)
 {
     unsigned int i;
-    unsigned int N = 10000;
+    unsigned int N = 30000;
     clock_t tic, toc;
 
     printf(BOLDWHITE "\nTCP socket speed\n" RESET);
@@ -341,7 +341,7 @@ void speed_tests_tcp(char *IP, unsigned int port)
 void speed_tests_unix(char *unix_sock_path)
 {
     unsigned int i;
-    unsigned int N = 10000;
+    unsigned int N = 30000;
     clock_t tic, toc;
 
     printf(BOLDWHITE "\nUnix socket speed\n" RESET);
