@@ -79,6 +79,11 @@ def PrintParserCore(file_id, device, operation):
     if GetTotalArgNum(operation) == 0:
         return
 
+    file_id.write('    static_assert(required_buffer_size<')
+    PrintTypeList(file_id, operation)
+    file_id.write('>()\n')
+    file_id.write('        <= CMD_PAYLOAD_BUFFER_LEN, "CMD_PAYLOAD_BUFFER_LEN too small");\n\n')
+
     file_id.write('    if (required_buffer_size<')
     PrintTypeList(file_id, operation)
     file_id.write('>() != cmd.payload_size) {\n')

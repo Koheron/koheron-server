@@ -211,7 +211,7 @@ bool test_read_string(struct tests_device *dev)
 #define BOLDGRN     "\033[1m\033[32m"
 #define BOLDWHITE   "\033[1m\033[37m"
 
-#define SETUP                                                       \
+#define SETUP_TCP                                                   \
     struct tests_device dev;                                        \
     struct kclient *kcl = kclient_connect("127.0.0.1", 36000);      \
                                                                     \
@@ -222,12 +222,23 @@ bool test_read_string(struct tests_device *dev)
                                                                     \
     tests_init(&dev, kcl);                                          \
 
+// #define SETUP_UNIX                                                  \
+//     struct tests_device dev;                                        \
+//     struct kclient *kcl = kclient_unix_connect("/home/vanderbruggen/kserver_local.sock"); \
+//                                                                     \
+//     if (kcl == NULL) {                                              \
+//         fprintf(stderr, "Can't connect to server\n");               \
+//         exit(EXIT_FAILURE);                                         \
+//     }                                                               \
+//                                                                     \
+//     tests_init(&dev, kcl);                                          \
+
 #define TEARDOWN                                                    \
     kclient_shutdown(kcl);
 
 #define UNIT_TEST(NAME)                                             \
 do {                                                                \
-    SETUP                                                           \
+    SETUP_TCP                                                       \
     if (test_##NAME(&dev)) {                                        \
         printf(BOLDGRN "\xE2\x9C\x93" RESET " %s\n", #NAME);        \
     } else {                                                        \
@@ -283,9 +294,17 @@ void speed_tests()
     unsigned int N = 10000;
     clock_t tic, toc;
 
-    SETUP
-    SPEED_TEST(read_uint)
+    SETUP_TCP
     SPEED_TEST(send_many_params)
+    SPEED_TEST(read_uint)
+    SPEED_TEST(read_int)
+    SPEED_TEST(set_float)
+    SPEED_TEST(rcv_std_vector)
+    SPEED_TEST(rcv_std_array)
+    SPEED_TEST(rcv_c_array1)
+    SPEED_TEST(rcv_c_array2)
+    SPEED_TEST(send_buffer)
+    SPEED_TEST(read_string)
     TEARDOWN
 }
 #endif
