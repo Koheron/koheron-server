@@ -220,7 +220,14 @@ int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
  */
 static void set_rcv_buff(struct kclient *kcl)
 {
-    memset(kcl->buffer, 0, sizeof(char)*RCV_BUFFER_LEN);
+    // It seems that setting the buffer to zero makes the
+    // TCP calls run faster whereas the oposite effect
+    // is observed for the Unix socket.
+    //
+    // So we only call memset for TCP connection.
+    if (kcl->conn_type == TCP)
+        memset(kcl->buffer, 0, sizeof(char)*RCV_BUFFER_LEN);
+
     kcl->current_len = 0;
 }
 
@@ -300,7 +307,7 @@ int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes)
 
     set_rcv_buff(kcl);
     
-    while (bytes_read < n_bytes) {                        
+    while (bytes_read < n_bytes) {
         bytes_rcv = read(get_socket_fd(kcl), kcl->buffer + bytes_read, n_bytes - bytes_read);
         
         if (bytes_rcv == 0) {

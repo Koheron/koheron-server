@@ -77,6 +77,7 @@ struct device {
 
 /* Maximum length of the reception buffer */
 #define RCV_BUFFER_LEN 262144
+// #define RCV_BUFFER_LEN 2048
 
 /**
  * struct kclient - KServer client structure
