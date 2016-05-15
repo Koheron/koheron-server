@@ -222,16 +222,16 @@ bool test_read_string(struct tests_device *dev)
                                                                     \
     tests_init(&dev, kcl);                                          \
 
-// #define SETUP_UNIX                                                  \
-//     struct tests_device dev;                                        \
-//     struct kclient *kcl = kclient_unix_connect("/home/vanderbruggen/kserver_local.sock"); \
-//                                                                     \
-//     if (kcl == NULL) {                                              \
-//         fprintf(stderr, "Can't connect to server\n");               \
-//         exit(EXIT_FAILURE);                                         \
-//     }                                                               \
-//                                                                     \
-//     tests_init(&dev, kcl);                                          \
+#define SETUP_UNIX                                                  \
+    struct tests_device dev;                                        \
+    struct kclient *kcl = kclient_unix_connect("/home/vanderbruggen/kserver_local.sock"); \
+                                                                    \
+    if (kcl == NULL) {                                              \
+        fprintf(stderr, "Can't connect to server\n");               \
+        exit(EXIT_FAILURE);                                         \
+    }                                                               \
+                                                                    \
+    tests_init(&dev, kcl);                                          \
 
 #define TEARDOWN                                                    \
     kclient_shutdown(kcl);
