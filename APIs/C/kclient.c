@@ -226,7 +226,7 @@ static void set_rcv_buff(struct kclient *kcl)
     //
     // So we only call memset for TCP connection.
     if (kcl->conn_type == TCP)
-        memset(kcl->buffer, 0, sizeof(char)*RCV_BUFFER_LEN);
+        memset(kcl->buffer, 0, kcl->current_len);
 
     kcl->current_len = 0;
 }
