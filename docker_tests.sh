@@ -48,7 +48,7 @@ cli/kserver status --devices KSERVER
 cli/kserver status --devices TESTS
 
 echo "== Test C API =="
-APIs/C/tests/tests --unit 127.0.0.1:36000 /code/var/run/kserver.sock
+APIs/C/tests/tests --unit 127.0.0.1:36000 /code/kserver.sock
 
 echo "== Test Javascript API =="
 make -C APIs/js/koheron-websocket-client tests
