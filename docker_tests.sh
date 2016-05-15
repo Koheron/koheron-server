@@ -58,7 +58,7 @@ cd APIs/python && py.test -r connect_test.py
 cd ../..
 
 echo "== Speed tests =="
-APIs/C/tests/tests --speed
+APIs/C/tests/tests --speed 127.0.0.1:36000 /code/kserver.sock
 
 echo "== Server log =="
 cat server.log
