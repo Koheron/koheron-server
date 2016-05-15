@@ -238,7 +238,6 @@ bool test_read_string(struct tests_device *dev)
 
 #define UNIT_TEST(NAME)                                             \
 do {                                                                \
-    SETUP_TCP                                                       \
     if (test_##NAME(&dev)) {                                        \
         printf(BOLDGRN "\xE2\x9C\x93" RESET " %s\n", #NAME);        \
     } else {                                                        \
@@ -246,16 +245,15 @@ do {                                                                \
         tests_fail++;                                               \
     }                                                               \
     tests_num++;                                                    \
-    TEARDOWN                                                        \
 } while(0);
 
-void unit_tests(char *IP, unsigned int port)
+void unit_tests_tcp(char *IP, unsigned int port)
 {
     int tests_num  = 0;
     int tests_fail = 0;
 
-    printf(BOLDWHITE "\nStart tests\n\n" RESET);
-
+    printf(BOLDWHITE "\nStart TCP socket tests\n\n" RESET);
+    SETUP_TCP
     UNIT_TEST(send_many_params)
     UNIT_TEST(read_uint)
     UNIT_TEST(read_int)
@@ -266,6 +264,35 @@ void unit_tests(char *IP, unsigned int port)
     UNIT_TEST(rcv_c_array2)
     UNIT_TEST(send_buffer)
     UNIT_TEST(read_string)
+    TEARDOWN
+    
+    if (tests_fail == 0) {
+        printf("\n" BOLDGRN "OK" RESET " -- %u tests passed\n", tests_num);
+    } else {
+        printf("\n" BOLDRED "FAIL" RESET " -- %u tests passed - %u failed\n",
+               tests_num - tests_fail, tests_fail);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void unit_tests_unix(char *unix_sock_path)
+{
+    int tests_num  = 0;
+    int tests_fail = 0;
+
+    printf(BOLDWHITE "\nStart Unix socket tests\n\n" RESET);
+    SETUP_UNIX
+    UNIT_TEST(send_many_params)
+    UNIT_TEST(read_uint)
+    UNIT_TEST(read_int)
+    UNIT_TEST(set_float)
+    UNIT_TEST(rcv_std_vector)
+    UNIT_TEST(rcv_std_array)
+    UNIT_TEST(rcv_c_array1)
+    UNIT_TEST(rcv_c_array2)
+    UNIT_TEST(send_buffer)
+    UNIT_TEST(read_string)
+    TEARDOWN
     
     if (tests_fail == 0) {
         printf("\n" BOLDGRN "OK" RESET " -- %u tests passed\n", tests_num);
@@ -340,8 +367,10 @@ int main(int argc, char **argv)
     strcpy(IP, token);
     port = (unsigned int)strtoul(strtok(NULL, ":"), NULL, 10);
 
-    if (strcmp(argv[1], "--unit") == 0)
-        unit_tests(IP, port);
+    if (strcmp(argv[1], "--unit") == 0) {
+        unit_tests_tcp(IP, port);
+        unit_tests_unix(argv[3]);
+    }
 #if defined (__linux__)
     else if (strcmp(argv[1], "--speed") == 0) {
         speed_tests_tcp(IP, port);
