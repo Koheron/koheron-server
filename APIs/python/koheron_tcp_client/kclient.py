@@ -6,6 +6,8 @@ import math
 import numpy as np
 import functools
 import string
+import sys
+import traceback
 
 # --------------------------------------------
 # Decorators
@@ -14,7 +16,7 @@ import string
 # http://stackoverflow.com/questions/5929107/python-decorators-with-parameters
 # http://www.artima.com/weblogs/viewpost.jsp?thread=240845
 
-def command(device_name):
+def command(device_name, type_str=''):
     def real_command(func):
         """ Decorate commands
 
@@ -26,23 +28,23 @@ def command(device_name):
         @functools.wraps(func)
         def wrapper(self, *args, **kwargs):
             params = self.client.cmds.get_device(device_name)
-            device_id = str(params.id)
+            device_id = int(params.id)
             cmd_id = params.get_op_ref(func.__name__.upper())
-            self.client.send_command(device_id, cmd_id, *(args + tuple(kwargs.values())))
+            self.client.send_command(device_id, cmd_id, type_str, *(args + tuple(kwargs.values())))
             return func(self, *args, **kwargs)
         return wrapper
     return real_command
 
-def write_buffer(device_name, format_char='I', dtype=np.uint32):
+def write_buffer(device_name, type_str='', format_char='I', dtype=np.uint32):
     def command_wrap(func):
         def wrapper(self, *args, **kwargs):
             params = self.client.cmds.get_device(device_name)
-            device_id = str(params.id)
+            device_id = int(params.id)
             cmd_id = params.get_op_ref(func.__name__.upper())
             args_ = args[1:] + tuple(kwargs.values()) + (len(args[0]),)
-            self.client.send_command(device_id, cmd_id, *args_)
+            self.client.send_command(device_id, cmd_id, type_str + 'I', *args_)
             self.client.send_handshaking(args[0], format_char=format_char, dtype=dtype)
-            func(self, *args, **kwargs)
+            return func(self, *args, **kwargs)
         return wrapper
     return command_wrap
 
@@ -50,9 +52,66 @@ def write_buffer(device_name, format_char='I', dtype=np.uint32):
 # Helper functions
 # --------------------------------------------
 
-
 def make_command(*args):
-    return "|".join([str(arg) for arg in args])+'|\n'
+    buff = bytearray()
+    _append_u32(buff, 0)        # RESERVED
+    _append_u16(buff, args[0])  # dev_id
+    _append_u16(buff, args[1])  # op_id
+
+    # Payload
+    if len(args[2:]) > 0:
+        payload, payload_size = _build_payload(args[2], args[3:])
+        _append_u32(buff, payload_size)
+        buff.extend(payload)
+    else:
+        _append_u32(buff, 0)
+
+    return buff
+
+def _append_u8(buff, value):
+    buff.append(value & 0xff)
+    return 1
+
+def _append_u16(buff, value):
+    buff.append((value >> 8) & 0xff)
+    buff.append(value & 0xff)
+    return 2
+
+def _append_u32(buff, value):
+    buff.append((value >> 24) & 0xff)
+    buff.append((value >> 16) & 0xff)
+    buff.append((value >> 8) & 0xff)
+    buff.append(value & 0xff)
+    return 4
+
+# http://stackoverflow.com/questions/14431170/get-the-bits-of-a-float-in-python
+def float_to_bits(f):
+    return struct.unpack('>l', struct.pack('>f', f))[0]
+
+def _append_float(buff, value):
+    return _append_u32(buff, float_to_bits(value))
+
+def _build_payload(type_str, args):
+    size = 0
+    payload = bytearray()
+
+    assert len(type_str) == len(args)
+
+    # http://stackoverflow.com/questions/402504/how-to-determine-the-variable-type-in-python
+    for i, type_ in enumerate(type_str):
+        if type_ is 'I': # Unsigned
+            size += _append_u32(payload, args[i])
+        elif type_ is 'f': # float
+            size += _append_float(payload, args[i])
+        elif type_ is '?': # bool
+            if args[i]:
+                size += _append_u8(payload, 1)
+            else:
+                size += _append_u8(payload, 0)
+        else:
+            raise ValueError('Unsupported type' + type(arg))
+
+    return payload, size
 
 def reference_dict(self):
     params = self.client.cmds.get_device(_class_to_device_name
@@ -86,16 +145,14 @@ def _class_to_device_name(classname):
 
     return ''.join(dev_name)
 
-
 # --------------------------------------------
 # KClient
 # --------------------------------------------
 
-
 class KClient:
-    """ KServer client
+    """ tcp-server client
 
-    Initializes the connection with KServer, then retrieves
+    Initializes the connection with tcp-server, then retrieves
     the current configuration: that is the available devices and
     the commands associated.
 
@@ -103,7 +160,7 @@ class KClient:
     """
 
     def __init__(self, host, port=36000, verbose=False, timeout=2.0):
-        """ Initialize connection with KServer
+        """ Initialize connection with tcp-server
 
         Args:
             host: A string with the IP address
@@ -154,7 +211,7 @@ class KClient:
     # Send/Receive
     # -------------------------------------------------------
 
-    def send(self, cmd):
+    def send_command(self, device_id, operation_ref, type_str='', *args):
         """ Send a command
 
         Args:
@@ -162,13 +219,8 @@ class KClient:
 
         Raise RuntimeError if broken connection.
         """
-        sent = self.sock.send(cmd.encode('utf-8'))
-
-        if sent == 0:
-            raise RuntimeError("kclient-send: Socket connection broken")
-
-    def send_command(self, device_id, operation_ref, *args):
-        self.send(make_command(device_id, operation_ref, *args))
+        if self.sock.send(make_command(device_id, operation_ref, type_str, *args)) == 0:
+            raise RuntimeError("kclient-send_command: Socket connection broken")
 
     def recv_int(self, buff_size, err_msg=None, fmt="I"):
         """ Receive an integer
@@ -199,6 +251,18 @@ class KClient:
                 return struct.unpack(fmt, data_recv)[0]
         except:
             raise RuntimeError("kclient-recv_int: Reception error")
+
+    def recv_uint32(self):
+        return self.recv_int(4)
+
+    def recv_int32(self):
+        u = self.recv_uint32()
+        return u - (u >> 31) * 4294967296
+
+    def recv_bool(self):
+        val = self.recv_int(4)
+        assert val == 0 or val == 1
+        return val == 1
 
     def recv_n_bytes(self, n_bytes):
         """ Receive exactly n bytes
@@ -263,6 +327,9 @@ class KClient:
 
         return ''.join(total_data)
 
+    def recv_string(self):
+        return self.recv_timeout('\0')[:-1]
+
     def recv_buffer(self, buff_size, data_type='uint32'):
         """ Receive a buffer of uint32
 
@@ -300,7 +367,7 @@ class KClient:
 
                 if elmt_type == 'i' or elmt_type == 'j':
                     res_tuple.append(int(toks[1]))
-                elif elmt_type == 'f':
+                elif elmt_type == 'f' or elmt_type == 'd':
                     res_tuple.append(float(toks[1]))
                 else:  # String
                     res_tuple.append(toks[1])
@@ -309,6 +376,7 @@ class KClient:
             else:
                 tmp_buffer.append(char)
 
+        self.recv_n_bytes(1) # Read '\0'
         return tuple(res_tuple)
 
     def send_handshaking(self, data, format_char='I', dtype=np.uint32):
@@ -346,21 +414,11 @@ class KClient:
     # Current session information
     # -------------------------------------------------------
 
-    def get_session_status(self):
-        """ Status of the current session
-
-        Return: True if an error occured in the current session.
-        """
-        self.send(make_command(1, 2))
-        data_recv = self.sock.recv(3).decode('utf-8')
-
-        if data_recv == '':
-            raise RuntimeError("Socket connection broken")
-
-        if data_recv[:2] == 'OK':
-            return True
-        else:
-            return False
+    def get_stats(self):
+        """ Print server statistics """
+        self.send_command(1, 2)
+        msg = self.recv_timeout('EOKS')
+        print msg
 
     def __del__(self):
         if hasattr(self, 'sock'):
@@ -379,8 +437,11 @@ class Commands:
         self.success = True
 
         try:
-            client.send(make_command(1, 1))
+            client.send_command(1, 1)
         except:
+            if client.verbose:
+                traceback.print_exc()
+
             print("Socket connection broken")
             self.success = False
             return
@@ -427,8 +488,7 @@ class DevParam:
     """
 
     def __init__(self, line):
-        """ Parse device informations sent by KServer
-        """
+        """ Parse device informations sent by tcp-server """
         tokens = line.split(':')
         self.id = int(tokens[0][1:])
         self.name = tokens[1].strip()
@@ -459,3 +519,5 @@ class DevParam:
         print('\n> ' + self.name)
         print('ID: ' + str(self.id))
         print('Operations:')
+        for op in self.operations:
+            print(op)

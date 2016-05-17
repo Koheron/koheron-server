@@ -12,6 +12,8 @@
 #include "config.hpp"
 #include "kserver.hpp"
 #include "tuple_utils.hpp"
+#include "commands.hpp"
+#include "binary_parser.hpp"
 
 #if KSERVER_HAS_WEBSOCKET
 #include "websocket.hpp"
@@ -69,10 +71,11 @@ class SocketInterface
 
 #define _SOCKET_INTERF_OBJ                                              \
   public:                                                               \
-    int init(void);                                                     \
-    int exit(void);                                                     \
+    int init();                                                         \
+    int exit();                                                         \
                                                                         \
-    int read_data(char *buff_str, char *remain_str);                    \
+    int read_command(Command& cmd);                                     \
+    int read_data(char *buff_str);                                      \
                                                                         \
     int RcvDataBuffer(uint32_t n_bytes);                                \
     const uint32_t* RcvHandshake(uint32_t buff_size);                   \
@@ -137,7 +140,8 @@ class TCPSocketInterface : public SocketInterface
     {
         bzero(read_str, KSERVER_READ_STR_LEN);
     }
-    
+
+    int rcv_n_bytes(char *buff_str, uint32_t n_bytes);
   private:
     char read_str[KSERVER_READ_STR_LEN];  ///< Read string
 }; // TCPSocketInterface
@@ -155,14 +159,17 @@ int TCPSocketInterface::SendArray(const T *data, unsigned int len)
         
     if (n_bytes_send < 0) {
        kserver->syslog.print(SysLog::ERROR, 
-                             "SendArray: Can't write to client\n");
+          "TCPSocket::SendArray: Can't write to client\n");
        return -1;
     }
             
     if (n_bytes_send != bytes_send) {
-        kserver->syslog.print(SysLog::ERROR, "Some bytes have not been sent\n");
+        kserver->syslog.print(SysLog::ERROR, 
+            "TCPSocket::SendArray: Some bytes have not been sent\n");
         return -1;
     }
+
+    kserver->syslog.print(SysLog::DEBUG, "[S] [%u bytes]\n", bytes_send);
 
     return bytes_send;
 }

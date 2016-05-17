@@ -16,6 +16,7 @@ extern "C" {
 #include <time.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #if defined (__linux__)
 #include <sys/socket.h>
@@ -36,8 +37,8 @@ extern "C" {
 #define MAX_OP_NUM      128
 #define MAX_NAME_LENGTH 512
 
-typedef int dev_id_t;   // Device ID type
-typedef int op_id_t;    // Operation ID type
+typedef uint16_t dev_id_t;   // Device ID type
+typedef uint16_t op_id_t;    // Operation ID type
 
 typedef enum conn_type {
     NONE,
@@ -76,6 +77,7 @@ struct device {
 
 /* Maximum length of the reception buffer */
 #define RCV_BUFFER_LEN 262144
+// #define RCV_BUFFER_LEN 2048
 
 /**
  * struct kclient - KServer client structure
@@ -163,7 +165,7 @@ op_id_t get_op_id(struct kclient *kcl, dev_id_t dev_id, const char *op_name);
 /**
  * kclient_send_command - Send a command
  * @dev_id: ID of the target device
- * @op_ref: Reference of the target operation
+ * @op_id: ID of the target operation
  * @types: A string listing the parameter types
  *     Ex.: - use "" if no parameter are send
  *          - "uf" to send a unsigned and a float
@@ -171,7 +173,7 @@ op_id_t get_op_id(struct kclient *kcl, dev_id_t dev_id, const char *op_name);
  */
 
 int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
-                         op_id_t op_ref, const char *types, ...);
+                         op_id_t op_id, const char *types, ...);
 
 /**
  * kclient_send_string - Send a null-terminated string to KServer
@@ -198,10 +200,20 @@ int kclient_rcv_esc_seq(struct kclient *kcl, const char *esc_seq);
 int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes);
 
 /**
+ * kclient_read_string - Receive a null-terminated string
+ *
+ * The received string is stored in kcl->buffer.
+ *
+ * Returns the string length (including the null-terminating character) 
+ * on success. -1 if failure.
+ */
+int kclient_read_string(struct kclient *kcl);
+
+/**
  * kclient_read_u32 - Read a little endian uint32_t
  * @rcv_uint: Pointer to the received number
  *
- * Returns the read number on success. -1 if failure.
+ * Returns 0 on success and -1 if failure.
  */
 int kclient_read_u32(struct kclient *kcl, uint32_t *rcv_uint);
 
@@ -209,7 +221,7 @@ int kclient_read_u32(struct kclient *kcl, uint32_t *rcv_uint);
  * kclient_read_u32 - Read a big endian uint32_t
  * @rcv_uint: Pointer to the received number
  *
- * Returns the read number on success. -1 if failure.
+ * Returns 0 on success and -1 if failure.
  */
 int kclient_read_u32_big_endian(struct kclient *kcl, uint32_t *rcv_uint);
 
@@ -217,9 +229,17 @@ int kclient_read_u32_big_endian(struct kclient *kcl, uint32_t *rcv_uint);
  * kclient_read_int - Read a int
  * @rcv_int: Pointer to the received number
  *
- * Returns the read number on success. -1 if failure.
+ * Returns 0 on success and -1 if failure.
  */
-int kclient_read_int(struct kclient *kcl, int8_t *rcv_int);
+int kclient_read_int(struct kclient *kcl, int32_t *rcv_int);
+
+/**
+ * kclient_read_bool - Read a boolean
+ * @rcv_bool: Pointer to the received boolean
+ *
+ * Returns 0 on success and -1 if failure.
+ */
+int kclient_read_bool(struct kclient *kcl, bool *rcv_bool);
 
 /**
  * kclient_rcv_array - Receive an array

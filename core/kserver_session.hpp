@@ -1,4 +1,3 @@
-/// Server session
 ///
 /// (c) Koheron
 
@@ -111,11 +110,6 @@ class Session
     /// Send a std::tuple
     template<typename... Tp> int Send(const std::tuple<Tp...>& t);
     
-    // --- Internal use
-    int init(void);
-    int exit(void);
-    int read_data(char *buff_str, char *remain_str);
-    
   private:
     KServerConfig *config;
     int comm_fd;                ///< Socket file descriptor
@@ -134,27 +128,14 @@ class Session
     std::time_t start_time;     ///< Starting time od the session
     // -------------------
     
-    std::vector<Command> cmd_list; ///< Last received commands
-    
     SocketInterface *socket;
     
     // -------------------
-    // Buffers
-    char remain_str[2*KSERVER_READ_STR_LEN]; ///< Remain part of the read buffer
-    char buff_str[2*KSERVER_READ_STR_LEN];   ///< Total buffer (remain+read)
-    // -------------------
-    
-    // -------------------
     // Internal functions
-    int init_session(void);
-    int exit_session(void);
-    
-    /// Split the buffer into requests using the '\n' token
-    /// Requests must be written as
-    /// DEVICE|OPERATION|p1|p2|...|pn#\n
-    int parse_input_buffer(void);
-    
-    void execute_cmds();
+    int init_session();
+    int exit_session();
+
+    int read_command(Command& cmd);
     
 friend class SessionManager;
 };

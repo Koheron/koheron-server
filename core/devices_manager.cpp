@@ -103,7 +103,7 @@ int DeviceManager::StartDev(device_t dev)
         }
 
 int DeviceManager::Execute(const Command& cmd)
-{ 
+{
     if (StartDev(cmd.device) < 0)
         return -1;
 

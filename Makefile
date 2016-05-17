@@ -11,6 +11,8 @@ MIDWARE_PATH = middleware
 REMOTE_DRIVERS = $(MIDWARE_PATH)/drivers
 ZYNQ_SDK_PATH = tmp/zynq-sdk
 
+current_dir := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+
 all: kserverd
 
 $(REMOTE_DRIVERS):
@@ -30,12 +32,12 @@ ifeq ($(USE_EIGEN),True)
 	cp -r tmp/eigen-eigen-c58038c56923/Eigen $(MIDWARE_PATH)/libraries
 endif
 
-ifeq ($(DOCKER),False)
 venv:
+ifeq ($(DOCKER),False)
 	virtualenv venv
 	venv/bin/pip install -r requirements.txt
-else # No virtualenv required when running in a Docker container
-venv:
+else
+	pip install -r $(current_dir)/requirements.txt
 endif
 
 kserverd: venv libraries $(REMOTE_DRIVERS)
@@ -47,6 +49,6 @@ endif
 
 clean:
 	rm -rf tmp
+	rm -rf venv
 	rm -rf $(REMOTE_DRIVERS)
-	# rm -rf venv
 

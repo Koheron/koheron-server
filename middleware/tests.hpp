@@ -3,6 +3,7 @@
 
 #include <array>
 #include <vector>
+#include <tuple>
 
 #include <drivers/lib/dev_mem.hpp> 
 
@@ -10,34 +11,31 @@ class Tests
 {
   public:
     Tests(Klib::DevMem& dvm_unused_);
-    ~Tests();
 
-    int Open(uint32_t waveform_size_);
-    
-    #pragma tcp-server exclude
-    void Close();
-
-    void set_mean(float mean_);
-    void set_std_dev(float mean_);
+    bool rcv_many_params(uint32_t u1, uint32_t u2, float f, bool b);
+    bool set_float(float f);
 
     // Send arrays
-    std::vector<float>& read();
+    std::vector<float>& send_std_vector();
     std::array<float, 10>& send_std_array();
 
     #pragma tcp-server read_array 2*arg{n_pts}
-    float* get_array(uint32_t n_pts);
+    float* send_c_array1(uint32_t n_pts);
 
     #pragma tcp-server read_array this{data.size()}
-    float* get_array_bis();
+    float* send_c_array2();
 
     // Receive array
     #pragma tcp-server write_array arg{data} arg{len}
-    void set_buffer(const uint32_t *data, uint32_t len);
+    bool set_buffer(const uint32_t *data, uint32_t len);
 
-    // Send strings
+    // Send string
     const char* get_cstr();
 
-    // Send integers
+    // Send tuple
+    std::tuple<int, float, double> get_tuple();
+
+    // Send numbers
     uint64_t read64();
     int read_int();
     unsigned int read_uint();
@@ -46,23 +44,9 @@ class Tests
     float read_float();
     bool read_bool();
 
-    enum Status {
-        CLOSED,
-        OPENED,
-        FAILED
-    };
-
-    #pragma tcp-server is_failed
-    bool IsFailed() const {return status == FAILED;}
-
-
     std::vector<float> data;
-  private:
-    int status;
-    uint32_t waveform_size;
-    float mean;
-    float std_dev;
 
+  private:
     std::vector<uint32_t> buffer;
     std::array<float, 10> data_std_array;
 }; // class Tests

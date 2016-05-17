@@ -4,13 +4,13 @@
 
 #TARGET_HOST = arm
 #TARGET_HOST = local
-#TARGET_HOST=Win32
-#TARGET_HOST=win64
+#TARGET_HOST = Win32
+#TARGET_HOST = Win64
 
 API_INC_PATH = ..
 
 # GCC compiling & linking flags
-CFLAGS= -Wall -Werror -I$(API_INC_PATH) $(DEFINES) -std=gnu99 -O2 # -g
+CFLAGS= -Wall -Werror -I$(API_INC_PATH) $(DEFINES) -std=c99 -O2 # -g
 
 # Toolchain
 ifeq ($(TARGET_HOST),armhf)

@@ -54,7 +54,7 @@ static int __get_sessions_data(struct kclient *kcl)
 {
     int bytes_read;
     
-    if (kclient_send_string(kcl, "1|4|\n") < 0)
+    if (kclient_send_command(kcl, 1, 4, "") < 0)
         return -1;
     
     bytes_read = kclient_rcv_esc_seq(kcl, "EORS");

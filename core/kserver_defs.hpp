@@ -100,6 +100,9 @@ namespace kserver {
 /// Number of samples
 #define KSERVER_SIG_LEN 16384
 
+/// Command payload buffer length 
+#define CMD_PAYLOAD_BUFFER_LEN 512
+
 /// Read string length
 #define KSERVER_READ_STR_LEN 16384
 

@@ -93,140 +93,124 @@ static void append_op_to_dev(struct device *dev, struct operation *op)
  *  --------- Receive/Send ---------
  */
 
-/* Maximum number of parameters in a command */
-#define MAX_PARAMS_NUM 128
+// |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
+// |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
 
-/**
- * struct command - Command to be executed by tcp-server
- * @dev_id: ID of the target device
- * @op_ref: ID of the operation to execute
- * @params_num: Number of parameters
- * @params: Array of stringified parameter values
+#define DEV_ID_OFFSET       4
+#define OP_ID_OFFSET        6
+#define PAYLOAD_SIZE_OFFSET 8
+#define PAYLOAD_OFFSET      12
+
+ /**
+ * Add an u8 to a buffer
+ * Return the size (in bytes) of the append number
  */
-struct command {
-    dev_id_t        dev_id;
-    op_id_t         op_ref;
-
-    int             params_num;
-    unsigned long   params[MAX_PARAMS_NUM];
-};
-
-#define CMD_LEN 1024
-
-#define CHECK_FORMAT(ret)                   \
-  do {                                      \
-      if ((ret) < 0) {                      \
-          DEBUG_MSG("Format error\n");      \
-          return -1;                        \
-      }                                     \
-                                            \
-      if ((ret) >= CMD_LEN) {               \
-          DEBUG_MSG("Buffer overflow\n");   \
-          return -1;                        \
-      }                                     \
-  } while (0)
-
-static int build_command_string(struct command *cmd, char *cmd_str)
+static size_t append_u8(char *buff, uint8_t value)
 {
-    int i, ret;
-
-    memset(cmd_str, 0, CMD_LEN);
-    ret = snprintf(cmd_str, CMD_LEN, "%i|%i|", cmd->dev_id, cmd->op_ref);          
-    CHECK_FORMAT(ret);
-    
-    for (i=0; i<cmd->params_num; i++) {
-        ret = snprintf(cmd_str + strlen(cmd_str), CMD_LEN, "%lu|", (cmd->params)[i]);
-        CHECK_FORMAT(ret);
-    }
-    
-    ret = snprintf(cmd_str + strlen(cmd_str), CMD_LEN, "\n");
-    CHECK_FORMAT(ret);
-    
-    return 0;
+    buff[0] = value & 0xff;
+    return 1;
 }
 
 /**
- * kclient_send - Send a command to tcp-server
- * @cmd: The command to send
- *
- * Returns 0 on success, -1 on failure
+ * Add an u16 to a buffer
+ * Return the size (in bytes) of the append number
  */
-static int kclient_send(struct kclient *kcl, struct command *cmd)
+static size_t append_u16(char *buff, uint16_t value)
 {
-    char cmd_str[CMD_LEN];
-    
-    if (build_command_string(cmd, cmd_str) < 0)
-        return -1;
-    
-    // printf("%s\n", cmd_str);
-
-    if (write(get_socket_fd(kcl), cmd_str, strlen(cmd_str)) < 0) {
-        fprintf(stderr, "Can't send command to tcp-server\n");
-        return -1;
-    }
-    
-    return 0;
+    buff[0] = (value >> 8) & 0xff;
+    buff[1] = value & 0xff;
+    return 2;
 }
 
 /**
- * init_command - Initialize a command structure
- * @cmd: The command to be initialized
- * @dev_id: ID of the target device
- * @op_ref: Reference of the target operation
+ * Add an u32 to a buffer
+ * Return the size (in bytes) of the append number
  */
-static inline void init_command(struct command *cmd, dev_id_t dev_id, op_id_t op_ref)
-{   
-    cmd->dev_id = dev_id;
-    cmd->op_ref = op_ref;
-    cmd->params_num = 0;
+static size_t append_u32(char *buff, uint32_t value)
+{
+    buff[0] = (value >> 24) & 0xff;
+    buff[1] = (value >> 16) & 0xff;
+    buff[2] = (value >>  8) & 0xff;
+    buff[3] = value & 0xff;
+    return 4;
 }
 
 /**
- * add_parameter - Add a parameter to the command
- * @cmd: The command to edit
- * @param: The parameter to add
+ * Add a float to a buffer
+ * Return the size (in bytes) of the append number
  */
-static inline void add_parameter(struct command *cmd, long param)
-{   
-    (cmd->params)[cmd->params_num] = param;
-    cmd->params_num++;
+static size_t append_float(char *buff, float value)
+{
+    assert(sizeof(float) == 4);
+    union { float f; uint32_t u; } __value = {value};
+    return append_u32(buff, __value.u);
 }
+
+/**
+ * Add a bool to a buffer
+ * Return the size (in bytes) of the append number
+ */
+static size_t append_bool(char *buff, bool value)
+{
+    return append_u8(buff, (uint8_t)value);
+}
+
+#define CMD_BUFFER_LEN 1024
 
 int kclient_send_command(struct kclient *kcl, dev_id_t dev_id, 
-                         op_id_t op_ref, const char *types, ...)
+                         op_id_t op_id, const char *types, ...)
 {
-    struct command cmd;
+    char   buffer[CMD_BUFFER_LEN];
+    size_t buffer_len = 0;
+    uint32_t payload_size = 0;
     va_list args;
 
-    init_command(&cmd, dev_id, op_ref);
+    buffer_len = append_u32(buffer, 0);  // RESERVED
+    buffer_len += append_u16(buffer + DEV_ID_OFFSET, dev_id);
+    buffer_len += append_u16(buffer + OP_ID_OFFSET, op_id);
+
     va_start(args, types);
  
     while (*types != '\0') {
-        if (cmd.params_num >= MAX_PARAMS_NUM) {
-            DEBUG_MSG("Command parameters overflow\n");
+        uint32_t len;
+
+        if (buffer_len >= CMD_BUFFER_LEN) {
+            DEBUG_MSG("kclient_send_command: Command buffer overflow\n");
             return -1;
         }
 
         switch (*types) {
-          case 'u':
-            add_parameter(&cmd, (uint32_t)va_arg(args, uint32_t));
+          case 'I':
+            len = append_u32(buffer + PAYLOAD_OFFSET + payload_size,
+                             va_arg(args, uint32_t));
             break;
           case 'f':
-            add_parameter(&cmd, (uint32_t)va_arg(args, double));
+            len = append_float(buffer + PAYLOAD_OFFSET + payload_size,
+                               (float)va_arg(args, double));
+            break;
+          case '?':
+            len = append_bool(buffer + PAYLOAD_OFFSET + payload_size,
+                              (bool)va_arg(args, uint32_t));
             break;
           default:
-            fprintf(stderr, "Unknown type %c\n", *types);
+            fprintf(stderr, "kclient_send_command: Unknown type %c\n", *types);
             return -1;
         }
 
+        buffer_len += len;
+        payload_size += len;
         ++types;
     }
  
     va_end(args);
 
-    if (kclient_send(kcl, &cmd) < 0)
-        return -1;
+    buffer_len += append_u32(buffer + PAYLOAD_SIZE_OFFSET, payload_size);
 
+    if (write(get_socket_fd(kcl), buffer, buffer_len) < 0) {
+        fprintf(stderr, "kclient_send_command:Can't send command to tcp-server\n");
+        return -1;
+    }
+    
     return 0;
 }
 
@@ -236,7 +220,7 @@ int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
  */
 static void set_rcv_buff(struct kclient *kcl)
 {
-    memset(kcl->buffer, 0, sizeof(char)*RCV_BUFFER_LEN);
+    memset(kcl->buffer, 0, kcl->current_len);
     kcl->current_len = 0;
 }
 
@@ -259,17 +243,17 @@ int kclient_rcv_esc_seq(struct kclient *kcl, const char *esc_seq)
         bytes_rcv = recv(get_socket_fd(kcl), tmp_buff, RCV_LEN-1, 0);
         
         if (bytes_rcv == 0) {
-            fprintf(stderr, "Connection closed by tcp-server\n");
+            fprintf(stderr, "kclient_rcv_esc_seq: Connection closed by tcp-server\n");
             return -1;
         }
         
         if (bytes_rcv < 0) {
-            fprintf(stderr, "Can't receive data\n");
+            fprintf(stderr, "kclient_rcv_esc_seq: Can't receive data\n");
             return -1;
         }
         
         if (bytes_read + bytes_rcv >= RCV_BUFFER_LEN) {
-            DEBUG_MSG("Buffer overflow\n");
+            DEBUG_MSG("kclient_rcv_esc_seq: Buffer overflow\n");
             return -1;
         }
 
@@ -297,7 +281,7 @@ int kclient_rcv_esc_seq(struct kclient *kcl, const char *esc_seq)
     kcl->devs_num = num_dev-2;
     
     if (kcl->devs_num > MAX_DEV_NUM) {
-        DEBUG_MSG("MAX_DEV_NUM overflow\n");
+        DEBUG_MSG("kclient_rcv_esc_seq: MAX_DEV_NUM overflow\n");
         return -1;
     }
     
@@ -310,29 +294,29 @@ int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes)
     uint32_t bytes_read = 0;
 
     if (n_bytes >= RCV_BUFFER_LEN) {
-        DEBUG_MSG("Receive buffer size too small\n");
+        DEBUG_MSG("kclient_rcv_n_bytes: Receive buffer size too small\n");
         return -1;
     }
 
     set_rcv_buff(kcl);
     
-    while (bytes_read < n_bytes) {                        
-        bytes_rcv = read(kcl->sockfd, kcl->buffer + bytes_read, n_bytes - bytes_read);
+    while (bytes_read < n_bytes) {
+        bytes_rcv = read(get_socket_fd(kcl), kcl->buffer + bytes_read, n_bytes - bytes_read);
         
         if (bytes_rcv == 0) {
-            fprintf(stderr, "Connection closed by tcp-server\n");
+            fprintf(stderr, "kclient_rcv_n_bytes: Connection closed by tcp-server\n");
             return -1;
         }
         
         if (bytes_rcv < 0) {
-            fprintf(stderr, "Can't receive data\n");
+            fprintf(stderr, "kclient_rcv_n_bytes: Can't receive data\n");
             return -1;
         }
 
         bytes_read += bytes_rcv;
         
         if (bytes_read >= RCV_BUFFER_LEN) {
-            DEBUG_MSG("Buffer overflow\n");
+            DEBUG_MSG("kclient_rcv_n_bytes: Buffer overflow\n");
             return -1;
         }
 
@@ -343,13 +327,48 @@ int kclient_rcv_n_bytes(struct kclient *kcl, uint32_t n_bytes)
     return bytes_read;
 }
 
+int kclient_read_string(struct kclient *kcl)
+{
+    int bytes_rcv = 0;
+    int bytes_read = 0;
+    set_rcv_buff(kcl);
+
+    while(1) {
+        bytes_rcv = recv(get_socket_fd(kcl), kcl->buffer + bytes_read, 1, 0);
+        
+        if (bytes_rcv == 0) {
+            fprintf(stderr, "kclient_read_string: Connection closed by tcp-server\n");
+            return -1;
+        }
+        
+        if (bytes_rcv < 0) {
+            fprintf(stderr, "kclient_read_string: Can't receive data\n");
+            return -1;
+        }
+        
+        bytes_read += bytes_rcv;
+
+        if (bytes_read >= RCV_BUFFER_LEN) {
+            DEBUG_MSG("kclient_read_string: Buffer overflow string too long\n");
+            return -1;
+        }
+
+        kcl->current_len = bytes_read;
+
+        if (kcl->buffer[kcl->current_len - 1] == '\0')
+            break;
+    }
+
+    return kcl->current_len;
+}
+
 int kclient_read_u32(struct kclient *kcl, uint32_t *rcv_uint)
 {
     if (kclient_rcv_n_bytes(kcl, sizeof(uint32_t)) < 0)
         return -1;
 
-    *rcv_uint = (uint32_t)kcl->buffer[0] + ((uint32_t)kcl->buffer[1] << 8)
-                + ((uint32_t)kcl->buffer[2] << 16) + ((uint32_t)kcl->buffer[3] << 24);
+    *rcv_uint = (unsigned char)kcl->buffer[0] + ((unsigned char)kcl->buffer[1] << 8)
+                + ((unsigned char)kcl->buffer[2] << 16) + ((unsigned char)kcl->buffer[3] << 24);
     return 0;
 }
 
@@ -358,20 +377,30 @@ int kclient_read_u32_big_endian(struct kclient *kcl, uint32_t *rcv_uint)
     if (kclient_rcv_n_bytes(kcl, sizeof(uint32_t)) < 0)
         return -1;
 
-    *rcv_uint = (uint32_t)kcl->buffer[3] + ((uint32_t)kcl->buffer[2] << 8)
-                + ((uint32_t)kcl->buffer[1] << 16) + ((uint32_t)kcl->buffer[0] << 24);
+    *rcv_uint = (unsigned char)kcl->buffer[3] + ((unsigned char)kcl->buffer[2] << 8)
+                + ((unsigned char)kcl->buffer[1] << 16) + ((unsigned char)kcl->buffer[0] << 24);
     return 0;
 }
 
-int kclient_read_int(struct kclient *kcl, int8_t *rcv_int)
+int kclient_read_int(struct kclient *kcl, int32_t *rcv_int)
 {
     if (kclient_rcv_n_bytes(kcl, sizeof(uint32_t)) < 0)
         return -1;
 
-    *rcv_int = (int8_t) ((uint32_t)kcl->buffer[0] + ((uint32_t)kcl->buffer[1] << 8)
-                + ((uint32_t)kcl->buffer[2] << 16) + ((uint32_t)kcl->buffer[3] << 24));
+    *rcv_int = (int32_t) ((unsigned char)kcl->buffer[0] + ((unsigned char)kcl->buffer[1] << 8)
+                + ((unsigned char)kcl->buffer[2] << 16) + ((unsigned char)kcl->buffer[3] << 24));
     return 0;
 }
+
+int kclient_read_bool(struct kclient *kcl, bool *rcv_bool)
+{
+    if (kclient_rcv_n_bytes(kcl, 4) < 0)
+        return -1;
+
+    *rcv_bool = (unsigned char)kcl->buffer[0] == 1;
+    return 0;
+}
+
 
 int kclient_send_array(struct kclient *kcl, uint32_t *array_ptr, uint32_t len)
 {
@@ -412,10 +441,8 @@ static int kclient_get_devices(struct kclient *kcl)
     bool is_dev_id = 0, is_dev_name = 0;
     struct operation tmp_op;
     char tmp_buff[2048];
-    
-    const char cmd[] = "1|1|\n";
-    
-    if (kclient_send_string(kcl, cmd) < 0)
+
+    if (kclient_send_command(kcl, 1, 1, "") < 0)
         return -1;
     
     bytes_read = kclient_rcv_esc_seq(kcl, "EOC");
@@ -629,7 +656,7 @@ static int set_kclient_sock_options(struct kclient *kcl)
 
 KOHERON_LIB_EXPORT
 struct kclient* kclient_connect(const char *host, int port)
-{  
+{
     struct kclient *kcl = malloc(sizeof *kcl);
 
     if (kcl == NULL) {
@@ -642,10 +669,12 @@ struct kclient* kclient_connect(const char *host, int port)
     kcl->unix_sockfd = -1;
 #endif
 
+
     if (open_kclient_tcp_socket(kcl) < 0)
         return NULL;
 
     set_serveraddr(kcl, host, port);
+
 
     if (set_kclient_sock_options(kcl) < 0)
         return NULL;
