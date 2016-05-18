@@ -70,27 +70,42 @@ int TCPSocketInterface::read_command(Command& cmd)
     char header_buff[HEADER_LENGTH];
     int header_bytes = rcv_n_bytes(header_buff, HEADER_LENGTH);
 
-    if (header_bytes <= 0)
+    if (header_bytes == 0)
         return header_bytes;
 
-    auto header_tuple = parse_buffer<HEADER_START, HEADER_TYPE_LIST>(header_buff);
+    if (header_bytes < 0) {
+        kserver->syslog.print(SysLog::ERROR, "TCPSocket: Cannot read header\n");
+        return header_bytes;
+    }
 
+    auto header_tuple = parse_buffer<HEADER_START, HEADER_TYPE_LIST>(header_buff);
     uint32_t payload_size = std::get<2>(header_tuple);
+
+    cmd.sess_id = id;
+    cmd.device = static_cast<device_t>(std::get<0>(header_tuple));
+    cmd.operation = std::get<1>(header_tuple);
+    cmd.payload_size = payload_size;
 
     if (payload_size > CMD_PAYLOAD_BUFFER_LEN) {
         DEBUG_MSG("TCPSocket: Command payload buffer size too small\n");
         return -1;
     }
 
-    int payload_bytes = rcv_n_bytes(cmd.buffer, payload_size);
+    int payload_bytes = 0;
 
-    if (payload_size > 0 && payload_bytes <= 0) 
-        return payload_bytes;
+    if (payload_size > 0) {
+        payload_bytes = rcv_n_bytes(cmd.buffer, payload_size);
 
-    cmd.sess_id = id;
-    cmd.device = static_cast<device_t>(std::get<0>(header_tuple));
-    cmd.operation = std::get<1>(header_tuple);
-    cmd.payload_size = payload_size;
+        if (payload_bytes == 0)
+            return payload_bytes;
+
+        if (payload_bytes < 0) {
+            kserver->syslog.print(SysLog::ERROR, 
+                "TCPSocket: Cannot read payload for device %u, operation %u\n", 
+                cmd.device, cmd.operation);
+            return header_bytes;
+        }
+    }
 
     kserver->syslog.print(SysLog::DEBUG, 
         "TCPSocket: Receive command for device %u, operation %u [%u bytes]\n", 
@@ -111,14 +126,12 @@ int TCPSocketInterface::rcv_n_bytes(char *buffer, uint32_t n_bytes)
         bytes_rcv = read(comm_fd, buffer + bytes_read, n_bytes - bytes_read);
         
         if (bytes_rcv == 0) {
-            kserver->syslog.print(SysLog::INFO, 
-                "TCPSocket: Connection closed by client\n");
+            kserver->syslog.print(SysLog::INFO, "TCPSocket: Connection closed by client\n");
             return 0;
         }
         
         if (bytes_rcv < 0) {
-            kserver->syslog.print(SysLog::ERROR, 
-                "TCPSocket: Can't receive data\n");
+            kserver->syslog.print(SysLog::ERROR, "TCPSocket: Can't receive data\n");
             return -1;
         }
 
