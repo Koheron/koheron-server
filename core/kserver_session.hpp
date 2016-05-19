@@ -39,11 +39,12 @@ class SessionManager;
 /// By calling the appropriate socket interface, it offers
 /// an abstract communication layer to the devices. Thus
 /// shielding them from the underlying communication protocol.
+template<int sock_type>
 class Session
 {
   public:
     Session(KServerConfig *config_, int comm_fd,
-            SessID id_, int sock_type, PeerInfo peer_info,
+            SessID id_, PeerInfo peer_info,
             SessionManager& session_manager_);
                     
     ~Session();
@@ -115,7 +116,6 @@ class Session
     int comm_fd;                ///< Socket file descriptor
     SessID id;                  ///< Session ID
     SysLog *syslog_ptr;
-    int sock_type;              ///< Type of socket (TCP or websocket)
     PeerInfo peer_info;
     SessionManager& session_manager;
     SessionPermissions permissions;
@@ -135,10 +135,35 @@ class Session
     int init_session();
     int exit_session();
 
+    template<int sock_type>
     int read_command(Command& cmd);
     
 friend class SessionManager;
 };
+
+template<int <sock_type>
+int Session::Run()
+{
+    if (init_session() < 0)
+        return -1;
+    
+    while (!session_manager.kserver.exit_comm.load()) {    
+        Command cmd;
+        int nb_bytes_rcvd = read_command(cmd);
+
+        if (nb_bytes_rcvd <= 0) {
+            exit_session();
+            return nb_bytes_rcvd;
+        }
+
+        requests_num++;
+
+        if (session_manager.dev_manager.Execute(cmd) < 0)
+            errors_num++;
+    }
+
+    return 0;
+}
 
 #define TCPSOCKET  static_cast<TCPSocketInterface*>(socket)
 #define UNIXSOCKET static_cast<UnixSocketInterface*>(socket)
@@ -146,110 +171,117 @@ friend class SessionManager;
 
 // For the template in the middle, see:
 // http://stackoverflow.com/questions/1682844/templates-template-function-not-playing-well-with-classs-template-member-funct/1682885#1682885
-template<class T> 
-int Session::Send(const T& data)
-{
-    switch (sock_type) {
+
 #if KSERVER_HAS_TCP
-      case TCP:
-        return TCPSOCKET->template Send<T>(data);
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
-      case UNIX:
-        return UNIXSOCKET->template Send<T>(data);
-#endif
-#if KSERVER_HAS_WEBSOCKET
-      case WEBSOCK:
-        return WEBSOCKET->template Send<T>(data);
-#endif
-    }
-    
-    return -1;
+template<>
+template<class T>
+int Session<TCP>::Send(const T& data)
+{
+    return TCPSOCKET->template Send<T>(data);
 }
 
+template<>
 template<typename T> 
-int Session::SendArray(const T* data, unsigned int len)
+int Session<TCP>::SendArray(const T* data, unsigned int len)
 {
-    switch (sock_type) {
-#if KSERVER_HAS_TCP
-      case TCP:
-        return TCPSOCKET->template SendArray<T>(data, len);
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
-      case UNIX:
-        return UNIXSOCKET->template SendArray<T>(data, len);
-#endif
-#if KSERVER_HAS_WEBSOCKET
-      case WEBSOCK:
-        return WEBSOCKET->template SendArray<T>(data, len);
-#endif
-    }
-    
-    return -1;
+    return TCPSOCKET->template SendArray<T>(data, len);
 }
 
+template<>
 template<typename T>
-int Session::Send(const std::vector<T>& vect)
+int Session<TCP>::Send(const std::vector<T>& vect)
 {
-    switch (sock_type) {
-#if KSERVER_HAS_TCP
-      case TCP:
-        return TCPSOCKET->template Send<T>(vect);
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
-      case UNIX:
-        return UNIXSOCKET->template Send<T>(vect);
-#endif
-#if KSERVER_HAS_WEBSOCKET
-      case WEBSOCK:
-        return WEBSOCKET->template Send<T>(vect);
-#endif
-    }
-    
-    return -1;
+    return TCPSOCKET->template Send<T>(vect);
 }
 
+template<>
 template<typename T, size_t N>
-int Session::Send(const std::array<T, N>& vect)
+int Session<TCP>::Send(const std::array<T, N>& vect)
 {
-    switch (sock_type) {
-#if KSERVER_HAS_TCP
-      case TCP:
-        return TCPSOCKET->template Send<T, N>(vect);
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
-      case UNIX:
-        return UNIXSOCKET->template Send<T, N>(vect);
-#endif
-#if KSERVER_HAS_WEBSOCKET
-      case WEBSOCK:
-        return WEBSOCKET->template Send<T, N>(vect);
-#endif
-    }
-    
-    return -1;
+    return TCPSOCKET->template Send<T, N>(vect);
 }
 
+template<>
 template<typename... Tp>
-int Session::Send(const std::tuple<Tp...>& t)
+int Session<TCP>::Send(const std::tuple<Tp...>& t)
 {
-    switch (sock_type) {
-#if KSERVER_HAS_TCP
-      case TCP:
-        return TCPSOCKET->template Send<Tp...>(t);
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
-      case UNIX:
-        return UNIXSOCKET->template Send<Tp...>(t);
-#endif
-#if KSERVER_HAS_WEBSOCKET
-      case WEBSOCK:
-        return WEBSOCKET->template Send<Tp...>(t);
-#endif
-    }
-    
-    return -1;
+    return TCPSOCKET->template Send<Tp...>(t);
 }
+#endif // KSERVER_HAS_TCP
+
+#if KSERVER_HAS_UNIX_SOCKET
+template<>
+template<class T>
+int Session<UNIX>::Send(const T& data)
+{
+    return UNIXSOCKET->template Send<T>(data);
+}
+
+template<>
+template<typename T> 
+int Session<UNIX>::SendArray(const T* data, unsigned int len)
+{
+    return UNIXSOCKET->template SendArray<T>(data, len);
+}
+
+template<>
+template<typename T>
+int Session<UNIX>::Send(const std::vector<T>& vect)
+{
+    return UNIXSOCKET->template Send<T>(vect);
+}
+
+template<>
+template<typename T, size_t N>
+int Session<UNIX>::Send(const std::array<T, N>& vect)
+{
+    return UNIXSOCKET->template Send<T, N>(vect);
+}
+
+template<>
+template<typename... Tp>
+int Session<UNIX>::Send(const std::tuple<Tp...>& t)
+{
+    return UNIXSOCKET->template Send<Tp...>(t);
+}
+#endif // KSERVER_HAS_UNIX_SOCKET
+
+#if KSERVER_HAS_WEBSOCKET
+template<>
+template<class T>
+int Session<WEBSOCK>::Send(const T& data)
+{
+    return WEBSOCKET->template Send<T>(data);
+}
+
+template<>
+template<typename T> 
+int Session<WEBSOCK>::SendArray(const T* data, unsigned int len)
+{
+    return WEBSOCKET->template SendArray<T>(data, len);
+}
+
+template<>
+template<typename T>
+int Session<WEBSOCK>::Send(const std::vector<T>& vect)
+{
+    return WEBSOCKET->template Send<T>(vect);
+}
+
+template<>
+template<typename T, size_t N>
+int Session<WEBSOCK>::Send(const std::array<T, N>& vect)
+{
+    return WEBSOCKET->template Send<T, N>(vect);
+}
+
+template<>
+template<typename... Tp>
+int Session<WEBSOCK>::Send(const std::tuple<Tp...>& t)
+{
+    return WEBSOCKET->template Send<Tp...>(t);
+}
+#endif // KSERVER_HAS_WEBSOCKET
 
 } // namespace kserver
 

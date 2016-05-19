@@ -36,8 +36,9 @@ size_t SessionManager::GetNumSess() const
 
 unsigned int SessionManager::num_sess = 0;
 
+template<int sock_type>
 Session* SessionManager::CreateSession(KServerConfig *config_, int comm_fd,
-                                       int sock_type, PeerInfo peer_info)
+                                       PeerInfo peer_info)
 {
 #if KSERVER_HAS_THREADS
     std::lock_guard<std::mutex> lock(mutex);
@@ -55,7 +56,7 @@ Session* SessionManager::CreateSession(KServerConfig *config_, int comm_fd,
     }
 
     Session *session 
-        = new Session(config_, comm_fd, new_id, sock_type, peer_info, (*this));
+        = new Session<sock_type>(config_, comm_fd, new_id, peer_info, (*this));
         
     assert(session != NULL);
     

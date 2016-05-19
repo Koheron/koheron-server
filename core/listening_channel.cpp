@@ -137,8 +137,8 @@ void session_thread_call(int comm_fd, PeerInfo peer_info,
     listener->stats.total_sessions_num++;
           
     Session *session
-        = listener->kserver->session_manager.CreateSession(
-                listener->kserver->config, comm_fd, sock_type, peer_info);
+        = listener->kserver->session_manager.CreateSession<sock_type>(
+                listener->kserver->config, comm_fd, peer_info);
                                                  
     SessID sid = session->GetID();
                                                  

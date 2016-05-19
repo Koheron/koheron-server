@@ -35,8 +35,9 @@ class SessionManager
     
     size_t GetNumSess() const;
     
+    template<int sock_type>
     Session* CreateSession(KServerConfig *config_, int comm_fd, 
-                           int sock_type, PeerInfo peer_info);
+                           PeerInfo peer_info);
     
     std::vector<SessID> GetCurrentIDs();
     
