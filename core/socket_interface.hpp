@@ -160,7 +160,8 @@ int SocketInterface<TCP>::SendArray(const T *data, unsigned int len)
 
 #if KSERVER_HAS_UNIX_SOCKET
 // Unix socket has the same interface than TCP socket
-template<> class SocketInterface<UNIX> : public SocketInterface<TCP>
+template<>
+class SocketInterface<UNIX> : public SocketInterface<TCP>
 {
   public:
     SocketInterface<UNIX>(KServerConfig *config_, KServer *kserver_, 

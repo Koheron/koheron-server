@@ -36,6 +36,14 @@ class SessionAbstract
 
     inline int GetSockType() const {return kind;}
 
+    int SendCstr(const char *string);
+    const uint32_t* RcvHandshake(uint32_t buff_size);
+    template<typename... Tp> int Send(const std::tuple<Tp...>& t);
+    template<typename T, size_t N> int Send(const std::array<T, N>& vect);
+    template<typename T> int Send(const std::vector<T>& vect);
+    template<typename T> int SendArray(const T* data, unsigned int len);
+    template<class T> int Send(const T& data);
+
     int kind;
 };
 
@@ -214,11 +222,31 @@ int Session<sock_type>::exit_session()
 // For the template in the middle, see:
 // http://stackoverflow.com/questions/1682844/templates-template-function-not-playing-well-with-classs-template-member-funct/1682885#1682885
 
+#define TCP_SESSION  static_cast<Session<TCP>*>(this)
+#define UNIX_SESSION static_cast<Session<UNIX>*>(this)
+#define WEB_SESSION  static_cast<Session<WEBSOCK>*>(this)
+
 template<int sock_type>
 template<class T>
 int Session<sock_type>::Send(const T& data)
 {
     return socket->template Send<T>(data);
+}
+
+template<class T>
+int SessionAbstract::Send(const T& data)
+{
+    switch (this->kind) {
+      case TCP:
+        return TCP_SESSION->template Send<T>(data);
+      case UNIX:
+        return UNIX_SESSION->template Send<T>(data);
+      case WEBSOCK:
+        return WEB_SESSION->template Send<T>(data);
+      default: assert(false);
+    }
+
+    return -1;
 }
 
 template<int sock_type>
@@ -228,11 +256,43 @@ int Session<sock_type>::SendArray(const T* data, unsigned int len)
     return socket->template SendArray<T>(data, len);
 }
 
+template<typename T> 
+int SessionAbstract::SendArray(const T* data, unsigned int len)
+{
+    switch (this->kind) {
+      case TCP:
+        return TCP_SESSION->template SendArray<T>(data, len);
+      case UNIX:
+        return UNIX_SESSION->template SendArray<T>(data, len);
+      case WEBSOCK:
+        return WEB_SESSION->template SendArray<T>(data, len);
+      default: assert(false);
+    }
+
+    return -1;
+}
+
 template<int sock_type>
 template<typename T>
 int Session<sock_type>::Send(const std::vector<T>& vect)
 {
     return socket->template Send<T>(vect);
+}
+
+template<typename T>
+int SessionAbstract::Send(const std::vector<T>& vect)
+{
+    switch (this->kind) {
+      case TCP:
+        return TCP_SESSION->template Send<T>(vect);
+      case UNIX:
+        return UNIX_SESSION->template Send<T>(vect);
+      case WEBSOCK:
+        return WEB_SESSION->template Send<T>(vect);
+      default: assert(false);
+    }
+
+    return -1;
 }
 
 template<int sock_type>
@@ -242,41 +302,82 @@ int Session<sock_type>::Send(const std::array<T, N>& vect)
     return socket->template Send<T, N>(vect);
 }
 
+template<typename T, size_t N>
+int SessionAbstract::Send(const std::array<T, N>& vect)
+{
+    switch (this->kind) {
+      case TCP:
+        return TCP_SESSION->template Send<T, N>(vect);
+      case UNIX:
+        return UNIX_SESSION->template Send<T, N>(vect);
+      case WEBSOCK:
+        return WEB_SESSION->template Send<T, N>(vect);
+      default: assert(false);
+    }
+
+    return -1;
+}
+
 template<int sock_type>
 template<typename... Tp>
-int Session<sock_type>::Send(const std::tuple<Tp...>& t)
+inline int Session<sock_type>::Send(const std::tuple<Tp...>& t)
 {
     return socket->template Send<Tp...>(t);
 }
 
+template<typename... Tp>
+int SessionAbstract::Send(const std::tuple<Tp...>& t)
+{
+    switch (this->kind) {
+      case TCP:
+        return TCP_SESSION->template Send<Tp...>(t);
+      case UNIX:
+        return UNIX_SESSION->template Send<Tp...>(t);
+      case WEBSOCK:
+        return WEB_SESSION->template Send<Tp...>(t);
+      default: assert(false);
+    }
+
+    return -1;
+}
+
 template<int sock_type>
-const uint32_t* Session<sock_type>::RcvHandshake(uint32_t buff_size)
+inline const uint32_t* Session<sock_type>::RcvHandshake(uint32_t buff_size)
 {
     return socket->RcvHandshake(buff_size);
 }
 
+const uint32_t* SessionAbstract::RcvHandshake(uint32_t buff_size)
+{
+    switch (this->kind) {
+      case TCP:
+        return TCP_SESSION->RcvHandshake(buff_size);
+      case UNIX:
+        return UNIX_SESSION->RcvHandshake(buff_size);
+      case WEBSOCK:
+        return WEB_SESSION->RcvHandshake(buff_size);
+      default: assert(false);
+    }
+
+    return nullptr;
+}
+
 template<int sock_type>
-int Session<sock_type>::SendCstr(const char *string)
+inline int Session<sock_type>::SendCstr(const char *string)
 {
     return socket->SendCstr(string);
 }
 
-#define TCP_SESSION  static_cast<Session<TCP>*>(&session)
-#define UNIX_SESSION static_cast<Session<UNIX>*>(&session)
-#define WEB_SESSION  static_cast<Session<WEBSOCK>*>(&session)
-
-int SendCstr(SessionAbstract& session, const char *string)
+int SessionAbstract::SendCstr(const char *string)
 {
-    switch(session.kind) {
-        case TCP:
-            return TCP_SESSION->SendCstr(string);
-            break;
-        case UNIX:
-            return UNIX_SESSION->SendCstr(string);
-            break;
-        case WEBSOCK:
-            return WEB_SESSION->SendCstr(string);
-            break;
+    switch (this->kind) {
+      case TCP:
+        return TCP_SESSION->SendCstr(string);
+      case UNIX:
+        return UNIX_SESSION->SendCstr(string);
+      case WEBSOCK:
+        return WEB_SESSION->SendCstr(string);
+      default: assert(false);
     }
 
     return -1;
