@@ -12,8 +12,9 @@
 #include "devices_manager.hpp"
 #include "kserver_defs.hpp"
 #include "kserver.hpp"
-#include "socket_interface.hpp"
 #include "peer_info.hpp"
+#include "session_manager.hpp"
+#include "socket_interface.hpp"
 
 namespace kserver {
 
@@ -32,6 +33,17 @@ struct SessionPermissions
 
 class SessionManager;
 
+class SessionAbstract
+{
+  public:
+    SessionAbstract(int sock_type_)
+    : kind(sock_type_) {}
+
+    inline int GetSockType() const {return kind;}
+
+    int kind;
+};
+
 /// Session
 ///
 /// Receive and parse the client request for execution.
@@ -40,7 +52,7 @@ class SessionManager;
 /// an abstract communication layer to the devices. Thus
 /// shielding them from the underlying communication protocol.
 template<int sock_type>
-class Session
+class Session : public SessionAbstract
 {
   public:
     Session(KServerConfig *config_, int comm_fd,
@@ -70,7 +82,6 @@ class Session
     }
 
     inline SessID GetID() const               { return id;               }
-    inline int GetSockType() const            { return sock_type;        }
     inline const char* GetClientIP() const    { return peer_info.ip_str; }
     inline int GetClientPort() const          { return peer_info.port;   }
     inline std::time_t GetStartTime() const   { return start_time;       }
@@ -128,28 +139,63 @@ class Session
     std::time_t start_time;     ///< Starting time od the session
     // -------------------
     
-    SocketInterface *socket;
+    SocketInterface<sock_type> *socket;
     
     // -------------------
     // Internal functions
     int init_session();
     int exit_session();
 
-    template<int sock_type>
     int read_command(Command& cmd);
     
 friend class SessionManager;
 };
 
-template<int <sock_type>
-int Session::Run()
+template<int sock_type>
+Session<sock_type>::Session(KServerConfig *config_, int comm_fd_,
+                            SessID id_, PeerInfo peer_info_,
+                            SessionManager& session_manager_)
+: SessionAbstract(sock_type)
+, config(config_)
+, comm_fd(comm_fd_)
+, id(id_)
+, syslog_ptr(&session_manager_.kserver.syslog)
+, peer_info(peer_info_)
+, session_manager(session_manager_)
+, permissions()
+, requests_num(0)
+, errors_num(0)
+, start_time(0)
+{
+    socket = new SocketInterface<sock_type>(config_, &session_manager.kserver,
+                                            comm_fd, id_);
+}
+
+template<int sock_type>
+Session<sock_type>::~Session()
+{
+    if (socket != nullptr)
+        delete socket;
+}
+
+template<int sock_type>
+int Session<sock_type>::init_session()
+{
+    errors_num = 0;
+    requests_num = 0;
+    start_time = std::time(nullptr);
+    return socket->init();
+}
+
+template<int sock_type>
+int Session<sock_type>::Run()
 {
     if (init_session() < 0)
         return -1;
     
     while (!session_manager.kserver.exit_comm.load()) {    
         Command cmd;
-        int nb_bytes_rcvd = read_command(cmd);
+        int nb_bytes_rcvd = socket->read_command(cmd);
 
         if (nb_bytes_rcvd <= 0) {
             exit_session();
@@ -165,125 +211,83 @@ int Session::Run()
     return 0;
 }
 
-#define TCPSOCKET  static_cast<TCPSocketInterface*>(socket)
-#define UNIXSOCKET static_cast<UnixSocketInterface*>(socket)
-#define WEBSOCKET  static_cast<WebSocketInterface*>(socket)
+template<int sock_type>
+int Session<sock_type>::exit_session()
+{
+    return socket->exit();
+}
 
 // For the template in the middle, see:
 // http://stackoverflow.com/questions/1682844/templates-template-function-not-playing-well-with-classs-template-member-funct/1682885#1682885
 
-#if KSERVER_HAS_TCP
-template<>
+template<int sock_type>
 template<class T>
-int Session<TCP>::Send(const T& data)
+int Session<sock_type>::Send(const T& data)
 {
-    return TCPSOCKET->template Send<T>(data);
+    return socket->template Send<T>(data);
 }
 
-template<>
+template<int sock_type>
 template<typename T> 
-int Session<TCP>::SendArray(const T* data, unsigned int len)
+int Session<sock_type>::SendArray(const T* data, unsigned int len)
 {
-    return TCPSOCKET->template SendArray<T>(data, len);
+    return socket->template SendArray<T>(data, len);
 }
 
-template<>
+template<int sock_type>
 template<typename T>
-int Session<TCP>::Send(const std::vector<T>& vect)
+int Session<sock_type>::Send(const std::vector<T>& vect)
 {
-    return TCPSOCKET->template Send<T>(vect);
+    return socket->template Send<T>(vect);
 }
 
-template<>
+template<int sock_type>
 template<typename T, size_t N>
-int Session<TCP>::Send(const std::array<T, N>& vect)
+int Session<sock_type>::Send(const std::array<T, N>& vect)
 {
-    return TCPSOCKET->template Send<T, N>(vect);
+    return socket->template Send<T, N>(vect);
 }
 
-template<>
+template<int sock_type>
 template<typename... Tp>
-int Session<TCP>::Send(const std::tuple<Tp...>& t)
+int Session<sock_type>::Send(const std::tuple<Tp...>& t)
 {
-    return TCPSOCKET->template Send<Tp...>(t);
-}
-#endif // KSERVER_HAS_TCP
-
-#if KSERVER_HAS_UNIX_SOCKET
-template<>
-template<class T>
-int Session<UNIX>::Send(const T& data)
-{
-    return UNIXSOCKET->template Send<T>(data);
+    return socket->template Send<Tp...>(t);
 }
 
-template<>
-template<typename T> 
-int Session<UNIX>::SendArray(const T* data, unsigned int len)
+template<int sock_type>
+const uint32_t* Session<sock_type>::RcvHandshake(uint32_t buff_size)
 {
-    return UNIXSOCKET->template SendArray<T>(data, len);
+    return socket->RcvHandshake(buff_size);
 }
 
-template<>
-template<typename T>
-int Session<UNIX>::Send(const std::vector<T>& vect)
+template<int sock_type>
+int Session<sock_type>::SendCstr(const char *string)
 {
-    return UNIXSOCKET->template Send<T>(vect);
+    return socket->SendCstr(string);
 }
 
-template<>
-template<typename T, size_t N>
-int Session<UNIX>::Send(const std::array<T, N>& vect)
-{
-    return UNIXSOCKET->template Send<T, N>(vect);
-}
+#define TCP_SESSION  static_cast<Session<TCP>*>(&session)
+#define UNIX_SESSION static_cast<Session<UNIX>*>(&session)
+#define WEB_SESSION  static_cast<Session<WEBSOCK>*>(&session)
 
-template<>
-template<typename... Tp>
-int Session<UNIX>::Send(const std::tuple<Tp...>& t)
+int SendCstr(SessionAbstract& session, const char *string)
 {
-    return UNIXSOCKET->template Send<Tp...>(t);
-}
-#endif // KSERVER_HAS_UNIX_SOCKET
+    switch(session.kind) {
+        case TCP:
+            return TCP_SESSION->SendCstr(string);
+            break;
+        case UNIX:
+            return UNIX_SESSION->SendCstr(string);
+            break;
+        case WEBSOCK:
+            return WEB_SESSION->SendCstr(string);
+            break;
+    }
 
-#if KSERVER_HAS_WEBSOCKET
-template<>
-template<class T>
-int Session<WEBSOCK>::Send(const T& data)
-{
-    return WEBSOCKET->template Send<T>(data);
+    return -1;
 }
-
-template<>
-template<typename T> 
-int Session<WEBSOCK>::SendArray(const T* data, unsigned int len)
-{
-    return WEBSOCKET->template SendArray<T>(data, len);
-}
-
-template<>
-template<typename T>
-int Session<WEBSOCK>::Send(const std::vector<T>& vect)
-{
-    return WEBSOCKET->template Send<T>(vect);
-}
-
-template<>
-template<typename T, size_t N>
-int Session<WEBSOCK>::Send(const std::array<T, N>& vect)
-{
-    return WEBSOCKET->template Send<T, N>(vect);
-}
-
-template<>
-template<typename... Tp>
-int Session<WEBSOCK>::Send(const std::tuple<Tp...>& t)
-{
-    return WEBSOCKET->template Send<Tp...>(t);
-}
-#endif // KSERVER_HAS_WEBSOCKET
 
 } // namespace kserver
 
 #endif // __KSERVER_SESSION_HPP__
-

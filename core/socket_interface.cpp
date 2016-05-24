@@ -17,26 +17,26 @@ extern "C" {
 
 namespace kserver {
 
-#define SEND_SPECIALIZE_IMPL(sock_interf)                           \
-    template<>                                                      \
+#define SEND_SPECIALIZE_IMPL(sock_type)                           \
+    template<> template<>                                           \
     int sock_interf::Send<std::string>(const std::string& str)      \
     {                                                               \
         return SendCstr(str.c_str());                               \
     }                                                               \
                                                                     \
-    template<>                                                      \
+    template<> template<>                                           \
     int sock_interf::Send<uint32_t>(const uint32_t& val)            \
     {                                                               \
         return SendArray<uint32_t>(&val, 1);                        \
     }                                                               \
                                                                     \
-    template<>                                                      \
+    template<> template<>                                           \
     int sock_interf::Send<uint64_t>(const uint64_t& val)            \
     {                                                               \
         return SendArray<uint64_t>(&val, 1);                        \
     }                                                               \
                                                                     \
-    template<>                                                      \
+    template<> template<>                                           \
     int sock_interf::Send<float>(const float& val)                  \
     {                                                               \
         return SendArray<float>(&val, 1);                           \
@@ -48,10 +48,10 @@ namespace kserver {
 
 #if KSERVER_HAS_TCP
 
-SEND_SPECIALIZE_IMPL(TCPSocketInterface)
+SEND_SPECIALIZE_IMPL(SocketInterface<TCP>)
 
-int TCPSocketInterface::init() {return 0;}
-int TCPSocketInterface::exit() {return 0;}
+template<> SocketInterface<TCP>::init() {return 0;}
+template<> int SocketInterface<TCP>::exit() {return 0;}
 
 #define HEADER_LENGTH    12
 #define HEADER_START     4  // First 4 bytes are reserved
@@ -62,7 +62,8 @@ static_assert(
     "Unexpected header length"
 );
 
-int TCPSocketInterface::read_command(Command& cmd)
+template<>
+int SocketInterface<TCP>::read_command(Command& cmd)
 {
     // Read and decode header
     // |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
@@ -114,7 +115,8 @@ int TCPSocketInterface::read_command(Command& cmd)
     return header_bytes + payload_bytes;
 }
 
-int TCPSocketInterface::rcv_n_bytes(char *buffer, uint32_t n_bytes)
+template<>
+int SocketInterface<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes)
 {
     if (n_bytes == 0)
         return 0;
@@ -150,7 +152,8 @@ int TCPSocketInterface::rcv_n_bytes(char *buffer, uint32_t n_bytes)
     return bytes_read;
 }
 
-int TCPSocketInterface::RcvDataBuffer(uint32_t n_bytes)
+template<>
+int SocketInterface<TCP>::RcvDataBuffer(uint32_t n_bytes)
 {
     uint32_t bytes_read = 0;
 
@@ -182,7 +185,8 @@ int TCPSocketInterface::RcvDataBuffer(uint32_t n_bytes)
     return bytes_read;
 }
 
-const uint32_t* TCPSocketInterface::RcvHandshake(uint32_t buff_size)
+template<>
+const uint32_t* SocketInterface<TCP>::RcvHandshake(uint32_t buff_size)
 {
     // Handshaking
     if (Send<uint32_t>(htonl(buff_size)) < 0) {
@@ -202,7 +206,8 @@ const uint32_t* TCPSocketInterface::RcvHandshake(uint32_t buff_size)
     return reinterpret_cast<const uint32_t*>(recv_data_buff);
 }
 
-int TCPSocketInterface::SendCstr(const char *string)
+template<>
+int SocketInterface<TCP>::SendCstr(const char *string)
 {
     int bytes_send = strlen(string) + 1;
     int err = write(comm_fd, string, bytes_send);
@@ -224,9 +229,10 @@ int TCPSocketInterface::SendCstr(const char *string)
 
 #if KSERVER_HAS_WEBSOCKET
 
-SEND_SPECIALIZE_IMPL(WebSocketInterface)
+SEND_SPECIALIZE_IMPL(SocketInterface<WEBSOCK>)
 
-int WebSocketInterface::init()
+template<>
+int SocketInterface<WEBSOCK>::init()
 {    
     websock.set_id(comm_fd);
 
@@ -239,9 +245,10 @@ int WebSocketInterface::init()
     return 0;
 }
 
-int WebSocketInterface::exit() {return 0;}
+template<> int SocketInterface<WEBSOCK>::exit() {return 0;}
 
-int WebSocketInterface::read_command(Command& cmd)
+template<>
+int SocketInterface<WEBSOCK>::read_command(Command& cmd)
 {
     if (websock.receive() < 0) { 
         if (websock.is_closed())
@@ -284,7 +291,8 @@ int WebSocketInterface::read_command(Command& cmd)
     return HEADER_LENGTH + payload_size;
 }
 
-const uint32_t* WebSocketInterface::RcvHandshake(uint32_t buff_size)
+template<>
+const uint32_t* SocketInterface<WEBSOCK>::RcvHandshake(uint32_t buff_size)
 {
     // Handshaking
     if (Send<uint32_t>(buff_size) < 0) {
@@ -308,7 +316,8 @@ const uint32_t* WebSocketInterface::RcvHandshake(uint32_t buff_size)
     return reinterpret_cast<const uint32_t*>(recv_data_buff);
 }
 
-int WebSocketInterface::SendCstr(const char *string)
+template<>
+int SocketInterface<WEBSOCK>::SendCstr(const char *string)
 {
     int err = websock.send(std::string(string));
 

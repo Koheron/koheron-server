@@ -25,8 +25,6 @@ template<class Dev, device_t dev_kind> class KDevice;
 class KServer;
 DEVICES_TABLE(EXPAND_AS_CLASS_LIST) // X-macro
 
-class SessionManager;
-
 /// @brief Abstract class for KDevice
 class KDeviceAbstract {
 public:
@@ -47,7 +45,6 @@ public:
 };
 
 struct Command;
-class KServerSession;
 
 /// @brief Polymorph class for a KServer device
 /// 

@@ -4,12 +4,12 @@
 
 #include "session_manager.hpp"
 
+#include "kserver_session.hpp"
+
 #if KSERVER_HAS_THREADS
 #  include <thread>
 #  include <mutex>
 #endif
-
-#include "kserver_session.hpp"
 
 namespace kserver {
 
@@ -35,72 +35,6 @@ size_t SessionManager::GetNumSess() const
 }
 
 unsigned int SessionManager::num_sess = 0;
-
-template<int sock_type>
-Session* SessionManager::CreateSession(KServerConfig *config_, int comm_fd,
-                                       PeerInfo peer_info)
-{
-#if KSERVER_HAS_THREADS
-    std::lock_guard<std::mutex> lock(mutex);
-#endif
-
-    SessID new_id;
-    
-    // Choose a reusable ID if available else
-    // create a new ID equal to the session number
-    if (reusable_ids.size() == 0) {    
-        new_id = num_sess;
-    } else {
-        new_id = reusable_ids.back();
-        reusable_ids.pop_back();
-    }
-
-    Session *session 
-        = new Session<sock_type>(config_, comm_fd, new_id, peer_info, (*this));
-        
-    assert(session != NULL);
-    
-    __apply_permissions(session);
-
-    session_pool.insert(std::pair<SessID, Session*>((SessID)new_id, session));
-    
-    num_sess++;
-    
-    return session;
-}
-
-void SessionManager::__apply_permissions(Session *last_created_session)
-{
-    switch (perm_policy) {
-      case NONE:
-        last_created_session->permissions.write = true;
-        break;
-      case FCFS:
-        if (fcfs_id == -1) { // Write permission not attributed
-            last_created_session->permissions.write = true;
-            fcfs_id = last_created_session->GetID();
-        } else {
-            last_created_session->permissions.write = false;
-        }
-            
-        break;
-      case LCFS:
-        // Set write permission of all current sessions to false
-        if (!session_pool.empty()) {
-            std::vector<SessID> ids = GetCurrentIDs();
-            
-            for (size_t i=0; i<ids.size(); i++)         
-                session_pool[ids[i]]->permissions.write = false;
-        }
-        
-        last_created_session->permissions.write = true;
-        lclf_lifo.push(last_created_session->GetID());        
-        break;
-      default:
-        kserver.syslog.print(SysLog::ERROR, "BUG: Invalid permission policy\n");
-        last_created_session->permissions.write = DFLT_WRITE_PERM;
-    }
-}
 
 void SessionManager::__print_reusable_ids()
 {
@@ -148,18 +82,6 @@ std::vector<SessID> SessionManager::GetCurrentIDs()
     return res;
 }
 
-Session& SessionManager::GetSession(SessID id) const
-{
-    // This is not true anymore in a multithreaded environment:
-    // If two sessions #0 and #1 are launch, and then #0 is closed
-    // then num_sess is 1 but id #1 is still alive, violating the assertion
-    //assert(id < num_sess);
-    
-    assert(session_pool.at(id) != NULL);
-    
-    return *session_pool.at(id);
-}
-
 void SessionManager::__reset_permissions(SessID id)
 {
     switch (perm_policy) {
@@ -179,8 +101,24 @@ void SessionManager::__reset_permissions(SessID id)
             while (lclf_lifo.size() > 0 && !__is_current_id(lclf_lifo.top()))
                 lclf_lifo.pop();
             
-            if (lclf_lifo.size() > 0)
-                session_pool[lclf_lifo.top()]->permissions.write = true;
+            if (lclf_lifo.size() > 0) {
+                SessionAbstract *session = session_pool[lclf_lifo.top()];
+
+                switch(session->GetSockType()) {
+                    case TCP:
+                        static_cast<Session<TCP>*>(session)->permissions.write = true;
+                        break;
+                    case UNIX:
+                        static_cast<Session<UNIX>*>(session)->permissions.write = true;
+                        break;
+                    case WEBSOCK:
+                        static_cast<Session<WEBSOCK>*>(session)->permissions.write = true;
+                        break;
+                    default:
+                        kserver.syslog.print(SysLog::ERROR, "Unknow socket type\n");
+                }
+            }
+                
         }
     }
 }
@@ -198,8 +136,24 @@ void SessionManager::DeleteSession(SessID id)
     }
     
     if (session_pool[id] != NULL) {
-        close(session_pool[id]->comm_fd);
-        delete session_pool[id];
+        SessionAbstract *session = session_pool[id];
+
+        switch(session->GetSockType()) {
+            case TCP:
+                close(static_cast<Session<TCP>*>(session)->comm_fd);
+                delete static_cast<Session<TCP>*>(session);
+                break;
+            case UNIX:
+                close(static_cast<Session<UNIX>*>(session)->comm_fd);
+                delete static_cast<Session<UNIX>*>(session);
+                break;
+            case WEBSOCK:
+                close(static_cast<Session<WEBSOCK>*>(session)->comm_fd);
+                delete static_cast<Session<WEBSOCK>*>(session);
+                break;
+            default:
+                kserver.syslog.print(SysLog::ERROR, "Unknow socket type\n");
+        }
     }
     
     __reset_permissions(id);
