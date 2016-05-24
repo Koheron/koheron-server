@@ -347,40 +347,10 @@ inline const uint32_t* Session<sock_type>::RcvHandshake(uint32_t buff_size)
     return socket->RcvHandshake(buff_size);
 }
 
-const uint32_t* SessionAbstract::RcvHandshake(uint32_t buff_size)
-{
-    switch (this->kind) {
-      case TCP:
-        return TCP_SESSION->RcvHandshake(buff_size);
-      case UNIX:
-        return UNIX_SESSION->RcvHandshake(buff_size);
-      case WEBSOCK:
-        return WEB_SESSION->RcvHandshake(buff_size);
-      default: assert(false);
-    }
-
-    return nullptr;
-}
-
 template<int sock_type>
 inline int Session<sock_type>::SendCstr(const char *string)
 {
     return socket->SendCstr(string);
-}
-
-int SessionAbstract::SendCstr(const char *string)
-{
-    switch (this->kind) {
-      case TCP:
-        return TCP_SESSION->SendCstr(string);
-      case UNIX:
-        return UNIX_SESSION->SendCstr(string);
-      case WEBSOCK:
-        return WEB_SESSION->SendCstr(string);
-      default: assert(false);
-    }
-
-    return -1;
 }
 
 } // namespace kserver

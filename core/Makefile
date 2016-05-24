@@ -26,6 +26,7 @@ MIDWARE_INC_PATH=middleware
 OBJS_KSERVER = core/kserver.o              \
                core/listening_channel.o    \
                core/kserver_commands.o     \
+               core/kserver_session.o      \
                core/session_manager.o      \
                core/devices_manager.o      \
                core/peer_info.o            \
