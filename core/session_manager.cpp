@@ -15,7 +15,7 @@ namespace kserver {
 
 SessionManager::SessionManager(KServer& kserver_, DeviceManager& dev_manager_, 
                                int perm_policy_)
-: kserver(kserver_), 
+: kserver(kserver_),
   dev_manager(dev_manager_),
   perm_policy(perm_policy_),
   fcfs_id(-1),
@@ -42,12 +42,18 @@ void SessionManager::__print_reusable_ids()
         printf("reusable_ids = {}\n");
     } else {
         printf("reusable_ids = {%u", reusable_ids[0]);
-        
+
         for (size_t i=1; i<reusable_ids.size(); i++)
             printf(", %u", reusable_ids[i]);
             
         printf("}\n");
     }
+}
+
+SessionAbstract& SessionManager::GetSession(SessID id) const
+{
+    assert(session_pool.at(id) != nullptr);
+    return *session_pool.at(id);
 }
 
 bool SessionManager::__is_reusable_id(SessID id)
@@ -62,7 +68,7 @@ bool SessionManager::__is_reusable_id(SessID id)
 bool SessionManager::__is_current_id(SessID id)
 {
     std::vector<SessID> curr_ids = GetCurrentIDs();
-    
+
     for (size_t i=0; i<curr_ids.size(); i++)
         if (curr_ids[i] == id)
             return true;
@@ -118,7 +124,6 @@ void SessionManager::__reset_permissions(SessID id)
                         kserver.syslog.print(SysLog::ERROR, "Unknow socket type\n");
                 }
             }
-                
         }
     }
 }
@@ -134,11 +139,11 @@ void SessionManager::DeleteSession(SessID id)
                              "Not allocated session ID: %u\n", id);
         return;
     }
-    
+
     if (session_pool[id] != NULL) {
         SessionAbstract *session = session_pool[id];
 
-        switch(session->GetSockType()) {
+        switch (session->GetSockType()) {
             case TCP:
                 close(static_cast<Session<TCP>*>(session)->comm_fd);
                 delete static_cast<Session<TCP>*>(session);
@@ -155,7 +160,7 @@ void SessionManager::DeleteSession(SessID id)
                 kserver.syslog.print(SysLog::ERROR, "Unknow socket type\n");
         }
     }
-    
+
     __reset_permissions(id);
 
     session_pool.erase(id);
@@ -170,7 +175,7 @@ void SessionManager::DeleteAll()
 #endif
 
     assert(num_sess == session_pool.size());
-    
+
     if (!session_pool.empty()) {
         std::vector<SessID> ids = GetCurrentIDs();
         
@@ -179,7 +184,7 @@ void SessionManager::DeleteAll()
             DeleteSession(ids[i]);
         }
     }
-    
+
     assert(num_sess == 0);
 }
 

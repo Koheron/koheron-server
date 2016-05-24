@@ -1,11 +1,4 @@
-/// @file socket_interface.cpp
-///
-/// @brief Implementation of socket_interface.hpp
-///
-/// @author Thomas Vanderbruggen <thomas@koheron.com>
-/// @date 15/08/2015
-///
-/// (c) Koheron 2014-2015
+/// (c) Koheron
 
 #include "socket_interface.hpp"
 
@@ -17,7 +10,7 @@ extern "C" {
 
 namespace kserver {
 
-#define SEND_SPECIALIZE_IMPL(sock_type)                           \
+#define SEND_SPECIALIZE_IMPL(sock_interf)                           \
     template<> template<>                                           \
     int sock_interf::Send<std::string>(const std::string& str)      \
     {                                                               \
@@ -50,7 +43,7 @@ namespace kserver {
 
 SEND_SPECIALIZE_IMPL(SocketInterface<TCP>)
 
-template<> SocketInterface<TCP>::init() {return 0;}
+template<> int SocketInterface<TCP>::init() {return 0;}
 template<> int SocketInterface<TCP>::exit() {return 0;}
 
 #define HEADER_LENGTH    12
@@ -123,7 +116,7 @@ int SocketInterface<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes)
 
     int bytes_rcv = 0;
     uint32_t bytes_read = 0;
-    
+
     while (bytes_read < n_bytes) {
         bytes_rcv = read(comm_fd, buffer + bytes_read, n_bytes - bytes_read);
         
@@ -131,14 +124,14 @@ int SocketInterface<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes)
             kserver->syslog.print(SysLog::INFO, "TCPSocket: Connection closed by client\n");
             return 0;
         }
-        
+
         if (bytes_rcv < 0) {
             kserver->syslog.print(SysLog::ERROR, "TCPSocket: Can't receive data\n");
             return -1;
         }
 
         bytes_read += bytes_rcv;
-        
+
         if (bytes_read >= KSERVER_READ_STR_LEN) {
             DEBUG_MSG("TCPSocket: Buffer overflow\n");
             return -1;
@@ -173,7 +166,7 @@ int SocketInterface<TCP>::RcvDataBuffer(uint32_t n_bytes)
         }
 
         bytes_read += result;
-        
+
         if (bytes_read > KSERVER_RECV_DATA_BUFF_LEN) {
             kserver->syslog.print(SysLog::CRITICAL, 
                                   "TCPSocket: Receive data buffer overflow\n");
@@ -196,7 +189,7 @@ const uint32_t* SocketInterface<TCP>::RcvHandshake(uint32_t buff_size)
 
     uint32_t n_bytes_received = 
         static_cast<uint32_t>(RcvDataBuffer(sizeof(uint32_t)*buff_size));
-  
+
     if (n_bytes_received < 0)
         return nullptr;
 
@@ -233,7 +226,7 @@ SEND_SPECIALIZE_IMPL(SocketInterface<WEBSOCK>)
 
 template<>
 int SocketInterface<WEBSOCK>::init()
-{    
+{
     websock.set_id(comm_fd);
 
     if (websock.authenticate() < 0) {
@@ -278,7 +271,6 @@ int SocketInterface<WEBSOCK>::read_command(Command& cmd)
 
     if (payload_size + HEADER_LENGTH < websock.payload_size())
         kserver->syslog.print(SysLog::WARNING, "WebSocket: Received more data than expected\n");
-
 
     bzero(cmd.buffer, CMD_PAYLOAD_BUFFER_LEN);
     memcpy(cmd.buffer, websock.get_payload_no_copy() + HEADER_LENGTH, payload_size);

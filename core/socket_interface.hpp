@@ -40,7 +40,8 @@ class SocketInterface
     : config(config_), 
       kserver(kserver_),
       comm_fd(comm_fd_),
-      id(id_)
+      id(id_),
+      websock(config_, kserver_)
     {
         bzero(recv_data_buff, KSERVER_RECV_DATA_BUFF_LEN);
     }
@@ -50,6 +51,7 @@ class SocketInterface
 
     int read_command(Command& cmd);
     int read_data(char *buff_str);
+    int rcv_n_bytes(char *buffer, uint32_t n_bytes);
     int RcvDataBuffer(uint32_t n_bytes);
     const uint32_t* RcvHandshake(uint32_t buff_size);
 
@@ -98,8 +100,12 @@ int SocketInterface<sock_type>::Send(const std::tuple<Tp...>& t)
 
     const std::string& tmp = ss.str();
     return SendCstr(tmp.c_str());
-}                                                     
+}
 
+template<> int SocketInterface<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes);
+template<> int SocketInterface<TCP>::SendCstr(const char *string);
+
+template<> int SocketInterface<WEBSOCK>::SendCstr(const char *string);
 
 // template<int sock_type> 
 // template<> 
@@ -154,7 +160,13 @@ int SocketInterface<TCP>::SendArray(const T *data, unsigned int len)
 
 #if KSERVER_HAS_UNIX_SOCKET
 // Unix socket has the same interface than TCP socket
-template<> class SocketInterface<UNIX> : public SocketInterface<TCP> {};
+template<> class SocketInterface<UNIX> : public SocketInterface<TCP>
+{
+  public:
+    SocketInterface<UNIX>(KServerConfig *config_, KServer *kserver_, 
+                          int comm_fd_, SessID id_)
+    : SocketInterface<TCP>(config_, kserver_, comm_fd_, id_) {}
+};
 #endif // KSERVER_HAS_UNIX_SOCKET
 
 // -----------------------------------------------

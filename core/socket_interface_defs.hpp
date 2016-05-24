@@ -1,4 +1,4 @@
-/// Socket interface definition
+/// Socket interface definitions
 ///
 /// (c) Koheron
 

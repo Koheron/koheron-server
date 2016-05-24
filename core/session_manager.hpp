@@ -12,7 +12,6 @@
 #include "kserver_defs.hpp"
 #include "config.hpp"
 #include "peer_info.hpp"
-#include "kserver.hpp"
 
 #if KSERVER_HAS_THREADS
 #  include <mutex>
@@ -23,6 +22,7 @@ namespace kserver {
 class SessionAbstract;
 template<int sock_type> class Session;
 class DeviceManager;
+class KServer;
 
 class SessionManager
 {
@@ -38,14 +38,12 @@ class SessionManager
 
     template<int sock_type>
     Session<sock_type>* CreateSession(KServerConfig *config_, int comm_fd, 
-                           PeerInfo peer_info);
+                                      PeerInfo peer_info);
 
     std::vector<SessID> GetCurrentIDs();
-
     SessionAbstract& GetSession(SessID id) const;
 
     void DeleteSession(SessID id);
-
     void DeleteAll();
 
     KServer& kserver;
@@ -94,84 +92,6 @@ class SessionManager
 #endif
 };
 
-template<int sock_type>
-Session<sock_type>* SessionManager::CreateSession(KServerConfig *config_, int comm_fd,
-                                       PeerInfo peer_info)
-{
-#if KSERVER_HAS_THREADS
-    std::lock_guard<std::mutex> lock(mutex);
-#endif
-
-    SessID new_id;
-    
-    // Choose a reusable ID if available else
-    // create a new ID equal to the session number
-    if (reusable_ids.size() == 0) {    
-        new_id = num_sess;
-    } else {
-        new_id = reusable_ids.back();
-        reusable_ids.pop_back();
-    }
-
-    auto session = new Session<sock_type>(config_, comm_fd, new_id, peer_info, (*this));
-    assert(session != nullptr);
-    
-    apply_permissions(session);
-
-    session_pool.insert(std::pair<SessID, SessionAbstract*>((SessID)new_id, 
-                        static_cast<SessionAbstract*>(session)));
-    num_sess++;
-    return session;
-}
-
-template<int sock_type>
-void SessionManager::apply_permissions(Session<sock_type> *last_created_session)
-{
-    switch (perm_policy) {
-      case NONE:
-        last_created_session->permissions.write = true;
-        break;
-      case FCFS:
-        if (fcfs_id == -1) { // Write permission not attributed
-            last_created_session->permissions.write = true;
-            fcfs_id = last_created_session->GetID();
-        } else {
-            last_created_session->permissions.write = false;
-        }
-            
-        break;
-      case LCFS:
-        // Set write permission of all current sessions to false
-        if (!session_pool.empty()) {
-            std::vector<SessID> ids = GetCurrentIDs();
-            
-            for (size_t i=0; i<ids.size(); i++)         
-                static_cast<Session<sock_type>*>(session_pool[ids[i]])
-                        ->permissions.write = false;
-        }
-        
-        last_created_session->permissions.write = true;
-        lclf_lifo.push(last_created_session->GetID());        
-        break;
-      default:
-        kserver.syslog.print(SysLog::ERROR, "BUG: Invalid permission policy\n");
-        last_created_session->permissions.write = DFLT_WRITE_PERM;
-    }
-}
-
-SessionAbstract& SessionManager::GetSession(SessID id) const
-{
-    // This is not true anymore in a multithreaded environment:
-    // If two sessions #0 and #1 are launch, and then #0 is closed
-    // then num_sess is 1 but id #1 is still alive, violating the assertion
-    //assert(id < num_sess);
-    
-    assert(session_pool.at(id) != nullptr);
-    return *session_pool.at(id);
-}
-
 } // namespace kserver
 
 #endif //__SESSION_MANAGER_HPP__
-
-

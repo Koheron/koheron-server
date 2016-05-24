@@ -23,6 +23,7 @@ extern "C" {
 
 #include "peer_info.hpp"
 #include "session_manager.hpp"
+#include "session_manager.tpp"
 #include "kserver_session.hpp"
 
 namespace kserver {
@@ -137,7 +138,7 @@ void session_thread_call(int comm_fd, PeerInfo peer_info,
     listener->stats.total_sessions_num++;
 
     Session<sock_type> *session
-        = listener->kserver->session_manager.CreateSession<sock_type>(
+        = listener->kserver->session_manager. template CreateSession<sock_type>(
                 listener->kserver->config, comm_fd, peer_info);
 
     SessID sid = session->GetID();

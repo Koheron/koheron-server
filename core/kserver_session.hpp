@@ -1,4 +1,3 @@
-///
 /// (c) Koheron
 
 #ifndef __KSERVER_SESSION_HPP__
@@ -21,12 +20,8 @@ namespace kserver {
 /// Stores the permissions of a session
 struct SessionPermissions
 {
-    // XXX TV 27/09/2015
-    //Should these values be atomic ?
-
     /// True if the session can write into a device
     bool write = DFLT_WRITE_PERM;
-    
     /// True if the session can read from a device
     bool read = DFLT_READ_PERM;
 };
@@ -58,14 +53,14 @@ class Session : public SessionAbstract
     Session(KServerConfig *config_, int comm_fd,
             SessID id_, PeerInfo peer_info,
             SessionManager& session_manager_);
-                    
+
     ~Session();
-    
+
     /// Run the session
     int Run();
-    
+
     // --- Accessors
-    
+
     /// Display the log of the session
     void DisplayLog(void);
 
@@ -90,10 +85,9 @@ class Session : public SessionAbstract
     {
         return &permissions;
     }
-    
-    // --- Receive 
-    // For large amount of data transfer
-    
+
+    // --- Receive
+
     /// Receive data from client with handshaking
     /// @buff_size Size of the buffer to receive
     /// @return Pointer to the data if success, NULL else
@@ -105,23 +99,23 @@ class Session : public SessionAbstract
     ///    the number of points to receive to the client
     /// 3) The client send the data buffer
     const uint32_t* RcvHandshake(uint32_t buff_size);
-    
+
     /// Send scalar data
     template<class T> int Send(const T& data);
-    
+
     /// Send a C string
     /// @string The null-terminated string
     /// @return The number of bytes send if success, -1 if failure
     int SendCstr(const char* string);
-    
+
     /// Send Arrays
     template<typename T> int SendArray(const T* data, unsigned int len);
     template<typename T> int Send(const std::vector<T>& vect);
     template<typename T, size_t N> int Send(const std::array<T, N>& vect);
-    
+
     /// Send a std::tuple
     template<typename... Tp> int Send(const std::tuple<Tp...>& t);
-    
+
   private:
     KServerConfig *config;
     int comm_fd;                ///< Socket file descriptor
@@ -130,7 +124,7 @@ class Session : public SessionAbstract
     PeerInfo peer_info;
     SessionManager& session_manager;
     SessionPermissions permissions;
-    
+
     // -------------------
     // Monitoring
     unsigned int requests_num;
@@ -138,16 +132,16 @@ class Session : public SessionAbstract
 
     std::time_t start_time;     ///< Starting time od the session
     // -------------------
-    
+
     SocketInterface<sock_type> *socket;
-    
+
     // -------------------
     // Internal functions
     int init_session();
     int exit_session();
 
     int read_command(Command& cmd);
-    
+
 friend class SessionManager;
 };
 
@@ -192,7 +186,7 @@ int Session<sock_type>::Run()
 {
     if (init_session() < 0)
         return -1;
-    
+
     while (!session_manager.kserver.exit_comm.load()) {    
         Command cmd;
         int nb_bytes_rcvd = socket->read_command(cmd);

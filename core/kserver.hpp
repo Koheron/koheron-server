@@ -23,6 +23,7 @@
 #include "kserver_syslog.hpp"
 #include "signal_handler.hpp"
 #include "peer_info.hpp"
+#include "session_manager.hpp"
 
 namespace kserver {
 
@@ -105,7 +106,7 @@ void ListeningChannel<sock_type>::join_worker()
 /////// KServer
 
 // class DeviceManager;
-class SessionManager;
+// class SessionManager;
 
 /// Main class of the server. It initializes the 
 /// connections and start the sessions.
