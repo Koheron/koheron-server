@@ -79,37 +79,32 @@ void parse_options(int argc, char **argv,
 
 #if KSERVER_IS_DAEMON
 
-// Run KServer as a daemon process
+// Run tcp-server as a daemon process
 // From http://www.thegeekstuff.com/2012/02/c-daemon-process/
 void daemonize()
 {
-    // Create child process
     pid_t process_id = fork();
 
     if (process_id < 0) {
-        fprintf(stderr, "KServer: fork failed!\n");
+        fprintf(stderr, "tcp-server: fork failed!\n");
         exit(EXIT_FAILURE);
     }
 
-    // Kill parent process
     if (process_id > 0)
         exit(EXIT_SUCCESS);
 
     umask(0);
 
-    //set new session
     pid_t sid = setsid();
 
     if (sid < 0)
         exit(EXIT_FAILURE);
 
-    // Change the current working directory to root.
     if (chdir("/") < 0) {
-        fprintf(stderr, "KServer: Cannot change current directory to root\n");
+        fprintf(stderr, "tcp-server: Cannot change current directory to root\n");
         exit(EXIT_FAILURE);
     }
 
-    // Close stdin. stdout and stderr
     close(STDIN_FILENO);
     close(STDOUT_FILENO);
     close(STDERR_FILENO);
@@ -124,7 +119,7 @@ void daemonize()
 int main(int argc, char **argv)
 {
     // Load config and options
-    std::shared_ptr<kserver::KServerConfig> config = std::make_shared<kserver::KServerConfig>();
+    auto config = std::make_shared<kserver::KServerConfig>();
     parse_options(argc, argv, config);
     
 #if KSERVER_IS_DAEMON
@@ -135,8 +130,6 @@ int main(int argc, char **argv)
     // Start and run KServer
     kserver::KServer server(config);
     server.Run();
-
-    // delete config;
 
     // FIXME Not a clean way to terminate
     // But else the program doesn't close

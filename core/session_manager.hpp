@@ -38,8 +38,8 @@ class SessionManager
     size_t GetNumSess() const;
 
     template<int sock_type>
-    Session<sock_type>* CreateSession(std::shared_ptr<KServerConfig> const& config_, int comm_fd, 
-                                      PeerInfo peer_info);
+    SessID CreateSession(std::shared_ptr<KServerConfig> const& config_,
+                         int comm_fd, PeerInfo peer_info);
 
     std::vector<SessID> GetCurrentIDs();
     SessionAbstract& GetSession(SessID id) const;
@@ -77,11 +77,11 @@ class SessionManager
 
   private:
     // Sessions pool
-    std::map<SessID, SessionAbstract*> session_pool;
+    std::map<SessID, std::unique_ptr<SessionAbstract>> session_pool;
     std::vector<SessID> reusable_ids;
 
     template<int sock_type>
-    void apply_permissions(Session<sock_type> *last_created_session);
+    void apply_permissions(std::unique_ptr<Session<sock_type>> const& last_created_session);
 
     void reset_permissions(SessID id);
     void print_reusable_ids();

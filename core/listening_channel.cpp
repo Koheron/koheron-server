@@ -138,10 +138,10 @@ void session_thread_call(int comm_fd, PeerInfo peer_info,
     listener->stats.opened_sessions_num++;
     listener->stats.total_sessions_num++;
 
-    auto session = listener->kserver->session_manager. template CreateSession<sock_type>(
+    SessID sid = listener->kserver->session_manager. template CreateSession<sock_type>(
                             listener->kserver->config, comm_fd, peer_info);
 
-    SessID sid = session->GetID();
+    auto session = static_cast<Session<sock_type>*>(&listener->kserver->session_manager.GetSession(sid));
 
     listener->kserver->syslog.print(SysLog::INFO, 
                 "Start session id = %u. "

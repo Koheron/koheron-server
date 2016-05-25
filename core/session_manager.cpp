@@ -102,23 +102,21 @@ void SessionManager::reset_permissions(SessID id)
         // session holding them.
         if (id == lclf_lifo.top()) {
             lclf_lifo.pop();
-            
+
             // Remove all the invalid IDs on the top of the LIFO
             while (lclf_lifo.size() > 0 && !is_current_id(lclf_lifo.top()))
                 lclf_lifo.pop();
-            
-            if (lclf_lifo.size() > 0) {
-                auto session = session_pool[lclf_lifo.top()];
 
-                switch(session->kind) {
+            if (lclf_lifo.size() > 0) {
+                switch(session_pool[lclf_lifo.top()]->kind) {
                   case TCP:
-                    static_cast<Session<TCP>*>(session)->permissions.write = true;
+                    cast_to_session<TCP>(session_pool[lclf_lifo.top()])->permissions.write = true;
                     break;
                   case UNIX:
-                    static_cast<Session<UNIX>*>(session)->permissions.write = true;
+                    cast_to_session<UNIX>(session_pool[lclf_lifo.top()])->permissions.write = true;
                     break;
                   case WEBSOCK:
-                    static_cast<Session<WEBSOCK>*>(session)->permissions.write = true;
+                    cast_to_session<WEBSOCK>(session_pool[lclf_lifo.top()])->permissions.write = true;
                     break;
                   default: assert(false);
                 }
@@ -140,20 +138,15 @@ void SessionManager::DeleteSession(SessID id)
     }
 
     if (session_pool[id] != nullptr) {
-        auto session = session_pool[id];
-
-        switch (session->kind) {
+        switch (session_pool[id]->kind) {
           case TCP:
-            close(static_cast<Session<TCP>*>(session)->comm_fd);
-            delete static_cast<Session<TCP>*>(session);
+            close(cast_to_session<TCP>(session_pool[id])->comm_fd);
             break;
           case UNIX:
-            close(static_cast<Session<UNIX>*>(session)->comm_fd);
-            delete static_cast<Session<UNIX>*>(session);
+            close(cast_to_session<UNIX>(session_pool[id])->comm_fd);
             break;
           case WEBSOCK:
-            close(static_cast<Session<WEBSOCK>*>(session)->comm_fd);
-            delete static_cast<Session<WEBSOCK>*>(session);
+            close(cast_to_session<WEBSOCK>(session_pool[id])->comm_fd);
             break;
           default: assert(false);
         }

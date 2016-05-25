@@ -7,6 +7,7 @@
 #include <ctime>
 #include <array>
 #include <utility>
+#include <memory>
 
 #include "commands.hpp"
 #include "devices_manager.hpp"
@@ -64,8 +65,6 @@ class Session : public SessionAbstract
     /// Run the session
     int Run();
 
-    // --- Accessors
-
     /// Display the log of the session
     void DisplayLog(void);
 
@@ -81,10 +80,10 @@ class Session : public SessionAbstract
         return errors_num;
     }
 
-    inline SessID GetID() const               { return id;               }
-    inline const char* GetClientIP() const    { return peer_info.ip_str; }
-    inline int GetClientPort() const          { return peer_info.port;   }
-    inline std::time_t GetStartTime() const   { return start_time;       }
+    inline SessID GetID() const {return id;}
+    inline const char* GetClientIP() const {return peer_info.ip_str;}
+    inline int GetClientPort() const {return peer_info.port;}
+    inline std::time_t GetStartTime() const {return start_time;}
     
     inline const SessionPermissions* GetPermissions() const
     {
@@ -303,6 +302,13 @@ template<int sock_type>
 inline int Session<sock_type>::SendCstr(const char *string)
 {
     return socket->SendCstr(string);
+}
+
+// Cast abstract session unique_ptr
+template<int sock_type>
+Session<sock_type>* cast_to_session(const std::unique_ptr<SessionAbstract>& sess_abstract)
+{
+    return static_cast<Session<sock_type>*>(sess_abstract.get());
 }
 
 } // namespace kserver
