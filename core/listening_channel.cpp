@@ -28,8 +28,8 @@ extern "C" {
 
 namespace kserver {
 
-int __create_tcp_listening(unsigned int port, SysLog *syslog, 
-                           KServerConfig *config)
+int create_tcp_listening(unsigned int port, SysLog *syslog, 
+                         std::shared_ptr<KServerConfig> const& config)
 {
     int listen_fd_ = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -77,7 +77,8 @@ int __create_tcp_listening(unsigned int port, SysLog *syslog,
     return listen_fd_;
 }
 
-int __set_comm_sock_opts(int comm_fd, SysLog *syslog, KServerConfig *config)
+int set_comm_sock_opts(int comm_fd, SysLog *syslog,
+                       std::shared_ptr<KServerConfig> const& config)
 {
     int sndbuf_len = sizeof(uint32_t) * KSERVER_SIG_LEN;
 
@@ -113,8 +114,8 @@ int __set_comm_sock_opts(int comm_fd, SysLog *syslog, KServerConfig *config)
     return 0;
 }
 
-int __open_tcp_communication(int listen_fd, SysLog *syslog,
-                             KServerConfig *config)
+int open_tcp_communication(int listen_fd, SysLog *syslog,
+                           std::shared_ptr<KServerConfig> const& config)
 {
     int comm_fd = accept(listen_fd, (struct sockaddr*) NULL, NULL);
 
@@ -123,7 +124,7 @@ int __open_tcp_communication(int listen_fd, SysLog *syslog,
         return -1;
     }
 
-    if (__set_comm_sock_opts(comm_fd, syslog, config) < 0)
+    if (set_comm_sock_opts(comm_fd, syslog, config) < 0)
         return -1;
 
     return comm_fd;
@@ -233,7 +234,7 @@ int ListeningChannel<TCP>::init()
     num_threads.store(0);
 
     if (kserver->config->tcp_worker_connections > 0) {
-        listen_fd = __create_tcp_listening(kserver->config->tcp_port,
+        listen_fd = create_tcp_listening(kserver->config->tcp_port,
                                            &kserver->syslog, kserver->config);  
         return listen_fd;      
     } else {
@@ -253,8 +254,8 @@ void ListeningChannel<TCP>::shutdown()
 template<>
 int ListeningChannel<TCP>::open_communication()
 {
-    return __open_tcp_communication(listen_fd, &kserver->syslog,
-                                    kserver->config);
+    return open_tcp_communication(listen_fd, &kserver->syslog,
+                                  kserver->config);
 }
 
 template<>
@@ -282,7 +283,7 @@ int ListeningChannel<WEBSOCK>::init()
     num_threads.store(0);
 
     if (kserver->config->websock_worker_connections > 0) {
-        listen_fd = __create_tcp_listening(kserver->config->websock_port,
+        listen_fd = create_tcp_listening(kserver->config->websock_port,
                                            &kserver->syslog, kserver->config);  
         return listen_fd;      
     } else {
@@ -302,8 +303,8 @@ void ListeningChannel<WEBSOCK>::shutdown()
 template<>
 int ListeningChannel<WEBSOCK>::open_communication()
 {
-    return __open_tcp_communication(listen_fd, &kserver->syslog,
-                                    kserver->config);
+    return open_tcp_communication(listen_fd, &kserver->syslog,
+                                  kserver->config);
 }
 
 template<>
@@ -325,7 +326,7 @@ int ListeningChannel<WEBSOCK>::start_worker()
 
 #if KSERVER_HAS_UNIX_SOCKET
 
-int __create_unix_listening(const char *unix_sock_path, SysLog *syslog)
+int create_unix_listening(const char *unix_sock_path, SysLog *syslog)
 {
     struct sockaddr_un local;
 
@@ -356,8 +357,8 @@ int ListeningChannel<UNIX>::init()
     num_threads.store(0);
 
     if (kserver->config->unixsock_worker_connections > 0) {
-        listen_fd = __create_unix_listening(kserver->config->unixsock_path, 
-                                            &kserver->syslog);  
+        listen_fd = create_unix_listening(kserver->config->unixsock_path, 
+                                          &kserver->syslog);  
         return listen_fd;      
     } else {
         return 0; // Nothing to be done

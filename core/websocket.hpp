@@ -6,6 +6,7 @@
 #define __WEBSOCKET_HPP__
 
 #include <string>
+#include <memory>
 
 #include "kserver_defs.hpp"
 #include "config.hpp"
@@ -59,7 +60,7 @@ class KServer;
 class WebSocket
 {
   public:
-    WebSocket(KServerConfig *config_, KServer *kserver_);
+    WebSocket(std::shared_ptr<KServerConfig> config_, KServer *kserver_);
     
     void set_id(int comm_fd_);
     
@@ -83,7 +84,7 @@ class WebSocket
     bool is_closed() const {return connection_closed;}
     
   private:
-    KServerConfig *config;
+    std::shared_ptr<KServerConfig> config;
     KServer *kserver;
     
     int comm_fd;

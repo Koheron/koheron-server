@@ -35,7 +35,7 @@ class SocketInterface
     // XXX TV 18/08/2015
     // Instead of passing all these parameters, I could directly
     // pass a pointer to the session 
-    SocketInterface(KServerConfig *config_, KServer *kserver_, 
+    SocketInterface(std::shared_ptr<KServerConfig> config_, KServer *kserver_, 
                     int comm_fd_, SessID id_)
     : config(config_), 
       kserver(kserver_),
@@ -64,7 +64,7 @@ class SocketInterface
     template<typename... Tp> int Send(const std::tuple<Tp...>& t);
 
   protected:
-    KServerConfig *config;
+    std::shared_ptr<KServerConfig> config;
     KServer *kserver;
     int comm_fd;
     SessID id;
@@ -148,8 +148,8 @@ template<>
 class SocketInterface<UNIX> : public SocketInterface<TCP>
 {
   public:
-    SocketInterface<UNIX>(KServerConfig *config_, KServer *kserver_, 
-                          int comm_fd_, SessID id_)
+    SocketInterface<UNIX>(std::shared_ptr<KServerConfig> config_,
+                          KServer *kserver_, int comm_fd_, SessID id_)
     : SocketInterface<TCP>(config_, kserver_, comm_fd_, id_) {}
 };
 #endif // KSERVER_HAS_UNIX_SOCKET

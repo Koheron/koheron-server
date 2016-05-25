@@ -8,6 +8,7 @@
 #include <map>
 #include <vector>
 #include <stack>
+#include <memory>
 
 #include "kserver_defs.hpp"
 #include "config.hpp"
@@ -37,7 +38,7 @@ class SessionManager
     size_t GetNumSess() const;
 
     template<int sock_type>
-    Session<sock_type>* CreateSession(KServerConfig *config_, int comm_fd, 
+    Session<sock_type>* CreateSession(std::shared_ptr<KServerConfig> const& config_, int comm_fd, 
                                       PeerInfo peer_info);
 
     std::vector<SessID> GetCurrentIDs();

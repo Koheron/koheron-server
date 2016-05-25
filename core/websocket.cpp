@@ -24,7 +24,7 @@ extern "C" {
 
 namespace kserver {
 
-WebSocket::WebSocket(KServerConfig *config_, KServer *kserver_)
+WebSocket::WebSocket(std::shared_ptr<KServerConfig> config_, KServer *kserver_)
 : config(config_),
   kserver(kserver_),
   comm_fd(-1),

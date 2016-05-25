@@ -57,8 +57,8 @@ template<int sock_type>
 class Session : public SessionAbstract
 {
   public:
-    Session(KServerConfig *config_, int comm_fd,
-            SessID id_, PeerInfo peer_info,
+    Session(std::shared_ptr<KServerConfig> const& config_,
+            int comm_fd, SessID id_, PeerInfo peer_info,
             SessionManager& session_manager_);
 
     /// Run the session
@@ -122,7 +122,7 @@ class Session : public SessionAbstract
     template<typename... Tp> int Send(const std::tuple<Tp...>& t);
 
   private:
-    KServerConfig *config;
+    std::shared_ptr<KServerConfig> config;
     int comm_fd;                ///< Socket file descriptor
     SessID id;                  ///< Session ID
     SysLog *syslog_ptr;
@@ -151,8 +151,8 @@ friend class SessionManager;
 };
 
 template<int sock_type>
-Session<sock_type>::Session(KServerConfig *config_, int comm_fd_,
-                            SessID id_, PeerInfo peer_info_,
+Session<sock_type>::Session(std::shared_ptr<KServerConfig> const& config_,
+                            int comm_fd_, SessID id_, PeerInfo peer_info_,
                             SessionManager& session_manager_)
 : SessionAbstract(sock_type)
 , config(config_)
@@ -166,8 +166,8 @@ Session<sock_type>::Session(KServerConfig *config_, int comm_fd_,
 , errors_num(0)
 , start_time(0)
 {
-    socket = std::make_unique<SocketInterface<sock_type>>(config_, &session_manager.kserver,
-                                                          comm_fd, id_);
+    socket = std::make_unique<SocketInterface<sock_type>>(
+                config_, &session_manager.kserver, comm_fd, id_);
 }
 
 template<int sock_type>

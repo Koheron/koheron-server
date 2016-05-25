@@ -9,8 +9,9 @@
 namespace kserver {
 
 template<int sock_type>
-Session<sock_type>* SessionManager::CreateSession(KServerConfig *config_, int comm_fd,
-                                                  PeerInfo peer_info)
+Session<sock_type>* SessionManager::CreateSession(
+                            std::shared_ptr<KServerConfig> const& config_, 
+                            int comm_fd, PeerInfo peer_info)
 {
 #if KSERVER_HAS_THREADS
     std::lock_guard<std::mutex> lock(mutex);
@@ -20,7 +21,7 @@ Session<sock_type>* SessionManager::CreateSession(KServerConfig *config_, int co
 
     // Choose a reusable ID if available else
     // create a new ID equal to the session number
-    if (reusable_ids.size() == 0) {    
+    if (reusable_ids.size() == 0) {
         new_id = num_sess;
     } else {
         new_id = reusable_ids.back();

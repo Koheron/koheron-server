@@ -12,7 +12,7 @@
 
 namespace kserver {
 
-KServer::KServer(KServerConfig *config_)
+KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
 : KDevice<KServer, KSERVER>(this),
   config(config_),
   sig_handler(),

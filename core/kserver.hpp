@@ -17,6 +17,7 @@
 #include <string>
 #include <atomic>
 #include <ctime>
+#include <utility>
 
 #include "kdevice.hpp"
 #include "devices_manager.hpp"
@@ -120,7 +121,7 @@ class KServer : public KDevice<KServer, KSERVER>
     enum { __kind = KSERVER };
 
   public:
-    KServer(KServerConfig *config_);
+    KServer(std::shared_ptr<kserver::KServerConfig> config_);
     ~KServer();
     
     int Run(void);
@@ -137,7 +138,7 @@ class KServer : public KDevice<KServer, KSERVER>
         kserver_op_num
     };
     
-    KServerConfig *config;
+    std::shared_ptr<kserver::KServerConfig> config;
     SignalHandler sig_handler;
     
     std::atomic<bool> exit_comm;
