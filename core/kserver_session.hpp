@@ -217,12 +217,19 @@ int Session<sock_type>::exit_session()
     return socket->exit();
 }
 
+#define SWITCH_SOCK_TYPE(...)                                       \
+    switch (this->kind) {                                           \
+      case TCP:                                                     \
+        return static_cast<Session<TCP>*>(this)->__VA_ARGS__;       \
+      case UNIX:                                                    \
+        return static_cast<Session<UNIX>*>(this)->__VA_ARGS__;      \
+      case WEBSOCK:                                                 \
+        return static_cast<Session<WEBSOCK>*>(this)->__VA_ARGS__;   \
+      default: assert(false);                                       \
+    }
+
 // For the template in the middle, see:
 // http://stackoverflow.com/questions/1682844/templates-template-function-not-playing-well-with-classs-template-member-funct/1682885#1682885
-
-#define TCP_SESSION  static_cast<Session<TCP>*>(this)
-#define UNIX_SESSION static_cast<Session<UNIX>*>(this)
-#define WEB_SESSION  static_cast<Session<WEBSOCK>*>(this)
 
 template<int sock_type>
 template<class T>
@@ -234,16 +241,7 @@ inline int Session<sock_type>::Send(const T& data)
 template<class T>
 int SessionAbstract::Send(const T& data)
 {
-    switch (this->kind) {
-      case TCP:
-        return TCP_SESSION->template Send<T>(data);
-      case UNIX:
-        return UNIX_SESSION->template Send<T>(data);
-      case WEBSOCK:
-        return WEB_SESSION->template Send<T>(data);
-      default: assert(false);
-    }
-
+    SWITCH_SOCK_TYPE(template Send<T>(data))
     return -1;
 }
 
@@ -257,16 +255,7 @@ inline int Session<sock_type>::SendArray(const T* data, unsigned int len)
 template<typename T> 
 int SessionAbstract::SendArray(const T* data, unsigned int len)
 {
-    switch (this->kind) {
-      case TCP:
-        return TCP_SESSION->template SendArray<T>(data, len);
-      case UNIX:
-        return UNIX_SESSION->template SendArray<T>(data, len);
-      case WEBSOCK:
-        return WEB_SESSION->template SendArray<T>(data, len);
-      default: assert(false);
-    }
-
+    SWITCH_SOCK_TYPE(template SendArray<T>(data, len))
     return -1;
 }
 
@@ -280,16 +269,7 @@ inline int Session<sock_type>::Send(const std::vector<T>& vect)
 template<typename T>
 int SessionAbstract::Send(const std::vector<T>& vect)
 {
-    switch (this->kind) {
-      case TCP:
-        return TCP_SESSION->template Send<T>(vect);
-      case UNIX:
-        return UNIX_SESSION->template Send<T>(vect);
-      case WEBSOCK:
-        return WEB_SESSION->template Send<T>(vect);
-      default: assert(false);
-    }
-
+    SWITCH_SOCK_TYPE(template Send<T>(vect));
     return -1;
 }
 
@@ -303,16 +283,7 @@ inline int Session<sock_type>::Send(const std::array<T, N>& vect)
 template<typename T, size_t N>
 int SessionAbstract::Send(const std::array<T, N>& vect)
 {
-    switch (this->kind) {
-      case TCP:
-        return TCP_SESSION->template Send<T, N>(vect);
-      case UNIX:
-        return UNIX_SESSION->template Send<T, N>(vect);
-      case WEBSOCK:
-        return WEB_SESSION->template Send<T, N>(vect);
-      default: assert(false);
-    }
-
+    SWITCH_SOCK_TYPE(template Send<T, N>(vect))
     return -1;
 }
 
@@ -326,16 +297,7 @@ inline int Session<sock_type>::Send(const std::tuple<Tp...>& t)
 template<typename... Tp>
 int SessionAbstract::Send(const std::tuple<Tp...>& t)
 {
-    switch (this->kind) {
-      case TCP:
-        return TCP_SESSION->template Send<Tp...>(t);
-      case UNIX:
-        return UNIX_SESSION->template Send<Tp...>(t);
-      case WEBSOCK:
-        return WEB_SESSION->template Send<Tp...>(t);
-      default: assert(false);
-    }
-
+    SWITCH_SOCK_TYPE(template Send<Tp...>(t))
     return -1;
 }
 
