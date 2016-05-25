@@ -317,7 +317,7 @@ KSERVER_PARSE_ARG(GET_RUNNING_SESSIONS)
 
 #define SET_SESSION_PARAMS(sock_type)                                             \
     case sock_type:                                                               \
-      sock_type_name = "sock_type";                                               \
+      sock_type_name = #sock_type;                                                \
       perms = static_cast<Session<sock_type>*>(&session)->GetPermissions();       \
       ip = static_cast<Session<sock_type>*>(&session)->GetClientIP();             \
       port = static_cast<Session<sock_type>*>(&session)->GetClientPort();         \

@@ -11,7 +11,7 @@ dependencies:
 test:
   pre:
     - docker run jeanminet/tcp-server bash docker_tests.sh
-    
+
 #deployment:
 #  hub:
 #    branch: v0.4

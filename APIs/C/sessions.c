@@ -120,7 +120,7 @@ struct running_sessions* kclient_get_running_sessions(struct kclient *kcl)
                 }
 #endif
                 else {
-                    fprintf(stderr, "Invalid connection type\n");
+                    fprintf(stderr, "Invalid connection type: %s\n", tmp_buff);
                     return NULL;
                 }
 
