@@ -5,6 +5,7 @@
 #include "session_manager.hpp"
 
 #include "kserver.hpp"
+#include "kserver_session.hpp"
 
 namespace kserver {
 
@@ -59,8 +60,7 @@ void SessionManager::apply_permissions(std::unique_ptr<Session<sock_type>> const
             std::vector<SessID> ids = GetCurrentIDs();
             
             for (size_t i=0; i<ids.size(); i++)         
-                static_cast<Session<sock_type>*>(session_pool[ids[i]].get())
-                        ->permissions.write = false;
+                cast_to_session<sock_type>(session_pool[ids[i]])->permissions.write = false;
         }
 
         last_created_session->permissions.write = true;

@@ -70,7 +70,7 @@ int create_tcp_listening(unsigned int port, SysLog *syslog,
     // Assign name (address) to socket
     if (bind(listen_fd_, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
         syslog->print(SysLog::PANIC, "Binding error\n");
-        close(listen_fd_);		
+        close(listen_fd_);
         return -1;
     }
 
@@ -103,7 +103,7 @@ int set_comm_sock_opts(int comm_fd, SysLog *syslog,
         int one = 1;
 
         if (setsockopt(comm_fd, IPPROTO_TCP, TCP_NODELAY, 
-                      (char *)&one, sizeof(one)) < 0) {
+                       (char *)&one, sizeof(one)) < 0) {
             syslog->print(SysLog::CRITICAL, "Cannot set TCP_NODELAY\n");
             close(comm_fd);		
             return -1;

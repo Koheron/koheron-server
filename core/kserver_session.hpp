@@ -6,7 +6,6 @@
 #include <string>
 #include <ctime>
 #include <array>
-#include <utility>
 #include <memory>
 
 #include "commands.hpp"
@@ -122,20 +121,17 @@ class Session : public SessionAbstract
 
   private:
     std::shared_ptr<KServerConfig> config;
-    int comm_fd;                ///< Socket file descriptor
-    SessID id;                  ///< Session ID
+    int comm_fd;  ///< Socket file descriptor
+    SessID id;
     SysLog *syslog_ptr;
     PeerInfo peer_info;
     SessionManager& session_manager;
     SessionPermissions permissions;
 
-    // -------------------
     // Monitoring
     unsigned int requests_num;
     unsigned int errors_num;
-
-    std::time_t start_time;     ///< Starting time od the session
-    // -------------------
+    std::time_t start_time;  ///< Starting time of the session
 
     std::unique_ptr<SocketInterface<sock_type>> socket;
 
