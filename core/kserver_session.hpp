@@ -6,6 +6,7 @@
 #include <string>
 #include <ctime>
 #include <array>
+#include <utility>
 
 #include "commands.hpp"
 #include "devices_manager.hpp"
@@ -59,8 +60,6 @@ class Session : public SessionAbstract
     Session(KServerConfig *config_, int comm_fd,
             SessID id_, PeerInfo peer_info,
             SessionManager& session_manager_);
-
-    ~Session();
 
     /// Run the session
     int Run();
@@ -139,7 +138,7 @@ class Session : public SessionAbstract
     std::time_t start_time;     ///< Starting time od the session
     // -------------------
 
-    SocketInterface<sock_type> *socket;
+    std::unique_ptr<SocketInterface<sock_type>> socket;
 
     // -------------------
     // Internal functions
@@ -167,15 +166,8 @@ Session<sock_type>::Session(KServerConfig *config_, int comm_fd_,
 , errors_num(0)
 , start_time(0)
 {
-    socket = new SocketInterface<sock_type>(config_, &session_manager.kserver,
-                                            comm_fd, id_);
-}
-
-template<int sock_type>
-Session<sock_type>::~Session()
-{
-    if (socket != nullptr)
-        delete socket;
+    socket = std::make_unique<SocketInterface<sock_type>>(config_, &session_manager.kserver,
+                                                          comm_fd, id_);
 }
 
 template<int sock_type>

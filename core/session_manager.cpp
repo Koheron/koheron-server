@@ -43,8 +43,8 @@ void SessionManager::print_reusable_ids()
     } else {
         printf("reusable_ids = {%u", reusable_ids[0]);
 
-        for (size_t i=1; i<reusable_ids.size(); i++)
-            printf(", %u", reusable_ids[i]);
+        for (auto& reusable_id : reusable_ids)
+            printf(", %u", reusable_id);
             
         printf("}\n");
     }
@@ -58,8 +58,8 @@ SessionAbstract& SessionManager::GetSession(SessID id) const
 
 bool SessionManager::is_reusable_id(SessID id)
 {
-    for (size_t i=0; i<reusable_ids.size(); i++)
-        if (reusable_ids[i] == id)
+    for (auto& reusable_id : reusable_ids)
+        if (reusable_id == id)
             return true;
 
     return false;
@@ -67,10 +67,10 @@ bool SessionManager::is_reusable_id(SessID id)
 
 bool SessionManager::is_current_id(SessID id)
 {
-    std::vector<SessID> curr_ids = GetCurrentIDs();
+    auto curr_ids = GetCurrentIDs();
 
-    for (size_t i=0; i<curr_ids.size(); i++)
-        if (curr_ids[i] == id)
+    for (auto& curr_id : curr_ids)
+        if (curr_id == id)
             return true;
 
     return false;
@@ -108,20 +108,19 @@ void SessionManager::reset_permissions(SessID id)
                 lclf_lifo.pop();
             
             if (lclf_lifo.size() > 0) {
-                SessionAbstract *session = session_pool[lclf_lifo.top()];
+                auto session = session_pool[lclf_lifo.top()];
 
                 switch(session->kind) {
-                    case TCP:
-                        static_cast<Session<TCP>*>(session)->permissions.write = true;
-                        break;
-                    case UNIX:
-                        static_cast<Session<UNIX>*>(session)->permissions.write = true;
-                        break;
-                    case WEBSOCK:
-                        static_cast<Session<WEBSOCK>*>(session)->permissions.write = true;
-                        break;
-                    default:
-                        kserver.syslog.print(SysLog::ERROR, "Unknow socket type\n");
+                  case TCP:
+                    static_cast<Session<TCP>*>(session)->permissions.write = true;
+                    break;
+                  case UNIX:
+                    static_cast<Session<UNIX>*>(session)->permissions.write = true;
+                    break;
+                  case WEBSOCK:
+                    static_cast<Session<WEBSOCK>*>(session)->permissions.write = true;
+                    break;
+                  default: assert(false);
                 }
             }
         }
@@ -140,29 +139,27 @@ void SessionManager::DeleteSession(SessID id)
         return;
     }
 
-    if (session_pool[id] != NULL) {
-        SessionAbstract *session = session_pool[id];
+    if (session_pool[id] != nullptr) {
+        auto session = session_pool[id];
 
         switch (session->kind) {
-            case TCP:
-                close(static_cast<Session<TCP>*>(session)->comm_fd);
-                delete static_cast<Session<TCP>*>(session);
-                break;
-            case UNIX:
-                close(static_cast<Session<UNIX>*>(session)->comm_fd);
-                delete static_cast<Session<UNIX>*>(session);
-                break;
-            case WEBSOCK:
-                close(static_cast<Session<WEBSOCK>*>(session)->comm_fd);
-                delete static_cast<Session<WEBSOCK>*>(session);
-                break;
-            default:
-                kserver.syslog.print(SysLog::ERROR, "Unknow socket type\n");
+          case TCP:
+            close(static_cast<Session<TCP>*>(session)->comm_fd);
+            delete static_cast<Session<TCP>*>(session);
+            break;
+          case UNIX:
+            close(static_cast<Session<UNIX>*>(session)->comm_fd);
+            delete static_cast<Session<UNIX>*>(session);
+            break;
+          case WEBSOCK:
+            close(static_cast<Session<WEBSOCK>*>(session)->comm_fd);
+            delete static_cast<Session<WEBSOCK>*>(session);
+            break;
+          default: assert(false);
         }
     }
 
     reset_permissions(id);
-
     session_pool.erase(id);
     reusable_ids.push_back(id);
     num_sess--;
@@ -177,11 +174,11 @@ void SessionManager::DeleteAll()
     assert(num_sess == session_pool.size());
 
     if (!session_pool.empty()) {
-        std::vector<SessID> ids = GetCurrentIDs();
+        auto ids = GetCurrentIDs();
         
-        for (size_t i=0; i<ids.size(); i++) {
-            kserver.syslog.print(SysLog::INFO, "Delete session %u\n", ids[i]);            
-            DeleteSession(ids[i]);
+        for (auto& id : ids) {
+            kserver.syslog.print(SysLog::INFO, "Delete session %u\n", id);            
+            DeleteSession(id);
         }
     }
 
