@@ -36,7 +36,7 @@ size_t SessionManager::GetNumSess() const
 
 unsigned int SessionManager::num_sess = 0;
 
-void SessionManager::__print_reusable_ids()
+void SessionManager::print_reusable_ids()
 {
     if (reusable_ids.size() == 0) {
         printf("reusable_ids = {}\n");
@@ -56,7 +56,7 @@ SessionAbstract& SessionManager::GetSession(SessID id) const
     return *session_pool.at(id);
 }
 
-bool SessionManager::__is_reusable_id(SessID id)
+bool SessionManager::is_reusable_id(SessID id)
 {
     for (size_t i=0; i<reusable_ids.size(); i++)
         if (reusable_ids[i] == id)
@@ -65,7 +65,7 @@ bool SessionManager::__is_reusable_id(SessID id)
     return false;
 }
 
-bool SessionManager::__is_current_id(SessID id)
+bool SessionManager::is_current_id(SessID id)
 {
     std::vector<SessID> curr_ids = GetCurrentIDs();
 
@@ -81,14 +81,14 @@ std::vector<SessID> SessionManager::GetCurrentIDs()
     std::vector<SessID> res(0);
 
     for (auto it = session_pool.begin(); it != session_pool.end(); ++it) {
-        assert(!__is_reusable_id(it->first));
+        assert(!is_reusable_id(it->first));
         res.push_back(it->first);
     }
 
     return res;
 }
 
-void SessionManager::__reset_permissions(SessID id)
+void SessionManager::reset_permissions(SessID id)
 {
     switch (perm_policy) {
       case FCFS:
@@ -104,13 +104,13 @@ void SessionManager::__reset_permissions(SessID id)
             lclf_lifo.pop();
             
             // Remove all the invalid IDs on the top of the LIFO
-            while (lclf_lifo.size() > 0 && !__is_current_id(lclf_lifo.top()))
+            while (lclf_lifo.size() > 0 && !is_current_id(lclf_lifo.top()))
                 lclf_lifo.pop();
             
             if (lclf_lifo.size() > 0) {
                 SessionAbstract *session = session_pool[lclf_lifo.top()];
 
-                switch(session->GetSockType()) {
+                switch(session->kind) {
                     case TCP:
                         static_cast<Session<TCP>*>(session)->permissions.write = true;
                         break;
@@ -134,7 +134,7 @@ void SessionManager::DeleteSession(SessID id)
     std::lock_guard<std::mutex> lock(mutex);
 #endif
 
-    if (!__is_current_id(id)) {
+    if (!is_current_id(id)) {
         kserver.syslog.print(SysLog::INFO, 
                              "Not allocated session ID: %u\n", id);
         return;
@@ -143,7 +143,7 @@ void SessionManager::DeleteSession(SessID id)
     if (session_pool[id] != NULL) {
         SessionAbstract *session = session_pool[id];
 
-        switch (session->GetSockType()) {
+        switch (session->kind) {
             case TCP:
                 close(static_cast<Session<TCP>*>(session)->comm_fd);
                 delete static_cast<Session<TCP>*>(session);
@@ -161,7 +161,7 @@ void SessionManager::DeleteSession(SessID id)
         }
     }
 
-    __reset_permissions(id);
+    reset_permissions(id);
 
     session_pool.erase(id);
     reusable_ids.push_back(id);

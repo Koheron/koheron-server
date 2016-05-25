@@ -21,7 +21,7 @@ namespace kserver {
   template<>                                                        \
   template<>                                                        \
   struct KDevice<KServer, KSERVER>::Argument<KServer::cmd_name>
-  
+
 #define KSERVER_PARSE_ARG(cmd_name)                                 \
   template<>                                                        \
   template<>                                                        \
@@ -97,7 +97,7 @@ KSERVER_EXECUTE_OP(GET_CMDS)
         return -1;
 
     bytes_send += bytes;
-			
+
     // Send devices and operations
     // dev#:dev_name:op1:op2:op3:...:opn
     for (unsigned int i=0; i<device_num; i++) {
@@ -121,9 +121,9 @@ KSERVER_EXECUTE_OP(GET_CMDS)
             strcat(cmds_str, ":");
             strcat(cmds_str, (device_desc[i][j+1]).c_str());
         }
-				
+
         strcat(cmds_str, "\n");
-				
+
         if ((bytes = GET_SESSION.SendCstr(cmds_str)) < 0)
             return -1;
 
@@ -133,7 +133,7 @@ KSERVER_EXECUTE_OP(GET_CMDS)
     // Send EOC (End Of Commands)
     if ((bytes = GET_SESSION.SendCstr("EOC\n")) < 0)
        return -1;
-			
+
     kserver->syslog.print(SysLog::DEBUG, "[S] [%u bytes]\n", bytes_send+bytes);
 
     return 0;
@@ -182,7 +182,7 @@ int send_listener_stats(SessID sess_id, KServer *kserver,
 
     if ((bytes_send = GET_SESSION.SendCstr(send_str)) < 0)
         return -1;
-    
+
     return bytes_send;  
 }
 
@@ -211,28 +211,28 @@ KSERVER_EXECUTE_OP(GET_STATS)
 
     if ((bytes = GET_SESSION.SendCstr(send_str)) < 0)
         return -1;
-        
+
     bytes_send += bytes;
-    
+
 #if KSERVER_HAS_TCP
     if ((bytes = send_listener_stats<TCP>(sess_id, kserver, 
                     &(kserver->tcp_listener))) < 0)
         return -1;
-    
+
     bytes_send += bytes;
 #endif
 #if KSERVER_HAS_WEBSOCKET
     if ((bytes = send_listener_stats<WEBSOCK>(sess_id, kserver, 
                     &(kserver->websock_listener))) < 0)
         return -1;
-    
+
     bytes_send += bytes;
 #endif
 #if KSERVER_HAS_UNIX_SOCKET
     if ((bytes = send_listener_stats<UNIX>(sess_id, kserver, 
                     &(kserver->unix_listener))) < 0)
         return -1;
-    
+
     bytes_send += bytes;
 #endif
 
@@ -315,6 +315,17 @@ KSERVER_PARSE_ARG(GET_RUNNING_SESSIONS)
     return 0;
 }
 
+#define SET_SESSION_PARAMS(sock_type)                                             \
+    case sock_type:                                                               \
+      sock_type_name = "sock_type";                                               \
+      perms = static_cast<Session<sock_type>*>(&session)->GetPermissions();       \
+      ip = static_cast<Session<sock_type>*>(&session)->GetClientIP();             \
+      port = static_cast<Session<sock_type>*>(&session)->GetClientPort();         \
+      req_num = static_cast<Session<sock_type>*>(&session)->RequestNum();         \
+      err_num = static_cast<Session<sock_type>*>(&session)->ErrorNum();           \
+      start_time = static_cast<Session<sock_type>*>(&session)->GetStartTime();    \
+      break;                                                                      \
+
 KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
 {
     char send_str[KS_DEV_WRITE_STR_LEN];
@@ -322,18 +333,8 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
     unsigned int bytes_send = 0;
     const SessionPermissions* perms;
 
-    // Send 
-    // sess_id:
-    // connection_type:
-    // client_ip:
-    // client_port:
-    // request_num:
-    // error_num:
-    // start_time:
-    // permissions
-    
     std::vector<SessID> ids = kserver->session_manager.GetCurrentIDs();
-    
+
     for (unsigned int i=0; i<ids.size(); i++) {
         SessionAbstract& session = kserver->session_manager.GetSession(ids[i]);
 
@@ -342,49 +343,22 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
         uint32_t port, req_num, err_num;
         std::time_t start_time;
 
-        switch (session.GetSockType()) {
+        switch (session.kind) {
 #if KSERVER_HAS_TCP
-          case TCP:
-            sock_type_name = "TCP";
-            perms = static_cast<Session<TCP>*>(&session)->GetPermissions();
-            ip = static_cast<Session<TCP>*>(&session)->GetClientIP();
-            port = static_cast<Session<TCP>*>(&session)->GetClientPort();
-            req_num = static_cast<Session<TCP>*>(&session)->RequestNum();
-            err_num = static_cast<Session<TCP>*>(&session)->ErrorNum();
-            start_time = static_cast<Session<TCP>*>(&session)->GetStartTime();
-            break;
+          SET_SESSION_PARAMS(TCP)
 #endif
 #if KSERVER_HAS_WEBSOCKET
-          case WEBSOCK:
-            sock_type_name = "WEBSOCK";
-            perms = static_cast<Session<WEBSOCK>*>(&session)->GetPermissions();
-            ip = static_cast<Session<WEBSOCK>*>(&session)->GetClientIP();
-            port = static_cast<Session<WEBSOCK>*>(&session)->GetClientPort();
-            req_num = static_cast<Session<WEBSOCK>*>(&session)->RequestNum();
-            err_num = static_cast<Session<WEBSOCK>*>(&session)->ErrorNum();
-            start_time = static_cast<Session<WEBSOCK>*>(&session)->GetStartTime();
-            break;
+          SET_SESSION_PARAMS(WEBSOCK)
 #endif
 #if KSERVER_HAS_UNIX_SOCKET
-          case UNIX:
-            sock_type_name = "UNIX";
-            perms = static_cast<Session<UNIX>*>(&session)->GetPermissions();
-            ip = static_cast<Session<UNIX>*>(&session)->GetClientIP();
-            port = static_cast<Session<UNIX>*>(&session)->GetClientPort();
-            req_num = static_cast<Session<UNIX>*>(&session)->RequestNum();
-            err_num = static_cast<Session<UNIX>*>(&session)->ErrorNum();
-            start_time = static_cast<Session<UNIX>*>(&session)->GetStartTime();
-            break;
+          SET_SESSION_PARAMS(UNIX)
 #endif
-          default:
-            kserver->syslog.print(SysLog::ERROR, 
-                 "KServer::GET_RUNNING_SESSIONS Invalid connection type\n");
-            return -1;
+          default: assert(false);
         }
-        
+
         // Permissions
         const char *perms_str;
-        
+
         if (perms->write && perms->read)
             perms_str = "WR";
         else if (perms->write && !perms->read)
@@ -443,13 +417,13 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
 
 template<>
 int KDevice<KServer, KSERVER>::execute(const Command& cmd)
-{   
+{
 #if KSERVER_HAS_THREADS
     std::lock_guard<std::mutex> lock(static_cast<KServer*>(this)->ks_mutex);
 #endif
 
     int err;
-    
+
     switch (cmd.operation) {
       case KServer::GET_ID:
         KSERVER_EXECUTE_CMD(GET_ID)

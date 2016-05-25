@@ -82,10 +82,10 @@ class SessionManager
     template<int sock_type>
     void apply_permissions(Session<sock_type> *last_created_session);
 
-    void __reset_permissions(SessID id);
-    void __print_reusable_ids();
-    bool __is_reusable_id(SessID id);
-    bool __is_current_id(SessID id);
+    void reset_permissions(SessID id);
+    void print_reusable_ids();
+    bool is_reusable_id(SessID id);
+    bool is_current_id(SessID id);
 
 #if KSERVER_HAS_THREADS
     std::mutex mutex;

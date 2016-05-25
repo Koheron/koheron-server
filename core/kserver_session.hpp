@@ -34,8 +34,6 @@ class SessionAbstract
     SessionAbstract(int sock_type_)
     : kind(sock_type_) {}
 
-    inline int GetSockType() const {return kind;}
-
     int SendCstr(const char *string);
     const uint32_t* RcvHandshake(uint32_t buff_size);
     template<typename... Tp> int Send(const std::tuple<Tp...>& t);
@@ -228,7 +226,7 @@ int Session<sock_type>::exit_session()
 
 template<int sock_type>
 template<class T>
-int Session<sock_type>::Send(const T& data)
+inline int Session<sock_type>::Send(const T& data)
 {
     return socket->template Send<T>(data);
 }
@@ -251,7 +249,7 @@ int SessionAbstract::Send(const T& data)
 
 template<int sock_type>
 template<typename T> 
-int Session<sock_type>::SendArray(const T* data, unsigned int len)
+inline int Session<sock_type>::SendArray(const T* data, unsigned int len)
 {
     return socket->template SendArray<T>(data, len);
 }
@@ -274,7 +272,7 @@ int SessionAbstract::SendArray(const T* data, unsigned int len)
 
 template<int sock_type>
 template<typename T>
-int Session<sock_type>::Send(const std::vector<T>& vect)
+inline int Session<sock_type>::Send(const std::vector<T>& vect)
 {
     return socket->template Send<T>(vect);
 }
@@ -297,7 +295,7 @@ int SessionAbstract::Send(const std::vector<T>& vect)
 
 template<int sock_type>
 template<typename T, size_t N>
-int Session<sock_type>::Send(const std::array<T, N>& vect)
+inline int Session<sock_type>::Send(const std::array<T, N>& vect)
 {
     return socket->template Send<T, N>(vect);
 }

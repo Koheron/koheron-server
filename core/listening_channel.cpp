@@ -137,9 +137,8 @@ void session_thread_call(int comm_fd, PeerInfo peer_info,
     listener->stats.opened_sessions_num++;
     listener->stats.total_sessions_num++;
 
-    Session<sock_type> *session
-        = listener->kserver->session_manager. template CreateSession<sock_type>(
-                listener->kserver->config, comm_fd, peer_info);
+    auto session = listener->kserver->session_manager. template CreateSession<sock_type>(
+                            listener->kserver->config, comm_fd, peer_info);
 
     SessID sid = session->GetID();
 
