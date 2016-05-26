@@ -1,14 +1,8 @@
-/// Implementation of peer_info.hpp
-///
 /// (c) Koheron
 
 #include "peer_info.hpp"
 
 namespace kserver {
-
-// --------------------------------
-// PeerInfo
-// --------------------------------
 
 PeerInfo::PeerInfo(int comm_fd)
 {

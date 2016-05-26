@@ -5,9 +5,6 @@
 #ifndef __PEER_INFO_HPP__
 #define __PEER_INFO_HPP__
 
-#include <vector>
-#include <cstdlib>
-#include <iostream>
 #include <cstring>
 
 extern "C" {
