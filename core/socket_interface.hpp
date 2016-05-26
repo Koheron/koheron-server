@@ -35,7 +35,7 @@ class SocketInterface
     // XXX TV 18/08/2015
     // Instead of passing all these parameters, I could directly
     // pass a pointer to the session 
-    SocketInterface(std::shared_ptr<KServerConfig> config_, KServer *kserver_, 
+    SocketInterface(std::shared_ptr<KServerConfig> config_, KServer *kserver_,
                     int comm_fd_, SessID id_)
     : config(config_), 
       kserver(kserver_),

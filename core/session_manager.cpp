@@ -13,7 +13,7 @@
 
 namespace kserver {
 
-SessionManager::SessionManager(KServer& kserver_, DeviceManager& dev_manager_, 
+SessionManager::SessionManager(KServer& kserver_, DeviceManager& dev_manager_,
                                int perm_policy_)
 : kserver(kserver_),
   dev_manager(dev_manager_),
@@ -110,13 +110,16 @@ void SessionManager::reset_permissions(SessID id)
             if (lclf_lifo.size() > 0) {
                 switch(session_pool[lclf_lifo.top()]->kind) {
                   case TCP:
-                    cast_to_session<TCP>(session_pool[lclf_lifo.top()])->permissions.write = true;
+                    cast_to_session<TCP>(session_pool[lclf_lifo.top()])
+                                        ->permissions.write = true;
                     break;
                   case UNIX:
-                    cast_to_session<UNIX>(session_pool[lclf_lifo.top()])->permissions.write = true;
+                    cast_to_session<UNIX>(session_pool[lclf_lifo.top()])
+                                        ->permissions.write = true;
                     break;
                   case WEBSOCK:
-                    cast_to_session<WEBSOCK>(session_pool[lclf_lifo.top()])->permissions.write = true;
+                    cast_to_session<WEBSOCK>(session_pool[lclf_lifo.top()])
+                                        ->permissions.write = true;
                     break;
                   default: assert(false);
                 }
@@ -170,7 +173,7 @@ void SessionManager::DeleteAll()
         auto ids = GetCurrentIDs();
         
         for (auto& id : ids) {
-            kserver.syslog.print(SysLog::INFO, "Delete session %u\n", id);            
+            kserver.syslog.print(SysLog::INFO, "Delete session %u\n", id);
             DeleteSession(id);
         }
     }

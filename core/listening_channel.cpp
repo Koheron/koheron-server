@@ -29,7 +29,7 @@ extern "C" {
 namespace kserver {
 
 int create_tcp_listening(unsigned int port, SysLog *syslog, 
-                         std::shared_ptr<KServerConfig> const& config)
+                         const std::shared_ptr<KServerConfig>& config)
 {
     int listen_fd_ = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -78,7 +78,7 @@ int create_tcp_listening(unsigned int port, SysLog *syslog,
 }
 
 int set_comm_sock_opts(int comm_fd, SysLog *syslog,
-                       std::shared_ptr<KServerConfig> const& config)
+                       const std::shared_ptr<KServerConfig>& config)
 {
     int sndbuf_len = sizeof(uint32_t) * KSERVER_SIG_LEN;
 
@@ -115,7 +115,7 @@ int set_comm_sock_opts(int comm_fd, SysLog *syslog,
 }
 
 int open_tcp_communication(int listen_fd, SysLog *syslog,
-                           std::shared_ptr<KServerConfig> const& config)
+                           const std::shared_ptr<KServerConfig>& config)
 {
     int comm_fd = accept(listen_fd, (struct sockaddr*) NULL, NULL);
 
@@ -141,7 +141,8 @@ void session_thread_call(int comm_fd, PeerInfo peer_info,
     SessID sid = listener->kserver->session_manager. template CreateSession<sock_type>(
                             listener->kserver->config, comm_fd, peer_info);
 
-    auto session = static_cast<Session<sock_type>*>(&listener->kserver->session_manager.GetSession(sid));
+    auto session = static_cast<Session<sock_type>*>(
+                        &listener->kserver->session_manager.GetSession(sid));
 
     listener->kserver->syslog.print(SysLog::INFO, 
                 "Start session id = %u. "

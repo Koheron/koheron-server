@@ -302,7 +302,8 @@ inline int Session<sock_type>::SendCstr(const char *string)
 
 // Cast abstract session unique_ptr
 template<int sock_type>
-Session<sock_type>* cast_to_session(const std::unique_ptr<SessionAbstract>& sess_abstract)
+Session<sock_type>*
+cast_to_session(const std::unique_ptr<SessionAbstract>& sess_abstract)
 {
     return static_cast<Session<sock_type>*>(sess_abstract.get());
 }

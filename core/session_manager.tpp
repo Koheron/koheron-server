@@ -10,7 +10,7 @@
 namespace kserver {
 
 template<int sock_type>
-SessID SessionManager::CreateSession(std::shared_ptr<KServerConfig> const& config_, 
+SessID SessionManager::CreateSession(const std::shared_ptr<KServerConfig>& config_,
                                      int comm_fd, PeerInfo peer_info)
 {
 #if KSERVER_HAS_THREADS
@@ -28,18 +28,20 @@ SessID SessionManager::CreateSession(std::shared_ptr<KServerConfig> const& confi
         reusable_ids.pop_back();
     }
 
-    auto session = std::make_unique<Session<sock_type>>(config_, comm_fd, new_id, peer_info, (*this));
+    auto session = std::make_unique<Session<sock_type>>(
+                            config_, comm_fd, new_id, peer_info, (*this));
     assert(session != nullptr);
     apply_permissions(session);
 
     session_pool.insert(std::pair<SessID, std::unique_ptr<SessionAbstract>>(new_id, 
-                        static_cast<std::unique_ptr<SessionAbstract>>(std::move(session))));
+                static_cast<std::unique_ptr<SessionAbstract>>(std::move(session))));
     num_sess++;
     return new_id;
 }
 
 template<int sock_type>
-void SessionManager::apply_permissions(std::unique_ptr<Session<sock_type>> const& last_created_session)
+void SessionManager::apply_permissions(
+    const std::unique_ptr<Session<sock_type>>& last_created_session)
 {
     switch (perm_policy) {
       case NONE:
@@ -60,7 +62,8 @@ void SessionManager::apply_permissions(std::unique_ptr<Session<sock_type>> const
             std::vector<SessID> ids = GetCurrentIDs();
             
             for (size_t i=0; i<ids.size(); i++)         
-                cast_to_session<sock_type>(session_pool[ids[i]])->permissions.write = false;
+                cast_to_session<sock_type>(session_pool[ids[i]])
+                                            ->permissions.write = false;
         }
 
         last_created_session->permissions.write = true;
