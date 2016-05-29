@@ -51,7 +51,7 @@ class SocketInterface
 
     int read_command(Command& cmd);
     int read_data(char *buff_str);
-    int rcv_n_bytes(char *buffer, uint32_t n_bytes);
+    template<size_t len> int rcv_n_bytes(Buffer<len>& buffer, uint32_t n_bytes);
     int RcvDataBuffer(uint32_t n_bytes);
     const uint32_t* RcvHandshake(uint32_t buff_size);
 
@@ -73,7 +73,7 @@ class SocketInterface
     char read_str[KSERVER_READ_STR_LEN];  ///< Read string
     char recv_data_buff[KSERVER_RECV_DATA_BUFF_LEN];  ///< Receive data buffer
     WebSocket websock;
-}; // Socket
+};
 
 template<int sock_type>
 template<typename T>
@@ -102,7 +102,7 @@ int SocketInterface<sock_type>::Send(const std::tuple<Tp...>& t)
     return SendCstr(tmp.c_str());
 }
 
-template<> int SocketInterface<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes);
+template<> template<size_t len> int SocketInterface<TCP>::rcv_n_bytes(Buffer<len>& buffer, uint32_t n_bytes);
 template<> int SocketInterface<TCP>::SendCstr(const char *string);
 
 template<> int SocketInterface<WEBSOCK>::SendCstr(const char *string);

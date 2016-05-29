@@ -61,7 +61,7 @@ int SocketInterface<TCP>::read_command(Command& cmd)
     // Read and decode header
     // |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
     // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
-    char header_buff[HEADER_LENGTH];
+    Buffer<HEADER_LENGTH> header_buff;
     int header_bytes = rcv_n_bytes(header_buff, HEADER_LENGTH);
 
     if (header_bytes == 0)
@@ -72,7 +72,7 @@ int SocketInterface<TCP>::read_command(Command& cmd)
         return header_bytes;
     }
 
-    auto header_tuple = parse_buffer<HEADER_START, HEADER_TYPE_LIST>(header_buff);
+    auto header_tuple = parse_buffer<HEADER_START, HEADER_TYPE_LIST>(header_buff.data);
     uint32_t payload_size = std::get<2>(header_tuple);
 
     cmd.sess_id = id;
@@ -80,8 +80,11 @@ int SocketInterface<TCP>::read_command(Command& cmd)
     cmd.operation = std::get<1>(header_tuple);
     cmd.payload_size = payload_size;
 
-    if (payload_size > CMD_PAYLOAD_BUFFER_LEN) {
-        DEBUG_MSG("TCPSocket: Command payload buffer size too small\n");
+    if (payload_size > cmd.buffer.size()) {
+        kserver->syslog.print(SysLog::ERROR, 
+                  "TCPSocket: Command payload buffer size too small\n"
+                  "payload_size = %u cmd.buffer.size = %u\n",
+                  payload_size, cmd.buffer.size());
         return -1;
     }
 
@@ -109,8 +112,11 @@ int SocketInterface<TCP>::read_command(Command& cmd)
 }
 
 template<>
-int SocketInterface<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes)
+template<size_t len>
+int SocketInterface<TCP>::rcv_n_bytes(Buffer<len>& buffer, uint32_t n_bytes)
 {
+    assert(n_bytes <= len);
+
     if (n_bytes == 0)
         return 0;
 
@@ -118,7 +124,7 @@ int SocketInterface<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes)
     uint32_t bytes_read = 0;
 
     while (bytes_read < n_bytes) {
-        bytes_rcv = read(comm_fd, buffer + bytes_read, n_bytes - bytes_read);
+        bytes_rcv = read(comm_fd, buffer.data + bytes_read, n_bytes - bytes_read);
         
         if (bytes_rcv == 0) {
             kserver->syslog.print(SysLog::INFO, "TCPSocket: Connection closed by client\n");
@@ -131,11 +137,7 @@ int SocketInterface<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes)
         }
 
         bytes_read += bytes_rcv;
-
-        if (bytes_read >= KSERVER_READ_STR_LEN) {
-            DEBUG_MSG("TCPSocket: Buffer overflow\n");
-            return -1;
-        }
+        assert(bytes_read <= len);
     }
 
     assert(bytes_read == n_bytes);
@@ -272,8 +274,8 @@ int SocketInterface<WEBSOCK>::read_command(Command& cmd)
     if (payload_size + HEADER_LENGTH < websock.payload_size())
         kserver->syslog.print(SysLog::WARNING, "WebSocket: Received more data than expected\n");
 
-    bzero(cmd.buffer, CMD_PAYLOAD_BUFFER_LEN);
-    memcpy(cmd.buffer, websock.get_payload_no_copy() + HEADER_LENGTH, payload_size);
+    bzero(cmd.buffer.data, cmd.buffer.size());
+    memcpy(cmd.buffer.data, websock.get_payload_no_copy() + HEADER_LENGTH, payload_size);
 
     cmd.sess_id = id;
     cmd.device = static_cast<device_t>(std::get<0>(header_tuple));

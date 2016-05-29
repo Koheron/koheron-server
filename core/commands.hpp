@@ -16,33 +16,22 @@
 
 namespace kserver {
 
-struct Command
+template<size_t len>
+struct Buffer
 {
-    SessID sess_id = -1;                  ///< ID of the session emitting the command  
-    device_t device = NO_DEVICE;          ///< The device to control
-    uint32_t operation = -1;              ///< Operation ID
-    uint32_t payload_size;
-    char buffer[CMD_PAYLOAD_BUFFER_LEN];  ///< data buffer TODO: rename payload
-    
-    void print() const;
+    char data[len];
+    constexpr size_t size() const {return len;}
 };
 
-#if USE_BOOST
-  typedef boost::circular_buffer<Command> cmd_log_container;
-#else
-  typedef std::vector<Command> cmd_log_container;
-#endif
-
-/// Log of the commands 
-struct CommandLog : public cmd_log_container
+struct Command
 {
-    CommandLog(unsigned int depth_log_)
-    : cmd_log_container(depth_log_),
-      requests_num(0), errors_num(0)
-    {}
-
-    unsigned int requests_num; ///< Number of requests received
-    unsigned int errors_num;   ///< Number of requests that resulted in an error
+    SessID sess_id = -1;                    ///< ID of the session emitting the command  
+    device_t device = NO_DEVICE;            ///< The device to control
+    uint32_t operation = -1;                ///< Operation ID
+    uint32_t payload_size;
+    Buffer<CMD_PAYLOAD_BUFFER_LEN> buffer;  ///< data buffer TODO: rename payload
+    
+    void print() const;
 };
 
 } // namespace kserver
