@@ -15,7 +15,6 @@
 #include "kserver.hpp"
 #include "peer_info.hpp"
 #include "session_manager.hpp"
-// #include "socket_interface.hpp"
 #include "tuple_utils.hpp"
 #include "binary_parser.hpp"
 #include "socket_interface_defs.hpp"
@@ -243,7 +242,9 @@ int Session<sock_type>::exit_session()
 
 #if KSERVER_HAS_TCP
 
-template<> template<size_t len> int Session<TCP>::rcv_n_bytes(Buffer<len>& buffer, uint32_t n_bytes);
+template<> template<size_t len>
+int Session<TCP>::rcv_n_bytes(Buffer<len>& buffer, uint32_t n_bytes);
+
 template<> const uint32_t* Session<TCP>::RcvHandshake(uint32_t buff_size);
 template<> int Session<TCP>::SendCstr(const char *string);
 
@@ -333,26 +334,12 @@ int Session<WEBSOCK>::SendArray(const T *data, unsigned int len)
 // For the template in the middle, see:
 // http://stackoverflow.com/questions/1682844/templates-template-function-not-playing-well-with-classs-template-member-funct/1682885#1682885
 
-// template<int sock_type>
-// template<class T>
-// inline int Session<sock_type>::Send(const T& data)
-// {
-//     return socket->template Send<T>(data);
-// }
-
 template<class T>
 int SessionAbstract::Send(const T& data)
 {
     SWITCH_SOCK_TYPE(template Send<T>(data))
     return -1;
 }
-
-// template<int sock_type>
-// template<typename T> 
-// inline int Session<sock_type>::SendArray(const T* data, unsigned int len)
-// {
-//     return socket->template SendArray<T>(data, len);
-// }
 
 template<typename T> 
 int SessionAbstract::SendArray(const T* data, unsigned int len)
@@ -361,26 +348,12 @@ int SessionAbstract::SendArray(const T* data, unsigned int len)
     return -1;
 }
 
-// template<int sock_type>
-// template<typename T>
-// inline int Session<sock_type>::Send(const std::vector<T>& vect)
-// {
-//     return socket->template Send<T>(vect);
-// }
-
 template<typename T>
 int SessionAbstract::Send(const std::vector<T>& vect)
 {
     SWITCH_SOCK_TYPE(template Send<T>(vect));
     return -1;
 }
-
-// template<int sock_type>
-// template<typename T, size_t N>
-// inline int Session<sock_type>::Send(const std::array<T, N>& vect)
-// {
-//     return socket->template Send<T, N>(vect);
-// }
 
 template<typename T, size_t N>
 int SessionAbstract::Send(const std::array<T, N>& vect)
@@ -389,31 +362,12 @@ int SessionAbstract::Send(const std::array<T, N>& vect)
     return -1;
 }
 
-// template<int sock_type>
-// template<typename... Tp>
-// inline int Session<sock_type>::Send(const std::tuple<Tp...>& t)
-// {
-//     return socket->template Send<Tp...>(t);
-// }
-
 template<typename... Tp>
 int SessionAbstract::Send(const std::tuple<Tp...>& t)
 {
     SWITCH_SOCK_TYPE(template Send<Tp...>(t))
     return -1;
 }
-
-// template<int sock_type>
-// inline const uint32_t* Session<sock_type>::RcvHandshake(uint32_t buff_size)
-// {
-//     return socket->RcvHandshake(buff_size);
-// }
-
-// template<int sock_type>
-// inline int Session<sock_type>::SendCstr(const char *string)
-// {
-//     return socket->SendCstr(string);
-// }
 
 // Cast abstract session unique_ptr
 template<int sock_type>
