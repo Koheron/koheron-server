@@ -41,15 +41,8 @@ namespace kserver {
 // GET_ID
 // Send the ID of the board
 
-KSERVER_STRUCT_ARGUMENTS(GET_ID)
-{
-    // No arguments
-};
-
-KSERVER_PARSE_ARG(GET_ID)
-{
-    return 0;
-}
+KSERVER_STRUCT_ARGUMENTS(GET_ID) {};
+KSERVER_PARSE_ARG(GET_ID) {return 0;}
 
 KSERVER_EXECUTE_OP(GET_ID)
 {
@@ -61,15 +54,8 @@ KSERVER_EXECUTE_OP(GET_ID)
 // GET_CMDS
 // Send the commands numbers
 
-KSERVER_STRUCT_ARGUMENTS(GET_CMDS)
-{
-    // No arguments
-};
-
-KSERVER_PARSE_ARG(GET_CMDS)
-{
-    return 0;
-}
+KSERVER_STRUCT_ARGUMENTS(GET_CMDS) {};
+KSERVER_PARSE_ARG(GET_CMDS) {return 0;}
 
 KSERVER_EXECUTE_OP(GET_CMDS)
 {
@@ -143,15 +129,8 @@ KSERVER_EXECUTE_OP(GET_CMDS)
 // GET_STATS
 // Get KServer listeners statistics
 
-KSERVER_STRUCT_ARGUMENTS(GET_STATS)
-{
-    // No arguments
-};
-
-KSERVER_PARSE_ARG(GET_STATS)
-{
-    return 0;
-}
+KSERVER_STRUCT_ARGUMENTS(GET_STATS) {};
+KSERVER_PARSE_ARG(GET_STATS) {return 0;}
 
 template<int sock_type>
 int send_listener_stats(SessID sess_id, KServer *kserver, 
@@ -160,7 +139,6 @@ int send_listener_stats(SessID sess_id, KServer *kserver,
     char send_str[KS_DEV_WRITE_STR_LEN];
     unsigned int bytes_send = 0;
 
-    // sock_type:opened_sessions_num:total_sessions_num:total_requests_num
     int ret = snprintf(send_str, KS_DEV_WRITE_STR_LEN,
                     "%s:%d:%d:%d\n", 
                     listen_channel_desc[sock_type].c_str(), 
@@ -249,15 +227,8 @@ KSERVER_EXECUTE_OP(GET_STATS)
 // GET_DEV_STATUS
 // Send the status of each device
 
-KSERVER_STRUCT_ARGUMENTS(GET_DEV_STATUS)
-{
-    // No arguments
-};
-
-KSERVER_PARSE_ARG(GET_DEV_STATUS)
-{
-    return 0;
-}
+KSERVER_STRUCT_ARGUMENTS(GET_DEV_STATUS) {};
+KSERVER_PARSE_ARG(GET_DEV_STATUS) {return 0;}
 
 KSERVER_EXECUTE_OP(GET_DEV_STATUS)
 {
@@ -305,15 +276,8 @@ KSERVER_EXECUTE_OP(GET_DEV_STATUS)
 // GET_RUNNING_SESSIONS
 // Send the running sessions
 
-KSERVER_STRUCT_ARGUMENTS(GET_RUNNING_SESSIONS)
-{
-    // No arguments
-};
-
-KSERVER_PARSE_ARG(GET_RUNNING_SESSIONS)
-{
-    return 0;
-}
+KSERVER_STRUCT_ARGUMENTS(GET_RUNNING_SESSIONS) {};
+KSERVER_PARSE_ARG(GET_RUNNING_SESSIONS) {return 0;}
 
 #define SET_SESSION_PARAMS(sock_type)                                             \
     case sock_type:                                                               \
