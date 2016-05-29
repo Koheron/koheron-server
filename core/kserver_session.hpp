@@ -57,7 +57,7 @@ template<int sock_type>
 class Session : public SessionAbstract
 {
   public:
-    Session(std::shared_ptr<KServerConfig> const& config_,
+    Session(const std::shared_ptr<KServerConfig>& config_,
             int comm_fd, SessID id_, PeerInfo peer_info,
             SessionManager& session_manager_);
 
@@ -89,7 +89,7 @@ class Session : public SessionAbstract
         return &permissions;
     }
 
-    // --- Receive
+    // Receive - Send
 
     /// Receive data from client with handshaking
     /// @buff_size Size of the buffer to receive
@@ -127,26 +127,23 @@ class Session : public SessionAbstract
     PeerInfo peer_info;
     SessionManager& session_manager;
     SessionPermissions permissions;
+    std::unique_ptr<SocketInterface<sock_type>> socket;
 
     // Monitoring
     unsigned int requests_num;
     unsigned int errors_num;
     std::time_t start_time;  ///< Starting time of the session
 
-    std::unique_ptr<SocketInterface<sock_type>> socket;
-
-    // -------------------
     // Internal functions
     int init_session();
     int exit_session();
-
     int read_command(Command& cmd);
 
 friend class SessionManager;
 };
 
 template<int sock_type>
-Session<sock_type>::Session(std::shared_ptr<KServerConfig> const& config_,
+Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
                             int comm_fd_, SessID id_, PeerInfo peer_info_,
                             SessionManager& session_manager_)
 : SessionAbstract(sock_type)

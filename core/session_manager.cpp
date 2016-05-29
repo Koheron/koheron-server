@@ -163,10 +163,6 @@ void SessionManager::DeleteSession(SessID id)
 
 void SessionManager::DeleteAll()
 {
-#if KSERVER_HAS_THREADS
-    std::lock_guard<std::mutex> lock(mutex);
-#endif
-
     assert(num_sess == session_pool.size());
 
     if (!session_pool.empty()) {

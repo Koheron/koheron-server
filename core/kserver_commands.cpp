@@ -324,7 +324,7 @@ KSERVER_PARSE_ARG(GET_RUNNING_SESSIONS)
       req_num = static_cast<Session<sock_type>*>(&session)->RequestNum();         \
       err_num = static_cast<Session<sock_type>*>(&session)->ErrorNum();           \
       start_time = static_cast<Session<sock_type>*>(&session)->GetStartTime();    \
-      break;                                                                      \
+      break;
 
 KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
 {
