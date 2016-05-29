@@ -5,6 +5,7 @@
 
 #include <string>
 #include <ctime>
+#include <vector>
 #include <array>
 #include <memory>
 
@@ -14,7 +15,14 @@
 #include "kserver.hpp"
 #include "peer_info.hpp"
 #include "session_manager.hpp"
-#include "socket_interface.hpp"
+// #include "socket_interface.hpp"
+#include "tuple_utils.hpp"
+#include "binary_parser.hpp"
+#include "socket_interface_defs.hpp"
+
+#if KSERVER_HAS_WEBSOCKET
+#include "websocket.hpp"
+#endif
 
 namespace kserver {
 
@@ -91,6 +99,9 @@ class Session : public SessionAbstract
 
     // Receive - Send
 
+    // TODO Move in Session<TCP> specialization
+    template<size_t len> int rcv_n_bytes(Buffer<len>& buffer, uint32_t n_bytes);
+
     /// Receive data from client with handshaking
     /// @buff_size Size of the buffer to receive
     /// @return Pointer to the data if success, NULL else
@@ -110,13 +121,9 @@ class Session : public SessionAbstract
     /// @string The null-terminated string
     /// @return The number of bytes send if success, -1 if failure
     int SendCstr(const char* string);
-
-    /// Send Arrays
     template<typename T> int SendArray(const T* data, unsigned int len);
     template<typename T> int Send(const std::vector<T>& vect);
     template<typename T, size_t N> int Send(const std::array<T, N>& vect);
-
-    /// Send a std::tuple
     template<typename... Tp> int Send(const std::tuple<Tp...>& t);
 
   private:
@@ -127,7 +134,9 @@ class Session : public SessionAbstract
     PeerInfo peer_info;
     SessionManager& session_manager;
     SessionPermissions permissions;
-    std::unique_ptr<SocketInterface<sock_type>> socket;
+
+    Buffer<KSERVER_RECV_DATA_BUFF_LEN> recv_data_buff;
+    WebSocket websock; // TODO Move in Session<WEBSOCK> specialization
 
     // Monitoring
     unsigned int requests_num;
@@ -135,6 +144,8 @@ class Session : public SessionAbstract
     std::time_t start_time;  ///< Starting time of the session
 
     // Internal functions
+    int init_socket();
+    int exit_socket();
     int init_session();
     int exit_session();
     int read_command(Command& cmd);
@@ -154,12 +165,37 @@ Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
 , peer_info(peer_info_)
 , session_manager(session_manager_)
 , permissions()
+, websock(config_, &session_manager_.kserver)
 , requests_num(0)
 , errors_num(0)
 , start_time(0)
+{}
+
+template<int sock_type>
+template<typename T>
+int Session<sock_type>::Send(const std::vector<T>& vect)
 {
-    socket = std::make_unique<SocketInterface<sock_type>>(
-                config_, &session_manager.kserver, comm_fd, id_);
+    return SendArray<T>(vect.data(), vect.size());
+}
+
+template<int sock_type>
+template<typename T, size_t N>
+int Session<sock_type>::Send(const std::array<T, N>& vect)
+{
+    return SendArray<T>(vect.data(), N);
+}
+
+// http://stackoverflow.com/questions/1374468/stringstream-string-and-char-conversion-confusion
+template<int sock_type>
+template<typename... Tp>
+int Session<sock_type>::Send(const std::tuple<Tp...>& t)
+{
+    std::stringstream ss;
+    stringify_tuple(t, ss);
+    ss << std::endl;
+
+    const std::string& tmp = ss.str();
+    return SendCstr(tmp.c_str());
 }
 
 template<int sock_type>
@@ -168,7 +204,7 @@ int Session<sock_type>::init_session()
     errors_num = 0;
     requests_num = 0;
     start_time = std::time(nullptr);
-    return socket->init();
+    return init_socket();
 }
 
 template<int sock_type>
@@ -179,7 +215,7 @@ int Session<sock_type>::Run()
 
     while (!session_manager.kserver.exit_comm.load()) {    
         Command cmd;
-        int nb_bytes_rcvd = socket->read_command(cmd);
+        int nb_bytes_rcvd = read_command(cmd);
 
         if (nb_bytes_rcvd <= 0) {
             exit_session();
@@ -198,8 +234,90 @@ int Session<sock_type>::Run()
 template<int sock_type>
 int Session<sock_type>::exit_session()
 {
-    return socket->exit();
+    return exit_socket();
 }
+
+// -----------------------------------------------
+// TCP
+// -----------------------------------------------
+
+#if KSERVER_HAS_TCP
+
+template<> template<size_t len> int Session<TCP>::rcv_n_bytes(Buffer<len>& buffer, uint32_t n_bytes);
+template<> const uint32_t* Session<TCP>::RcvHandshake(uint32_t buff_size);
+template<> int Session<TCP>::SendCstr(const char *string);
+
+template<>
+template<class T>
+int Session<TCP>::SendArray(const T *data, unsigned int len)
+{
+    int bytes_send = sizeof(T) * len;
+    int n_bytes_send = write(comm_fd, (void*)data, bytes_send);
+
+    if (n_bytes_send < 0) {
+       session_manager.kserver.syslog.print(SysLog::ERROR, 
+          "TCPSocket::SendArray: Can't write to client\n");
+       return -1;
+    }
+
+    if (n_bytes_send != bytes_send) {
+        session_manager.kserver.syslog.print(SysLog::ERROR, 
+            "TCPSocket::SendArray: Some bytes have not been sent\n");
+        return -1;
+    }
+
+    session_manager.kserver.syslog.print(SysLog::DEBUG, "[S] [%u bytes]\n", bytes_send);
+    return bytes_send;
+}
+
+#endif // KSERVER_HAS_TCP
+
+// -----------------------------------------------
+// Unix socket
+// -----------------------------------------------
+
+#if KSERVER_HAS_UNIX_SOCKET
+// Unix socket has the same interface than TCP socket
+template<>
+class Session<UNIX> : public Session<TCP>
+{
+  public:
+    Session<UNIX>(const std::shared_ptr<KServerConfig>& config_,
+                  int comm_fd_, SessID id_, PeerInfo peer_info_,
+                  SessionManager& session_manager_)
+    : Session<TCP>(config_, comm_fd_, id_, peer_info_, session_manager_) {}
+};
+#endif // KSERVER_HAS_UNIX_SOCKET
+
+// -----------------------------------------------
+// WebSocket
+// -----------------------------------------------
+
+#if KSERVER_HAS_WEBSOCKET
+
+template<> const uint32_t* Session<WEBSOCK>::RcvHandshake(uint32_t buff_size);
+template<> int Session<WEBSOCK>::SendCstr(const char *string);
+
+template<>
+template<class T>
+int Session<WEBSOCK>::SendArray(const T *data, unsigned int len)
+{
+    int bytes_send = websock.send<T>(data, len);
+
+    if (bytes_send < 0) {
+        session_manager.kserver.syslog.print(SysLog::ERROR, 
+                              "SendArray: Can't write to client\n");
+        return -1;
+    }
+
+    return bytes_send;    
+}
+
+#endif // KSERVER_HAS_WEBSOCKET
+
+// -----------------------------------------------
+// Select session kind
+// -----------------------------------------------
 
 #define SWITCH_SOCK_TYPE(...)                                       \
     switch (this->kind) {                                           \
@@ -215,12 +333,12 @@ int Session<sock_type>::exit_session()
 // For the template in the middle, see:
 // http://stackoverflow.com/questions/1682844/templates-template-function-not-playing-well-with-classs-template-member-funct/1682885#1682885
 
-template<int sock_type>
-template<class T>
-inline int Session<sock_type>::Send(const T& data)
-{
-    return socket->template Send<T>(data);
-}
+// template<int sock_type>
+// template<class T>
+// inline int Session<sock_type>::Send(const T& data)
+// {
+//     return socket->template Send<T>(data);
+// }
 
 template<class T>
 int SessionAbstract::Send(const T& data)
@@ -229,12 +347,12 @@ int SessionAbstract::Send(const T& data)
     return -1;
 }
 
-template<int sock_type>
-template<typename T> 
-inline int Session<sock_type>::SendArray(const T* data, unsigned int len)
-{
-    return socket->template SendArray<T>(data, len);
-}
+// template<int sock_type>
+// template<typename T> 
+// inline int Session<sock_type>::SendArray(const T* data, unsigned int len)
+// {
+//     return socket->template SendArray<T>(data, len);
+// }
 
 template<typename T> 
 int SessionAbstract::SendArray(const T* data, unsigned int len)
@@ -243,12 +361,12 @@ int SessionAbstract::SendArray(const T* data, unsigned int len)
     return -1;
 }
 
-template<int sock_type>
-template<typename T>
-inline int Session<sock_type>::Send(const std::vector<T>& vect)
-{
-    return socket->template Send<T>(vect);
-}
+// template<int sock_type>
+// template<typename T>
+// inline int Session<sock_type>::Send(const std::vector<T>& vect)
+// {
+//     return socket->template Send<T>(vect);
+// }
 
 template<typename T>
 int SessionAbstract::Send(const std::vector<T>& vect)
@@ -257,12 +375,12 @@ int SessionAbstract::Send(const std::vector<T>& vect)
     return -1;
 }
 
-template<int sock_type>
-template<typename T, size_t N>
-inline int Session<sock_type>::Send(const std::array<T, N>& vect)
-{
-    return socket->template Send<T, N>(vect);
-}
+// template<int sock_type>
+// template<typename T, size_t N>
+// inline int Session<sock_type>::Send(const std::array<T, N>& vect)
+// {
+//     return socket->template Send<T, N>(vect);
+// }
 
 template<typename T, size_t N>
 int SessionAbstract::Send(const std::array<T, N>& vect)
@@ -271,12 +389,12 @@ int SessionAbstract::Send(const std::array<T, N>& vect)
     return -1;
 }
 
-template<int sock_type>
-template<typename... Tp>
-inline int Session<sock_type>::Send(const std::tuple<Tp...>& t)
-{
-    return socket->template Send<Tp...>(t);
-}
+// template<int sock_type>
+// template<typename... Tp>
+// inline int Session<sock_type>::Send(const std::tuple<Tp...>& t)
+// {
+//     return socket->template Send<Tp...>(t);
+// }
 
 template<typename... Tp>
 int SessionAbstract::Send(const std::tuple<Tp...>& t)
@@ -285,17 +403,17 @@ int SessionAbstract::Send(const std::tuple<Tp...>& t)
     return -1;
 }
 
-template<int sock_type>
-inline const uint32_t* Session<sock_type>::RcvHandshake(uint32_t buff_size)
-{
-    return socket->RcvHandshake(buff_size);
-}
+// template<int sock_type>
+// inline const uint32_t* Session<sock_type>::RcvHandshake(uint32_t buff_size)
+// {
+//     return socket->RcvHandshake(buff_size);
+// }
 
-template<int sock_type>
-inline int Session<sock_type>::SendCstr(const char *string)
-{
-    return socket->SendCstr(string);
-}
+// template<int sock_type>
+// inline int Session<sock_type>::SendCstr(const char *string)
+// {
+//     return socket->SendCstr(string);
+// }
 
 // Cast abstract session unique_ptr
 template<int sock_type>
