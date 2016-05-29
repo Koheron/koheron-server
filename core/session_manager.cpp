@@ -109,18 +109,24 @@ void SessionManager::reset_permissions(SessID id)
 
             if (lclf_lifo.size() > 0) {
                 switch(session_pool[lclf_lifo.top()]->kind) {
+#if KSERVER_HAS_TCP
                   case TCP:
                     cast_to_session<TCP>(session_pool[lclf_lifo.top()])
                                         ->permissions.write = true;
                     break;
+#endif
+#if KSERVER_HAS_UNIX_SOCKET
                   case UNIX:
                     cast_to_session<UNIX>(session_pool[lclf_lifo.top()])
                                         ->permissions.write = true;
                     break;
+#endif
+#if KSERVER_HAS_WEBSOCKET
                   case WEBSOCK:
                     cast_to_session<WEBSOCK>(session_pool[lclf_lifo.top()])
                                         ->permissions.write = true;
                     break;
+#endif
                   default: assert(false);
                 }
             }
@@ -142,15 +148,21 @@ void SessionManager::DeleteSession(SessID id)
 
     if (session_pool[id] != nullptr) {
         switch (session_pool[id]->kind) {
+#if KSERVER_HAS_TCP
           case TCP:
             close(cast_to_session<TCP>(session_pool[id])->comm_fd);
             break;
+#endif
+#if KSERVER_HAS_UNIX_SOCKET
           case UNIX:
             close(cast_to_session<UNIX>(session_pool[id])->comm_fd);
             break;
+#endif
+#if KSERVER_HAS_WEBSOCKET
           case WEBSOCK:
             close(cast_to_session<WEBSOCK>(session_pool[id])->comm_fd);
             break;
+#endif
           default: assert(false);
         }
     }

@@ -68,33 +68,15 @@ class Session : public SessionAbstract
             int comm_fd, SessID id_, PeerInfo peer_info,
             SessionManager& session_manager_);
 
-    /// Run the session
     int Run();
-
-    /// Display the log of the session
-    void DisplayLog(void);
-
-    /// Number of requests received during the current session
-    inline unsigned int RequestNum(void) const
-    {
-        return requests_num;
-    }
-
-    /// Number of requests errors during the current session
-    inline unsigned int ErrorNum(void) const
-    {
-        return errors_num;
-    }
-
+    
+    inline unsigned int RequestNum(void) const {return requests_num;}    
+    inline unsigned int ErrorNum(void) const {return errors_num;}
     inline SessID GetID() const {return id;}
     inline const char* GetClientIP() const {return peer_info.ip_str;}
     inline int GetClientPort() const {return peer_info.port;}
     inline std::time_t GetStartTime() const {return start_time;}
-    
-    inline const SessionPermissions* GetPermissions() const
-    {
-        return &permissions;
-    }
+    inline const SessionPermissions* GetPermissions() const {return &permissions;}
 
     // Receive - Send
 
@@ -120,6 +102,7 @@ class Session : public SessionAbstract
     /// @string The null-terminated string
     /// @return The number of bytes send if success, -1 if failure
     int SendCstr(const char* string);
+
     template<typename T> int SendArray(const T* data, unsigned int len);
     template<typename T> int Send(const std::vector<T>& vect);
     template<typename T, size_t N> int Send(const std::array<T, N>& vect);
@@ -135,12 +118,14 @@ class Session : public SessionAbstract
     SessionPermissions permissions;
 
     Buffer<KSERVER_RECV_DATA_BUFF_LEN> recv_data_buff;
+#if KSERVER_HAS_WEBSOCKET
     WebSocket websock; // TODO Move in Session<WEBSOCK> specialization
+#endif
 
     // Monitoring
-    unsigned int requests_num;
-    unsigned int errors_num;
-    std::time_t start_time;  ///< Starting time of the session
+    unsigned int requests_num; ///< Number of requests received during the current session
+    unsigned int errors_num;   ///< Number of requests errors during the current session
+    std::time_t start_time;    ///< Starting time of the session
 
     // Internal functions
     int init_socket();
@@ -164,7 +149,9 @@ Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
 , peer_info(peer_info_)
 , session_manager(session_manager_)
 , permissions()
+#if KSERVER_HAS_WEBSOCKET
 , websock(config_, &session_manager_.kserver)
+#endif
 , requests_num(0)
 , errors_num(0)
 , start_time(0)
@@ -240,7 +227,7 @@ int Session<sock_type>::exit_session()
 // TCP
 // -----------------------------------------------
 
-#if KSERVER_HAS_TCP
+#if KSERVER_HAS_TCP || KSERVER_HAS_UNIX_SOCKET
 
 template<> template<size_t len>
 int Session<TCP>::rcv_n_bytes(Buffer<len>& buffer, uint32_t n_bytes);
@@ -320,15 +307,36 @@ int Session<WEBSOCK>::SendArray(const T *data, unsigned int len)
 // Select session kind
 // -----------------------------------------------
 
-#define SWITCH_SOCK_TYPE(...)                                       \
-    switch (this->kind) {                                           \
-      case TCP:                                                     \
-        return static_cast<Session<TCP>*>(this)->__VA_ARGS__;       \
-      case UNIX:                                                    \
-        return static_cast<Session<UNIX>*>(this)->__VA_ARGS__;      \
-      case WEBSOCK:                                                 \
-        return static_cast<Session<WEBSOCK>*>(this)->__VA_ARGS__;   \
-      default: assert(false);                                       \
+#if KSERVER_HAS_TCP
+  #define CASE_TCP(...)                                             \
+    case TCP:                                                       \
+        return static_cast<Session<TCP>*>(this)-> __VA_ARGS__;
+#else
+  #define CASE_TCP(...)
+#endif
+
+#if KSERVER_HAS_UNIX_SOCKET
+  #define CASE_UNIX(...)                                            \
+    case UNIX:                                                      \
+        return static_cast<Session<UNIX>*>(this)-> __VA_ARGS__;
+#else
+  #define CASE_UNIX(...)
+#endif
+
+#if KSERVER_HAS_WEBSOCKET
+  #define CASE_WEBSOCK(...)                                         \
+    case WEBSOCK:                                                   \
+        return static_cast<Session<WEBSOCK>*>(this)-> __VA_ARGS__;
+#else
+  #define CASE_WEBSOCK(...)
+#endif
+
+#define SWITCH_SOCK_TYPE(...)     \
+    switch (this->kind) {         \
+      CASE_TCP(__VA_ARGS__)       \
+      CASE_UNIX(__VA_ARGS__)      \
+      CASE_WEBSOCK(__VA_ARGS__)   \
+      default: assert(false);     \
     }
 
 // For the template in the middle, see:

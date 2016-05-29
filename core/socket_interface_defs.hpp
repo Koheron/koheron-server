@@ -15,15 +15,9 @@ namespace kserver {
   /// Listening channel types
 enum SockType {
     NONE,
-#if KSERVER_HAS_TCP
     TCP,
-#endif
-#if KSERVER_HAS_WEBSOCKET
     WEBSOCK,
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
     UNIX,
-#endif
     sock_type_num
 };
 
@@ -31,15 +25,9 @@ enum SockType {
 const std::array< std::string, sock_type_num > 
 listen_channel_desc = {{
     "NONE",
-#if KSERVER_HAS_TCP
     "TCP",
-#endif
-#if KSERVER_HAS_WEBSOCKET
     "WebSocket",
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
     "Unix socket"
-#endif
 }};
 
 } // namespace kserver

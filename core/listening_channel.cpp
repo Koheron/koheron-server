@@ -184,8 +184,15 @@ void comm_thread_call(ListeningChannel<sock_type> *listener)
         if (comm_fd < 0)
             continue;
 
-        if (sock_type == TCP || sock_type == WEBSOCK)
+#if KSERVER_HAS_TCP
+        if (sock_type == TCP)
             peer_info = PeerInfo(comm_fd);
+#endif
+
+#if KSERVER_HAS_WEBSOCKET
+        if (sock_type == WEBSOCK)
+            peer_info = PeerInfo(comm_fd);
+#endif
 
 #if KSERVER_HAS_THREADS
         if (listener->is_max_threads()) {

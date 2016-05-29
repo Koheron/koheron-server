@@ -45,7 +45,7 @@ int SessionAbstract::SendCstr(const char *string)
 // TCP
 // -----------------------------------------------
 
-#if KSERVER_HAS_TCP
+#if KSERVER_HAS_TCP || KSERVER_HAS_UNIX_SOCKET
 
 SEND_SPECIALIZE_IMPL(Session<TCP>)
 
