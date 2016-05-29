@@ -43,7 +43,7 @@ class SocketInterface
       id(id_),
       websock(config_, kserver_)
     {
-        bzero(recv_data_buff, KSERVER_RECV_DATA_BUFF_LEN);
+        recv_data_buff.set();
     }
 
     int init();
@@ -52,7 +52,7 @@ class SocketInterface
     int read_command(Command& cmd);
     int read_data(char *buff_str);
     template<size_t len> int rcv_n_bytes(Buffer<len>& buffer, uint32_t n_bytes);
-    int RcvDataBuffer(uint32_t n_bytes);
+    // int RcvDataBuffer(uint32_t n_bytes);
     const uint32_t* RcvHandshake(uint32_t buff_size);
 
     template<class T> int Send(const T& data);
@@ -70,8 +70,7 @@ class SocketInterface
     SessID id;
 
   private:
-    char read_str[KSERVER_READ_STR_LEN];  ///< Read string
-    char recv_data_buff[KSERVER_RECV_DATA_BUFF_LEN];  ///< Receive data buffer
+    Buffer<KSERVER_RECV_DATA_BUFF_LEN> recv_data_buff;
     WebSocket websock;
 };
 

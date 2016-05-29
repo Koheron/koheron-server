@@ -21,6 +21,7 @@ struct Buffer
 {
     char data[len];
     constexpr size_t size() const {return len;}
+    void set() {bzero(data, len);}
 };
 
 struct Command

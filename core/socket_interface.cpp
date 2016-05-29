@@ -148,39 +148,6 @@ int SocketInterface<TCP>::rcv_n_bytes(Buffer<len>& buffer, uint32_t n_bytes)
 }
 
 template<>
-int SocketInterface<TCP>::RcvDataBuffer(uint32_t n_bytes)
-{
-    uint32_t bytes_read = 0;
-
-    while (bytes_read < n_bytes) {
-        int result = read(comm_fd, recv_data_buff + bytes_read,
-                          n_bytes-bytes_read);
-        // Check reception ...
-        if (result < -1) {
-            kserver->syslog.print(SysLog::ERROR, "TCPSocket: Read error\n");
-            return -1;
-        }
-
-        if (result == 0) {
-            kserver->syslog.print(SysLog::WARNING, 
-                                  "TCPSocket: Connection closed by client\n");
-            return -1;
-        }
-
-        bytes_read += result;
-
-        if (bytes_read > KSERVER_RECV_DATA_BUFF_LEN) {
-            kserver->syslog.print(SysLog::CRITICAL, 
-                                  "TCPSocket: Receive data buffer overflow\n");
-            return -1;
-        }
-    }
-
-    assert(bytes_read == n_bytes);
-    return bytes_read;
-}
-
-template<>
 const uint32_t* SocketInterface<TCP>::RcvHandshake(uint32_t buff_size)
 {
     // Handshaking
@@ -189,8 +156,7 @@ const uint32_t* SocketInterface<TCP>::RcvHandshake(uint32_t buff_size)
         return nullptr;
     }
 
-    uint32_t n_bytes_received = 
-        static_cast<uint32_t>(RcvDataBuffer(sizeof(uint32_t)*buff_size));
+    int n_bytes_received = rcv_n_bytes(recv_data_buff, sizeof(uint32_t) * buff_size);
 
     if (n_bytes_received < 0)
         return nullptr;
@@ -198,7 +164,7 @@ const uint32_t* SocketInterface<TCP>::RcvHandshake(uint32_t buff_size)
     kserver->syslog.print(SysLog::DEBUG, "[R@%u] [%u bytes]\n", 
                           id, n_bytes_received);
 
-    return reinterpret_cast<const uint32_t*>(recv_data_buff);
+    return reinterpret_cast<const uint32_t*>(recv_data_buff.data);
 }
 
 template<>
@@ -257,7 +223,8 @@ int SocketInterface<WEBSOCK>::read_command(Command& cmd)
         return -1;
     }
 
-    auto header_tuple = parse_buffer<HEADER_START, HEADER_TYPE_LIST>(websock.get_payload_no_copy());
+    auto header_tuple 
+        = parse_buffer<HEADER_START, HEADER_TYPE_LIST>(websock.get_payload_no_copy());
 
     uint32_t payload_size = std::get<2>(header_tuple);
 
@@ -304,10 +271,10 @@ const uint32_t* SocketInterface<WEBSOCK>::RcvHandshake(uint32_t buff_size)
         return nullptr;
     }
 
-    if (websock.get_payload(recv_data_buff, KSERVER_RECV_DATA_BUFF_LEN) < 0)
+    if (websock.get_payload(recv_data_buff.data, recv_data_buff.size()) < 0)
         return nullptr;
 
-    return reinterpret_cast<const uint32_t*>(recv_data_buff);
+    return reinterpret_cast<const uint32_t*>(recv_data_buff.data);
 }
 
 template<>
