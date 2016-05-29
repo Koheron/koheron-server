@@ -185,7 +185,7 @@ int WebSocket::send(const std::string& stream)
     // http://stackoverflow.com/questions/541634/concatenating-two-memory-buffers-without-memcpy
     //
     // Maybe it would be better to copy the template header instead
-    // of the buffer not easy nothing guaranties that we can allocate
+    // of the buffer not easy nothing guarantees that we can allocate
     // the space before the buffer.
     std::copy(stream.begin(), stream.end(), &bits[mask_offset]);
     
@@ -267,7 +267,7 @@ int WebSocket::check_opcode(unsigned int opcode)
         return -1;
       case WebSocketOpCode::Pong:
       
-        // TODO If not sollicitated by a Ping,
+        // TODO If not sollicited by a Ping,
         // we should just ignore an unwanted Pong
         // instead of returning an error.
         
