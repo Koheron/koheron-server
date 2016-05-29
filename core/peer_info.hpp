@@ -28,4 +28,3 @@ struct PeerInfo
 } // namespace kserver
 
 #endif // __PEER_INFO_HPP__
-

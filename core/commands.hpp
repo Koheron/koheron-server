@@ -8,12 +8,6 @@
 #include "session_manager.hpp"
 #include "dev_definitions.hpp"
 
-#if USE_BOOST
-  #include <boost/circular_buffer.hpp>
-#else
-  #include <vector>
-#endif
-
 namespace kserver {
 
 template<size_t len>

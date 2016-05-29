@@ -1,5 +1,3 @@
-/// Implementation of commands.hpp
-///
 /// (c) Koheron
 
 #include "commands.hpp"

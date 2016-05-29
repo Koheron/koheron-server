@@ -8,6 +8,8 @@
 #include <cstring>
 #include <tuple>
 
+#include "commands.hpp"
+
 namespace kserver {
 
 // ------------------------
@@ -49,6 +51,8 @@ template<> constexpr size_t size_of<bool> = 1;
 
 // -- into tuple
 
+namespace detail {
+
 // Parse
 template<size_t position = 0, typename Tp0, typename... Tp>
 inline std::enable_if_t<0 == sizeof...(Tp), std::tuple<Tp0, Tp...>>
@@ -78,6 +82,29 @@ constexpr std::enable_if_t<0 < sizeof...(Tp), size_t>
 required_buffer_size()
 {
     return size_of<Tp0> + required_buffer_size<Tp...>();
+}
+
+} // namespace detail
+
+template<typename... Tp>
+constexpr size_t required_buffer_size()
+{
+    return detail::required_buffer_size<Tp...>();
+}
+
+template<size_t position, size_t len, typename... Tp>
+inline std::tuple<Tp...> parse_buffer(const Buffer<len>& buff)
+{
+    static_assert(required_buffer_size<Tp...>() <= len, 
+                  "CMD_PAYLOAD_BUFFER_LEN too small");
+
+    return detail::parse_buffer<position, Tp...>(buff.data);
+}
+
+template<size_t position, typename... Tp>
+inline std::tuple<Tp...> parse_buffer(const char *buff)
+{
+    return detail::parse_buffer<position, Tp...>(buff);
 }
 
 } // namespace kserver

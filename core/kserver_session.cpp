@@ -80,7 +80,7 @@ int Session<TCP>::read_command(Command& cmd)
     }
 
     auto header_tuple
-        = parse_buffer<HEADER_START, HEADER_TYPE_LIST>(header_buff.data);
+        = parse_buffer<HEADER_START, header_buff.size(), HEADER_TYPE_LIST>(header_buff);
     uint32_t payload_size = std::get<2>(header_tuple);
 
     cmd.sess_id = id;
@@ -281,7 +281,7 @@ const uint32_t* Session<WEBSOCK>::RcvHandshake(uint32_t buff_size)
     if (payload_size < 0)
         return nullptr;
 
-    if (static_cast<uint32_t>(payload_size) != sizeof(uint32_t)*buff_size) {
+    if (static_cast<uint32_t>(payload_size) != sizeof(uint32_t) * buff_size) {
         session_manager.kserver.syslog.print(SysLog::ERROR,
             "WebSocket: Invalid data size received\n");
         return nullptr;

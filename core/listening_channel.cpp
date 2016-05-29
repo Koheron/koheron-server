@@ -360,10 +360,10 @@ int ListeningChannel<UNIX>::init()
     if (kserver->config->unixsock_worker_connections > 0) {
         listen_fd = create_unix_listening(kserver->config->unixsock_path, 
                                           &kserver->syslog);  
-        return listen_fd;      
-    } else {
-        return 0; // Nothing to be done
+        return listen_fd;
     }
+
+    return 0;
 }
 
 template<>
