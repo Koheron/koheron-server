@@ -56,11 +56,6 @@ template<> int Session<TCP>::exit_socket() {return 0;}
 #define HEADER_START     4  // First 4 bytes are reserved
 #define HEADER_TYPE_LIST uint16_t, uint16_t, uint32_t
 
-static_assert(
-    required_buffer_size<HEADER_TYPE_LIST>() == HEADER_LENGTH - HEADER_START,
-    "Unexpected header length"
-);
-
 template<>
 int Session<TCP>::read_command(Command& cmd)
 {

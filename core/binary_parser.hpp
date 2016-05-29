@@ -54,14 +54,14 @@ template<> constexpr size_t size_of<bool> = 1;
 namespace detail {
 
 // Parse
-template<size_t position = 0, typename Tp0, typename... Tp>
+template<size_t position, typename Tp0, typename... Tp>
 inline std::enable_if_t<0 == sizeof...(Tp), std::tuple<Tp0, Tp...>>
 parse_buffer(const char *buff)
 {
     return std::make_tuple(parse<Tp0>(&buff[position]));
 }
 
-template<size_t position = 0, typename Tp0, typename... Tp>
+template<size_t position, typename Tp0, typename... Tp>
 inline std::enable_if_t<0 < sizeof...(Tp), std::tuple<Tp0, Tp...>>
 parse_buffer(const char *buff)
 {
@@ -95,8 +95,8 @@ constexpr size_t required_buffer_size()
 template<size_t position, size_t len, typename... Tp>
 inline std::tuple<Tp...> parse_buffer(const Buffer<len>& buff)
 {
-    static_assert(required_buffer_size<Tp...>() <= len, 
-                  "CMD_PAYLOAD_BUFFER_LEN too small");
+    static_assert(required_buffer_size<Tp...>() <= len - position, 
+                  "Buffer size too small");
 
     return detail::parse_buffer<position, Tp...>(buff.data);
 }
