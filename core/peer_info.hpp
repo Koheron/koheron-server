@@ -5,9 +5,6 @@
 #ifndef __PEER_INFO_HPP__
 #define __PEER_INFO_HPP__
 
-#include <vector>
-#include <cstdlib>
-#include <iostream>
 #include <cstring>
 
 extern "C" {
@@ -21,10 +18,7 @@ namespace kserver {
 struct PeerInfo
 {
     PeerInfo(int comm_fd = -1);
-    
-    PeerInfo(const PeerInfo& peer_info); 
-    
-    void __build(struct sockaddr* sock_);
+    PeerInfo(const PeerInfo& peer_info);
 
     unsigned short ip_family;       ///< Address familly, AF_XXX
     char ip_str[INET6_ADDRSTRLEN];  ///< IP address
@@ -34,4 +28,3 @@ struct PeerInfo
 } // namespace kserver
 
 #endif // __PEER_INFO_HPP__
-

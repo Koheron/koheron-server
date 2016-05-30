@@ -1,5 +1,3 @@
-/// Implementation of binary_parser.hpp
-///
 /// (c) Koheron
 
 #include "binary_parser.hpp"

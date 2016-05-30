@@ -6,6 +6,7 @@
 #define __KSERVER_HPP__
 
 #include "kserver_defs.hpp"
+#include "socket_interface_defs.hpp"
 
 #if KSERVER_HAS_THREADS
 #include <thread>
@@ -16,44 +17,18 @@
 #include <string>
 #include <atomic>
 #include <ctime>
+#include <utility>
 
 #include "kdevice.hpp"
-#include "session_manager.hpp"
 #include "devices_manager.hpp"
 #include "kserver_syslog.hpp"
 #include "signal_handler.hpp"
+#include "peer_info.hpp"
+#include "session_manager.hpp"
 
 namespace kserver {
 
-/// Listening channel types
-enum SockType {
-    NONE,
-#if KSERVER_HAS_TCP
-    TCP,
-#endif
-#if KSERVER_HAS_WEBSOCKET
-    WEBSOCK,
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
-    UNIX,
-#endif
-    sock_type_num
-};
-
-/// Listening channel descriptions
-const std::array< std::string, sock_type_num > 
-listen_channel_desc = {{
-    "NONE",
-#if KSERVER_HAS_TCP
-    "TCP",
-#endif
-#if KSERVER_HAS_WEBSOCKET
-    "WebSocket",
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
-    "Unix socket"
-#endif
-}};
+template<int sock_type> class Session;
 
 ////////////////////////////////////////////////////////////////////////////
 /////// ListeningChannel
@@ -131,7 +106,8 @@ void ListeningChannel<sock_type>::join_worker()
 ////////////////////////////////////////////////////////////////////////////
 /////// KServer
 
-class DeviceManager;
+// class DeviceManager;
+// class SessionManager;
 
 /// Main class of the server. It initializes the 
 /// connections and start the sessions.
@@ -145,7 +121,7 @@ class KServer : public KDevice<KServer, KSERVER>
     enum { __kind = KSERVER };
 
   public:
-    KServer(KServerConfig *config_);
+    KServer(std::shared_ptr<kserver::KServerConfig> config_);
     ~KServer();
     
     int Run(void);
@@ -162,7 +138,7 @@ class KServer : public KDevice<KServer, KSERVER>
         kserver_op_num
     };
     
-    KServerConfig *config;
+    std::shared_ptr<kserver::KServerConfig> config;
     SignalHandler sig_handler;
     
     std::atomic<bool> exit_comm;
@@ -195,8 +171,10 @@ class KServer : public KDevice<KServer, KSERVER>
     int start_listeners_workers();
     void detach_listeners_workers();
     void join_listeners_workers();    
-    void close_listeners();   
-    void save_session_logs(Session *session, PeerInfo peer_info);
+    void close_listeners();
+
+    template<int sock_type>
+    void save_session_logs(Session<sock_type> *session, PeerInfo peer_info);
     
 template<int sock_type> friend class ListeningChannel;
 }; // KServer

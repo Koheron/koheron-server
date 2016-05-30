@@ -7,6 +7,8 @@
 
 #include "config.hpp"
 
+#include <memory>
+
 #if KSERVER_HAS_THREADS
 #  include <mutex>
 #endif
@@ -17,7 +19,7 @@ namespace kserver {
 
 struct SysLog
 {
-    SysLog(KServerConfig *config_);
+    SysLog(std::shared_ptr<KServerConfig> config_);
     ~SysLog();
     void close();
 
@@ -35,7 +37,7 @@ struct SysLog
     void print(unsigned int severity, const char *message, ...);
     
 private:
-    KServerConfig *config;
+    std::shared_ptr<KServerConfig> config;
     
     char fmt_buffer[FMT_BUFF_LEN];
     

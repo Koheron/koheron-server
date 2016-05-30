@@ -17,7 +17,7 @@
 
 namespace kserver {
 
-SysLog::SysLog(KServerConfig *config_)
+SysLog::SysLog(std::shared_ptr<KServerConfig> config_)
 : config(config_)
 {
     memset(fmt_buffer, 0, FMT_BUFF_LEN);

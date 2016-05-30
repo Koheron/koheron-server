@@ -13,7 +13,7 @@ MAKEFLAGS += --jobs=$(CPUS)
 #    - armhf For compilation on armhf architecture
 #    - armel For compilation on armel architecture 
 
-ADD_DEBUG_FLAGS = false
+ADD_DEBUG_FLAGS = true
 
 # Middleware include path
 MIDWARE_INC_PATH=middleware
@@ -26,8 +26,8 @@ MIDWARE_INC_PATH=middleware
 OBJS_KSERVER = core/kserver.o              \
                core/listening_channel.o    \
                core/kserver_commands.o     \
-               core/session_manager.o      \
                core/kserver_session.o      \
+               core/session_manager.o      \
                core/devices_manager.o      \
                core/peer_info.o            \
                core/commands.o             \
@@ -38,7 +38,6 @@ OBJS_KSERVER = core/kserver.o              \
                core/crypto/base64.o        \
                core/crypto/sha1.o          \
                core/kserver_syslog.o       \
-               core/socket_interface.o     \
                core/signal_handler.o       \
                core/binary_parser.o
                

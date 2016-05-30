@@ -8,9 +8,11 @@
 #include <map>
 #include <vector>
 #include <stack>
+#include <memory>
 
 #include "kserver_defs.hpp"
 #include "config.hpp"
+#include "peer_info.hpp"
 
 #if KSERVER_HAS_THREADS
 #  include <mutex>
@@ -18,43 +20,42 @@
 
 namespace kserver {
 
-class Session;
+class SessionAbstract;
+template<int sock_type> class Session;
 class DeviceManager;
 class KServer;
-class PeerInfo;
 
 class SessionManager
 {
   public:
     SessionManager(KServer& kserver_, DeviceManager& dev_manager_,
                    int perm_policy_);
-    
+
     ~SessionManager();
-    
+
     static unsigned int num_sess;
-    
+
     size_t GetNumSess() const;
-    
-    Session* CreateSession(KServerConfig *config_, int comm_fd, 
-                           int sock_type, PeerInfo peer_info);
-    
+
+    template<int sock_type>
+    SessID CreateSession(const std::shared_ptr<KServerConfig>& config_,
+                         int comm_fd, PeerInfo peer_info);
+
     std::vector<SessID> GetCurrentIDs();
-    
-    Session& GetSession(SessID id) const;
-    
+    SessionAbstract& GetSession(SessID id) const;
+
     void DeleteSession(SessID id);
-    
     void DeleteAll();
 
     KServer& kserver;
     DeviceManager& dev_manager;
-    
+
     // Permission policies
-    
+
     int perm_policy;
     SessID fcfs_id; // ID of the FCFS session holding the write permission
     std::stack<SessID> lclf_lifo; // LIFO with the LCFS IDs to attribute
-    
+
     enum write_permission_policy {
         /// None:
         /// It's the war ! Users can write all together ... Not advisable
@@ -73,18 +74,20 @@ class SessionManager
         // on a given device.
         write_permission_policy_num
     };
-    
-  private:  
+
+  private:
     // Sessions pool
-    std::map<SessID, Session*> session_pool;
+    std::map<SessID, std::unique_ptr<SessionAbstract>> session_pool;
     std::vector<SessID> reusable_ids;
-    
-    void __apply_permissions(Session *last_created_session);
-    void __reset_permissions(SessID id);
-    void __print_reusable_ids();
-    bool __is_reusable_id(SessID id);
-    bool __is_current_id(SessID id);
-    
+
+    template<int sock_type>
+    void apply_permissions(const std::unique_ptr<Session<sock_type>>& last_created_session);
+
+    void reset_permissions(SessID id);
+    void print_reusable_ids();
+    bool is_reusable_id(SessID id);
+    bool is_current_id(SessID id);
+
 #if KSERVER_HAS_THREADS
     std::mutex mutex;
 #endif
@@ -93,5 +96,3 @@ class SessionManager
 } // namespace kserver
 
 #endif //__SESSION_MANAGER_HPP__
-
-

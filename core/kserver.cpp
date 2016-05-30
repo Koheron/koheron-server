@@ -8,10 +8,11 @@
 
 #include "commands.hpp"
 #include "kserver_session.hpp"
+#include "session_manager.hpp"
 
 namespace kserver {
 
-KServer::KServer(KServerConfig *config_)
+KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
 : KDevice<KServer, KSERVER>(this),
   config(config_),
   sig_handler(),
