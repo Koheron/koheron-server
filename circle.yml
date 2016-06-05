@@ -6,7 +6,7 @@ dependencies:
   override:
     - docker info
     - docker pull jeanminet/tcp-server
-    - docker build -t jeanminet/tcp-server .
+    # - docker build -t jeanminet/tcp-server .
 
 test:
   pre:

@@ -71,12 +71,10 @@ def test_read_uint(tests):
 
 @pytest.mark.parametrize('tests', [tests])
 def test_read_int(tests):
-    print tests.read_int()
     assert tests.read_int() == -214748364
 
 @pytest.mark.parametrize('tests', [tests])
 def test_read_float(tests):
-    print tests.read_float()
     assert (tests.read_float() - 0.42) < 1E-6
 
 @pytest.mark.parametrize('tests', [tests])
