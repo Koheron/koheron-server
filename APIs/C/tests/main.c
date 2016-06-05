@@ -12,6 +12,7 @@ struct tests_device {
     struct kclient *kcl;         // KClient
     dev_id_t id;                 // Device ID
     op_id_t rcv_many_params_ref; // "RCV_MANY_PARAMS" reference
+    op_id_t read_uint64_ref;     // "READ_UINT64" reference
     op_id_t read_uint_ref;       // "READ_UINT" reference
     op_id_t read_int_ref;        // "READ_INT" reference
     op_id_t read_float_ref;      // "READ_FLOAT" reference
@@ -29,6 +30,7 @@ void tests_init(struct tests_device *dev, struct kclient *kcl)
     dev->kcl = kcl;
     dev->id = get_device_id(kcl, "TESTS");
     dev->rcv_many_params_ref = get_op_id(kcl, dev->id, "RCV_MANY_PARAMS");
+    dev->read_uint64_ref = get_op_id(kcl, dev->id, "READ_UINT64");
     dev->read_uint_ref = get_op_id(kcl, dev->id, "READ_UINT");
     dev->read_int_ref = get_op_id(kcl, dev->id, "READ_INT");
     dev->read_float_ref = get_op_id(kcl, dev->id, "READ_FLOAT");
@@ -43,6 +45,7 @@ void tests_init(struct tests_device *dev, struct kclient *kcl)
     assert(dev->send_std_array_ref    >= 0 
            && dev->set_buffer_ref     >= 0
            && dev->read_int_ref       >= 0
+           && dev->read_uint64_ref    >= 0
            && dev->read_uint_ref      >= 0
            && dev->read_float_ref     >= 0);
 }
@@ -57,6 +60,17 @@ bool test_send_many_params(struct tests_device *dev)
         return false;
 
     return is_ok;
+}
+
+bool test_read_uint64(struct tests_device *dev)
+{
+    uint64_t rcv_uint64;
+
+    if (kclient_send_command(dev->kcl, dev->id, dev->read_uint64_ref, "") < 0
+        || kclient_read_u64(dev->kcl, &rcv_uint64))
+        return false;
+
+    return rcv_uint64 == (1ULL << 63);
 }
 
 bool test_read_uint(struct tests_device *dev)
@@ -270,6 +284,7 @@ void unit_tests_tcp(char *IP, unsigned int port)
     printf(BOLDWHITE "\nStart TCP socket tests\n\n" RESET);
     SETUP_TCP
     UNIT_TEST(send_many_params)
+    UNIT_TEST(read_uint64)
     UNIT_TEST(read_uint)
     UNIT_TEST(read_int)
     UNIT_TEST(read_float)
@@ -300,6 +315,7 @@ void unit_tests_unix(char *unix_sock_path)
     printf(BOLDWHITE "\nStart Unix socket tests\n\n" RESET);
     SETUP_UNIX
     UNIT_TEST(send_many_params)
+    UNIT_TEST(read_uint64)
     UNIT_TEST(read_uint)
     UNIT_TEST(read_int)
     UNIT_TEST(read_float)

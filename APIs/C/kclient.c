@@ -372,6 +372,16 @@ int kclient_read_u32(struct kclient *kcl, uint32_t *rcv_uint)
     return 0;
 }
 
+int kclient_read_u64(struct kclient *kcl, uint64_t *rcv_uint64)
+{
+    uint32_t u1, u2;
+    if (kclient_read_u32(kcl, &u1) < 0 || kclient_read_u32(kcl, &u2) < 0)
+        return -1;
+
+    *rcv_uint64 = (uint64_t)u1 + ((uint64_t)u2 << 32);
+    return 0;
+}
+
 int kclient_read_u32_big_endian(struct kclient *kcl, uint32_t *rcv_uint)
 {
     if (kclient_rcv_n_bytes(kcl, sizeof(uint32_t)) < 0)
