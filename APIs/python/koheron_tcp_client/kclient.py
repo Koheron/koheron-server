@@ -256,8 +256,13 @@ class KClient:
         return self.recv_int(4)
 
     def recv_int32(self):
-        u = self.recv_uint32()
-        return u - (u >> 31) * 4294967296
+        return self.recv_int(4, fmt='i')
+        
+    def recv_float(self):
+        return self.recv_int(4, fmt='f')
+        
+    def recv_double(self):
+        return self.recv_int(8, fmt='d')
 
     def recv_bool(self):
         val = self.recv_int(4)
