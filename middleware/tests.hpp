@@ -42,6 +42,7 @@ class Tests
     unsigned long read_ulong();
     unsigned long long read_ulonglong();
     float read_float();
+    double read_double();
     bool read_bool();
 
     std::vector<float> data;

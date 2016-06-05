@@ -213,6 +213,9 @@ class FragmentsGenerator:
             elif (operation["prototype"]["ret_type"] == "float"):
                 frag.append("    return SEND<float>(" 
                             + self._build_func_call(operation) + ");\n")
+            elif (operation["prototype"]["ret_type"] == "double"):
+                frag.append("    return SEND<double>(" 
+                            + self._build_func_call(operation) + ");\n")
             elif template != None:
                 type_base = operation["prototype"]["ret_type"].split('<')[0].strip()
                 

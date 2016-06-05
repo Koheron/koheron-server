@@ -29,6 +29,10 @@ class Tests:
         return client.recv_float()
 
     @command('TESTS')
+    def read_double(self):
+        return client.recv_double()
+
+    @command('TESTS')
     def send_std_array(self):
         return client.recv_buffer(10, data_type='float32')
 
@@ -75,7 +79,11 @@ def test_read_int(tests):
 
 @pytest.mark.parametrize('tests', [tests])
 def test_read_float(tests):
-    assert (tests.read_float() - 0.42) < 1E-6
+    assert (tests.read_float() - 3.141592) < 1E-7
+
+@pytest.mark.parametrize('tests', [tests])
+def test_read_double(tests):
+    assert (tests.read_double() - 2.2250738585072009) < 1E-14
 
 @pytest.mark.parametrize('tests', [tests])
 def test_set_float(tests):

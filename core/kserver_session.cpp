@@ -39,6 +39,12 @@ int SessionAbstract::SendCstr(const char *string)
     int session_kind::Send<float>(const float& val)                 \
     {                                                               \
         return SendArray<float>(&val, 1);                           \
+    }                                                               \
+                                                                    \
+    template<> template<>                                           \
+    int session_kind::Send<double>(const double& val)               \
+    {                                                               \
+        return SendArray<double>(&val, 1);                          \
     }
 
 // -----------------------------------------------
