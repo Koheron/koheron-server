@@ -233,6 +233,8 @@ int kclient_read_u32_big_endian(struct kclient *kcl, uint32_t *rcv_uint);
  */
 int kclient_read_int(struct kclient *kcl, int32_t *rcv_int);
 
+int kclient_read_float(struct kclient *kcl, float *rcv_float);
+
 /**
  * kclient_read_bool - Read a boolean
  * @rcv_bool: Pointer to the received boolean
