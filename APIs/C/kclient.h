@@ -250,6 +250,14 @@ int kclient_read_int(struct kclient *kcl, int32_t *rcv_int);
 int kclient_read_float(struct kclient *kcl, float *rcv_float);
 
 /**
+ * kclient_read_double - Read a double
+ * @rcv_double: Pointer to the received number
+ *
+ * Returns 0 on success and -1 if failure.
+ */
+int kclient_read_double(struct kclient *kcl, double *rcv_double);
+
+/**
  * kclient_read_bool - Read a boolean
  * @rcv_bool: Pointer to the received boolean
  *

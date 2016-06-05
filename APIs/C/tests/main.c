@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
+#include <math.h>
+
 #if defined (__linux__)
   #include <time.h>
 #endif
@@ -16,6 +18,7 @@ struct tests_device {
     op_id_t read_uint_ref;       // "READ_UINT" reference
     op_id_t read_int_ref;        // "READ_INT" reference
     op_id_t read_float_ref;      // "READ_FLOAT" reference
+    op_id_t read_double_ref;     // "READ_DOUBLE" reference
     op_id_t set_float_ref;       // "SET_FLOAT" reference
     op_id_t send_std_vector_ref; // "SEND_STD_VECTOR" reference
     op_id_t send_std_array_ref;  // "SEND_STD_ARRAY" reference
@@ -34,6 +37,7 @@ void tests_init(struct tests_device *dev, struct kclient *kcl)
     dev->read_uint_ref = get_op_id(kcl, dev->id, "READ_UINT");
     dev->read_int_ref = get_op_id(kcl, dev->id, "READ_INT");
     dev->read_float_ref = get_op_id(kcl, dev->id, "READ_FLOAT");
+    dev->read_double_ref = get_op_id(kcl, dev->id, "READ_DOUBLE");
     dev->set_float_ref = get_op_id(kcl, dev->id, "SET_FLOAT");
     dev->send_std_vector_ref = get_op_id(kcl, dev->id, "SEND_STD_VECTOR");
     dev->send_std_array_ref = get_op_id(kcl, dev->id, "SEND_STD_ARRAY");
@@ -47,7 +51,8 @@ void tests_init(struct tests_device *dev, struct kclient *kcl)
            && dev->read_int_ref       >= 0
            && dev->read_uint64_ref    >= 0
            && dev->read_uint_ref      >= 0
-           && dev->read_float_ref     >= 0);
+           && dev->read_float_ref     >= 0
+           && dev->read_double_ref    >= 0);
 }
 
 bool test_send_many_params(struct tests_device *dev)
@@ -103,7 +108,18 @@ bool test_read_float(struct tests_device *dev)
         || kclient_read_float(dev->kcl, &rcv_float))
         return false;
 
-    return (rcv_float - 3.141592) < 1E-6;
+    return fabs(rcv_float - 3.141592) < 1E-7;
+}
+
+bool test_read_double(struct tests_device *dev)
+{
+    double rcv_double;
+
+    if (kclient_send_command(dev->kcl, dev->id, dev->read_double_ref, "") < 0
+        || kclient_read_double(dev->kcl, &rcv_double))
+        return false;
+
+    return fabs(rcv_double - 2.2250738585072009) < 1E-14;
 }
 
 bool test_set_float(struct tests_device *dev)
@@ -288,6 +304,7 @@ void unit_tests_tcp(char *IP, unsigned int port)
     UNIT_TEST(read_uint)
     UNIT_TEST(read_int)
     UNIT_TEST(read_float)
+    UNIT_TEST(read_double)
     UNIT_TEST(set_float)
     UNIT_TEST(rcv_std_vector)
     UNIT_TEST(rcv_std_array)
@@ -319,6 +336,7 @@ void unit_tests_unix(char *unix_sock_path)
     UNIT_TEST(read_uint)
     UNIT_TEST(read_int)
     UNIT_TEST(read_float)
+    UNIT_TEST(read_double)
     UNIT_TEST(set_float)
     UNIT_TEST(rcv_std_vector)
     UNIT_TEST(rcv_std_array)
@@ -359,8 +377,10 @@ void speed_tests_tcp(char *IP, unsigned int port)
     printf(BOLDWHITE "\nTCP socket speed\n" RESET);
     SETUP_TCP
     SPEED_TEST(send_many_params)
+    SPEED_TEST(read_uint64)
     SPEED_TEST(read_uint)
     SPEED_TEST(read_int)
+    SPEED_TEST(read_float)
     SPEED_TEST(set_float)
     SPEED_TEST(rcv_std_vector)
     SPEED_TEST(rcv_std_array)
@@ -380,8 +400,10 @@ void speed_tests_unix(char *unix_sock_path)
     printf(BOLDWHITE "\nUnix socket speed\n" RESET);
     SETUP_UNIX
     SPEED_TEST(send_many_params)
+    SPEED_TEST(read_uint64)
     SPEED_TEST(read_uint)
     SPEED_TEST(read_int)
+    SPEED_TEST(read_float)
     SPEED_TEST(set_float)
     SPEED_TEST(rcv_std_vector)
     SPEED_TEST(rcv_std_array)

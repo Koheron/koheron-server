@@ -87,11 +87,11 @@ def test_read_int(tests):
 
 @pytest.mark.parametrize('tests', [tests])
 def test_read_float(tests):
-    assert (tests.read_float() - 3.141592) < 1E-7
+    assert abs(tests.read_float() - 3.141592) < 1E-7
 
 @pytest.mark.parametrize('tests', [tests])
 def test_read_double(tests):
-    assert (tests.read_double() - 2.2250738585072009) < 1E-14
+    assert abs(tests.read_double() - 2.2250738585072009) < 1E-14
 
 @pytest.mark.parametrize('tests', [tests])
 def test_set_float(tests):

@@ -420,6 +420,24 @@ int kclient_read_float(struct kclient *kcl, float *rcv_float)
     return 0;
 }
 
+int kclient_read_double(struct kclient *kcl, double *rcv_double)
+{
+    assert(sizeof(double) == 8);
+    uint64_t rcv_uint;
+
+    if (kclient_read_u64(kcl, &rcv_uint) < 0)
+        return -1;
+
+    // http://stackoverflow.com/questions/3991478/building-a-32bit-float-out-of-its-4-composite-bytes-c
+    union {
+      uint64_t b;
+      double d; 
+    } u = {rcv_uint};
+
+    *rcv_double = u.d;
+    return 0;
+}
+
 int kclient_read_bool(struct kclient *kcl, bool *rcv_bool)
 {
     if (kclient_rcv_n_bytes(kcl, 4) < 0)
