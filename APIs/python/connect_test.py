@@ -17,6 +17,10 @@ class Tests:
         return client.recv_bool()
 
     @command('TESTS')
+    def read_uint64(self):
+        return client.recv_uint64()
+
+    @command('TESTS')
     def read_uint(self):
         return client.recv_uint32()
 
@@ -68,6 +72,10 @@ tests = Tests(client)
 @pytest.mark.parametrize('tests', [tests])
 def test_send_many_params(tests):
     assert tests.rcv_many_params(429496729, 2048, 3.14, True)
+
+@pytest.mark.parametrize('tests', [tests])
+def test_read_uint64(tests):
+    assert tests.read_uint64() == (1 << 63)
 
 @pytest.mark.parametrize('tests', [tests])
 def test_read_uint(tests):

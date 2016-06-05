@@ -255,6 +255,9 @@ class KClient:
     def recv_uint32(self):
         return self.recv_int(4)
 
+    def recv_uint64(self):
+        return self.recv_int(8, fmt='L')
+
     def recv_int32(self):
         return self.recv_int(4, fmt='i')
         

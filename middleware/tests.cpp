@@ -87,7 +87,7 @@ std::tuple<int, float, double> Tests::get_tuple()
     return std::make_tuple(2, 3.14159F, 2345.6);
 }
 
-uint64_t           Tests::read64()         { return (1ULL << 63);       }
+uint64_t           Tests::read_uint64()    { return (1ULL << 63);       }
 int                Tests::read_int()       { return -214748364;         }
 unsigned int       Tests::read_uint()      { return 301062138;          }
 unsigned long      Tests::read_ulong()     { return 2048;               }
