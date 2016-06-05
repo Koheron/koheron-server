@@ -372,6 +372,16 @@ int kclient_read_u32(struct kclient *kcl, uint32_t *rcv_uint)
     return 0;
 }
 
+int kclient_read_u64(struct kclient *kcl, uint64_t *rcv_uint64)
+{
+    uint32_t u1, u2;
+    if (kclient_read_u32(kcl, &u1) < 0 || kclient_read_u32(kcl, &u2) < 0)
+        return -1;
+
+    *rcv_uint64 = (uint64_t)u1 + ((uint64_t)u2 << 32);
+    return 0;
+}
+
 int kclient_read_u32_big_endian(struct kclient *kcl, uint32_t *rcv_uint)
 {
     if (kclient_rcv_n_bytes(kcl, sizeof(uint32_t)) < 0)
@@ -389,6 +399,42 @@ int kclient_read_int(struct kclient *kcl, int32_t *rcv_int)
 
     *rcv_int = (int32_t) ((unsigned char)kcl->buffer[0] + ((unsigned char)kcl->buffer[1] << 8)
                 + ((unsigned char)kcl->buffer[2] << 16) + ((unsigned char)kcl->buffer[3] << 24));
+    return 0;
+}
+
+int kclient_read_float(struct kclient *kcl, float *rcv_float)
+{
+    assert(sizeof(float) == 4);
+    uint32_t rcv_uint;
+
+    if (kclient_read_u32(kcl, &rcv_uint) < 0)
+        return -1;
+
+    // http://stackoverflow.com/questions/3991478/building-a-32bit-float-out-of-its-4-composite-bytes-c
+    union {
+      uint32_t b;
+      float f; 
+    } u = {rcv_uint};
+
+    *rcv_float = u.f;
+    return 0;
+}
+
+int kclient_read_double(struct kclient *kcl, double *rcv_double)
+{
+    assert(sizeof(double) == 8);
+    uint64_t rcv_uint;
+
+    if (kclient_read_u64(kcl, &rcv_uint) < 0)
+        return -1;
+
+    // http://stackoverflow.com/questions/3991478/building-a-32bit-float-out-of-its-4-composite-bytes-c
+    union {
+      uint64_t b;
+      double d; 
+    } u = {rcv_uint};
+
+    *rcv_double = u.d;
     return 0;
 }
 

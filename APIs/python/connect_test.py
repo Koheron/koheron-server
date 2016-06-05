@@ -17,12 +17,24 @@ class Tests:
         return client.recv_bool()
 
     @command('TESTS')
+    def read_uint64(self):
+        return client.recv_uint64()
+
+    @command('TESTS')
     def read_uint(self):
         return client.recv_uint32()
 
     @command('TESTS')
     def read_int(self):
         return client.recv_int32()
+
+    @command('TESTS')
+    def read_float(self):
+        return client.recv_float()
+
+    @command('TESTS')
+    def read_double(self):
+        return client.recv_double()
 
     @command('TESTS')
     def send_std_array(self):
@@ -62,13 +74,24 @@ def test_send_many_params(tests):
     assert tests.rcv_many_params(429496729, 2048, 3.14, True)
 
 @pytest.mark.parametrize('tests', [tests])
+def test_read_uint64(tests):
+    assert tests.read_uint64() == (1 << 63)
+
+@pytest.mark.parametrize('tests', [tests])
 def test_read_uint(tests):
     assert tests.read_uint() == 301062138
 
 @pytest.mark.parametrize('tests', [tests])
 def test_read_int(tests):
-    print tests.read_int()
     assert tests.read_int() == -214748364
+
+@pytest.mark.parametrize('tests', [tests])
+def test_read_float(tests):
+    assert abs(tests.read_float() - 3.141592) < 1E-7
+
+@pytest.mark.parametrize('tests', [tests])
+def test_read_double(tests):
+    assert abs(tests.read_double() - 2.2250738585072009) < 1E-14
 
 @pytest.mark.parametrize('tests', [tests])
 def test_set_float(tests):

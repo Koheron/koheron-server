@@ -218,6 +218,14 @@ int kclient_read_string(struct kclient *kcl);
 int kclient_read_u32(struct kclient *kcl, uint32_t *rcv_uint);
 
 /**
+ * kclient_read_u64 - Read a little endian uint64_t
+ * @rcv_uint64: Pointer to the received number
+ *
+ * Returns 0 on success and -1 if failure.
+ */
+int kclient_read_u64(struct kclient *kcl, uint64_t *rcv_uint64);
+
+/**
  * kclient_read_u32 - Read a big endian uint32_t
  * @rcv_uint: Pointer to the received number
  *
@@ -232,6 +240,22 @@ int kclient_read_u32_big_endian(struct kclient *kcl, uint32_t *rcv_uint);
  * Returns 0 on success and -1 if failure.
  */
 int kclient_read_int(struct kclient *kcl, int32_t *rcv_int);
+
+/**
+ * kclient_read_float - Read a float
+ * @rcv_float: Pointer to the received number
+ *
+ * Returns 0 on success and -1 if failure.
+ */
+int kclient_read_float(struct kclient *kcl, float *rcv_float);
+
+/**
+ * kclient_read_double - Read a double
+ * @rcv_double: Pointer to the received number
+ *
+ * Returns 0 on success and -1 if failure.
+ */
+int kclient_read_double(struct kclient *kcl, double *rcv_double);
 
 /**
  * kclient_read_bool - Read a boolean

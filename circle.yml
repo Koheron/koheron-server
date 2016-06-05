@@ -12,7 +12,7 @@ test:
   pre:
     - docker run jeanminet/tcp-server bash docker_tests.sh
 
-#deployment:
+# deployment:
 #  hub:
 #    branch: v0.4
 #    commands:

@@ -36,12 +36,13 @@ class Tests
     std::tuple<int, float, double> get_tuple();
 
     // Send numbers
-    uint64_t read64();
+    uint64_t read_uint64();
     int read_int();
     unsigned int read_uint();
     unsigned long read_ulong();
     unsigned long long read_ulonglong();
     float read_float();
+    double read_double();
     bool read_bool();
 
     std::vector<float> data;
