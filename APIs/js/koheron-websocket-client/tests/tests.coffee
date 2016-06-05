@@ -26,6 +26,8 @@ class Tests
             set_buffer      : @device.getCmdRef( "SET_BUFFER"      )
             read_uint       : @device.getCmdRef( "READ_UINT"       )
             read_int        : @device.getCmdRef( "READ_INT"        )
+            read_float      : @device.getCmdRef( "READ_FLOAT"      )
+            read_double     : @device.getCmdRef( "READ_DOUBLE"     )
             get_cstr        : @device.getCmdRef( "GET_CSTR"        )
             get_tuple       : @device.getCmdRef( "GET_TUPLE"       )
 
@@ -57,6 +59,12 @@ class Tests
 
     readInt : (cb) ->
         @kclient.readInt32(Command(@id, @cmds.read_int), cb)
+
+    readFloat : (cb) ->
+        @kclient.readFloat32(Command(@id, @cmds.read_float), cb)
+
+    readDouble : (cb) ->
+        @kclient.readFloat64(Command(@id, @cmds.read_double), cb)
 
     readString : (cb) ->
         @kclient.readString(Command(@id, @cmds.get_cstr), cb)
@@ -104,6 +112,34 @@ exports.readInt = (assert) ->
             tests = new Tests(client)
             tests.readInt( (num) =>
                 assert.equals(num, -214748364)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.readFloat = (assert) ->
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.readFloat( (num) =>
+                assert.ok(Math.abs(num - 3.141592) < 1e-7)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.readDouble = (assert) ->
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.readDouble( (num) =>
+                assert.ok(Math.abs(num - 2.2250738585072009) < 1e-14)
                 client.exit()
                 assert.done()
             )

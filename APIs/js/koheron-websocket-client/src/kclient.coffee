@@ -313,6 +313,28 @@ class @KClient
                 @websockpool.freeSocket(sockid)
         )
 
+    readFloat32: (cmd, fn) ->
+        @websockpool.requestSocket( (sockid) =>
+            websocket = @websockpool.getSocket(sockid)
+            websocket.send(cmd)
+
+            websocket.onmessage = (evt) =>
+                array = new Float32Array evt.data
+                fn(array[0])
+                @websockpool.freeSocket(sockid)
+        )
+
+    readFloat64: (cmd, fn) ->
+        @websockpool.requestSocket( (sockid) =>
+            websocket = @websockpool.getSocket(sockid)
+            websocket.send(cmd)
+
+            websocket.onmessage = (evt) =>
+                array = new Float64Array evt.data
+                fn(array[0])
+                @websockpool.freeSocket(sockid)
+        )
+
     readBool: (cmd, fn) ->
         @readUint32(cmd, (num) ->
             fn(num == 1)

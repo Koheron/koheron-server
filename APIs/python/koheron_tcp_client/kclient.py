@@ -247,7 +247,7 @@ class KClient:
                 if err_msg is not None:
                     if data_recv[:len(err_msg)] == err_msg:
                         raise RuntimeError("kclient-recv_int: No data available")
-						
+
                 return struct.unpack(fmt, data_recv)[0]
         except:
             raise RuntimeError("kclient-recv_int: Reception error")
@@ -260,10 +260,10 @@ class KClient:
 
     def recv_int32(self):
         return self.recv_int(4, fmt='i')
-        
+
     def recv_float(self):
         return self.recv_int(4, fmt='f')
-        
+
     def recv_double(self):
         return self.recv_int(8, fmt='d')
 
@@ -485,7 +485,6 @@ class Commands:
 
         for device in self.devices:
             device.show()
-
 
 class DevParam:
     """ Device parameters
