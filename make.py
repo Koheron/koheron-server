@@ -12,20 +12,9 @@ from shutil import rmtree, copyfile, copytree
 
 from devgen import Device, device_table
 
-SRC_DIR = 'tmp'
-DEV_DIR = SRC_DIR + '/devices'
-
-def init_src_dir(middleware_path):
-    if os.path.isdir(SRC_DIR):
-        rmtree(SRC_DIR)
-
-    copytree('core', os.path.join(SRC_DIR, 'core'))
-    os.remove(os.path.join(SRC_DIR, 'core/Makefile'))
-    os.remove(os.path.join(SRC_DIR, 'core/main.cpp'))
-    copytree(middleware_path, os.path.join(SRC_DIR, 'middleware'))
-    copyfile('core/main.cpp', os.path.join(SRC_DIR, 'main.cpp'))
-    os.makedirs(DEV_DIR)
-
+TMP = 'tmp'
+DEV_DIR = TMP + '/devices'
+ 
 def render_makefile(obj_files):
     print "Generate Makefile"
     makefile_renderer = jinja2.Environment(
@@ -34,7 +23,7 @@ def render_makefile(obj_files):
 
     template = makefile_renderer.get_template('core/Makefile')
     date = time.strftime("%c")
-    makefile_filename = os.path.join(SRC_DIR, 'Makefile')
+    makefile_filename = os.path.join(TMP, 'Makefile')
 
     output = file(makefile_filename, 'w')
     output.write(template.render(date=date, objs_list=obj_files))
@@ -73,9 +62,9 @@ def compile(config, middleware_path):
     print "Compiling ..."
 
     if "host" in config:
-        subprocess.check_call("make -C " + SRC_DIR + " TARGET_HOST=" + config["host"] + " clean all", shell=True)
+        subprocess.check_call("make -C " + TMP + " TARGET_HOST=" + config["host"], shell=True)
     elif "cross-compile" in config:
-        subprocess.check_call("make -C " + SRC_DIR + " CROSS_COMPILE=" + config["cross-compile"] + " clean all", shell=True)
+        subprocess.check_call("make -C " + TMP + " CROSS_COMPILE=" + config["cross-compile"], shell=True)
     else:
         raise ValueError("Specify a target host or a cross-compilation toolchain")
 
@@ -83,7 +72,6 @@ def main(argv):
     with open(argv[0]) as config_file:    
         config = yaml.load(config_file)
 
-    init_src_dir(argv[1])
     devices, obj_files = generate(config["devices"], os.path.dirname(argv[0]))
     render_makefile(obj_files)
     render_device_table(devices)
