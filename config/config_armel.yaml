@@ -12,5 +12,5 @@ arch_flags:
   - mtune=cortex-a9
 
 devices:
-    - ../middleware/drivers/device_memory.hpp
+    - ../tmp/middleware/drivers/device_memory.hpp
     - ../middleware/tests.hpp

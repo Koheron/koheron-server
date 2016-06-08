@@ -58,12 +58,6 @@ TARGET=kserverd
 # Toolchains
 # --------------------------------------------------------------
 
-ifeq ($(TARGET_HOST),local)
-  DEFINES += -DLOCAL
-endif
-
-# Main GCC executable (used for compiling and linking)
-
 # Use Link Time Optimization
 CC=$(CROSS_COMPILE)gcc -flto
 CCPP=$(CROSS_COMPILE)g++ -flto
@@ -71,6 +65,10 @@ CCPP=$(CROSS_COMPILE)g++ -flto
 # --------------------------------------------------------------
 # GCC compiling & linking flags
 # --------------------------------------------------------------
+
+ifeq ($(TARGET_HOST),local)
+  DEFINES += -DLOCAL
+endif
 
 DEFINES += -DDEBUG_KSERVER 
 #DEFINES += -DRELEASE_KSERVER
@@ -104,21 +102,16 @@ LIBS = -lm # -lpthread -lssl -lcrypto
 # Targets
 # --------------------------------------------------------------
 
-# Main Makefile target 'all' - it iterates over all targets listed in $(TARGET)
-# variable.
 all: $(TARGET)
 
-# Target with compilation rules to compile object from source files
 %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@
 	
 %.o: %.cpp
 	$(CCPP) -c $(CPPFLAGS) $< -o $@
 
-# Makefile target with rules how to link executable for each target from $(TARGET) list.
 $(TARGET): $(OBJS)
 	$(CCPP) -o $@ $^ $(CPPFLAGS) $(LIBS)
 
-# Clean target - when called it cleans all object files and executables.
 clean:
 	rm -f $(TARGET) *.o $(OBJS)
