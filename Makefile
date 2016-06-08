@@ -21,6 +21,11 @@ else
 	PYTHON=python
 endif
 
+ARCH_FLAGS:=$(shell $(PYTHON) $(MAKE_PY) --arch-flags $(CONFIG) && cat $(TMP)/.arch-flags)
+DEFINES:=$(shell $(PYTHON) $(MAKE_PY) --defines $(CONFIG) && cat $(TMP)/.defines)
+CROSS_COMPILE:=$(shell $(PYTHON) $(MAKE_PY) --cross-compile $(CONFIG) && cat $(TMP)/.cross-compile)
+HOST:=$(shell $(PYTHON) $(MAKE_PY) --host $(CONFIG) && cat $(TMP)/.host)
+
 current_dir := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 
 all: kserverd
@@ -62,7 +67,7 @@ endif
 
 kserverd: venv libraries $(TMP) $(MAKE_PY)
 	$(PYTHON) $(MAKE_PY) --generate $(CONFIG)
-	$(PYTHON) $(MAKE_PY) --compile $(CONFIG)
+	make -C $(TMP) TARGET_HOST=$(HOST) CROSS_COMPILE=$(CROSS_COMPILE) DEFINES=$(DEFINES) ARCH_FLAGS=$(ARCH_FLAGS)
 
 clean:
 	rm -rf $(TMP)

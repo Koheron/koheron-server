@@ -43,12 +43,12 @@ def render_device_table(devices):
     output.write(template.render(devices=devices))
     output.close()
 
-def generate(devices_list, base_dir):
+def generate(devices_list):
     devices = [] # List of generated devices
     obj_files = []  # Object file names
 
     for path in devices_list:       
-        device = Device(path, base_dir)
+        device = Device(path)
         
         print "Generate " + device.name
         device.Generate(DEV_DIR)
@@ -57,26 +57,37 @@ def generate(devices_list, base_dir):
 
     return devices, obj_files
 
-def compile(config):
-    arch_flags = '"-' + ' -'.join(config['arch_flags']) + '"'
-    defines = '"-D' + ' -D'.join(config['defines']) + '"'
-    subprocess.check_call('make -C ' + TMP + ' TARGET_HOST=' + config['host'] 
-                                           + ' CROSS_COMPILE=' + config['cross-compile'] 
-                                           + ' DEFINES=' + defines
-                                           + ' ARCH_FLAGS=' + arch_flags, shell=True)
-
 def main(argv):
     cmd = argv[0]
 
-    with open(argv[1]) as config_file:    
+    tmp_dir = 'tmp'
+    if not os.path.exists(tmp_dir):
+        os.makedirs(tmp_dir)
+
+    with open(argv[1]) as config_file:
         config = yaml.load(config_file)
 
     if cmd == '--generate':
-        devices, obj_files = generate(config["devices"], '.')
+        devices, obj_files = generate(config["devices"])
         render_makefile(obj_files)
         render_device_table(devices)
-    elif cmd == '--compile':
-        compile(config)
+
+    elif cmd == '--host':
+        with open('tmp/.host', 'w') as f:
+            f.write(config['host'])
+
+    elif cmd == '--cross-compile':
+        with open('tmp/.cross-compile', 'w') as f:
+            f.write(config['cross-compile'])
+
+    elif cmd == '--arch-flags':
+        with open('tmp/.arch-flags', 'w') as f:
+            f.write('"-' + ' -'.join(config['arch_flags']) + '"')
+
+    elif cmd == '--defines':
+        with open('tmp/.defines', 'w') as f:
+            f.write('"-D' + ' -D'.join(config['defines']) + '"')
+
     else:
         raise ValueError('Unknown command')
 
