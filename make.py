@@ -2,17 +2,26 @@
 
 # (c) Koheron
 
+import os
 import sys
-from devgen import Device, Generator
+import yaml
+import subprocess
 
-usage = \
-"""
-usage: kmake.py [-h|--help] [<options> [cfg_file]]
+from devgen import Generator
 
-options:
- -g, --generate            Generate the source files
- -c, --generate-compile    Generate the sources and compile KServer
-"""
+
+def compile(config_filename, middleware_path):
+    with open(config_filename) as config_file:    
+        config = yaml.load(config_file)
+
+    print "Compiling ..."
+
+    if "host" in config:
+        subprocess.check_call("make -C tmp/server TARGET_HOST=" + config["host"] + " clean all", shell=True)
+    elif "cross-compile" in config:
+        subprocess.check_call("make -C tmp/server CROSS_COMPILE=" + config["cross-compile"] + " clean all", shell=True)
+    else:
+        raise ValueError("Specify a target host or a cross-compilation toolchain")
 
 def main(argv):
     if (argv[0] == '-g') or (argv[0] == '--generate'):
@@ -21,11 +30,7 @@ def main(argv):
 
     elif (argv[0] == '-c') or (argv[0] == '--generate-compile'):
         generator = Generator(argv[1], argv[2])
-        generator.compile()
-        return
-
-    elif argv[0] == '-h' or argv[0] == '--help':
-        print usage
+        compile(argv[1], argv[2])
         return
 
     else:

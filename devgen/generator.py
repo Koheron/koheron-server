@@ -4,7 +4,6 @@
 
 import os
 import yaml
-import subprocess
 import jinja2
 import time
 from shutil import rmtree, copyfile, copytree
@@ -13,7 +12,7 @@ from device import Device
 import device_table
 
 class Generator:
-    def __init__(self, config_filename, middleware_path='middleware', src_dir='tmp/server'):
+    def __init__(self, config_filename, middleware_path, src_dir='tmp/server'):
         """ Generate the KServer sources
         
             Args:
@@ -22,36 +21,29 @@ class Generator:
         """
         # Set-up directories
         self.src_dir = src_dir
-        self.middleware_path = middleware_path
         self.dev_dir = os.path.join(self.src_dir, 'devices')
         
         if os.path.isdir(self.src_dir):
             rmtree(self.src_dir)
 
         os.makedirs(self.dev_dir)
-    
+
         # Load configuration file
         with open(config_filename) as config_file:    
             config = yaml.load(config_file)
-            
-        if "host" in config:
-            self.host = config["host"]
-        else:
-            self.host = None
-            
-        if "cross-compile" in config:
-            self.cross_compile = config["cross-compile"]
-        else:
-            self.cross_compile = None
-            
-        if self.host == None and self.cross_compile == None:
-            raise ValueError("Specify a target host or a cross-compilation toolchain")
-                
+
+        # Copy core cpp files and middleware in src_dir
+        copytree('core', os.path.join(self.src_dir, 'core'))
+        os.remove(os.path.join(self.src_dir, 'core/Makefile'))
+        os.remove(os.path.join(self.src_dir, 'core/main.cpp'))
+        copytree(middleware_path, os.path.join(self.src_dir, 'middleware'))
+        copyfile('core/main.cpp', os.path.join(self.src_dir, 'main.cpp'))
+
         # Generate devices
         base_dir = os.path.dirname(config_filename)
         devices = [] # List of generated devices
         self.obj_files = []  # Object file names
-        
+
         for path in config["devices"]:       
             device = Device(path, base_dir)
             
@@ -61,45 +53,16 @@ class Generator:
             devices.append(device)
             self.obj_files.append(os.path.join('devices', 
                                                device.class_name.lower()+'.o'))
-         
+
         print "Generate device table"
         device_table.PrintDeviceTable(devices, self.dev_dir)
-        
         self._render_devices_header(devices)
-        
-    def compile(self):
-        """ Compile KServer
-    
-        Args:
-            objects: name of the object files to be compiled
-        """
-        # Copy core cpp files and middleware in src_dir
-        copytree('core', os.path.join(self.src_dir, 'core'))
-        os.remove(os.path.join(self.src_dir, 'core/Makefile'))
-        os.remove(os.path.join(self.src_dir, 'core/main.cpp'))
-        
-        print self.middleware_path
-        print os.path.join(self.src_dir, 'middleware')
-        
-        copytree(self.middleware_path, os.path.join(self.src_dir, 'middleware'))
-        copyfile('core/main.cpp', os.path.join(self.src_dir, 'main.cpp'))
 
-        # Generate Makefile
         print "Generate Makefile"
         self._render_makefile('core/Makefile')
-          
-        # Call g++
-        print "Compiling ..."
-        
-        if self.host != None:
-            subprocess.check_call("make -C tmp/server TARGET_HOST=" + self.host + " clean all", shell=True)
-        
-        if self.cross_compile != None:
-            subprocess.check_call("make -C tmp/server CROSS_COMPILE=" + self.cross_compile + " clean all", shell=True)
-        
+
     def _render_makefile(self, template_filename):
         """ Generate the template for KServer makefile
-
         Args:
             - template_filename: name to the Makefile template
         """
@@ -127,5 +90,3 @@ class Generator:
         output = file(header_filename, 'w')
         output.write(template.render(devices=devices))
         output.close()
-
-        
