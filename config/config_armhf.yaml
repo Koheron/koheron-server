@@ -14,7 +14,10 @@ arch_flags:
   #- mfpu=neon
   - mfloat-abi=hard
 
+defines:
+  - DEBUG_KSERVER
+  # - RELEASE_KSERVER
+
 devices:
     - ../tmp/middleware/drivers/device_memory.hpp
     - ../middleware/tests.hpp
-

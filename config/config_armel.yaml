@@ -11,6 +11,10 @@ arch_flags:
   - march=armv7-a
   - mtune=cortex-a9
 
+defines:
+  - DEBUG_KSERVER
+  # - RELEASE_KSERVER
+
 devices:
     - ../tmp/middleware/drivers/device_memory.hpp
     - ../middleware/tests.hpp

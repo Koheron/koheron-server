@@ -10,6 +10,7 @@ MAKEFLAGS += --jobs=$(CPUS)
 
 CROSS_COMPILE=
 ARCH_FLAGS=
+DEFINES=
 
 ADD_DEBUG_FLAGS = false
 
@@ -65,13 +66,6 @@ CCPP=$(CROSS_COMPILE)g++ -flto
 # --------------------------------------------------------------
 # GCC compiling & linking flags
 # --------------------------------------------------------------
-
-ifeq ($(TARGET_HOST),local)
-  DEFINES += -DLOCAL
-endif
-
-DEFINES += -DDEBUG_KSERVER 
-#DEFINES += -DRELEASE_KSERVER
 
 CFLAGS= -Wall -Werror -Wno-unknown-pragmas \
         -I$(MIDWARE_INC_PATH) -I$(MIDWARE_INC_PATH)/libraries $(DEFINES)

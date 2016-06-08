@@ -57,11 +57,14 @@ def generate(devices_list, base_dir):
 
     return devices, obj_files
 
+
 def compile(config):
-    arch_flags = '-' + ' -'.join(config['arch_flags'])
+    arch_flags = '"-' + ' -'.join(config['arch_flags']) + '"'
+    defines = '"-D' + ' -D'.join(config['defines']) + '"'
     subprocess.check_call('make -C ' + TMP + ' TARGET_HOST=' + config['host'] 
                                            + ' CROSS_COMPILE=' + config['cross-compile'] 
-                                           + ' ARCH_FLAGS="' + arch_flags + '"', shell=True)
+                                           + ' DEFINES=' + defines
+                                           + ' ARCH_FLAGS=' + arch_flags, shell=True)
 
 def main(argv):
     with open(argv[0]) as config_file:    

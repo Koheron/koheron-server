@@ -14,7 +14,11 @@ cross-compile: ""
 arch_flags:
   - march=native
 
+defines:
+  - DEBUG_KSERVER
+  # - RELEASE_KSERVER
+  - LOCAL
+
 devices:
     - ../middleware/tests.hpp
     #- ../middleware/eigen_tests.hpp
-
