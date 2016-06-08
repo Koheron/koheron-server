@@ -1,5 +1,3 @@
-# 'make' builds everything
-# 'make clean' deletes everything except source files and Makefile
 
 CONFIG=config_local.yaml
 
@@ -10,6 +8,8 @@ USE_EIGEN = False
 TMP = tmp
 CORE = core
 MIDDLEWARE = middleware
+
+MAKE_PY = make.py
 
 ZYNQ_SDK = $(TMP)/zynq-sdk
 
@@ -39,7 +39,7 @@ $(TMP): $(CORE) $(MIDDLEWARE) $(ZYNQ_SDK)
 	cp $(CORE)/main.cpp $(TMP)/main.cpp
 
 ifeq ($(BUILD_LOCAL),True)
-	mkdir -p $(MIDDLEWARE)/drivers/lib
+	mkdir -p $(TMP)/middleware/drivers/lib
 	cp -r $(ZYNQ_SDK)/drivers/lib/. $(TMP)/middleware/drivers/lib
 	cp -r $(ZYNQ_SDK)/drivers/device_memory/. $(TMP)/middleware/drivers
 endif
@@ -60,8 +60,8 @@ else
 	$(PIP) install -r $(current_dir)/requirements.txt
 endif
 
-kserverd: venv libraries $(TMP)
-	$(PYTHON) make.py config/$(CONFIG) $(MIDDLEWARE)
+kserverd: venv libraries $(TMP) $(MAKE_PY)
+	$(PYTHON) $(MAKE_PY) config/$(CONFIG) $(MIDDLEWARE)
 
 clean:
 	rm -rf $(TMP)

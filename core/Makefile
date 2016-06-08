@@ -61,9 +61,9 @@ TARGET=kserverd
 # --------------------------------------------------------------
 
 ifeq ($(TARGET_HOST),armhf)
-  CROSS_COMPILE?=arm-linux-gnueabihf-
+  CROSS_COMPILE?=/usr/bin/arm-linux-gnueabihf-
 else ifeq ($(TARGET_HOST),armel)
-  CROSS_COMPILE?=arm-linux-gnueabi-
+  CROSS_COMPILE?=/usr/bin/arm-linux-gnueabi-
   #CROSS_COMPILE?=arm-xilinx-linux-gnueabi-
 else ifeq ($(TARGET_HOST),local)
   CROSS_COMPILE?=

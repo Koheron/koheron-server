@@ -8,7 +8,6 @@ import yaml
 import jinja2
 import time
 import subprocess
-from shutil import rmtree, copyfile, copytree
 
 from devgen import Device, device_table
 
@@ -58,15 +57,9 @@ def generate(devices_list, base_dir):
 
     return devices, obj_files
 
-def compile(config, middleware_path):
-    print "Compiling ..."
-
-    if "host" in config:
-        subprocess.check_call("make -C " + TMP + " TARGET_HOST=" + config["host"], shell=True)
-    elif "cross-compile" in config:
-        subprocess.check_call("make -C " + TMP + " CROSS_COMPILE=" + config["cross-compile"], shell=True)
-    else:
-        raise ValueError("Specify a target host or a cross-compilation toolchain")
+def compile(host):
+    print "HOST = " + host
+    subprocess.check_call("make -C " + TMP + " TARGET_HOST=" + host, shell=True)
 
 def main(argv):
     with open(argv[0]) as config_file:    
@@ -75,7 +68,7 @@ def main(argv):
     devices, obj_files = generate(config["devices"], os.path.dirname(argv[0]))
     render_makefile(obj_files)
     render_device_table(devices)
-    compile(config, argv[1])
+    compile(config["host"])
 
 if __name__ == "__main__":
         main(sys.argv[1:])
