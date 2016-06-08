@@ -76,6 +76,18 @@ def main(argv):
         with open('tmp/.host', 'w') as f:
             f.write(config['host'])
 
+    elif cmd == '--devices':
+        cpp_files = []
+        for dev in config['devices']:
+            cpp_filename = os.path.join(os.path.dirname(dev), 
+                                        os.path.basename(dev).split('.')[0] + '.cpp')
+            if os.path.exists(cpp_filename):
+                cpp_files.append(cpp_filename)
+
+        with open('tmp/.devices', 'w') as f:
+            f.write(' '.join(config['devices']))
+            f.write(' ' + ' '.join(cpp_files))
+
     elif cmd == '--cross-compile':
         with open('tmp/.cross-compile', 'w') as f:
             f.write(config['cross-compile'])

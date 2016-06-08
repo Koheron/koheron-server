@@ -19,5 +19,5 @@ defines:
   # - RELEASE_KSERVER
 
 devices:
-    - tmp/middleware/drivers/device_memory.hpp
-    - middleware/tests.hpp
+    - tmp/zynq-sdk/drivers/device_memory/device_memory.hpp
+    - tests/tests.hpp

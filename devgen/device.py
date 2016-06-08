@@ -10,14 +10,8 @@ import autogen_implementation
 from middleware_handler import MiddlewareHandler
 
 def GetClassName(dev_name):
-    """ Build the C++ kdevice class name
-
-    Args:
-        - dev_name: Name of the device
-    """
     return 'KS_' + dev_name[0].upper() + dev_name[1:].lower()
 
-# Helper function to test fields
 def IsFlags(operation):
     """ Test whether flags are defined for a given operation """
     return ("flags" in operation) and (operation["flags"] != None)
@@ -33,35 +27,22 @@ def IsDefaultVal(arg):
 def IsReturn(operation):
     """ Test whether a return description are defined for a given operation """
     return ("return" in operation) and (operation["return"] != None)
-    
+
 def IsDesc(operation):
     """ Test whether a description is associated to a given operation """
     return ("description" in operation) and (operation["description"] != None)
 
 class Device:
-    """ Device
-    Loads and stores the description and fragments of a device.
-    Generate the code associated with the device.
-    """
-    def __init__(self, path, base_dir='.'):
-        """ Load a device
-
-        If a C++ header file is provided, the device description data and the
-        fragments will be automatically generated from it.
-
-        Args:
-            - path: Device filename (either a YAML or a C++ header file)
-            - base_dir: XXX Do I really need that ?
-        """    
+    def __init__(self, path, base_dir='tmp/middleware'):
         extension = os.path.basename(path).split('.')[1]
-        path = os.path.join(base_dir, path)
+        path = os.path.join(base_dir, os.path.basename(path))
 
         if extension == "hpp" or extension == "h":
             print "Generating device description for " + path + "..."
             mid_handler = MiddlewareHandler(path)
             self._data = mid_handler.get_device_data()
             self.fragments = mid_handler.get_fragments()
-            
+
             self.operations = Operations(self._data["operations"])
             self.name = self._data["name"]
             self.class_name = GetClassName(self.name)
@@ -72,11 +53,7 @@ class Device:
         self.objects = Objects(self._data["objects"])
         self.includes = Includes(self._data["includes"])
 
-    def Generate(self, directory):   
-        """ Generate source code
-        Args:
-            directory: Directory where the generated sources must be saved
-        """
+    def Generate(self, directory):
         self._render_ks_device_header(directory)          # Generate KServer header file (hpp)
         autogen_implementation.Generate(self, directory)  # Generate KServer implementation (cpp)
 

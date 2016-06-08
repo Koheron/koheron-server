@@ -20,5 +20,5 @@ defines:
   - LOCAL
 
 devices:
-    - middleware/tests.hpp
+    - tests/tests.hpp
     #- middleware/eigen_tests.hpp

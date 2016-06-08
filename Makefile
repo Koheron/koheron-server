@@ -7,7 +7,6 @@ USE_EIGEN = False
 
 TMP = tmp
 CORE = core
-MIDDLEWARE = middleware
 
 MAKE_PY = make.py
 
@@ -25,28 +24,31 @@ ARCH_FLAGS:=$(shell $(PYTHON) $(MAKE_PY) --arch-flags $(CONFIG) && cat $(TMP)/.a
 DEFINES:=$(shell $(PYTHON) $(MAKE_PY) --defines $(CONFIG) && cat $(TMP)/.defines)
 CROSS_COMPILE:=$(shell $(PYTHON) $(MAKE_PY) --cross-compile $(CONFIG) && cat $(TMP)/.cross-compile)
 HOST:=$(shell $(PYTHON) $(MAKE_PY) --host $(CONFIG) && cat $(TMP)/.host)
+DEVICES:=$(shell $(PYTHON) $(MAKE_PY) --devices $(CONFIG) && cat $(TMP)/.devices)
 
 current_dir := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 
 all: kserverd
 
 $(ZYNQ_SDK):
+ifeq ($(BUILD_LOCAL),True)
 	git clone https://github.com/Koheron/zynq-sdk.git $(ZYNQ_SDK)
 	cd $(ZYNQ_SDK) && git checkout master
+endif
 
-$(TMP): $(CORE) $(MIDDLEWARE) $(ZYNQ_SDK)
+$(TMP): $(ZYNQ_SDK) $(CORE) $(DEVICES)
 	mkdir -p $(TMP)
 	mkdir -p $(TMP)/devices
+	mkdir -p $(TMP)/middleware
 	cp -r $(CORE) $(TMP)/core
 	rm -f $(TMP)/core/Makefile
 	rm -f $(TMP)/core/main.cpp
-	cp -r $(MIDDLEWARE) $(TMP)/middleware
 	cp $(CORE)/main.cpp $(TMP)/main.cpp
+	cp -r $(DEVICES) $(TMP)/middleware
 
 ifeq ($(BUILD_LOCAL),True)
 	mkdir -p $(TMP)/middleware/drivers/lib
 	cp -r $(ZYNQ_SDK)/drivers/lib/. $(TMP)/middleware/drivers/lib
-	cp -r $(ZYNQ_SDK)/drivers/device_memory/. $(TMP)/middleware/drivers
 endif
 
 libraries:

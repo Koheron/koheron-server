@@ -39,7 +39,7 @@ OBJS_KSERVER = core/kserver.o              \
                core/kserver_syslog.o       \
                core/signal_handler.o       \
                core/binary_parser.o
-               
+
 # Object in KServer/devices
 OBJS_KS_DEV ?= {% for obj in objs_list %} {{ obj }} {% endfor %}
 
@@ -100,7 +100,7 @@ all: $(TARGET)
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@
-	
+
 %.o: %.cpp
 	$(CCPP) -c $(CPPFLAGS) $< -o $@
 
