@@ -36,7 +36,7 @@ make -C cli TARGET_HOST=local clean all
 make -C APIs/C/tests TARGET_HOST=local clean all
 
 echo "== Start server =="
-nohup tmp/server/kserverd -c config/kserver_docker.conf > /dev/null 2>server.log &
+nohup tmp/kserverd -c config/kserver_docker.conf > /dev/null 2>server.log &
 ps -A | grep -w "kserverd"
 
 echo "== Test CLI =="

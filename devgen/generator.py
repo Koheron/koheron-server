@@ -56,29 +56,9 @@ class Generator:
 
         print "Generate device table"
         device_table.PrintDeviceTable(devices, self.dev_dir)
-        self._render_devices_header(devices)
+        self.render_devices_header(devices)
 
-        print "Generate Makefile"
-        self._render_makefile('core/Makefile')
-
-    def _render_makefile(self, template_filename):
-        """ Generate the template for KServer makefile
-        Args:
-            - template_filename: name to the Makefile template
-        """
-        makefile_renderer = jinja2.Environment(
-          loader = jinja2.FileSystemLoader(os.path.abspath('.'))
-        )
-
-        template = makefile_renderer.get_template(template_filename)
-        date = time.strftime("%c")
-        makefile_filename = os.path.join(self.src_dir, 'Makefile')
-
-        output = file(makefile_filename, 'w')
-        output.write(template.render(date=date, objs_list=self.obj_files))
-        output.close()
-        
-    def _render_devices_header(self, devices):
+    def render_devices_header(self, devices):
         template_filename = 'devgen/templates/devices.hpp'
 
         header_renderer = jinja2.Environment(
