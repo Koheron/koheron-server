@@ -57,9 +57,11 @@ def generate(devices_list, base_dir):
 
     return devices, obj_files
 
-def compile(host):
-    print "HOST = " + host
-    subprocess.check_call("make -C " + TMP + " TARGET_HOST=" + host, shell=True)
+def compile(config):
+    arch_flags = '-' + ' -'.join(config['arch_flags'])
+    subprocess.check_call('make -C ' + TMP + ' TARGET_HOST=' + config['host'] 
+                                           + ' CROSS_COMPILE=' + config['cross-compile'] 
+                                           + ' ARCH_FLAGS="' + arch_flags + '"', shell=True)
 
 def main(argv):
     with open(argv[0]) as config_file:    
@@ -68,7 +70,7 @@ def main(argv):
     devices, obj_files = generate(config["devices"], os.path.dirname(argv[0]))
     render_makefile(obj_files)
     render_device_table(devices)
-    compile(config["host"])
+    compile(config)
 
 if __name__ == "__main__":
         main(sys.argv[1:])

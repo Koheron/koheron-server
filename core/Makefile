@@ -8,10 +8,8 @@
 CPUS = $(shell nproc 2> /dev/null || echo 1)
 MAKEFLAGS += --jobs=$(CPUS)
 
-# TARGET_HOST:
-#    - local For compilation on local machine
-#    - armhf For compilation on armhf architecture
-#    - armel For compilation on armel architecture 
+CROSS_COMPILE=
+ARCH_FLAGS=
 
 ADD_DEBUG_FLAGS = false
 
@@ -60,20 +58,11 @@ TARGET=kserverd
 # Toolchains
 # --------------------------------------------------------------
 
-ifeq ($(TARGET_HOST),armhf)
-  CROSS_COMPILE?=/usr/bin/arm-linux-gnueabihf-
-else ifeq ($(TARGET_HOST),armel)
-  CROSS_COMPILE?=/usr/bin/arm-linux-gnueabi-
-  #CROSS_COMPILE?=arm-xilinx-linux-gnueabi-
-else ifeq ($(TARGET_HOST),local)
-  CROSS_COMPILE?=
+ifeq ($(TARGET_HOST),local)
   DEFINES += -DLOCAL
 endif
 
 # Main GCC executable (used for compiling and linking)
-
-# CC=$(CROSS_COMPILE)gcc
-# CCPP=$(CROSS_COMPILE)g++
 
 # Use Link Time Optimization
 CC=$(CROSS_COMPILE)gcc -flto
@@ -89,19 +78,7 @@ DEFINES += -DDEBUG_KSERVER
 CFLAGS= -Wall -Werror -Wno-unknown-pragmas \
         -I$(MIDWARE_INC_PATH) -I$(MIDWARE_INC_PATH)/libraries $(DEFINES)
 
-MFPU = vfpv3 # Better
-#MFPU = neon # Less good
-
-# Architecture specific flags
-ifeq ($(TARGET_HOST),armhf)
-  ARM_FLAGS = -march=armv7-a -mtune=cortex-a9 -mfpu=$(MFPU) -mfloat-abi=hard
-  CFLAGS += $(ARM_FLAGS)
-else ifeq ($(TARGET_HOST),armel)
-  ARM_FLAGS = -march=armv7-a -mtune=cortex-a9
-  CFLAGS += $(ARM_FLAGS) -D_GLIBCXX_USE_NANOSLEEP
-else ifeq ($(TARGET_HOST),local)
-  CFLAGS += -march=native
-endif
+CFLAGS += $(ARCH_FLAGS)
 
 # Add debug/optimization flags
 ifeq ($(ADD_DEBUG_FLAGS),true)

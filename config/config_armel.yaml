@@ -5,6 +5,12 @@
 # Target host
 host: armel
 
+cross-compile: /usr/bin/arm-linux-gnueabi-
+
+arch_flags:
+  - march=armv7-a
+  - mtune=cortex-a9
+
 devices:
     - ../middleware/drivers/device_memory.hpp
     - ../middleware/tests.hpp

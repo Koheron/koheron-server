@@ -9,6 +9,11 @@
 # Target host
 host: local
 
+cross-compile: ""
+
+arch_flags:
+  - march=native
+
 devices:
     - ../middleware/tests.hpp
     #- ../middleware/eigen_tests.hpp
