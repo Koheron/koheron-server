@@ -6,9 +6,9 @@ set -e
 # ---------------------------------------
 
 # Compile kserverd
-make BUILD_LOCAL=True DOCKER=True CONFIG=config_local.yaml clean all
-make BUILD_LOCAL=True DOCKER=True CONFIG=config_armel.yaml clean all
-make BUILD_LOCAL=True DOCKER=True CONFIG=config_armhf.yaml clean all
+make BUILD_LOCAL=True DOCKER=True CONFIG=config/config_local.yaml clean all
+make BUILD_LOCAL=True DOCKER=True CONFIG=config/config_armel.yaml clean all
+make BUILD_LOCAL=True DOCKER=True CONFIG=config/config_armhf.yaml clean all
 
 # Compile CLI
 make -C cli TARGET_HOST=local clean all
@@ -30,7 +30,7 @@ make -C APIs/js/koheron-websocket-client build
 # ---------------------------------------
 
 # Compile executables in local for tests
-make BUILD_LOCAL=True DOCKER=True CONFIG=config_local.yaml clean all
+make BUILD_LOCAL=True DOCKER=True CONFIG=config/config_local.yaml clean all
 make -C cli TARGET_HOST=local clean all
 make -C APIs/C/tests TARGET_HOST=local clean all
 

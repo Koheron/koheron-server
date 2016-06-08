@@ -1,5 +1,5 @@
 
-CONFIG=config_local.yaml
+CONFIG=config/config_local.yaml
 
 DOCKER=False
 BUILD_LOCAL=False
@@ -61,9 +61,9 @@ else
 endif
 
 kserverd: venv libraries $(TMP) $(MAKE_PY)
-	$(PYTHON) $(MAKE_PY) config/$(CONFIG) $(MIDDLEWARE)
+	$(PYTHON) $(MAKE_PY) --generate $(CONFIG)
+	$(PYTHON) $(MAKE_PY) --compile $(CONFIG)
 
 clean:
 	rm -rf $(TMP)
 	rm -rf venv
-

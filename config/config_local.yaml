@@ -1,10 +1,10 @@
-# Config the server for running tests on localhost
+# Config for running tests on localhost
 #
 # To be compiled on the local computer
 #
 # (c) Koheron
 
-# Local config do not contain dev_mem
+# Local config does not contain dev_mem
 
 # Target host
 host: local
@@ -20,5 +20,5 @@ defines:
   - LOCAL
 
 devices:
-    - ../middleware/tests.hpp
-    #- ../middleware/eigen_tests.hpp
+    - middleware/tests.hpp
+    #- middleware/eigen_tests.hpp

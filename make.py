@@ -57,7 +57,6 @@ def generate(devices_list, base_dir):
 
     return devices, obj_files
 
-
 def compile(config):
     arch_flags = '"-' + ' -'.join(config['arch_flags']) + '"'
     defines = '"-D' + ' -D'.join(config['defines']) + '"'
@@ -67,13 +66,19 @@ def compile(config):
                                            + ' ARCH_FLAGS=' + arch_flags, shell=True)
 
 def main(argv):
-    with open(argv[0]) as config_file:    
+    cmd = argv[0]
+
+    with open(argv[1]) as config_file:    
         config = yaml.load(config_file)
 
-    devices, obj_files = generate(config["devices"], os.path.dirname(argv[0]))
-    render_makefile(obj_files)
-    render_device_table(devices)
-    compile(config)
+    if cmd == '--generate':
+        devices, obj_files = generate(config["devices"], '.')
+        render_makefile(obj_files)
+        render_device_table(devices)
+    elif cmd == '--compile':
+        compile(config)
+    else:
+        raise ValueError('Unknown command')
 
 if __name__ == "__main__":
         main(sys.argv[1:])
