@@ -11,6 +11,14 @@ MIDWARE_PATH = middleware
 REMOTE_DRIVERS = $(MIDWARE_PATH)/drivers
 ZYNQ_SDK_PATH = tmp/zynq-sdk
 
+ifeq ($(DOCKER),False)
+	PIP=venv/bin/pip
+	PYTHON=venv/bin/python
+else
+	PIP=pip
+	PYTHON=python
+endif
+
 current_dir := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 
 all: kserverd
@@ -35,17 +43,13 @@ endif
 venv:
 ifeq ($(DOCKER),False)
 	virtualenv venv
-	venv/bin/pip install -r requirements.txt
+	$(PIP) install -r requirements.txt
 else
-	pip install -r $(current_dir)/requirements.txt
+	$(PIP) install -r $(current_dir)/requirements.txt
 endif
 
 kserverd: venv libraries $(REMOTE_DRIVERS)
-ifeq ($(DOCKER),False)
-	venv/bin/python make.py -c config/$(CONFIG) $(MIDWARE_PATH)
-else
-	python kmake.py -c config/$(CONFIG) $(MIDWARE_PATH)
-endif
+	$(PYTHON) make.py -c config/$(CONFIG) $(MIDWARE_PATH)
 
 clean:
 	rm -rf tmp
