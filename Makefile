@@ -42,9 +42,9 @@ endif
 
 kserverd: venv libraries $(REMOTE_DRIVERS)
 ifeq ($(DOCKER),False)
-	venv/bin/python kmake.py kserver -c config/$(CONFIG) $(MIDWARE_PATH)
+	venv/bin/python make.py -c config/$(CONFIG) $(MIDWARE_PATH)
 else
-	python kmake.py kserver -c config/$(CONFIG) $(MIDWARE_PATH)
+	python kmake.py -c config/$(CONFIG) $(MIDWARE_PATH)
 endif
 
 clean:
