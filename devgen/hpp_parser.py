@@ -1,5 +1,5 @@
 import CppHeaderParser
-    
+
 CSTR_TYPES = ["char *", "char*", "const char *", "const char*"]
 
 def ERROR(line, message):
@@ -100,7 +100,7 @@ def _get_write_array_params(remaining):
         raise ValueError('Line ' + pragma['line_number' ] + ': the length must be an argument')
 
     return array_params
-    
+
 def _get_operation_prototype(method):
     prototype = {}
     prototype['ret_type'] = method['rtnType']
@@ -125,7 +125,7 @@ def _get_is_failed(_class, pragmas):
                 ERROR(pragma['line_number'], 'Failure indicator function must not have argument')
             return prototype
     return None
-        
+
 def _get_device(_class, pragmas):
     device = {}
     device["objects"] = [{
@@ -133,22 +133,21 @@ def _get_device(_class, pragmas):
       "type": str(_class['name'])
     }]
     device["name"] = _class['name']
-    
+
     is_failed_data = _get_is_failed(_class, pragmas)
     if is_failed_data != None:
         device['is_failed'] = is_failed_data
-    
+
     device['operations'] = []
     for method in _class['methods']['public']:
         # We eliminate constructor and destructor
         if method['name'] == _class['name'] or method['name'] == '~' + _class['name']:
             continue
-            
+
         if 'is_failed' in device and method['name'] == device['is_failed']['name']:
             continue
-            
+
         operation = _get_operation(method, pragmas)
         if operation != None:
             device['operations'].append(operation)
     return device
-
