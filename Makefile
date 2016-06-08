@@ -25,6 +25,8 @@ $(ZYNQ_SDK):
 ifeq ($(BUILD_LOCAL),True)
 	git clone https://github.com/Koheron/zynq-sdk.git $(ZYNQ_SDK)
 	cd $(ZYNQ_SDK) && git checkout master
+	mkdir -p $(TMP)/middleware/drivers/lib
+	cp -r $(ZYNQ_SDK)/drivers/lib/. $(TMP)/middleware/drivers/lib
 endif
 
 $(TMP): $(ZYNQ_SDK) $(CORE) $(DEVICES)
@@ -36,11 +38,6 @@ $(TMP): $(ZYNQ_SDK) $(CORE) $(DEVICES)
 	rm -f $(TMP)/core/main.cpp
 	cp $(CORE)/main.cpp $(TMP)/main.cpp
 	cp -r $(DEVICES) $(TMP)/middleware
-
-ifeq ($(BUILD_LOCAL),True)
-	mkdir -p $(TMP)/middleware/drivers/lib
-	cp -r $(ZYNQ_SDK)/drivers/lib/. $(TMP)/middleware/drivers/lib
-endif
 
 libraries:
 ifeq ($(USE_EIGEN),True)
