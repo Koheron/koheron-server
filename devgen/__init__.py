@@ -15,7 +15,6 @@ __author__ = "Koheron SAS"
 __license__ = "AGPL"
 __copyright__ = 'Copyright 2015 Koheron SAS'
 
-from generator import Generator
 from device import Device
 
 __all__ = [ 'Generator',

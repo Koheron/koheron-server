@@ -49,7 +49,7 @@ else
 endif
 
 kserverd: venv libraries $(REMOTE_DRIVERS)
-	$(PYTHON) make.py -c config/$(CONFIG) $(MIDWARE_PATH)
+	$(PYTHON) make.py config/$(CONFIG) $(MIDWARE_PATH)
 
 clean:
 	rm -rf tmp
