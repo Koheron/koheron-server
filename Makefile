@@ -1,7 +1,6 @@
 
 CONFIG=config/config_local.yaml
 
-DOCKER=False
 BUILD_LOCAL=False
 USE_EIGEN = False
 
@@ -12,19 +11,11 @@ MAKE_PY = make.py
 
 ZYNQ_SDK = $(TMP)/zynq-sdk
 
-ifeq ($(DOCKER),False)
-	PIP=venv/bin/pip
-	PYTHON=venv/bin/python
-else
-	PIP=pip
-	PYTHON=python
-endif
-
-ARCH_FLAGS:=$(shell $(PYTHON) $(MAKE_PY) --arch-flags $(CONFIG) && cat $(TMP)/.arch-flags)
-DEFINES:=$(shell $(PYTHON) $(MAKE_PY) --defines $(CONFIG) && cat $(TMP)/.defines)
-CROSS_COMPILE:=$(shell $(PYTHON) $(MAKE_PY) --cross-compile $(CONFIG) && cat $(TMP)/.cross-compile)
-HOST:=$(shell $(PYTHON) $(MAKE_PY) --host $(CONFIG) && cat $(TMP)/.host)
-DEVICES:=$(shell $(PYTHON) $(MAKE_PY) --devices $(CONFIG) && cat $(TMP)/.devices)
+ARCH_FLAGS:=$(shell python $(MAKE_PY) --arch-flags $(CONFIG) && cat $(TMP)/.arch-flags)
+DEFINES:=$(shell python $(MAKE_PY) --defines $(CONFIG) && cat $(TMP)/.defines)
+CROSS_COMPILE:=$(shell python $(MAKE_PY) --cross-compile $(CONFIG) && cat $(TMP)/.cross-compile)
+HOST:=$(shell python $(MAKE_PY) --host $(CONFIG) && cat $(TMP)/.host)
+DEVICES:=$(shell python $(MAKE_PY) --devices $(CONFIG) && cat $(TMP)/.devices)
 
 current_dir := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -59,18 +50,9 @@ ifeq ($(USE_EIGEN),True)
 	cp -r tmp/eigen-eigen-c58038c56923/Eigen $(MIDDLEWARE)/libraries
 endif
 
-venv:
-ifeq ($(DOCKER),False)
-	virtualenv venv
-	$(PIP) install -r requirements.txt
-else
-	$(PIP) install -r $(current_dir)/requirements.txt
-endif
-
-kserverd: venv libraries $(TMP) $(MAKE_PY)
-	$(PYTHON) $(MAKE_PY) --generate $(CONFIG)
+kserverd: libraries $(TMP) $(MAKE_PY)
+	python $(MAKE_PY) --generate $(CONFIG)
 	make -C $(TMP) TARGET_HOST=$(HOST) CROSS_COMPILE=$(CROSS_COMPILE) DEFINES=$(DEFINES) ARCH_FLAGS=$(ARCH_FLAGS)
 
 clean:
 	rm -rf $(TMP)
-	rm -rf venv
