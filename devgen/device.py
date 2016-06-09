@@ -46,6 +46,8 @@ class Device:
             self.name = self._data["name"]
             self.class_name = GetClassName(self.name)
             self.description = self._data["description"]
+        else:
+            return
 
         self.objects = Objects(self._data["objects"])
         self.includes = Includes(self._data["includes"])
