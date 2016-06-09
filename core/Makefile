@@ -45,7 +45,7 @@ OBJS_KSERVER = core/kserver.o              \
 OBJS_KS_DEV ?= {% for obj in objs_list %} {{ obj }} {% endfor %}
 
 # Objects in Middleware
-SRC_MIDWARE = $(shell find middleware -name '*.cpp')
+SRC_MIDWARE = $(shell find $(MIDWARE_INC_PATH) -name '*.cpp')
 OBJS_MIDWARE = $(subst .cpp,.o, $(SRC_MIDWARE))
 
 # All objects 		
@@ -59,14 +59,13 @@ SRCS = $(subst .o,.c, $(OBJS), ))
 
 # Use Link Time Optimization
 CC=$(CROSS_COMPILE)gcc -flto
-CCPP=$(CROSS_COMPILE)g++ -flto
+CCXX=$(CROSS_COMPILE)g++ -flto
 
 # --------------------------------------------------------------
 # GCC compiling & linking flags
 # --------------------------------------------------------------
 
-CFLAGS= -Wall -Werror -Wno-unknown-pragmas \
-        -I$(MIDWARE_INC_PATH) -I$(MIDWARE_INC_PATH)/libraries $(DEFINES)
+CFLAGS= -Wall -Werror -Wno-unknown-pragmas -I$(MIDWARE_INC_PATH) $(DEFINES)
 
 CFLAGS += $(ARCH_FLAGS)
 CFLAGS += $(DEBUG_FLAGS)
@@ -90,10 +89,10 @@ all: $(SERVER)
 	$(CC) -c $(CFLAGS) $< -o $@
 
 %.o: %.cpp
-	$(CCPP) -c $(CXXFLAGS) $< -o $@
+	$(CCXX) -c $(CXXFLAGS) $< -o $@
 
 $(SERVER): $(OBJS)
-	$(CCPP) -o $@ $^ $(CXXFLAGS) $(LIBS)
+	$(CCXX) -o $@ $^ $(CXXFLAGS) $(LIBS)
 
 clean:
 	rm -f $(SERVER) *.o $(OBJS)

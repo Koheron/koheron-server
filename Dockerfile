@@ -41,3 +41,4 @@ WORKDIR $work_dir/
 COPY . $work_dir/
 
 RUN pip install -r $work_dir/requirements.txt
+RUN bash $work_dir/install_eigen.sh
