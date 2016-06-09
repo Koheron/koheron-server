@@ -42,9 +42,6 @@ OBJS_KSERVER = core/kserver.o              \
                core/signal_handler.o       \
                core/binary_parser.o
 
-# Object in KServer/devices
-# OBJS_KS_DEV ?= {% for obj in objs_list %} {{ obj }} {% endfor %}
-
 # Objects in Middleware
 SRC_MIDWARE = $(shell find $(MIDWARE_INC_PATH) -name '*.cpp')
 OBJS_MIDWARE = $(subst .cpp,.o, $(SRC_MIDWARE))

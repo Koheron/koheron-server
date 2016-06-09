@@ -6,7 +6,7 @@
 #define __DEV_DEFINITIONS_HPP__
 
 #include <vector>
-#include "../devices/devices_table.hpp"
+#include "../devices_table.hpp"
 
 namespace kserver {
 

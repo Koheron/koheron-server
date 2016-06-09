@@ -13,26 +13,9 @@ from shutil import copy
 
 from devgen import Device, device_table
 
-TMP = 'tmp'
-DEV_DIR = TMP + '/devices'
-
-def render_makefile(obj_files):
-    print "Generate Makefile"
-    makefile_renderer = jinja2.Environment(
-      loader = jinja2.FileSystemLoader(os.path.abspath('.'))
-    )
-
-    template = makefile_renderer.get_template('core/Makefile')
-    date = time.strftime("%c")
-    makefile_filename = os.path.join(TMP, 'Makefile')
-
-    output = file(makefile_filename, 'w')
-    output.write(template.render(date=date, objs_list=obj_files))
-    output.close()
-
 def render_device_table(devices):
     print "Generate device table"
-    device_table.PrintDeviceTable(devices, DEV_DIR)
+    device_table.PrintDeviceTable(devices, 'tmp')
 
     template_filename = 'devgen/templates/devices.hpp'
 
@@ -41,7 +24,7 @@ def render_device_table(devices):
     )
 
     template = header_renderer.get_template(template_filename)
-    header_filename = os.path.join(DEV_DIR, 'devices.hpp')
+    header_filename = os.path.join('tmp', 'devices.hpp')
     with open(header_filename, 'w') as f:
         f.write(template.render(devices=devices))
 
@@ -55,9 +38,8 @@ def generate(devices_list, midware_path):
             print "Generate " + device.name
             device.Generate(os.path.join(midware_path, os.path.dirname(path)))
             devices.append(device)
-            obj_files.append(os.path.join('devices', device.class_name.lower()+'.o'))
 
-    return devices, obj_files
+    return devices
 
 def install_requirements(config, base_dir):
     if 'requirements' in config:
@@ -103,8 +85,7 @@ def main(argv):
             config.update(yaml.load(open(os.path.join(argv[2], inc))))
 
     if cmd == '--generate':
-        devices, obj_files = generate(config["devices"], argv[3])
-        render_makefile(obj_files)
+        devices = generate(config["devices"], argv[3])
         render_device_table(devices)
 
     elif cmd == '--devices':
