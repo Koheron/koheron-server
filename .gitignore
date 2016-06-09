@@ -37,7 +37,7 @@ README.md~
 makefile_template~
 APIs/python/README.rst~
 kserverd
-cli/kserver
+APIs/cli/kserver
 tmp
 venv
 
