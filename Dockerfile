@@ -15,6 +15,7 @@ RUN apt-get -y install gcc-5 g++-5             \
                        g++-arm-linux-gnueabi   \
                        make                    \
                        wget                    \
+                       unzip                   \
                        curl                    \
                        git                     \
                        python-pip              \
