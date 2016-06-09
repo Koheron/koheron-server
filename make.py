@@ -58,13 +58,13 @@ def generate(devices_list):
 
     return devices, obj_files
 
-def install_requirements(requirements):
+def install_requirements(requirements, base_dir):
     for requirement in requirements:
         if requirement['type'] == 'git':
             subprocess.call(['git', 'clone', requirement['src'], requirement['dest']])
             subprocess.call('cd ' + requirement['dest'] + ' && git checkout ' + requirement['branch'], shell=True)
         elif requirement['type'] == 'folder':
-            copy_tree(os.path.join(requirement['from'], requirement['import']),
+            copy_tree(os.path.join(base_dir, requirement['from'], requirement['import']),
                       os.path.join('tmp/middleware', requirement['import']))
         else:
             raise ValueError('Unknown requirement type: ' + requirement['type'])
@@ -101,7 +101,7 @@ def main(argv):
 
     elif cmd == '--requirements':
         if 'requirements' in config:
-            install_requirements(config['requirements'])
+            install_requirements(config['requirements'], argv[2])
 
     elif cmd == '--cross-compile':
         with open('tmp/.cross-compile', 'w') as f:

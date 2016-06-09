@@ -35,7 +35,7 @@ $(TMP): requirements $(CORE) $(DEVICES)
 	cp -r $(DEVICES) $(TMP)/middleware
 
 requirements: $(MAKE_PY) $(CONFIG_PATH)
-	$(PYTHON) $(MAKE_PY) --requirements $(CONFIG_PATH)
+	$(PYTHON) $(MAKE_PY) --requirements $(CONFIG_PATH) $(BASE_DIR)
 
 $(EXECUTABLE): $(TMP) $(MAKE_PY) $(CONFIG_PATH)
 	$(PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH)
