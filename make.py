@@ -45,11 +45,12 @@ def render_device_table(devices):
     output.write(template.render(devices=devices))
     output.close()
 
-def generate(devices_list):
+def generate(devices_list, midware_path):
     devices = [] # List of generated devices
     obj_files = []  # Object file names
 
     for path in devices_list:
+        path = os.path.join(midware_path, path)
         if path.endswith('.hpp') or path.endswith('.h'):
             device = Device(path)
             print "Generate " + device.name
@@ -103,7 +104,7 @@ def main(argv):
             config.update(yaml.load(open(os.path.join(argv[2], inc))))
 
     if cmd == '--generate':
-        devices, obj_files = generate(config["devices"])
+        devices, obj_files = generate(config["devices"], argv[3])
         render_makefile(obj_files)
         render_device_table(devices)
 

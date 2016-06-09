@@ -33,9 +33,7 @@ def IsDesc(operation):
     return ("description" in operation) and (operation["description"] != None)
 
 class Device:
-    def __init__(self, path, base_dir='tmp/middleware'):
-        path = os.path.join(base_dir, path)
-
+    def __init__(self, path):
         print "Generating device description for " + path + "..."
         mid_handler = MiddlewareHandler(path)
         self._data = mid_handler.get_device_data()
