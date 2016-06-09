@@ -4,7 +4,7 @@ PYTHON=/usr/bin/python
 # Base directory for paths
 BASE_DIR=.
 CONFIG_PATH=$(BASE_DIR)/$(CONFIG)
-__PYTHON = $(shell bash get_python.sh $(PYTHON) $(BASE_DIR))
+__PYTHON = $(shell bash scripts/get_python.sh $(PYTHON) $(BASE_DIR))
 
 TMP = tmp
 CORE = core
