@@ -33,6 +33,7 @@ def render_makefile(obj_files):
 def render_device_table(devices):
     print "Generate device table"
     device_table.PrintDeviceTable(devices, DEV_DIR)
+
     template_filename = 'devgen/templates/devices.hpp'
 
     header_renderer = jinja2.Environment(
@@ -41,20 +42,18 @@ def render_device_table(devices):
 
     template = header_renderer.get_template(template_filename)
     header_filename = os.path.join(DEV_DIR, 'devices.hpp')
-    output = file(header_filename, 'w')
-    output.write(template.render(devices=devices))
-    output.close()
+    with open(header_filename, 'w') as f:
+        f.write(template.render(devices=devices))
 
 def generate(devices_list, midware_path):
     devices = [] # List of generated devices
     obj_files = []  # Object file names
 
     for path in devices_list:
-        path = os.path.join(midware_path, path)
         if path.endswith('.hpp') or path.endswith('.h'):
-            device = Device(path)
+            device = Device(path, midware_path)
             print "Generate " + device.name
-            device.Generate(DEV_DIR)
+            device.Generate(os.path.join(midware_path, os.path.dirname(path)))
             devices.append(device)
             obj_files.append(os.path.join('devices', device.class_name.lower()+'.o'))
 
@@ -137,7 +136,7 @@ def main(argv):
 
     elif cmd == '--midware-path':
         with open('tmp/.midware-path', 'w') as f:
-            f.write(os.path.join(argv[2], config['middleware-path']))
+            f.write(config['middleware-path'])
 
     elif cmd == '--arch-flags':
         with open('tmp/.arch-flags', 'w') as f:

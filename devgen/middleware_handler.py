@@ -44,21 +44,8 @@ class MiddlewareHppParser:
     def __init__(self, hppfile):
         devices = parse_header(hppfile)
         self.raw_dev_data = devices[0]
-        self.raw_dev_data["includes"] = [self._get_include(hppfile)];
+        self.raw_dev_data["includes"] = [os.path.basename(hppfile)];
         self.device = self._get_device()
-
-    def _get_include(self, hppfile):
-        folders = hppfile.split('/')
-        middleware_idx = -1
-        for idx, folder in enumerate(folders):
-            if folder == "middleware":
-                middleware_idx = idx
-                break
-
-        if middleware_idx == -1:
-            raise ValueError("Source file must be in the middleware folder")
-
-        return '/'.join(folders[(middleware_idx+1):])
 
     def _get_template(self, ret_type):
         tokens = ret_type.split('<')

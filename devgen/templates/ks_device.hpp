@@ -9,7 +9,7 @@
 #define __{{ device.class_name|upper }}_HPP__
 
 {% for include in device.includes -%}
-#include <{{ include }}>
+#include "{{ include }}"
 {% endfor -%}
 #include <drivers/lib/dev_mem.hpp>
 
