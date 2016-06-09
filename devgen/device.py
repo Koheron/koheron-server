@@ -36,19 +36,15 @@ class Device:
     def __init__(self, path, base_dir='tmp/middleware'):
         path = os.path.join(base_dir, path)
 
-        if path.endswith('.hpp') or path.endswith('.h'):
-            print "Generating device description for " + path + "..."
-            mid_handler = MiddlewareHandler(path)
-            self._data = mid_handler.get_device_data()
-            self.fragments = mid_handler.get_fragments()
+        print "Generating device description for " + path + "..."
+        mid_handler = MiddlewareHandler(path)
+        self._data = mid_handler.get_device_data()
+        self.fragments = mid_handler.get_fragments()
 
-            self.operations = Operations(self._data["operations"])
-            self.name = self._data["name"]
-            self.class_name = GetClassName(self.name)
-            self.description = self._data["description"]
-        else:
-            return
-
+        self.operations = Operations(self._data["operations"])
+        self.name = self._data["name"]
+        self.class_name = GetClassName(self.name)
+        self.description = self._data["description"]
         self.objects = Objects(self._data["objects"])
         self.includes = Includes(self._data["includes"])
 

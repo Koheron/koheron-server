@@ -49,13 +49,13 @@ def generate(devices_list):
     devices = [] # List of generated devices
     obj_files = []  # Object file names
 
-    for path in devices_list:       
-        device = Device(path)
-        
-        print "Generate " + device.name
-        device.Generate(DEV_DIR)
-        devices.append(device)
-        obj_files.append(os.path.join('devices', device.class_name.lower()+'.o'))
+    for path in devices_list:
+        if path.endswith('.hpp') or path.endswith('.h'):
+            device = Device(path)
+            print "Generate " + device.name
+            device.Generate(DEV_DIR)
+            devices.append(device)
+            obj_files.append(os.path.join('devices', device.class_name.lower()+'.o'))
 
     return devices, obj_files
 
