@@ -9,6 +9,7 @@ import jinja2
 import time
 import subprocess
 from distutils.dir_util import copy_tree
+from shutil import copy
 
 from devgen import Device, device_table
 
@@ -66,6 +67,13 @@ def install_requirements(requirements, base_dir):
         elif requirement['type'] == 'folder':
             copy_tree(os.path.join(base_dir, requirement['from'], requirement['import']),
                       os.path.join('tmp/middleware', requirement['import']))
+        elif requirement['type'] == 'file':
+            dest_dir = os.path.join('tmp/middleware', os.path.dirname(requirement['import']))
+            if not os.path.isdir(dest_dir):
+                os.makedirs(dest_dir)
+
+            copy(os.path.join(base_dir, requirement['from'], requirement['import']),
+                     dest_dir)
         else:
             raise ValueError('Unknown requirement type: ' + requirement['type'])
 
