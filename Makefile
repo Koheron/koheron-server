@@ -1,5 +1,9 @@
 
-CONFIG=config/config_local.yaml
+# Base directory for paths.
+# Root of the repository by default.
+BASE_DIR=.
+
+CONFIG=$(BASE_DIR)/config/config_local.yaml
 
 PYTHON=/usr/bin/python
 
@@ -12,8 +16,7 @@ OPTIM_FLAGS:=$(shell $(PYTHON) $(MAKE_PY) --optim-flags $(CONFIG) && cat $(TMP)/
 DEBUG_FLAGS:=$(shell $(PYTHON) $(MAKE_PY) --debug-flags $(CONFIG) && cat $(TMP)/.debug-flags)
 DEFINES:=$(shell $(PYTHON) $(MAKE_PY) --defines $(CONFIG) && cat $(TMP)/.defines)
 CROSS_COMPILE:=$(shell $(PYTHON) $(MAKE_PY) --cross-compile $(CONFIG) && cat $(TMP)/.cross-compile)
-CROSS_COMPILE:=$(shell $(PYTHON) $(MAKE_PY) --cross-compile $(CONFIG) && cat $(TMP)/.cross-compile)
-DEVICES:=$(shell $(PYTHON) $(MAKE_PY) --devices $(CONFIG) && cat $(TMP)/.devices)
+DEVICES:=$(shell $(PYTHON) $(MAKE_PY) --devices $(CONFIG) $(BASE_DIR) && cat $(TMP)/.devices)
 SERVER:=$(shell $(PYTHON) $(MAKE_PY) --server-name $(CONFIG) && cat $(TMP)/.server-name)
 
 EXECUTABLE=$(TMP)/$(SERVER)

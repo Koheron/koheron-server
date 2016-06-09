@@ -85,15 +85,18 @@ def main(argv):
         render_device_table(devices)
 
     elif cmd == '--devices':
+        hpp_files = []
         cpp_files = []
         for dev in config['devices']:
-            cpp_filename = os.path.join(os.path.dirname(dev), 
-                                        os.path.basename(dev).split('.')[0] + '.cpp')
+            dev_path = os.path.join(argv[2], dev)
+            hpp_files.append(dev_path)
+            cpp_filename = os.path.join(os.path.dirname(dev_path), 
+                                        os.path.basename(dev_path).split('.')[0] + '.cpp')
             if os.path.exists(cpp_filename):
                 cpp_files.append(cpp_filename)
 
         with open('tmp/.devices', 'w') as f:
-            f.write(' '.join(config['devices']))
+            f.write(' '.join(hpp_files))
             f.write(' ' + ' '.join(cpp_files))
 
     elif cmd == '--requirements':
