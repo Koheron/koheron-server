@@ -1,24 +1,22 @@
-
-# Base directory for paths.
-# Root of the repository by default.
-BASE_DIR=.
 CONFIG=config/config_local.yaml
-
-CONFIG_PATH=$(BASE_DIR)/$(CONFIG)
-
 PYTHON=/usr/bin/python
+
+# Base directory for paths
+BASE_DIR=.
+CONFIG_PATH=$(BASE_DIR)/$(CONFIG)
+__PYTHON = $(shell bash get_python.sh $(PYTHON) $(BASE_DIR))
 
 TMP = tmp
 CORE = core
 MAKE_PY = make.py
 
-ARCH_FLAGS:=$(shell $(PYTHON) $(MAKE_PY) --arch-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.arch-flags)
-OPTIM_FLAGS:=$(shell $(PYTHON) $(MAKE_PY) --optim-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.optim-flags)
-DEBUG_FLAGS:=$(shell $(PYTHON) $(MAKE_PY) --debug-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.debug-flags)
-DEFINES:=$(shell $(PYTHON) $(MAKE_PY) --defines $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.defines)
-CROSS_COMPILE:=$(shell $(PYTHON) $(MAKE_PY) --cross-compile $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.cross-compile)
-DEVICES:=$(shell $(PYTHON) $(MAKE_PY) --devices $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.devices)
-SERVER:=$(shell $(PYTHON) $(MAKE_PY) --server-name $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.server-name)
+ARCH_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --arch-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.arch-flags)
+OPTIM_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --optim-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.optim-flags)
+DEBUG_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --debug-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.debug-flags)
+DEFINES:=$(shell $(__PYTHON) $(MAKE_PY) --defines $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.defines)
+CROSS_COMPILE:=$(shell $(__PYTHON) $(MAKE_PY) --cross-compile $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.cross-compile)
+DEVICES:=$(shell $(__PYTHON) $(MAKE_PY) --devices $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.devices)
+SERVER:=$(shell $(__PYTHON) $(MAKE_PY) --server-name $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.server-name)
 
 EXECUTABLE=$(TMP)/$(SERVER)
 
@@ -34,10 +32,10 @@ $(TMP): requirements $(CORE) $(DEVICES)
 	cp $(CORE)/main.cpp $(TMP)/main.cpp
 
 requirements: $(MAKE_PY) $(CONFIG_PATH)
-	$(PYTHON) $(MAKE_PY) --requirements $(CONFIG_PATH) $(BASE_DIR)
+	$(__PYTHON) $(MAKE_PY) --requirements $(CONFIG_PATH) $(BASE_DIR)
 
 $(EXECUTABLE): $(TMP) $(MAKE_PY) $(CONFIG_PATH)
-	$(PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR)
+	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR)
 	make -C $(TMP) CROSS_COMPILE=$(CROSS_COMPILE) DEFINES=$(DEFINES) SERVER=$(SERVER) \
 	               ARCH_FLAGS=$(ARCH_FLAGS) OPTIM_FLAGS=$(OPTIM_FLAGS) DEBUG_FLAGS=$(DEBUG_FLAGS)
 
