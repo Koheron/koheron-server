@@ -60,18 +60,6 @@ def generate(devices_list):
     return devices, obj_files
 
 def install_requirements(config, base_dir):
-    for dev in config['devices']:
-        dev_path = os.path.join(base_dir, dev)
-        dest_dir = os.path.join('tmp/middleware', os.path.dirname(dev))
-        if not os.path.isdir(dest_dir):
-                os.makedirs(dest_dir)
-
-        copy(dev_path, dest_dir)
-        cpp_filename = os.path.join(os.path.dirname(dev_path), 
-                                    os.path.basename(dev_path).split('.')[0] + '.cpp')
-        if os.path.exists(cpp_filename):
-            copy(cpp_filename, dest_dir)
-
     for requirement in config['requirements']:
         if requirement['type'] == 'git':
             subprocess.call(['git', 'clone', requirement['src'], requirement['dest']])
@@ -88,6 +76,18 @@ def install_requirements(config, base_dir):
                      dest_dir)
         else:
             raise ValueError('Unknown requirement type: ' + requirement['type'])
+
+    for dev in config['devices']:
+        dev_path = os.path.join(base_dir, dev)
+        dest_dir = os.path.join('tmp/middleware', os.path.dirname(dev))
+        if not os.path.isdir(dest_dir):
+                os.makedirs(dest_dir)
+
+        copy(dev_path, dest_dir)
+        cpp_filename = os.path.join(os.path.dirname(dev_path), 
+                                    os.path.basename(dev_path).split('.')[0] + '.cpp')
+        if os.path.exists(cpp_filename):
+            copy(cpp_filename, dest_dir)
 
 def main(argv):
     cmd = argv[0]

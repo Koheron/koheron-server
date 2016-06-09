@@ -24,7 +24,7 @@ EXECUTABLE=$(TMP)/$(SERVER)
 
 all: $(EXECUTABLE)
 
-$(TMP): requirements $(CORE)
+$(TMP): requirements $(CORE) $(DEVICES)
 	mkdir -p $(TMP)
 	mkdir -p $(TMP)/devices
 	mkdir -p $(TMP)/middleware
@@ -33,7 +33,7 @@ $(TMP): requirements $(CORE)
 	rm -f $(TMP)/core/main.cpp
 	cp $(CORE)/main.cpp $(TMP)/main.cpp
 
-requirements: $(MAKE_PY) $(CONFIG_PATH) $(DEVICES)
+requirements: $(MAKE_PY) $(CONFIG_PATH)
 	$(PYTHON) $(MAKE_PY) --requirements $(CONFIG_PATH) $(BASE_DIR)
 
 $(EXECUTABLE): $(TMP) $(MAKE_PY) $(CONFIG_PATH)
