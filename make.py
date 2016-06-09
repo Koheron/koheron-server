@@ -59,8 +59,20 @@ def generate(devices_list):
 
     return devices, obj_files
 
-def install_requirements(requirements, base_dir):
-    for requirement in requirements:
+def install_requirements(config, base_dir):
+    for dev in config['devices']:
+        dev_path = os.path.join(base_dir, dev)
+        dest_dir = os.path.join('tmp/middleware', os.path.dirname(dev))
+        if not os.path.isdir(dest_dir):
+                os.makedirs(dest_dir)
+
+        copy(dev_path, dest_dir)
+        cpp_filename = os.path.join(os.path.dirname(dev_path), 
+                                    os.path.basename(dev_path).split('.')[0] + '.cpp')
+        if os.path.exists(cpp_filename):
+            copy(cpp_filename, dest_dir)
+
+    for requirement in config['requirements']:
         if requirement['type'] == 'git':
             subprocess.call(['git', 'clone', requirement['src'], requirement['dest']])
             subprocess.call('cd ' + requirement['dest'] + ' && git checkout ' + requirement['branch'], shell=True)
@@ -109,7 +121,7 @@ def main(argv):
 
     elif cmd == '--requirements':
         if 'requirements' in config:
-            install_requirements(config['requirements'], argv[2])
+            install_requirements(config, argv[2])
 
     elif cmd == '--cross-compile':
         with open('tmp/.cross-compile', 'w') as f:

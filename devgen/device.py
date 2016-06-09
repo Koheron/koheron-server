@@ -34,7 +34,7 @@ def IsDesc(operation):
 
 class Device:
     def __init__(self, path, base_dir='tmp/middleware'):
-        path = os.path.join(base_dir, os.path.basename(path))
+        path = os.path.join(base_dir, path)
 
         if path.endswith('.hpp') or path.endswith('.h'):
             print "Generating device description for " + path + "..."
