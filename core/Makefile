@@ -13,10 +13,11 @@ ARCH_FLAGS=
 DEBUG_FLAGS=
 OPTIM_FLAGS=
 DEFINES=
+MIDWARE_PATH=
 SERVER=kserverd
 
 # Middleware include path
-MIDWARE_INC_PATH=middleware
+MIDWARE_INC_PATH=../$(MIDWARE_PATH)
 
 # --------------------------------------------------------------
 # Objects to build

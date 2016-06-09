@@ -28,6 +28,8 @@ debug:
 optimization_flags:
   - O3
 
+middleware-path: tmp/middleware
+
 devices:
   - tests/tests.hpp
   - tmp/zynq-sdk/drivers/device_memory/device_memory.hpp

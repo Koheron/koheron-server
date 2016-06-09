@@ -60,22 +60,23 @@ def generate(devices_list):
     return devices, obj_files
 
 def install_requirements(config, base_dir):
-    for requirement in config['requirements']:
-        if requirement['type'] == 'git':
-            subprocess.call(['git', 'clone', requirement['src'], requirement['dest']])
-            subprocess.call('cd ' + requirement['dest'] + ' && git checkout ' + requirement['branch'], shell=True)
-        elif requirement['type'] == 'folder':
-            copy_tree(os.path.join(base_dir, requirement['from'], requirement['import']),
-                      os.path.join('tmp/middleware', requirement['import']))
-        elif requirement['type'] == 'file':
-            dest_dir = os.path.join('tmp/middleware', os.path.dirname(requirement['import']))
-            if not os.path.isdir(dest_dir):
-                os.makedirs(dest_dir)
+    if 'requirements' in config:
+        for requirement in config['requirements']:
+            if requirement['type'] == 'git':
+                subprocess.call(['git', 'clone', requirement['src'], requirement['dest']])
+                subprocess.call('cd ' + requirement['dest'] + ' && git checkout ' + requirement['branch'], shell=True)
+            elif requirement['type'] == 'folder':
+                copy_tree(os.path.join(base_dir, requirement['from'], requirement['import']),
+                          os.path.join('tmp/middleware', requirement['import']))
+            elif requirement['type'] == 'file':
+                dest_dir = os.path.join('tmp/middleware', os.path.dirname(requirement['import']))
+                if not os.path.isdir(dest_dir):
+                    os.makedirs(dest_dir)
 
-            copy(os.path.join(base_dir, requirement['from'], requirement['import']),
-                     dest_dir)
-        else:
-            raise ValueError('Unknown requirement type: ' + requirement['type'])
+                copy(os.path.join(base_dir, requirement['from'], requirement['import']),
+                         dest_dir)
+            else:
+                raise ValueError('Unknown requirement type: ' + requirement['type'])
 
     for dev in config['devices']:
         dev_path = os.path.join(base_dir, dev)
@@ -132,6 +133,10 @@ def main(argv):
     elif cmd == '--server-name':
         with open('tmp/.server-name', 'w') as f:
             f.write(config['server-name'])
+
+    elif cmd == '--midware-path':
+        with open('tmp/.midware-path', 'w') as f:
+            f.write(os.path.join(argv[2], config['middleware-path']))
 
     elif cmd == '--arch-flags':
         with open('tmp/.arch-flags', 'w') as f:

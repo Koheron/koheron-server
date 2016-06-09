@@ -40,12 +40,13 @@ nohup tmp/kserverd -c config/kserver_docker.conf > /dev/null 2>server.log &
 ps -A | grep -w "kserverd"
 
 echo "== Test CLI =="
-cli/kserver host --tcp localhost 36000
-cli/kserver host --status
-cli/kserver status --sessions
-cli/kserver status --devices
-cli/kserver status --devices KSERVER
-cli/kserver status --devices TESTS
+CLI = APIs/cli/kserver
+${CLI} host --tcp localhost 36000
+${CLI} host --status
+${CLI} status --sessions
+${CLI} status --devices
+${CLI} status --devices KSERVER
+${CLI} status --devices TESTS
 
 echo "== Test C API =="
 APIs/C/tests/tests --unit 127.0.0.1:36000 /code/kserver.sock
