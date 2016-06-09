@@ -2,6 +2,8 @@
 #
 # (c) Koheron
 
+includes: [config/zynq_sdk.yaml]
+
 # Executable name
 server-name: kserverd
 
@@ -26,18 +28,6 @@ debug:
 optimization_flags:
   - O3
 
-zynq_sdk_path: &zynq_sdk tmp/zynq-sdk
-
-requirements:
-  - type: git
-    src: https://github.com/Koheron/zynq-sdk.git
-    branch: master
-    dest: *zynq_sdk
-
-  - type: folder
-    from: *zynq_sdk
-    import: drivers/lib
-
 devices:
   - tests/tests.hpp
-  - !!python/object/apply:os.path.join [*zynq_sdk, drivers/device_memory/device_memory.hpp]
+  - tmp/zynq-sdk/drivers/device_memory/device_memory.hpp

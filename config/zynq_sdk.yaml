@@ -1,0 +1,12 @@
+
+zynq_sdk_path: &zynq_sdk tmp/zynq-sdk
+
+requirements:
+  - type: git
+    src: https://github.com/Koheron/zynq-sdk.git
+    branch: master
+    dest: *zynq_sdk
+
+  - type: folder
+    from: *zynq_sdk
+    import: drivers/lib

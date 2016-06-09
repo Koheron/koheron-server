@@ -98,6 +98,8 @@ def main(argv):
 
     with open(argv[1]) as config_file:
         config = yaml.load(config_file)
+        for inc in config.get('includes', []):
+            config.update(yaml.load(open(inc)))
 
     if cmd == '--generate':
         devices, obj_files = generate(config["devices"])
