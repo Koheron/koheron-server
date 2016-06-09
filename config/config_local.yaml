@@ -22,3 +22,17 @@ defines:
 devices:
     - tests/tests.hpp
     #- middleware/eigen_tests.hpp
+
+# This is required for DevMem.
+# TODO Remove DevMem dependency in serveur core
+zynq_sdk_path: &zynq_sdk tmp/zynq-sdk
+
+requirements:
+  - type: git
+    src: https://github.com/Koheron/zynq-sdk.git
+    branch: master
+    dest: *zynq_sdk
+
+  - type: folder
+    from: *zynq_sdk
+    import: drivers/lib

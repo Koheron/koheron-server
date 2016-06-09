@@ -8,13 +8,13 @@ import yaml
 import jinja2
 import time
 import subprocess
-from shutil import copytree
+from distutils.dir_util import copy_tree
 
 from devgen import Device, device_table
 
 TMP = 'tmp'
 DEV_DIR = TMP + '/devices'
- 
+
 def render_makefile(obj_files):
     print "Generate Makefile"
     makefile_renderer = jinja2.Environment(
@@ -64,8 +64,10 @@ def install_requirements(requirements):
             subprocess.call(['git', 'clone', requirement['src'], requirement['dest']])
             subprocess.call('cd ' + requirement['dest'] + ' && git checkout ' + requirement['branch'], shell=True)
         elif requirement['type'] == 'folder':
-            copytree(os.path.join(requirement['from'], requirement['import']),
-                     os.path.join('tmp/middleware', requirement['import']))
+            copy_tree(os.path.join(requirement['from'], requirement['import']),
+                      os.path.join('tmp/middleware', requirement['import']))
+        else:
+            raise ValueError('Unknown requirement type: ' + requirement['type'])
 
 def main(argv):
     cmd = argv[0]
@@ -99,7 +101,8 @@ def main(argv):
             f.write(' ' + ' '.join(cpp_files))
 
     elif cmd == '--requirements':
-        install_requirements(config['requirements'])
+        if 'requirements' in config:
+            install_requirements(config['requirements'])
 
     elif cmd == '--cross-compile':
         with open('tmp/.cross-compile', 'w') as f:

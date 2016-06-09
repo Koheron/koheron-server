@@ -3,15 +3,12 @@ CONFIG=config/config_local.yaml
 
 PYTHON=/usr/bin/python
 
-BUILD_LOCAL=False
 USE_EIGEN = False
 
 TMP = tmp
 CORE = core
 
 MAKE_PY = make.py
-
-ZYNQ_SDK = $(TMP)/zynq-sdk
 
 ARCH_FLAGS:=$(shell $(PYTHON) $(MAKE_PY) --arch-flags $(CONFIG) && cat $(TMP)/.arch-flags)
 DEFINES:=$(shell $(PYTHON) $(MAKE_PY) --defines $(CONFIG) && cat $(TMP)/.defines)
