@@ -10,9 +10,10 @@ MAKEFLAGS += --jobs=$(CPUS)
 
 CROSS_COMPILE=
 ARCH_FLAGS=
+DEBUG_FLAGS=
+OPTIM_FLAGS=
 DEFINES=
-
-ADD_DEBUG_FLAGS = false
+SERVER=kserverd
 
 # Middleware include path
 MIDWARE_INC_PATH=middleware
@@ -52,9 +53,6 @@ OBJS = $(OBJS_MIDWARE) $(OBJS_KSERVER) $(OBJS_KS_DEV) main.o
 # List of raw source files (all object files, renamed from .o to .c)
 SRCS = $(subst .o,.c, $(OBJS), ))
 
-# Executable name
-TARGET=kserverd
-
 # --------------------------------------------------------------
 # Toolchains
 # --------------------------------------------------------------
@@ -71,20 +69,10 @@ CFLAGS= -Wall -Werror -Wno-unknown-pragmas \
         -I$(MIDWARE_INC_PATH) -I$(MIDWARE_INC_PATH)/libraries $(DEFINES)
 
 CFLAGS += $(ARCH_FLAGS)
+CFLAGS += $(DEBUG_FLAGS)
+CFLAGS += $(OPTIM_FLAGS)
 
-# Add debug/optimization flags
-ifeq ($(ADD_DEBUG_FLAGS),true)
-  CFLAGS += -rdynamic -g
-  ifeq ($(TARGET_HOST),armhf)
-    CFLAGS +=-mapcs-frame
-  else ifeq ($(TARGET_HOST),armel)
-    CFLAGS +=-mapcs-frame
-  endif
-else
-  CFLAGS += -O3
-endif
-
-CPPFLAGS=$(CFLAGS) -std=c++14 -pthread
+CXXFLAGS=$(CFLAGS) -std=c++14 -pthread
 
 # --------------------------------------------------------------
 # Libraries
@@ -96,16 +84,16 @@ LIBS = -lm # -lpthread -lssl -lcrypto
 # Targets
 # --------------------------------------------------------------
 
-all: $(TARGET)
+all: $(SERVER)
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
 %.o: %.cpp
-	$(CCPP) -c $(CPPFLAGS) $< -o $@
+	$(CCPP) -c $(CXXFLAGS) $< -o $@
 
-$(TARGET): $(OBJS)
-	$(CCPP) -o $@ $^ $(CPPFLAGS) $(LIBS)
+$(SERVER): $(OBJS)
+	$(CCPP) -o $@ $^ $(CXXFLAGS) $(LIBS)
 
 clean:
-	rm -f $(TARGET) *.o $(OBJS)
+	rm -f $(SERVER) *.o $(OBJS)

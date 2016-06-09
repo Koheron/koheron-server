@@ -84,10 +84,6 @@ def main(argv):
         render_makefile(obj_files)
         render_device_table(devices)
 
-    elif cmd == '--host':
-        with open('tmp/.host', 'w') as f:
-            f.write(config['host'])
-
     elif cmd == '--devices':
         cpp_files = []
         for dev in config['devices']:
@@ -108,9 +104,23 @@ def main(argv):
         with open('tmp/.cross-compile', 'w') as f:
             f.write(config['cross-compile'])
 
+    elif cmd == '--server-name':
+        with open('tmp/.server-name', 'w') as f:
+            f.write(config['server-name'])
+
     elif cmd == '--arch-flags':
         with open('tmp/.arch-flags', 'w') as f:
             f.write('"-' + ' -'.join(config['arch_flags']) + '"')
+
+    elif cmd == '--optim-flags':
+        with open('tmp/.optim-flags', 'w') as f:
+            if not config['debug']['status']:
+                f.write('"-' + ' -'.join(config['optimization_flags']) + '"')
+
+    elif cmd == '--debug-flags':
+        with open('tmp/.debug-flags', 'w') as f:
+            if config['debug']['status']:
+                f.write('"-' + ' -'.join(config['debug']['flags']) + '"')
 
     elif cmd == '--defines':
         with open('tmp/.defines', 'w') as f:

@@ -6,8 +6,8 @@
 
 # Local config does not contain dev_mem
 
-# Target host
-host: local
+# Executable name
+server-name: kserverd
 
 cross-compile: ""
 
@@ -19,9 +19,15 @@ defines:
   # - RELEASE_KSERVER
   - LOCAL
 
-devices:
-    - tests/tests.hpp
-    #- middleware/eigen_tests.hpp
+debug:
+  status: no # set to yes to compile in debug mode
+  flags:
+    - rdynamic
+    - g
+
+# Optimization is disactivated when compiled in debug mode
+optimization_flags:
+  - O3
 
 # This is required for DevMem.
 # TODO Remove DevMem dependency in serveur core
@@ -36,3 +42,7 @@ requirements:
   - type: folder
     from: *zynq_sdk
     import: drivers/lib
+
+devices:
+    - tests/tests.hpp
+    #- middleware/eigen_tests.hpp

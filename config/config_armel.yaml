@@ -2,8 +2,8 @@
 #
 # (c) Koheron
 
-# Target host
-host: armel
+# Executable name
+server-name: kserverd
 
 cross-compile: /usr/bin/arm-linux-gnueabi-
 
@@ -15,11 +15,18 @@ defines:
   - DEBUG_KSERVER
   # - RELEASE_KSERVER
 
-zynq_sdk_path: &zynq_sdk tmp/zynq-sdk
+debug:
+  status: no # set to yes to compile in debug mode
+  flags:
+    - rdynamic
+    - g
+    - mapcs-frame
 
-devices:
-  - tests/tests.hpp
-  - !!python/object/apply:os.path.join [*zynq_sdk, drivers/device_memory/device_memory.hpp]
+# Optimization is disactivated when compiled in debug mode
+optimization_flags:
+  - O3
+
+zynq_sdk_path: &zynq_sdk tmp/zynq-sdk
 
 requirements:
   - type: git
@@ -30,3 +37,7 @@ requirements:
   - type: folder
     from: *zynq_sdk
     import: drivers/lib
+
+devices:
+  - tests/tests.hpp
+  - !!python/object/apply:os.path.join [*zynq_sdk, drivers/device_memory/device_memory.hpp]
