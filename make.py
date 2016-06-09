@@ -8,6 +8,7 @@ import yaml
 import jinja2
 import time
 import subprocess
+from shutil import copytree
 
 from devgen import Device, device_table
 
@@ -57,6 +58,15 @@ def generate(devices_list):
 
     return devices, obj_files
 
+def install_requirements(requirements):
+    for requirement in requirements:
+        if requirement['type'] == 'git':
+            subprocess.call(['git', 'clone', requirement['src'], requirement['dest']])
+            subprocess.call('cd ' + requirement['dest'] + ' && git checkout ' + requirement['branch'], shell=True)
+        elif requirement['type'] == 'folder':
+            copytree(os.path.join(requirement['from'], requirement['import']),
+                     os.path.join('tmp/middleware', requirement['import']))
+
 def main(argv):
     cmd = argv[0]
 
@@ -87,6 +97,9 @@ def main(argv):
         with open('tmp/.devices', 'w') as f:
             f.write(' '.join(config['devices']))
             f.write(' ' + ' '.join(cpp_files))
+
+    elif cmd == '--requirements':
+        install_requirements(config['requirements'])
 
     elif cmd == '--cross-compile':
         with open('tmp/.cross-compile', 'w') as f:

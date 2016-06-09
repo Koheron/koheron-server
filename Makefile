@@ -1,6 +1,8 @@
 
 CONFIG=config/config_local.yaml
 
+PYTHON=/usr/bin/python
+
 BUILD_LOCAL=False
 USE_EIGEN = False
 
@@ -11,25 +13,15 @@ MAKE_PY = make.py
 
 ZYNQ_SDK = $(TMP)/zynq-sdk
 
-ARCH_FLAGS:=$(shell python $(MAKE_PY) --arch-flags $(CONFIG) && cat $(TMP)/.arch-flags)
-DEFINES:=$(shell python $(MAKE_PY) --defines $(CONFIG) && cat $(TMP)/.defines)
-CROSS_COMPILE:=$(shell python $(MAKE_PY) --cross-compile $(CONFIG) && cat $(TMP)/.cross-compile)
-HOST:=$(shell python $(MAKE_PY) --host $(CONFIG) && cat $(TMP)/.host)
-DEVICES:=$(shell python $(MAKE_PY) --devices $(CONFIG) && cat $(TMP)/.devices)
-
-current_dir := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+ARCH_FLAGS:=$(shell $(PYTHON) $(MAKE_PY) --arch-flags $(CONFIG) && cat $(TMP)/.arch-flags)
+DEFINES:=$(shell $(PYTHON) $(MAKE_PY) --defines $(CONFIG) && cat $(TMP)/.defines)
+CROSS_COMPILE:=$(shell $(PYTHON) $(MAKE_PY) --cross-compile $(CONFIG) && cat $(TMP)/.cross-compile)
+HOST:=$(shell $(PYTHON) $(MAKE_PY) --host $(CONFIG) && cat $(TMP)/.host)
+DEVICES:=$(shell $(PYTHON) $(MAKE_PY) --devices $(CONFIG) && cat $(TMP)/.devices)
 
 all: kserverd
 
-$(ZYNQ_SDK):
-ifeq ($(BUILD_LOCAL),True)
-	git clone https://github.com/Koheron/zynq-sdk.git $(ZYNQ_SDK)
-	cd $(ZYNQ_SDK) && git checkout master
-	mkdir -p $(TMP)/middleware/drivers/lib
-	cp -r $(ZYNQ_SDK)/drivers/lib/. $(TMP)/middleware/drivers/lib
-endif
-
-$(TMP): $(ZYNQ_SDK) $(CORE) $(DEVICES)
+$(TMP): requirements $(CORE) $(DEVICES)
 	mkdir -p $(TMP)
 	mkdir -p $(TMP)/devices
 	mkdir -p $(TMP)/middleware
@@ -47,8 +39,11 @@ ifeq ($(USE_EIGEN),True)
 	cp -r tmp/eigen-eigen-c58038c56923/Eigen $(MIDDLEWARE)/libraries
 endif
 
-kserverd: libraries $(TMP) $(MAKE_PY)
-	python $(MAKE_PY) --generate $(CONFIG)
+requirements: $(MAKE_PY) $(CONFIG)
+	$(PYTHON) $(MAKE_PY) --requirements $(CONFIG)
+
+kserverd: $(TMP) $(MAKE_PY) $(CONFIG) libraries
+	$(PYTHON) $(MAKE_PY) --generate $(CONFIG)
 	make -C $(TMP) TARGET_HOST=$(HOST) CROSS_COMPILE=$(CROSS_COMPILE) DEFINES=$(DEFINES) ARCH_FLAGS=$(ARCH_FLAGS)
 
 clean:
