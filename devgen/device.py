@@ -34,10 +34,9 @@ def IsDesc(operation):
 
 class Device:
     def __init__(self, path, base_dir='tmp/middleware'):
-        extension = os.path.basename(path).split('.')[1]
         path = os.path.join(base_dir, os.path.basename(path))
 
-        if extension == "hpp" or extension == "h":
+        if path.endswith('.hpp') or path.endswith('.h'):
             print "Generating device description for " + path + "..."
             mid_handler = MiddlewareHandler(path)
             self._data = mid_handler.get_device_data()
