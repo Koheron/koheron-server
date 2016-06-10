@@ -91,7 +91,7 @@ def main(argv):
             config.update(yaml.load(open(os.path.join(argv[2], inc))))
 
     if cmd == '--generate':
-        devices = generate(config["devices"], argv[3])
+        devices = generate(get_devices(config), argv[3])
         render_device_table(devices)
 
     elif cmd == '--devices':
