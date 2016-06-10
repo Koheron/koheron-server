@@ -16,7 +16,7 @@ Consider the following C++ class
 class HelloWorld
 {
   public:
-    uint32_t add_42(uint_32_t num) {return num + 42;}
+    unsigned int add_42(unsigned int num) {return num + 42;}
 };
 
 #endif // __HELLO_WORLD_HPP__
