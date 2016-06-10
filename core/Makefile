@@ -8,15 +8,16 @@
 CPUS = $(shell nproc 2> /dev/null || echo 1)
 MAKEFLAGS += --jobs=$(CPUS)
 
-# TARGET_HOST:
-#    - local For compilation on local machine
-#    - armhf For compilation on armhf architecture
-#    - armel For compilation on armel architecture 
-
-ADD_DEBUG_FLAGS = false
+CROSS_COMPILE=
+ARCH_FLAGS=
+DEBUG_FLAGS=
+OPTIM_FLAGS=
+DEFINES=
+MIDWARE_PATH=
+SERVER=kserverd
 
 # Middleware include path
-MIDWARE_INC_PATH=middleware
+MIDWARE_INC_PATH=../$(MIDWARE_PATH)
 
 # --------------------------------------------------------------
 # Objects to build
@@ -38,14 +39,10 @@ OBJS_KSERVER = core/kserver.o              \
                core/crypto/base64.o        \
                core/crypto/sha1.o          \
                core/kserver_syslog.o       \
-               core/signal_handler.o       \
-               core/binary_parser.o
-               
-# Object in KServer/devices
-OBJS_KS_DEV ?= {% for obj in objs_list %} {{ obj }} {% endfor %}
+               core/signal_handler.o
 
 # Objects in Middleware
-SRC_MIDWARE = $(shell find middleware -name '*.cpp')
+SRC_MIDWARE = $(shell find $(MIDWARE_INC_PATH) -name '*.cpp')
 OBJS_MIDWARE = $(subst .cpp,.o, $(SRC_MIDWARE))
 
 # All objects 		
@@ -53,69 +50,27 @@ OBJS = $(OBJS_MIDWARE) $(OBJS_KSERVER) $(OBJS_KS_DEV) main.o
 # List of raw source files (all object files, renamed from .o to .c)
 SRCS = $(subst .o,.c, $(OBJS), ))
 
-# Executable name
-TARGET=kserverd
-
 # --------------------------------------------------------------
 # Toolchains
 # --------------------------------------------------------------
 
-ifeq ($(TARGET_HOST),armhf)
-  CROSS_COMPILE?=arm-linux-gnueabihf-
-else ifeq ($(TARGET_HOST),armel)
-  CROSS_COMPILE?=arm-linux-gnueabi-
-  #CROSS_COMPILE?=arm-xilinx-linux-gnueabi-
-else ifeq ($(TARGET_HOST),local)
-  CROSS_COMPILE?=
-  DEFINES += -DLOCAL
-endif
-
-# Main GCC executable (used for compiling and linking)
-
-# CC=$(CROSS_COMPILE)gcc
-# CCPP=$(CROSS_COMPILE)g++
-
 # Use Link Time Optimization
 CC=$(CROSS_COMPILE)gcc -flto
-CCPP=$(CROSS_COMPILE)g++ -flto
+CCXX=$(CROSS_COMPILE)g++ -flto
 
 # --------------------------------------------------------------
 # GCC compiling & linking flags
 # --------------------------------------------------------------
 
-DEFINES += -DDEBUG_KSERVER 
-#DEFINES += -DRELEASE_KSERVER
+INC=-I. -I$(MIDWARE_INC_PATH)
 
-CFLAGS= -Wall -Werror -Wno-unknown-pragmas \
-        -I$(MIDWARE_INC_PATH) -I$(MIDWARE_INC_PATH)/libraries $(DEFINES)
+CFLAGS=-Wall -Werror -Wno-unknown-pragmas $(INC) $(DEFINES)
 
-MFPU = vfpv3 # Better
-#MFPU = neon # Less good
+CFLAGS += $(ARCH_FLAGS)
+CFLAGS += $(DEBUG_FLAGS)
+CFLAGS += $(OPTIM_FLAGS)
 
-# Architecture specific flags
-ifeq ($(TARGET_HOST),armhf)
-  ARM_FLAGS = -march=armv7-a -mtune=cortex-a9 -mfpu=$(MFPU) -mfloat-abi=hard
-  CFLAGS += $(ARM_FLAGS)
-else ifeq ($(TARGET_HOST),armel)
-  ARM_FLAGS = -march=armv7-a -mtune=cortex-a9
-  CFLAGS += $(ARM_FLAGS) -D_GLIBCXX_USE_NANOSLEEP
-else ifeq ($(TARGET_HOST),local)
-  CFLAGS += -march=native
-endif
-
-# Add debug/optimization flags
-ifeq ($(ADD_DEBUG_FLAGS),true)
-  CFLAGS += -rdynamic -g
-  ifeq ($(TARGET_HOST),armhf)
-    CFLAGS +=-mapcs-frame
-  else ifeq ($(TARGET_HOST),armel)
-    CFLAGS +=-mapcs-frame
-  endif
-else
-  CFLAGS += -O3
-endif
-
-CPPFLAGS=$(CFLAGS) -std=c++14 -pthread
+CXXFLAGS=$(CFLAGS) -std=c++14 -pthread
 
 # --------------------------------------------------------------
 # Libraries
@@ -127,21 +82,16 @@ LIBS = -lm # -lpthread -lssl -lcrypto
 # Targets
 # --------------------------------------------------------------
 
-# Main Makefile target 'all' - it iterates over all targets listed in $(TARGET)
-# variable.
-all: $(TARGET)
+all: $(SERVER)
 
-# Target with compilation rules to compile object from source files
 %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@
-	
+
 %.o: %.cpp
-	$(CCPP) -c $(CPPFLAGS) $< -o $@
+	$(CCXX) -c $(CXXFLAGS) $< -o $@
 
-# Makefile target with rules how to link executable for each target from $(TARGET) list.
-$(TARGET): $(OBJS)
-	$(CCPP) -o $@ $^ $(CPPFLAGS) $(LIBS)
+$(SERVER): $(OBJS)
+	$(CCXX) -o $@ $^ $(CXXFLAGS) $(LIBS)
 
-# Clean target - when called it cleans all object files and executables.
 clean:
-	rm -f $(TARGET) *.o $(OBJS)
+	rm -f $(SERVER) *.o $(OBJS)

@@ -4,7 +4,7 @@
 
 #include "kdevice.hpp"
 
-#include "../devices/devices_table.hpp"
+#include <devices_table.hpp>
 
 namespace kserver {
 

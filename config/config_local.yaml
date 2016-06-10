@@ -1,15 +1,39 @@
-# Config the server for running tests on localhost
+# Config for running tests on localhost
 #
 # To be compiled on the local computer
 #
 # (c) Koheron
 
-# Local config do not contain dev_mem
+# Local config does not contain dev_mem
 
-# Target host
-host: local
+includes: [config/zynq_sdk.yaml]
+
+# Executable name
+server-name: kserverd
+
+cross-compile: ""
+
+arch_flags:
+  - march=native
+
+defines:
+  - DEBUG_KSERVER
+  # - RELEASE_KSERVER
+  - LOCAL
+
+debug:
+  status: no # set to yes to compile in debug mode
+  flags:
+    - rdynamic
+    - g
+
+# Optimization is disactivated when compiled in debug mode
+optimization_flags:
+  - O3
+  - finline-limit=150
+
+middleware-path: tmp/middleware
 
 devices:
-    - ../middleware/tests.hpp
-    #- ../middleware/eigen_tests.hpp
-
+    - tests/tests.hpp
+    - tests/eigen_tests.hpp

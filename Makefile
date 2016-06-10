@@ -1,54 +1,51 @@
-# 'make' builds everything
-# 'make clean' deletes everything except source files and Makefile
+CONFIG=config/config_local.yaml
+PYTHON=/usr/bin/python
 
-CONFIG=config_local.yaml
+# Base directory for paths
+BASE_DIR=.
+CONFIG_PATH=$(BASE_DIR)/$(CONFIG)
+__PYTHON = $(shell bash scripts/get_python.sh $(PYTHON) $(BASE_DIR))
 
-DOCKER=False
-BUILD_LOCAL=False
-USE_EIGEN = False
+TMP = tmp
+CORE = core
+MAKE_PY = scripts/make.py
 
-MIDWARE_PATH = middleware
-REMOTE_DRIVERS = $(MIDWARE_PATH)/drivers
-ZYNQ_SDK_PATH = tmp/zynq-sdk
+ARCH_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --arch-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.arch-flags)
+OPTIM_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --optim-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.optim-flags)
+DEBUG_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --debug-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.debug-flags)
+DEFINES:=$(shell $(__PYTHON) $(MAKE_PY) --defines $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.defines)
+CROSS_COMPILE:=$(shell $(__PYTHON) $(MAKE_PY) --cross-compile $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.cross-compile)
+DEVICES:=$(shell $(__PYTHON) $(MAKE_PY) --devices $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.devices)
+SERVER:=$(shell $(__PYTHON) $(MAKE_PY) --server-name $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.server-name)
+MIDWARE_PATH=$(shell $(__PYTHON) $(MAKE_PY) --midware-path $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.midware-path)
 
-current_dir := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+__MIDWARE_PATH=$(BASE_DIR)/$(MIDWARE_PATH)
 
-all: kserverd
+EXECUTABLE=$(TMP)/$(SERVER)
 
-$(REMOTE_DRIVERS):
-ifeq ($(BUILD_LOCAL),True)
-	git clone https://github.com/Koheron/zynq-sdk.git $(ZYNQ_SDK_PATH)
-	cd $(ZYNQ_SDK_PATH) && git checkout master
-	mkdir -p $(REMOTE_DRIVERS)/lib
-	cp -r $(ZYNQ_SDK_PATH)/drivers/lib/. $(REMOTE_DRIVERS)/lib
-	cp -r $(ZYNQ_SDK_PATH)/drivers/device_memory/. $(REMOTE_DRIVERS)
-endif
+all: $(EXECUTABLE)
 
-libraries:
-ifeq ($(USE_EIGEN),True)
-	wget -P tmp bitbucket.org/eigen/eigen/get/3.2.6.tar.gz
-	cd tmp && tar -zxvf 3.2.6.tar.gz
-	mkdir -p $(MIDWARE_PATH)/libraries
-	cp -r tmp/eigen-eigen-c58038c56923/Eigen $(MIDWARE_PATH)/libraries
-endif
+$(TMP): requirements $(CORE) $(DEVICES)
+	mkdir -p $(TMP)
+	mkdir -p $(TMP)/middleware
+	cp -r $(CORE) $(TMP)/core
+	rm -f $(TMP)/core/Makefile
+	rm -f $(TMP)/core/main.cpp
+	cp $(CORE)/main.cpp $(TMP)/main.cpp
+	cp $(CORE)/Makefile $(TMP)/Makefile
 
-venv:
-ifeq ($(DOCKER),False)
-	virtualenv venv
-	venv/bin/pip install -r requirements.txt
-else
-	pip install -r $(current_dir)/requirements.txt
-endif
+requirements: $(MAKE_PY) $(CONFIG_PATH)
+	$(__PYTHON) $(MAKE_PY) --requirements $(CONFIG_PATH) $(BASE_DIR)
 
-kserverd: venv libraries $(REMOTE_DRIVERS)
-ifeq ($(DOCKER),False)
-	venv/bin/python kmake.py kserver -c config/$(CONFIG) $(MIDWARE_PATH)
-else
-	python kmake.py kserver -c config/$(CONFIG) $(MIDWARE_PATH)
-endif
+$(EXECUTABLE): $(TMP) $(MAKE_PY) $(CONFIG_PATH)
+	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(__MIDWARE_PATH)
+	make -C $(TMP) CROSS_COMPILE=$(CROSS_COMPILE) DEFINES=$(DEFINES) SERVER=$(SERVER)             \
+	               ARCH_FLAGS=$(ARCH_FLAGS) OPTIM_FLAGS=$(OPTIM_FLAGS) DEBUG_FLAGS=$(DEBUG_FLAGS) \
+	               MIDWARE_PATH=$(__MIDWARE_PATH)
+
+cli:
+	make -C apis/cli CROSS_COMPILE=$(CROSS_COMPILE) DEFINES=$(DEFINES) ARCH_FLAGS=$(ARCH_FLAGS)
 
 clean:
-	rm -rf tmp
-	rm -rf venv
-	rm -rf $(REMOTE_DRIVERS)
-
+	rm -rf $(TMP)
+	make -C apis/cli clean

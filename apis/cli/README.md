@@ -1,4 +1,4 @@
-# Command line Interface
+# Command Line Interface
 
 The command line interface (CLI) is an administration tool for the Koheron server daemon.
 

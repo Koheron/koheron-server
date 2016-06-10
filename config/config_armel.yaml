@@ -2,9 +2,34 @@
 #
 # (c) Koheron
 
-# Target host
-host: armel
+includes: [config/zynq_sdk.yaml]
+
+# Executable name
+server-name: kserverd
+
+cross-compile: /usr/bin/arm-linux-gnueabi-
+
+arch_flags:
+  - march=armv7-a
+  - mtune=cortex-a9
+
+defines:
+  - DEBUG_KSERVER
+  # - RELEASE_KSERVER
+
+debug:
+  status: no # set to yes to compile in debug mode
+  flags:
+    - rdynamic
+    - g
+    - mapcs-frame
+
+# Optimization is disactivated when compiled in debug mode
+optimization_flags:
+  - O3
+
+middleware-path: tmp/middleware
 
 devices:
-    - ../middleware/drivers/device_memory.hpp
-    - ../middleware/tests.hpp
+  - tests/tests.hpp
+  - tmp/zynq-sdk/drivers/device_memory/device_memory.hpp

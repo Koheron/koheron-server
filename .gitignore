@@ -34,16 +34,10 @@
 Makefile~
 Dockerfile~
 README.md~
-makefile_template~
 APIs/python/README.rst~
 kserverd
-cli/kserver
+apis/cli/kserver
 tmp
 venv
-
-CLI/.kserver_cli
-CLI/kserver
-
-middleware/libraries
 
 

@@ -3,7 +3,7 @@
     "name": "koheron-websocket-client",
     "description": "Websocket client for Koheron server",
     "version": "0.1.0",
-    "repository": "https://github.com/Koheron/tcp-server/tree/master/APIs/js/koheron-websocket-client",
+    "repository": "https://github.com/Koheron/tcp-server/tree/master/apis/js/koheron-websocket-client",
     "license": "MIT",
     "homepage": "https://github.com/Koheron/tcp-server",
 

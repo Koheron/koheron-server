@@ -10,7 +10,7 @@
 API_INC_PATH = ..
 
 # GCC compiling & linking flags
-CFLAGS= -Wall -Werror -I$(API_INC_PATH) $(DEFINES) -std=c99 -O2 # -g
+CFLAGS= -Wall -Werror -I$(API_INC_PATH) $(DEFINES) -std=c99 -O3 # -g
 
 # Toolchain
 ifeq ($(TARGET_HOST),armhf)
@@ -51,7 +51,7 @@ OBJS = $(OBJS_API) main.o
 SRCS = $(subst .o,.c, $(OBJS), ))
 
 # Main GCC executable (used for compiling and linking)
-CC=$(CROSS_COMPILE)gcc
+CC=$(CROSS_COMPILE)gcc -flto
 
 # Main Makefile target 'all' - it iterates over all targets listed in $(TARGET)
 # variable.

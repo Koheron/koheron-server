@@ -14,9 +14,9 @@ def Generate(device, directory):
         
         f.write('#include "' + device.class_name.lower() + '.hpp' + '"\n\n')
         
-        f.write('#include "../core/commands.hpp"\n')
-        f.write('#include "../core/kserver.hpp"\n')
-        f.write('#include "../core/kserver_session.hpp"\n')
+        f.write('#include <core/commands.hpp>\n')
+        f.write('#include <core/kserver.hpp>\n')
+        f.write('#include <core/kserver_session.hpp>\n')
         #f.write('#include "../core/binary_parser.hpp"\n\n')
         
         f.write('namespace kserver {\n\n')
@@ -112,51 +112,51 @@ def GetTotalArgNum(operation):
 def PrintExecuteOp(file_id, device, operation):
     file_id.write('template<>\n')
     file_id.write('template<>\n')
-    
+
     file_id.write('int KDevice<' + device.class_name + ',' \
                                     + device.name + '>::\n')
     file_id.write('        execute_op<' + device.class_name + '::' \
                             + operation["name"] + '> \n' )
-                    
+
     file_id.write('        (const Argument<' + device.class_name + '::' \
                             + operation["name"] + '>& args, SessID sess_id)\n')
-    
+
     file_id.write('{\n')
-    
+
     # Load code fragments
-    for frag in device.frag_handler.fragments:
+    for frag in device.fragments:
         if operation["name"] == frag['name']:        
             for line in frag['fragment']:
                 file_id.write(line)
-    
+
     file_id.write('}\n\n')
-    
+
 def PrintIsFailed(file_id, device):
     file_id.write('template<>\n')
     file_id.write('bool KDevice<' + device.class_name + ',' \
                     + device.name + '>::is_failed(void)\n')
     file_id.write('{\n')
-    
-    for frag in device.frag_handler.fragments:
+
+    for frag in device.fragments:
         if frag['name'] == "IS_FAILED":        
             for line in frag['fragment']:
                 file_id.write(line)
-    
+
     file_id.write('}\n\n')
-    
+
 def PrintExecute(file_id, device):
     file_id.write('template<>\n')
     file_id.write('int KDevice<' + device.class_name \
                                 + ',' + device.name + '>::\n')
     file_id.write('        execute(const Command& cmd)\n' )
     file_id.write('{\n')
-    
+
     file_id.write('#if KSERVER_HAS_THREADS\n')
     file_id.write('    std::lock_guard<std::mutex> lock(THIS->mutex);\n')
     file_id.write('#endif\n\n')
-    
+
     file_id.write('    switch(cmd.operation) {\n')
-    
+
     for operation in device.operations:
         file_id.write('      case ' + device.class_name + '::' \
                                 + operation["name"] + ': {\n')
@@ -168,15 +168,12 @@ def PrintExecute(file_id, device):
         file_id.write('        return execute_op<' + device.class_name + '::' \
                                 + operation["name"] + '>(args, cmd.sess_id);\n')                                             
         file_id.write('      }\n')
-        
+
     file_id.write('      case ' + device.class_name + '::' \
                                 + device.name.lower() + '_op_num:\n')
     file_id.write('      default:\n')
     file_id.write('          kserver->syslog.print(SysLog::ERROR, "' 
                             + device.class_name + ': Unknown operation\\n");\n')
     file_id.write('          return -1;\n')
-    
     file_id.write('    }\n')
-    
     file_id.write('}\n\n')
-

@@ -5,7 +5,7 @@
 #include <vector>
 #include <tuple>
 
-#include <drivers/lib/dev_mem.hpp> 
+#include <drivers/lib/dev_mem.hpp>
 
 class Tests
 {

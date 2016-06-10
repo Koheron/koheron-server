@@ -7,7 +7,7 @@
 
 #include <Eigen/Dense>
 
-#include "../drivers/dev_mem.hpp" // Unused but needed for now
+#include <drivers/lib/dev_mem.hpp> // Unused but needed for now
 
 class EigenTests
 {

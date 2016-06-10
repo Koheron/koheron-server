@@ -7,3 +7,4 @@ tabulate==0.7.5
 wsgiref==0.1.2
 CppHeaderParser==2.7.2
 datetime
+pytest

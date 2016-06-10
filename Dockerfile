@@ -15,6 +15,7 @@ RUN apt-get -y install gcc-5 g++-5             \
                        g++-arm-linux-gnueabi   \
                        make                    \
                        wget                    \
+                       unzip                   \
                        curl                    \
                        git                     \
                        python-pip              \
@@ -36,7 +37,9 @@ RUN curl -sL https://deb.nodesource.com/setup_5.x | bash -
 RUN apt-get install -y nodejs
 
 RUN pip install --upgrade pip
-RUN pip install pytest
 
 WORKDIR $work_dir/
 COPY . $work_dir/
+
+RUN pip install -r $work_dir/requirements.txt
+RUN bash $work_dir/scripts/install_eigen.sh
