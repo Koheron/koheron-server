@@ -26,7 +26,7 @@ Tcp-server allows us to access all the public functions (except the constructor,
 
 Simply add the path of `hello_world.hpp` into the `devices` section of your config file (checkout the [config](config) folder for examples).
 
-### Python client
+### Python TCP client
 
 ``` py
 from koheron_tcp_client import KClient, command
@@ -40,12 +40,39 @@ class HelloWorld(object):
     	return self.client.recv_uint32()
 
 if __name__ == "__main__":
-	client = KClient('192.168.1.10')
+	client = KClient('127.0.0.1')
 	hw = HelloWorld(client)
 	print hw.add_42(58) # 100
 ```
 
-Check our [drivers folder](https://github.com/Koheron/zynq-sdk/tree/master/drivers) to find several complete examples.
+### Javascript WebSocket client
+
+The javascript API is compatible both for browser and NodeJS use.
+
+```coffeescript
+websock_client = require('koheron-websocket-client.js')
+Command = websock_client.Command
+
+class HelloWorld
+    constructor : (@kclient) ->
+        @device = @kclient.getDevice("HELLO_WORLD")
+
+        @cmds =
+            add_42 : @device.getCmdRef( "ADD_42" )
+
+    add42 : (num, cb) ->
+    	@kclient.readUint32(Command(@device.id, @cmds.add_42, 'I', num), cb)
+    	
+client = new websock_client.KClient('127.0.0.1', 1)
+
+client.init( =>
+    hw = new HelloWorld(client)
+    hw.add42(58, (res) =>
+        console.log res # 100
+    )
+)
+```
+
 
 ### Requirements and build
 
