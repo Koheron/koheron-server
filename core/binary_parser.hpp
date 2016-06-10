@@ -33,16 +33,39 @@ inline T pseudo_cast(const U &x)
 
 // -- Specializations
 
-template<> uint16_t parse<uint16_t>(const char *buff);
+template<>
+inline uint16_t parse<uint16_t>(const char *buff)
+{
+    return (unsigned char)buff[1] + ((unsigned char)buff[0] << 8);
+}
+
 template<> constexpr size_t size_of<uint16_t> = 2;
 
-template<> uint32_t parse<uint32_t>(const char *buff);
+template<>
+inline uint32_t parse<uint32_t>(const char *buff)
+{
+    return (unsigned char)buff[3] + ((unsigned char)buff[2] << 8) 
+           + ((unsigned char)buff[1] << 16) + ((unsigned char)buff[0] << 24);
+}
+
 template<> constexpr size_t size_of<uint32_t> = 4;
 
-template<> float parse<float>(const char *buff);
+template<>
+inline float parse<float>(const char *buff)
+{
+    static_assert(sizeof(float) == size_of<uint32_t>,
+                  "Invalid float size");
+    return pseudo_cast<float, uint32_t>(parse<uint32_t>(buff));
+}
+
 template<> constexpr size_t size_of<float> = 4;
 
-template<> bool parse<bool>(const char *buff);
+template<>
+inline bool parse<bool>(const char *buff)
+{
+    return (unsigned char)buff[0] == 1;
+}
+
 template<> constexpr size_t size_of<bool> = 1;
 
 // ------------------------
