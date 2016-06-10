@@ -8,7 +8,7 @@ __PYTHON = $(shell bash scripts/get_python.sh $(PYTHON) $(BASE_DIR))
 
 TMP = tmp
 CORE = core
-MAKE_PY = make.py
+MAKE_PY = scripts/make.py
 
 ARCH_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --arch-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.arch-flags)
 OPTIM_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --optim-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.optim-flags)
@@ -44,7 +44,7 @@ $(EXECUTABLE): $(TMP) $(MAKE_PY) $(CONFIG_PATH)
 	               MIDWARE_PATH=$(__MIDWARE_PATH)
 
 cli:
-	make -C APIs/cli CROSS_COMPILE=$(CROSS_COMPILE) DEFINES=$(DEFINES) ARCH_FLAGS=$(ARCH_FLAGS)
+	make -C apis/cli CROSS_COMPILE=$(CROSS_COMPILE) DEFINES=$(DEFINES) ARCH_FLAGS=$(ARCH_FLAGS)
 
 clean:
 	rm -rf $(TMP)
