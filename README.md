@@ -4,13 +4,9 @@
 
 #### `High performance TCP/Websocket server for instrument control`
 
-Koheron tcp-server helps interfacing hardware drivers with standard communication protocols (WebSocket, TCP or UnixSockets).
-Drivers are statically compiled into the server for maximum performance. 
-Javascript, Python and C APIs are provided to communicate with the server.
+### Accessing C++ code through the network
 
-### Interfacing a driver
-
-Below is a simple example of a GPIO driver:
+Consider the following C++ class
 
 ``` cpp
 // hello_world.hpp
@@ -26,43 +22,27 @@ class HelloWorld
 #endif // __HELLO_WORLD_HPP__
 ```
 
-The class is statically compiled into the server. All the public functions (except the constructor, the destructor) are then accessable using any of the supported protocols.
+Tcp-server allows us to access all the public functions (except the constructor, the destructor) through various protocols (WebSocket, TCP or UnixSockets are supported for now). To maximize performance the class is statically compiled into the server.
 
-Here is a example of a Python TCP client communicating with the GPIO driver:
+Simply add the path of `hello_world.hpp` into the `devices` section of your config file (checkout the [config](config) folder for examples).
+
+### Python client
+
 ``` py
 from koheron_tcp_client import KClient, command
 
-class Gpio(object):
+class HelloWorld(object):
     def __init__(self, client):
         self.client = client
-        self.open_gpio()
 
-    def open_gpio(self):
-        @command('GPIO')
-        def open(self): pass
-
-        open(self)
-
-    @command('GPIO','II')
-    def set_bit(self, index, channel): pass
-
-    @command('GPIO','II')
-    def clear_bit(self, index, channel): pass
-
-    @command('GPIO','II')
-    def toggle_bit(self, index, channel): pass
-
-    @command('GPIO','II')
-    def set_as_input(self, index, channel): pass
-
-    @command('GPIO','II')
-    def set_as_output(self, index, channel): pass
+    @command('HELLO_WORLD','I')
+    def add_42(self, num):
+    	return self.client.recv_uint32()
 
 if __name__ == "__main__":
 	client = KClient('192.168.1.10')
-	gpio = Gpio(client)
-	gpio.set_as_output(0, 2)
-	gpio.set_bit(0, 2)
+	hw = HelloWorld(client)
+	print hw.add_42(58) # 100
 ```
 
 Check our [drivers folder](https://github.com/Koheron/zynq-sdk/tree/master/drivers) to find several complete examples.
