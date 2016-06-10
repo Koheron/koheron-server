@@ -51,7 +51,7 @@ OBJS = $(OBJS_API) main.o
 SRCS = $(subst .o,.c, $(OBJS), ))
 
 # Main GCC executable (used for compiling and linking)
-CC=$(CROSS_COMPILE)gcc
+CC=$(CROSS_COMPILE)gcc -flto
 
 # Main Makefile target 'all' - it iterates over all targets listed in $(TARGET)
 # variable.
