@@ -13,9 +13,11 @@
 namespace kserver {
 
 DeviceManager::DeviceManager(KServer *kserver_)
-: device_list(device_num),
-  kserver(kserver_),
-  dev_mem(kserver_->config->addr_limit_down, kserver_->config->addr_limit_up)
+: device_list(device_num)
+,  kserver(kserver_)
+#if KSERVER_HAS_DEVMEM
+,  dev_mem(kserver_->config->addr_limit_down, kserver_->config->addr_limit_up)
+#endif
 {
     device_list[KSERVER] = static_cast<KDeviceAbstract*>(kserver);
     is_started[KSERVER] = 1;
@@ -40,12 +42,20 @@ int DeviceManager::Init()
 }
 
 // X Macro: Start new device
-#define EXPAND_AS_START_DEVICE(num, name, operations ...)                \
-        case num:                                                        \
-            device_list[num]                                             \
-                = new name (static_cast<KServer*>(device_list[KSERVER]), \
-                            dev_mem);                                    \
+#if KSERVER_HAS_DEVMEM
+#define EXPAND_AS_START_DEVICE(num, name, operations ...)                 \
+        case num:                                                         \
+            device_list[num]                                              \
+                = new name (static_cast<KServer*>(device_list[KSERVER]),  \
+                            dev_mem);                                     \
             break;
+#else
+#define EXPAND_AS_START_DEVICE(num, name, operations ...)                 \
+        case num:                                                         \
+            device_list[num]                                              \
+                = new name (static_cast<KServer*>(device_list[KSERVER])); \
+            break;
+#endif
 
 int DeviceManager::StartDev(device_t dev)
 {

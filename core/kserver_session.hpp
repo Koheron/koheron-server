@@ -8,6 +8,7 @@
 #include <vector>
 #include <array>
 #include <memory>
+#include <unistd.h>
 
 #include "commands.hpp"
 #include "devices_manager.hpp"

@@ -6,8 +6,6 @@
 
 # Local config does not contain dev_mem
 
-includes: [config/zynq_sdk.yaml]
-
 # Executable name
 server-name: kserverd
 
@@ -34,6 +32,9 @@ optimization_flags:
 
 middleware-path: tmp/middleware
 
+copy_devices_to_middleware: yes
+
 devices:
     - tests/tests.hpp
-    - tests/eigen_tests.hpp
+    # - tests/eigen_tests.hpp
+    - tests/hello_world.hpp

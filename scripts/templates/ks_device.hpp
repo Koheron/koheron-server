@@ -11,14 +11,17 @@
 {% for include in device.includes -%}
 #include "{{ include }}"
 {% endfor -%}
+
+#if KSERVER_HAS_DEVMEM
 #include <drivers/lib/dev_mem.hpp>
+#endif
 
 #if KSERVER_HAS_THREADS
 #include <mutex>
 #endif
 
-#include "../core/kdevice.hpp"
-#include "../core/devices_manager.hpp"
+#include <core/kdevice.hpp>
+#include <core/devices_manager.hpp>
 
 namespace kserver {
 
@@ -29,12 +32,22 @@ class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device
     enum { __kind = {{ device.name }} };
 
   public:
+#if KSERVER_HAS_DEVMEM
     {{ device.class_name }}(KServer* kserver, Klib::DevMem& dev_mem_)
+#else
+    {{ device.class_name }}(KServer* kserver)
+#endif
     : KDevice<{{ device.class_name }},{{ device.name }}>(kserver)
+#if KSERVER_HAS_DEVMEM
     , dev_mem(dev_mem_)
+#endif
     {% if device.objects|length -%}
     {% for object in device.objects -%}
+#if KSERVER_HAS_DEVMEM
     , {{ object["name"] }}(dev_mem_)
+#else
+    , {{ object["name"] }}()
+#endif
     {% endfor -%}
     {% endif -%}
     {}
@@ -50,7 +63,9 @@ class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device
     std::mutex mutex;
 #endif
 
+#if KSERVER_HAS_DEVMEM
     Klib::DevMem& dev_mem;
+#endif
     {% if device.objects|length -%}
     {% for object in device.objects -%}
     {{ object["type"] }} {{ object["name"] }};

@@ -60,17 +60,18 @@ def install_requirements(config, base_dir):
             else:
                 raise ValueError('Unknown requirement type: ' + requirement['type'])
 
-    for dev in get_devices(config):
-        dev_path = os.path.join(base_dir, dev)
-        dest_dir = os.path.join('tmp/middleware', os.path.dirname(dev))
-        if not os.path.isdir(dest_dir):
-                os.makedirs(dest_dir)
+    if 'copy_devices_to_middleware' in config and config['copy_devices_to_middleware']:
+        for dev in get_devices(config):
+            dev_path = os.path.join(base_dir, dev)
+            dest_dir = os.path.join('tmp/middleware', os.path.dirname(dev))
+            if not os.path.isdir(dest_dir):
+                    os.makedirs(dest_dir)
 
-        copy(dev_path, dest_dir)
-        cpp_filename = os.path.join(os.path.dirname(dev_path), 
-                                    os.path.basename(dev_path).split('.')[0] + '.cpp')
-        if os.path.exists(cpp_filename):
-            copy(cpp_filename, dest_dir)
+            copy(dev_path, dest_dir)
+            cpp_filename = os.path.join(os.path.dirname(dev_path), 
+                                        os.path.basename(dev_path).split('.')[0] + '.cpp')
+            if os.path.exists(cpp_filename):
+                copy(cpp_filename, dest_dir)
 
 def get_devices(config):
     if 'devices' in config:
@@ -110,8 +111,7 @@ def main(argv):
             f.write(' ' + ' '.join(cpp_files))
 
     elif cmd == '--requirements':
-        if 'requirements' in config:
-            install_requirements(config, argv[2])
+        install_requirements(config, argv[2])
 
     elif cmd == '--cross-compile':
         with open('tmp/.cross-compile', 'w') as f:
