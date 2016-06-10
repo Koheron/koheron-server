@@ -36,7 +36,7 @@ def generate(devices_list, midware_path):
         if path.endswith('.hpp') or path.endswith('.h'):
             device = Device(path, midware_path)
             print "Generate " + device.name
-            device.Generate(os.path.join(midware_path, os.path.dirname(path)))
+            device.generate(os.path.join(midware_path, os.path.dirname(path)))
             devices.append(device)
 
     return devices

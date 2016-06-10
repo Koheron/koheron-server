@@ -30,6 +30,7 @@ debug:
 # Optimization is disactivated when compiled in debug mode
 optimization_flags:
   - O3
+  - finline-limit=150
 
 middleware-path: tmp/middleware
 
