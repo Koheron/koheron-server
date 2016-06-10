@@ -13,40 +13,20 @@ Javascript, Python and C APIs are provided to communicate with the server.
 Below is a simple example of a GPIO driver:
 
 ``` cpp
-// gpio.hpp
-#ifndef __GPIO_HPP__
-#define __GPIO_HPP__
+// hello_world.hpp
+#ifndef __HELLO_WORLD_HPP__
+#define __HELLO_WORLD_HPP__
 
-#include <drivers/dev_mem.hpp>
-#include <drivers/wr_register.hpp>
-
-class Gpio
+class HelloWorld
 {
   public:
-    Gpio(Klib::DevMem& dev_mem_);
-    ~Gpio();
-
-    int Open();
-    
-    # pragma tcp-server exclude
-    void Close();
-
-    void set_bit(uint32_t index, uint32_t channel);
-    void clear_bit(uint32_t index, uint32_t channel);
-    void toggle_bit(uint32_t index, uint32_t channel);
-    void set_as_input(uint32_t index, uint32_t channel);
-    void set_as_output(uint32_t index, uint32_t channel);
-
-  private:
-    Klib::DevMem& dev_mem;
-    Klib::MemMapID gpio_mem; // GPIO memory map ID
+    uint32_t add_42(uint_32_t num) {return num + 42;}
 };
 
-#endif // __GPIO_HPP__
+#endif // __HELLO_WORLD_HPP__
 ```
 
-The class is integrated into the server during [build](doc/build.md).
-All the public functions (except the constructor, the destructor and `Close` which is explicitly excluded) can be accessed using any of the supported protocols.
+The class is statically compiled into the server. All the public functions (except the constructor, the destructor) are then accessable using any of the supported protocols.
 
 Here is a example of a Python TCP client communicating with the GPIO driver:
 ``` py
