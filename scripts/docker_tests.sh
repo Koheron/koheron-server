@@ -22,6 +22,9 @@ make -C apis/C/tests TARGET_HOST=armhf clean all
 make -C apis/C/tests TARGET_HOST=Win32 clean all
 make -C apis/C/tests TARGET_HOST=Win64 clean all
 
+# Compile hello world
+make -C apis/C/hello_world/ clean all
+
 # Build js API
 make -C apis/js/koheron-websocket-client build
 
@@ -40,8 +43,9 @@ nohup tmp/kserverd -c config/kserver_docker.conf > /dev/null 2>server.log &
 ps -A | grep -w "kserverd"
 
 echo "== Test Hello World =="
-python apis/python/hello_world.py
+apis/C/hello_world/hello_world
 node apis/js/koheron-websocket-client/tests/hello_world.js
+python apis/python/hello_world.py
 
 echo "== Test CLI =="
 CLI=apis/cli/kserver
