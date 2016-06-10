@@ -60,7 +60,7 @@ def install_requirements(config, base_dir):
             else:
                 raise ValueError('Unknown requirement type: ' + requirement['type'])
 
-    for dev in config['devices']:
+    for dev in get_devices(config):
         dev_path = os.path.join(base_dir, dev)
         dest_dir = os.path.join('tmp/middleware', os.path.dirname(dev))
         if not os.path.isdir(dest_dir):
@@ -71,6 +71,12 @@ def install_requirements(config, base_dir):
                                     os.path.basename(dev_path).split('.')[0] + '.cpp')
         if os.path.exists(cpp_filename):
             copy(cpp_filename, dest_dir)
+
+def get_devices(config):
+    if 'devices' in config:
+        return config['devices']
+    elif 'drivers' in config:
+        return config['drivers']
 
 def main(argv):
     cmd = argv[0]
@@ -91,7 +97,7 @@ def main(argv):
     elif cmd == '--devices':
         hpp_files = []
         cpp_files = []
-        for dev in config['devices']:
+        for dev in get_devices(config):
             dev_path = os.path.join(argv[2], dev)
             hpp_files.append(dev_path)
             cpp_filename = os.path.join(os.path.dirname(dev_path), 
