@@ -9,6 +9,7 @@ init:
 build: init
 	gulp compile-lib-js
 	gulp compile-tests-js
+	gulp compile-hello-world-js
 
 tests: build
 	nodeunit tests/tests.js

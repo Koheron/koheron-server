@@ -6,11 +6,6 @@
 #include <random>
 #include <thread>
 
-Tests::Tests(Klib::DevMem& dvm_unused_)
-: data(0)
-, buffer(0)
-{}
-
 bool Tests::rcv_many_params(uint32_t u1, uint32_t u2, float f, bool b)
 {
     return u1 == 429496729 && u2 == 2048 && trunc(f * 1E6) == 3140000 && b;

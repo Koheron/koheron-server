@@ -7,12 +7,10 @@
 
 #include <Eigen/Dense>
 
-#include <drivers/lib/dev_mem.hpp> // Unused but needed for now
-
 class EigenTests
 {
   public:
-    EigenTests(Klib::DevMem& dvm_unused_) {}
+    EigenTests() {}
 
     void small_vector()
     {

@@ -5,12 +5,25 @@
 #include <vector>
 #include <tuple>
 
+#if KSERVER_HAS_DEVMEM
 #include <drivers/lib/dev_mem.hpp>
+#endif
 
 class Tests
 {
   public:
-    Tests(Klib::DevMem& dvm_unused_);
+#if KSERVER_HAS_DEVMEM
+    Tests(
+        Klib::DevMem& dvm_unused_)
+    : data(0)
+    , buffer(0)
+    {}
+#else
+    Tests() 
+    : data(0)
+    , buffer(0)
+    {}
+#endif
 
     bool rcv_many_params(uint32_t u1, uint32_t u2, float f, bool b);
     bool set_float(float f);

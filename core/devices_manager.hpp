@@ -15,10 +15,12 @@
 // error: ‘mutex’ in namespace ‘std’ does not name a type
 // with gcc (Ubuntu 4.8.4-2ubuntu1~14.04) 4.8.4
 #if KSERVER_HAS_THREADS
-#  include <mutex>
+#include <mutex>
 #endif
 
+#if KSERVER_HAS_DEVMEM
 #include <drivers/lib/dev_mem.hpp>
+#endif
 
 namespace kserver {
 
@@ -78,13 +80,17 @@ class DeviceManager
     /// Device status
     KS_device_status GetStatus(device_t dev);
     
+#if KSERVER_HAS_DEVMEM
     Klib::DevMem& GetDevMem() {return dev_mem;}
+#endif
 
   private:
     std::vector<KDeviceAbstract*> device_list;
     KServer *kserver;
 
+#if KSERVER_HAS_DEVMEM
     Klib::DevMem dev_mem;
+#endif
 
     /// True if a device is started
     std::bitset<device_num> is_started;

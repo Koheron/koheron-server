@@ -19,6 +19,7 @@ arch_flags:
 defines:
   - DEBUG_KSERVER
   # - RELEASE_KSERVER
+  - KSERVER_HAS_DEVMEM
 
 debug:
   status: no # set to yes to compile in debug mode
@@ -32,6 +33,8 @@ optimization_flags:
   - O3
 
 middleware-path: tmp/middleware
+
+copy_devices_to_middleware: yes
 
 devices:
   - tests/tests.hpp
