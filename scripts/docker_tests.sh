@@ -41,6 +41,7 @@ ps -A | grep -w "kserverd"
 
 echo "== Test Hello World =="
 python apis/python/hello_world.py
+node apis/js/koheron-websocket-client/tests/hello_world.js
 
 echo "== Test CLI =="
 CLI=apis/cli/kserver

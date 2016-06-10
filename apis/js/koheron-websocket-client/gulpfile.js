@@ -29,3 +29,9 @@ gulp.task('compile-tests-js', function() {
     .pipe(coffee())
     .pipe(gulp.dest('./tests'));
 });
+
+gulp.task('compile-hello-world-js', function() {
+    gulp.src('tests/hello_world.coffee')
+    .pipe(coffee())
+    .pipe(gulp.dest('./tests'));
+});

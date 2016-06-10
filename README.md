@@ -37,12 +37,12 @@ class HelloWorld(object):
 
     @command('HELLO_WORLD','I')
     def add_42(self, num):
-    	return self.client.recv_uint32()
+        return self.client.recv_uint32()
 
 if __name__ == "__main__":
-	client = KClient('127.0.0.1')
-	hw = HelloWorld(client)
-	print hw.add_42(58) # 100
+    client = KClient('127.0.0.1')
+    hw = HelloWorld(client)
+    print hw.add_42(58) # 100
 ```
 
 ### Javascript WebSocket client
@@ -61,12 +61,15 @@ class HelloWorld
             add_42 : @device.getCmdRef( "ADD_42" )
 
     add42 : (num, cb) ->
-    	@kclient.readUint32(Command(@device.id, @cmds.add_42, 'I', num), cb)
-    	
+        @kclient.readUint32(Command(@device.id, @cmds.add_42, 'I', num), cb)
+        
 client = new webclient.KClient('127.0.0.1', 1)
 
 client.init( =>
     hw = new HelloWorld(client)
-    hw.add42(58, (res) -> console.log res)
+    hw.add42(58, (res) ->
+        console.log res
+        process.exit()
+    )
 )
 ```
