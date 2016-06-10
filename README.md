@@ -67,9 +67,7 @@ client = new websock_client.KClient('127.0.0.1', 1)
 
 client.init( =>
     hw = new HelloWorld(client)
-    hw.add42(58, (res) =>
-        console.log res # 100
-    )
+    hw.add42(58, (res) -> console.log res)
 )
 ```
 
