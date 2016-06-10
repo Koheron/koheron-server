@@ -86,3 +86,27 @@ if __name__ == "__main__":
 ```
 
 Check our [drivers folder](https://github.com/Koheron/zynq-sdk/tree/master/drivers) to find several complete examples.
+
+### Requirements and build
+
+You first need to get the C/C++ compiler. To install a given GCC based cross-compiler toolchain run
+```
+$ sudo apt-get install gcc-<toolchain>
+$ sudo apt-get install g++-<toolchain>
+```
+
+The build requires Python 2.7. You also need the following programs:
+```
+$ sudo apt-get install wget git
+$ sudo bash scripts/install_eigen.sh
+
+$ sudo apt-get -y install python-pip python-dev build-essential python-virtualenv libyaml-dev
+$ sudo pip install --upgrade pip
+$ sudo pip install -r requirements.txt
+```
+
+To build simply do
+```
+$ make CONFIG=<config.yaml>
+```
+for examples of configurqtion files checkout the [config](config) folder.
