@@ -22,9 +22,9 @@ class HelloWorld
 #endif // __HELLO_WORLD_HPP__
 ```
 
-Tcp-server allows us to access all the public functions (except the constructor, the destructor) through various protocols (WebSocket, TCP or UnixSockets are supported for now). To maximize performance the class is statically compiled into the server.
+All the public functions (except the constructor, the destructor) are made accessible through TCP and/or WebSocket. The class is statically compiled into the server to maximize performance.
 
-Simply add the path of `hello_world.hpp` into the `devices` section of your config file (checkout the [config](config) folder for examples).
+Simply add the path of `hello_world.hpp` into the `devices` section of your config file (checkout the [config](config) folder for examples) and build `make CONFIG=<config_file.yml>`.
 
 ### Python TCP client
 
