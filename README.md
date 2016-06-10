@@ -50,8 +50,8 @@ if __name__ == "__main__":
 The javascript API is compatible both for browser and NodeJS use.
 
 ```coffeescript
-websock_client = require('koheron-websocket-client.js')
-Command = websock_client.Command
+webclient = require('koheron-websocket-client.js')
+Command = webclient.Command
 
 class HelloWorld
     constructor : (@kclient) ->
@@ -63,35 +63,10 @@ class HelloWorld
     add42 : (num, cb) ->
     	@kclient.readUint32(Command(@device.id, @cmds.add_42, 'I', num), cb)
     	
-client = new websock_client.KClient('127.0.0.1', 1)
+client = new webclient.KClient('127.0.0.1', 1)
 
 client.init( =>
     hw = new HelloWorld(client)
     hw.add42(58, (res) -> console.log res)
 )
 ```
-
-
-### Requirements and build
-
-You first need to get the C/C++ compiler. To install a given GCC based cross-compiler toolchain run
-```
-$ sudo apt-get install gcc-<toolchain>
-$ sudo apt-get install g++-<toolchain>
-```
-
-The build requires Python 2.7. You also need the following programs:
-```
-$ sudo apt-get install wget git
-$ sudo bash scripts/install_eigen.sh
-
-$ sudo apt-get -y install python-pip python-dev build-essential python-virtualenv libyaml-dev
-$ sudo pip install --upgrade pip
-$ sudo pip install -r requirements.txt
-```
-
-To build simply do
-```
-$ make CONFIG=<config.yaml>
-```
-for examples of configurqtion files checkout the [config](config) folder.
