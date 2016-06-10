@@ -41,7 +41,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/Koheron/tcp-server/tree/master/APIs/python',
+    url='https://github.com/Koheron/tcp-server/tree/master/apis/python',
 
     # Author details
     author='Koheron',
