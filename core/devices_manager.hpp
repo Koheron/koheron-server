@@ -96,7 +96,7 @@ class DeviceManager
 
 } // namespace kserver
 
-#include "../devices.hpp"
+#include <devices.hpp>
 
 #endif // __DEVICES_MANAGER_HPP__
 

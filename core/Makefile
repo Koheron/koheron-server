@@ -62,7 +62,9 @@ CCXX=$(CROSS_COMPILE)g++ -flto
 # GCC compiling & linking flags
 # --------------------------------------------------------------
 
-CFLAGS= -Wall -Werror -Wno-unknown-pragmas -I$(MIDWARE_INC_PATH) $(DEFINES)
+INC=-I. -I$(MIDWARE_INC_PATH)
+
+CFLAGS=-Wall -Werror -Wno-unknown-pragmas $(INC) $(DEFINES)
 
 CFLAGS += $(ARCH_FLAGS)
 CFLAGS += $(DEBUG_FLAGS)

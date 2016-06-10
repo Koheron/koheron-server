@@ -14,9 +14,9 @@ def Generate(device, directory):
         
         f.write('#include "' + device.class_name.lower() + '.hpp' + '"\n\n')
         
-        f.write('#include "../core/commands.hpp"\n')
-        f.write('#include "../core/kserver.hpp"\n')
-        f.write('#include "../core/kserver_session.hpp"\n')
+        f.write('#include <core/commands.hpp>\n')
+        f.write('#include <core/kserver.hpp>\n')
+        f.write('#include <core/kserver_session.hpp>\n')
         #f.write('#include "../core/binary_parser.hpp"\n\n')
         
         f.write('namespace kserver {\n\n')
