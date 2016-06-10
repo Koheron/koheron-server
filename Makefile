@@ -48,4 +48,4 @@ cli:
 
 clean:
 	rm -rf $(TMP)
-	make -C APIs/cli clean
+	make -C apis/cli clean

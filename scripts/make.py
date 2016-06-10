@@ -17,7 +17,7 @@ def render_device_table(devices):
     print "Generate device table"
     device_table.PrintDeviceTable(devices, 'tmp')
 
-    template_filename = 'devgen/templates/devices.hpp'
+    template_filename = 'scripts/templates/devices.hpp'
 
     header_renderer = jinja2.Environment(
       loader = jinja2.FileSystemLoader(os.path.abspath('.'))

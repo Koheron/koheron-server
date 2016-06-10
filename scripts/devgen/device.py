@@ -52,7 +52,7 @@ class Device:
         autogen_implementation.Generate(self, directory)  # Generate KServer implementation (cpp)
 
     def _render_ks_device_header(self, directory):
-        template_filename = 'devgen/templates/ks_device.hpp'
+        template_filename = 'scripts/templates/ks_device.hpp'
 
         header_renderer = jinja2.Environment(
           loader = jinja2.FileSystemLoader(os.path.abspath('.'))
