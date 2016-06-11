@@ -30,15 +30,20 @@ RUN apt-get -y install nodejs-legacy           \
                        npm                     \
                        nodejs                  \
                        default-jre
-RUN npm install -g gulp
-RUN npm install -g nodeunit
+
 # Upgrade to Node 5 for Google closure compiler
 RUN curl -sL https://deb.nodesource.com/setup_5.x | bash -
 RUN apt-get install -y nodejs
 
+# Upgrade npm to latest version
+npm update npm -g
+
 # https://github.com/OpenCollective/opencollective-api/issues/311
 RUN npm --version
 RUN node --version
+
+RUN npm install -g gulp
+RUN npm install -g nodeunit
 
 RUN pip install --upgrade pip
 
