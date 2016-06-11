@@ -36,7 +36,7 @@ RUN curl -sL https://deb.nodesource.com/setup_5.x | bash -
 RUN apt-get install -y nodejs
 
 # Upgrade npm to latest version
-npm update npm -g
+RUN npm update npm -g
 
 # https://github.com/OpenCollective/opencollective-api/issues/311
 RUN npm --version
