@@ -47,6 +47,7 @@ class Tests
 
     // Send tuple
     std::tuple<int, float, double> get_tuple();
+    std::array<uint32_t, 2> get_binary_tuple();
 
     // Send numbers
     uint64_t read_uint64();

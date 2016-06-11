@@ -5,6 +5,16 @@
 #include <cmath>
 #include <random>
 #include <thread>
+#include <cstring>
+
+// http://stackoverflow.com/questions/17789928/whats-a-proper-way-of-type-punning-a-float-to-an-int-and-vice-versa
+template <typename T, typename U>
+inline T pseudo_cast(const U &x)
+{
+    T to = T(0);
+    std::memcpy(&to, &x, (sizeof(T) < sizeof(U)) ? sizeof(T) : sizeof(U));
+    return to;
+}
 
 bool Tests::rcv_many_params(uint32_t u1, uint32_t u2, float f, bool b)
 {
@@ -80,6 +90,16 @@ const char* Tests::get_cstr()
 std::tuple<int, float, double> Tests::get_tuple()
 {
     return std::make_tuple(2, 3.14159F, 2345.6);
+}
+
+std::array<uint32_t, 2> Tests::get_binary_tuple() {
+    uint32_t v1 = 2;
+    float v2 = 3.14159F;
+
+    return {{
+        v1,
+        pseudo_cast<uint32_t, const float>(v2)
+    }};
 }
 
 uint64_t           Tests::read_uint64()    { return (1ULL << 63);       }

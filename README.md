@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
 The javascript API is compatible both for browser and NodeJS use.
 
-```coffeescript
+```coffee
 webclient = require('koheron-websocket-client.js')
 Command = webclient.Command
 
