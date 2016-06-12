@@ -38,16 +38,18 @@ namespace kserver {
           (const Argument<KServer::cmd_name>& args, SessID sess_id)
 
 /////////////////////////////////////
-// GET_ID
-// Send the ID of the board
+// GET_VERSION
+// Send the server commit version
 
-KSERVER_STRUCT_ARGUMENTS(GET_ID) {};
-KSERVER_PARSE_ARG(GET_ID) {return 0;}
+KSERVER_STRUCT_ARGUMENTS(GET_VERSION) {};
+KSERVER_PARSE_ARG(GET_VERSION) {return 0;}
 
-KSERVER_EXECUTE_OP(GET_ID)
+#define xstr(s) str(s)
+#define str(s) #s
+
+KSERVER_EXECUTE_OP(GET_VERSION)
 {
-    // TODO
-    return 0;
+    return GET_SESSION.SendCstr(xstr(SHA));
 }
 
 /////////////////////////////////////
@@ -389,8 +391,8 @@ int KDevice<KServer, KSERVER>::execute(const Command& cmd)
     int err;
 
     switch (cmd.operation) {
-      case KServer::GET_ID:
-        KSERVER_EXECUTE_CMD(GET_ID)
+      case KServer::GET_VERSION:
+        KSERVER_EXECUTE_CMD(GET_VERSION)
       case KServer::GET_CMDS:
         KSERVER_EXECUTE_CMD(GET_CMDS)
       case KServer::GET_STATS:

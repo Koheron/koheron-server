@@ -76,6 +76,7 @@ void __stop_client(struct kclient *kcl)
  
 /* Status options */
 #define IS_STATUS_HELP     TEST_CMD("-h", "--help")
+#define IS_STATUS_VERSION  TEST_CMD("-v", "--version")
 #define IS_STATUS_DEVICES  TEST_CMD("-d", "--devices")
 #define IS_STATUS_SESSIONS TEST_CMD("-s", "--sessions")
 
@@ -90,6 +91,7 @@ void __status_usage(void)
            "Args", "Meaning");
 
     printf("%-10s%-15s%-15s%-50s\n", "-h", "--help", "", "Show this message");
+    printf("%-10s%-15s%-15s%-50s\n", "-v", "--version", "", "Server commit version");
     printf("%-10s%-15s%-15s%-50s\n", "-d", "--devices", "", 
            "Show the available devices");
     printf("%-10s%-15s%-15s%-50s\n", "-d", "--devices", "DEVICE", 
@@ -267,6 +269,18 @@ void ks_cli_status(int argc, char **argv)
     }
     else if (IS_STATUS_HELP) {
         __status_usage();
+        exit(EXIT_SUCCESS);
+    }
+    else if (IS_STATUS_VERSION) {
+        struct kclient *kcl = __start_client();
+        
+        if (kcl == NULL) {
+            fprintf(stderr, "Connection failed\n");
+            exit(EXIT_FAILURE);
+        }  
+
+        printf("%s\n", kcl->version);
+        __stop_client(kcl);
         exit(EXIT_SUCCESS);
     }
     else if (IS_STATUS_SESSIONS) {

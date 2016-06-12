@@ -88,6 +88,7 @@ struct device {
  * @max_num_op: Maximum number of operations among all avalaible devices
  * @devs_num: Number of available devices
  * @devices: Available devices
+ * @version: Server commit version
  * @conn_type: Connection type
  * @buffer: Received data buffer
  * @current_len: Length of the buffer (including '\0' termination if any)
@@ -107,6 +108,7 @@ struct kclient {
     int                  max_num_op;
     int                  devs_num;
     struct device        devices[MAX_DEV_NUM];
+    char                 version[8];
     
     connection_t         conn_type;
 
