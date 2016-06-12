@@ -27,6 +27,7 @@ class Tests
 
     bool rcv_many_params(uint32_t u1, uint32_t u2, float f, bool b);
     bool set_float(float f);
+    bool set_u64(uint64_t u);
 
     // Send arrays
     std::vector<float>& send_std_vector();

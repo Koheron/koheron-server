@@ -84,6 +84,11 @@ def _append_u32(buff, value):
     buff.append(value & 0xff)
     return 4
 
+def _append_u64(buff, value):
+    _append_u32(buff, value)
+    _append_u32(buff, (value >> 32))
+    return 8
+
 # http://stackoverflow.com/questions/14431170/get-the-bits-of-a-float-in-python
 def float_to_bits(f):
     return struct.unpack('>l', struct.pack('>f', f))[0]
@@ -101,6 +106,8 @@ def _build_payload(type_str, args):
     for i, type_ in enumerate(type_str):
         if type_ is 'I': # Unsigned
             size += _append_u32(payload, args[i])
+        elif type_ is 'L': # Unsigned long
+            size += _append_u64(payload, args[i])
         elif type_ is 'f': # float
             size += _append_float(payload, args[i])
         elif type_ is '?': # bool

@@ -176,7 +176,7 @@ template<int sock_type>
 template<typename... Tp>
 int Session<sock_type>::Send(const std::tuple<Tp...>& t)
 {
-    auto arr = serialize(t);
+    const auto& arr = serialize(t);
     return SendArray<unsigned char>(arr.data(), arr.size());
 }
 

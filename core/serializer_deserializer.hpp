@@ -66,21 +66,41 @@ inline void append<uint32_t>(unsigned char *buff, uint32_t value)
     buff[3] = value & 0xff;
 }
 
+// uint64_t
+
+template<> constexpr size_t size_of<uint64_t> = 8;
+
+template<>
+inline uint64_t extract<uint64_t>(const char *buff)
+{
+    uint32_t u1 = extract<uint32_t>(buff);
+    uint32_t u2 = extract<uint32_t>(buff + size_of<uint32_t>);
+    return static_cast<uint64_t>(u1) + (static_cast<uint64_t>(u2) << 32);
+}
+
+// template<>
+// inline void append<uint32_t>(unsigned char *buff, uint32_t value)
+// {
+//     buff[0] = (value >> 24) & 0xff;
+//     buff[1] = (value >> 16) & 0xff;
+//     buff[2] = (value >>  8) & 0xff;
+//     buff[3] = value & 0xff;
+// }
+
 // float
 
-template<> constexpr size_t size_of<float> = 4;
+template<> constexpr size_t size_of<float> = size_of<uint32_t>;
+static_assert(sizeof(float) == size_of<float>, "Invalid float size");
 
 template<>
 inline float extract<float>(const char *buff)
 {
-    static_assert(sizeof(float) == size_of<uint32_t>, "Invalid float size");
     return pseudo_cast<float, uint32_t>(extract<uint32_t>(buff));
 }
 
 template<>
 inline void append<float>(unsigned char *buff, float value)
 {
-    static_assert(sizeof(float) == size_of<uint32_t>, "Invalid float size");
     append<uint32_t>(buff, pseudo_cast<uint32_t, float>(value));
 }
 

@@ -26,6 +26,11 @@ bool Tests::set_float(float f)
     return f == 12.5;
 }
 
+bool Tests::set_u64(uint64_t u)
+{
+    return u == 2225073854759576792;
+}
+
 std::vector<float>& Tests::send_std_vector()
 {
     data.resize(10);
