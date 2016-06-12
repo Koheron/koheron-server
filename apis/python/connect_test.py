@@ -1,5 +1,6 @@
 import sys
 import pytest
+import struct
 import numpy as np
 
 from koheron_tcp_client import KClient, command, write_buffer
@@ -63,6 +64,11 @@ class Tests:
     @command('TESTS')
     def get_tuple(self):
         return client.recv_tuple()
+
+    @command('TESTS')
+    def get_binary_tuple(self):
+        buff = client.recv_buffer(2, data_type='uint32')
+        return tuple(struct.unpack('If', buff))
 
 # Unit tests
 
@@ -141,3 +147,10 @@ def test_read_tuple(tests):
     assert tup[0] == 2
     assert tup[1] == 3.14159
     assert tup[2] == 2345.6
+
+@pytest.mark.parametrize('tests', [tests])
+def test_get_binary_tuple(tests):
+    tup = tests.get_binary_tuple()
+    print tup
+    assert tup[0] == 2
+    assert abs(tup[1] - 3.14159) < 1E-6
