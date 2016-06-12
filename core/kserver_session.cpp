@@ -81,7 +81,7 @@ int Session<TCP>::read_command(Command& cmd)
     }
 
     auto header_tuple
-        = parse_buffer<HEADER_START, header_buff.size(), HEADER_TYPE_LIST>(header_buff);
+        = deserialize<HEADER_START, header_buff.size(), HEADER_TYPE_LIST>(header_buff);
     uint32_t payload_size = std::get<2>(header_tuple);
 
     cmd.sess_id = id;
@@ -236,7 +236,7 @@ int Session<WEBSOCK>::read_command(Command& cmd)
     }
 
     auto header_tuple
-        = parse_buffer<HEADER_START, HEADER_TYPE_LIST>(websock.get_payload_no_copy());
+        = deserialize<HEADER_START, HEADER_TYPE_LIST>(websock.get_payload_no_copy());
 
     uint32_t payload_size = std::get<2>(header_tuple);
 

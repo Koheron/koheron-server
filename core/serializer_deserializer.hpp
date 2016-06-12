@@ -1,4 +1,4 @@
-/// Utilities to parse binary buffers
+/// Serialize and deserialize binary buffers
 ///
 /// (c) Koheron 
 
@@ -12,16 +12,6 @@
 
 namespace kserver {
 
-// ------------------------
-// Type parsing
-// ------------------------
-
-template<typename Tp>
-Tp parse(const char *buff);
-
-template<typename Tp>
-constexpr size_t size_of;
-
 // http://stackoverflow.com/questions/17789928/whats-a-proper-way-of-type-punning-a-float-to-an-int-and-vice-versa
 template <typename T, typename U>
 inline T pseudo_cast(const U &x)
@@ -31,10 +21,20 @@ inline T pseudo_cast(const U &x)
     return to;
 }
 
-// -- Specializations
+// ------------------------
+// Deserializer
+// ------------------------
+
+template<typename Tp>
+Tp extract(const char *buff);
+
+template<typename Tp>
+constexpr size_t size_of;
+
+// -- Definitions
 
 template<>
-inline uint16_t parse<uint16_t>(const char *buff)
+inline uint16_t extract<uint16_t>(const char *buff)
 {
     return (unsigned char)buff[1] + ((unsigned char)buff[0] << 8);
 }
@@ -42,7 +42,7 @@ inline uint16_t parse<uint16_t>(const char *buff)
 template<> constexpr size_t size_of<uint16_t> = 2;
 
 template<>
-inline uint32_t parse<uint32_t>(const char *buff)
+inline uint32_t extract<uint32_t>(const char *buff)
 {
     return (unsigned char)buff[3] + ((unsigned char)buff[2] << 8) 
            + ((unsigned char)buff[1] << 16) + ((unsigned char)buff[0] << 24);
@@ -51,45 +51,38 @@ inline uint32_t parse<uint32_t>(const char *buff)
 template<> constexpr size_t size_of<uint32_t> = 4;
 
 template<>
-inline float parse<float>(const char *buff)
+inline float extract<float>(const char *buff)
 {
     static_assert(sizeof(float) == size_of<uint32_t>,
                   "Invalid float size");
-    return pseudo_cast<float, uint32_t>(parse<uint32_t>(buff));
+    return pseudo_cast<float, uint32_t>(extract<uint32_t>(buff));
 }
 
 template<> constexpr size_t size_of<float> = 4;
 
 template<>
-inline bool parse<bool>(const char *buff)
+inline bool extract<bool>(const char *buff)
 {
     return (unsigned char)buff[0] == 1;
 }
 
 template<> constexpr size_t size_of<bool> = 1;
 
-// ------------------------
-// Buffer parsing
-// ------------------------
-
-// -- into tuple
-
 namespace detail {
 
-// Parse
 template<size_t position, typename Tp0, typename... Tp>
 inline std::enable_if_t<0 == sizeof...(Tp), std::tuple<Tp0, Tp...>>
-parse_buffer(const char *buff)
+deserialize(const char *buff)
 {
-    return std::make_tuple(parse<Tp0>(&buff[position]));
+    return std::make_tuple(extract<Tp0>(&buff[position]));
 }
 
 template<size_t position, typename Tp0, typename... Tp>
 inline std::enable_if_t<0 < sizeof...(Tp), std::tuple<Tp0, Tp...>>
-parse_buffer(const char *buff)
+deserialize(const char *buff)
 {
-    return std::tuple_cat(std::make_tuple(parse<Tp0>(&buff[position])),
-                          parse_buffer<position + size_of<Tp0>, Tp...>(buff));
+    return std::tuple_cat(std::make_tuple(extract<Tp0>(&buff[position])),
+                          deserialize<position + size_of<Tp0>, Tp...>(buff));
 }
 
 // Required buffer size
@@ -116,19 +109,23 @@ constexpr size_t required_buffer_size()
 }
 
 template<size_t position, size_t len, typename... Tp>
-inline std::tuple<Tp...> parse_buffer(const Buffer<len>& buff)
+inline std::tuple<Tp...> deserialize(const Buffer<len>& buff)
 {
     static_assert(required_buffer_size<Tp...>() <= len - position, 
                   "Buffer size too small");
 
-    return detail::parse_buffer<position, Tp...>(buff.data);
+    return detail::deserialize<position, Tp...>(buff.data);
 }
 
 template<size_t position, typename... Tp>
-inline std::tuple<Tp...> parse_buffer(const char *buff)
+inline std::tuple<Tp...> deserialize(const char *buff)
 {
-    return detail::parse_buffer<position, Tp...>(buff);
+    return detail::deserialize<position, Tp...>(buff);
 }
+
+// ------------------------
+// Serializer
+// ------------------------
 
 } // namespace kserver
 

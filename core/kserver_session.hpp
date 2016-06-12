@@ -17,7 +17,7 @@
 #include "peer_info.hpp"
 #include "session_manager.hpp"
 #include "tuple_utils.hpp"
-#include "binary_parser.hpp"
+#include "serializer_deserializer.hpp"
 #include "socket_interface_defs.hpp"
 
 #if KSERVER_HAS_WEBSOCKET
