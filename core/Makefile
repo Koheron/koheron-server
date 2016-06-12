@@ -84,11 +84,15 @@ LIBS = -lm # -lpthread -lssl -lcrypto
 
 all: $(SERVER)
 
+# http://bruno.defraine.net/techtips/makefile-auto-dependencies-with-gcc/
+DEP=$(OBJS:.o=.d)
+-include $(DEP)
+
 %.o: %.c
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) -MMD -o $@ $<
 
 %.o: %.cpp
-	$(CCXX) -c $(CXXFLAGS) $< -o $@
+	$(CCXX) -c $(CXXFLAGS) -MMD -o $@ $<
 
 $(SERVER): $(OBJS)
 	$(CCXX) -o $@ $^ $(CXXFLAGS) $(LIBS)
