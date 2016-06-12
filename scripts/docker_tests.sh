@@ -61,7 +61,8 @@ SHA=$(git rev-parse --short HEAD)
 echo ${VERSION}
 echo ${SHA}
 if [ "${VERSION}" != "${SHA}" ]; then
-echo Invalid version
+	echo Invalid version
+	exit 1
 fi
 
 echo "== Test C API =="
