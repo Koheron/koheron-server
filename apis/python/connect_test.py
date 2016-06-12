@@ -66,6 +66,13 @@ class Tests:
         return client.recv_tuple()
 
     @command('TESTS')
+    def get_tuple2(self):
+        return client.recv_tuple('If')
+        # buff = client.recv_buffer(8, data_type='uint8')
+        # print buff
+        # return tuple(struct.unpack('>If', buff))
+
+    @command('TESTS')
     def get_binary_tuple(self):
         buff = client.recv_buffer(2, data_type='uint32')
         return tuple(struct.unpack('If', buff))
@@ -141,16 +148,21 @@ def test_send_buffer(tests):
 def test_read_string(tests):
     assert tests.get_cstr() == 'Hello !'
 
+# @pytest.mark.parametrize('tests', [tests])
+# def test_read_tuple(tests):
+#     tup = tests.get_tuple()
+#     assert tup[0] == 2
+#     assert tup[1] == 3.14159
+#     assert tup[2] == 2345.6
+
 @pytest.mark.parametrize('tests', [tests])
-def test_read_tuple(tests):
-    tup = tests.get_tuple()
+def test_read_tuple2(tests):
+    tup = tests.get_tuple2()
     assert tup[0] == 2
-    assert tup[1] == 3.14159
-    assert tup[2] == 2345.6
+    assert abs(tup[1] - 3.14159) < 1E-6
 
 @pytest.mark.parametrize('tests', [tests])
 def test_get_binary_tuple(tests):
     tup = tests.get_binary_tuple()
-    print tup
     assert tup[0] == 2
     assert abs(tup[1] - 3.14159) < 1E-6

@@ -87,9 +87,14 @@ const char* Tests::get_cstr()
     return "Hello !";
 }
 
-std::tuple<int, float, double> Tests::get_tuple()
+// std::tuple<int, float, double> Tests::get_tuple()
+// {
+//     return std::make_tuple(2, 3.14159F, 2345.6);
+// }
+
+std::tuple<uint32_t, float> Tests::get_tuple2()
 {
-    return std::make_tuple(2, 3.14159F, 2345.6);
+    return std::make_tuple(2, 3.14159F);
 }
 
 std::array<uint32_t, 2> Tests::get_binary_tuple() {

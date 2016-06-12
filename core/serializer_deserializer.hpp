@@ -22,16 +22,16 @@ inline T pseudo_cast(const U &x)
 }
 
 // ------------------------
-// Deserializer
+// Definitions
 // ------------------------
 
-template<typename Tp>
-Tp extract(const char *buff);
+template<typename Tp> constexpr size_t size_of;
+template<typename Tp> Tp extract(const char *buff);       // Deserialization
+template<typename Tp> void append(unsigned char *buff, Tp value);  // Serialization
 
-template<typename Tp>
-constexpr size_t size_of;
+// uint16_t
 
-// -- Definitions
+template<> constexpr size_t size_of<uint16_t> = 2;
 
 template<>
 inline uint16_t extract<uint16_t>(const char *buff)
@@ -39,7 +39,16 @@ inline uint16_t extract<uint16_t>(const char *buff)
     return (unsigned char)buff[1] + ((unsigned char)buff[0] << 8);
 }
 
-template<> constexpr size_t size_of<uint16_t> = 2;
+template<>
+inline void append<uint16_t>(unsigned char *buff, uint16_t value)
+{
+    buff[0] = (value >> 8) & 0xff;
+    buff[1] = value & 0xff;
+}
+
+// uint32_t
+
+template<> constexpr size_t size_of<uint32_t> = 4;
 
 template<>
 inline uint32_t extract<uint32_t>(const char *buff)
@@ -48,17 +57,36 @@ inline uint32_t extract<uint32_t>(const char *buff)
            + ((unsigned char)buff[1] << 16) + ((unsigned char)buff[0] << 24);
 }
 
-template<> constexpr size_t size_of<uint32_t> = 4;
+template<>
+inline void append<uint32_t>(unsigned char *buff, uint32_t value)
+{
+    buff[0] = (value >> 24) & 0xff;
+    buff[1] = (value >> 16) & 0xff;
+    buff[2] = (value >>  8) & 0xff;
+    buff[3] = value & 0xff;
+}
+
+// float
+
+template<> constexpr size_t size_of<float> = 4;
 
 template<>
 inline float extract<float>(const char *buff)
 {
-    static_assert(sizeof(float) == size_of<uint32_t>,
-                  "Invalid float size");
+    static_assert(sizeof(float) == size_of<uint32_t>, "Invalid float size");
     return pseudo_cast<float, uint32_t>(extract<uint32_t>(buff));
 }
 
-template<> constexpr size_t size_of<float> = 4;
+template<>
+inline void append<float>(unsigned char *buff, float value)
+{
+    static_assert(sizeof(float) == size_of<uint32_t>, "Invalid float size");
+    append<uint32_t>(buff, pseudo_cast<uint32_t, float>(value));
+}
+
+// bool
+
+template<> constexpr size_t size_of<bool> = 1;
 
 template<>
 inline bool extract<bool>(const char *buff)
@@ -66,7 +94,9 @@ inline bool extract<bool>(const char *buff)
     return (unsigned char)buff[0] == 1;
 }
 
-template<> constexpr size_t size_of<bool> = 1;
+// ------------------------
+// Deserializer
+// ------------------------
 
 namespace detail {
 
@@ -126,6 +156,33 @@ inline std::tuple<Tp...> deserialize(const char *buff)
 // ------------------------
 // Serializer
 // ------------------------
+
+namespace detail {
+
+template<size_t buff_pos, size_t I, typename... Tp>
+inline std::enable_if_t<I == sizeof...(Tp), void>
+serialize(const std::tuple<Tp...>& t, unsigned char *buff)
+{}
+
+template<size_t buff_pos, size_t I, typename... Tp>
+inline std::enable_if_t<I < sizeof...(Tp), void>
+serialize(const std::tuple<Tp...>& t, unsigned char *buff)
+{
+    using type = typename std::tuple_element<I, std::tuple<Tp...>>::type;
+    append<type>(&buff[buff_pos], std::get<I>(t));
+    serialize<buff_pos + size_of<type>, I + 1, Tp...>(t, &buff[0]);
+}
+
+}
+
+template<typename... Tp>
+inline std::array<unsigned char, required_buffer_size<Tp...>()>
+serialize(const std::tuple<Tp...>& t)
+{
+    std::array<unsigned char, required_buffer_size<Tp...>()> arr;
+    detail::serialize<0, 0, Tp...>(t, arr.data());
+    return arr;
+}
 
 } // namespace kserver
 

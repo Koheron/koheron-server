@@ -16,7 +16,6 @@
 #include "kserver.hpp"
 #include "peer_info.hpp"
 #include "session_manager.hpp"
-#include "tuple_utils.hpp"
 #include "serializer_deserializer.hpp"
 #include "socket_interface_defs.hpp"
 
@@ -177,12 +176,8 @@ template<int sock_type>
 template<typename... Tp>
 int Session<sock_type>::Send(const std::tuple<Tp...>& t)
 {
-    std::stringstream ss;
-    stringify_tuple(t, ss);
-    ss << std::endl;
-
-    const std::string& tmp = ss.str();
-    return SendCstr(tmp.c_str());
+    auto arr = serialize(t);
+    return SendArray<unsigned char>(arr.data(), arr.size());
 }
 
 template<int sock_type>
