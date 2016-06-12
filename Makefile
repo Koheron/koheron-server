@@ -41,7 +41,7 @@ $(TMP)/$(CORE)/%: $(CORE)/%
 $(TMP)/%: $(CORE)/%
 	cp $^ $@
 
-requirements: $(MAKE_PY) $(CONFIG_PATH) $(DEVICES)
+requirements: $(MAKE_PY) $(CONFIG_PATH)
 	$(__PYTHON) $(MAKE_PY) --requirements $(CONFIG_PATH) $(BASE_DIR)
 
 $(EXECUTABLE): $(TMP_CORE_SRC) $(TMP)/main.cpp $(TMP)/Makefile $(MAKE_PY) $(CONFIG_PATH) | $(TMP)
