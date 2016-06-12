@@ -11,7 +11,7 @@ import jinja2
 #--------------------------------------------
 
 # Number of operation in the KServer device
-KSERVER_OP_NUM = 7
+KSERVER_OP_NUM = 5
 
 def PrintDeviceTable(devices, src_dir):
     devtab_filename = os.path.join(src_dir, 'devices_table.hpp')
@@ -108,11 +108,11 @@ def PrintDevDescription(file_id, devices, max_op_num):
     file_id.write('""}},\n')
     
     if max_op_num == KSERVER_OP_NUM:
-        file_id.write('  {{"KSERVER", "GET_ID", "GET_CMDS",'
-                       + '"GET_STATS", "GET_DEV_STATUS", "GET_RUNNING_SESSIONS", "KILL_SESSION", "GET_SESSION_PERFS"}},\n')
+        file_id.write('  {{"KSERVER", "GET_VERSION", "GET_CMDS",'
+                       + '"GET_STATS", "GET_DEV_STATUS", "GET_RUNNING_SESSIONS"}},\n')
     else:
-        file_id.write('  {{"KSERVER", "GET_ID", "GET_CMDS",'
-                       + '"GET_STATS", "GET_DEV_STATUS", "GET_RUNNING_SESSIONS", "KILL_SESSION" , "GET_SESSION_PERFS", ')
+        file_id.write('  {{"KSERVER", "GET_VERSION", "GET_CMDS",'
+                       + '"GET_STATS", "GET_DEV_STATUS", "GET_RUNNING_SESSIONS", ')
         for i in range(KSERVER_OP_NUM, max_op_num-1):
                 file_id.write('"", ')
         file_id.write('""}},\n')

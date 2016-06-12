@@ -56,6 +56,15 @@ ${CLI} status --devices
 ${CLI} status --devices KSERVER
 ${CLI} status --devices TESTS
 
+VERSION=$(${CLI} status --version)
+SHA=$(git rev-parse --short HEAD)
+echo ${VERSION}
+echo ${SHA}
+if [ "${VERSION}" != "${SHA}" ]; then
+	echo Invalid version
+	exit 1
+fi
+
 echo "== Test C API =="
 apis/C/tests/tests --unit 127.0.0.1:36000 /code/kserver.sock
 

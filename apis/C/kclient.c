@@ -478,6 +478,19 @@ int kclient_send_string(struct kclient *kcl, const char *str)
     return 0;
 }
 
+static int kclient_get_version(struct kclient *kcl)
+{
+    if (kclient_send_command(kcl, 1, 0, "") < 0)
+        return -1;
+
+    if (kclient_read_string(kcl) < 0)
+        return -1;
+
+    assert(strlen(kcl->buffer) == 7);
+    strcpy(kcl->version, kcl->buffer);
+    return 0;
+}
+
 static int kclient_get_devices(struct kclient *kcl)
 {
     int line_cnt = 0;
@@ -700,6 +713,14 @@ static int set_kclient_sock_options(struct kclient *kcl)
 }
 #endif
 
+// Operation to be performed after socket connection
+#define POST_CONNECT                    \
+    if (kclient_get_devices(kcl) < 0)   \
+        return NULL;                    \
+                                        \
+    if (kclient_get_version(kcl) < 0)   \
+        return NULL;
+
 KOHERON_LIB_EXPORT
 struct kclient* kclient_connect(const char *host, int port)
 {
@@ -715,7 +736,6 @@ struct kclient* kclient_connect(const char *host, int port)
     kcl->unix_sockfd = -1;
 #endif
 
-
     if (open_kclient_tcp_socket(kcl) < 0)
         return NULL;
 
@@ -725,8 +745,7 @@ struct kclient* kclient_connect(const char *host, int port)
     if (set_kclient_sock_options(kcl) < 0)
         return NULL;
 
-    if (kclient_get_devices(kcl) < 0)
-        return NULL;
+    POST_CONNECT
 
     return kcl;
 }
@@ -753,8 +772,7 @@ struct kclient* kclient_unix_connect(const char *sock_path)
     if (unix_socket_connect(kcl) < 0) 
         return NULL;
 
-    if (kclient_get_devices(kcl) < 0)
-        return NULL;
+    POST_CONNECT
 
     return kcl;
 }

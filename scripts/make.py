@@ -141,7 +141,7 @@ def main(argv):
 
     elif cmd == '--defines':
         with open('tmp/.defines', 'w') as f:
-            f.write('"-D' + ' -D'.join(config['defines']) + '"')
+            f.write('"-D' + ' -D'.join(config['defines']) + ' -DSHA=' + argv[3] + '"')
 
     else:
         raise ValueError('Unknown command')

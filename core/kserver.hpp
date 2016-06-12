@@ -128,13 +128,11 @@ class KServer : public KDevice<KServer, KSERVER>
 
     /// Operations associated to the device
     enum Operation {
-        GET_ID,               ///< RESERVED
+        GET_VERSION,          ///< Send th version of the server
         GET_CMDS,             ///< Send the commands numbers
         GET_STATS,            ///< Get KServer listeners statistics
         GET_DEV_STATUS,       ///< Send the devices status
         GET_RUNNING_SESSIONS, ///< Send the running sessions
-        KILL_SESSION,         ///< Kill a session (UNSTABLE)
-        GET_SESSION_PERFS,    ///< Send the perfs of a session
         kserver_op_num
     };
     
