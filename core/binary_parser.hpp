@@ -1,6 +1,6 @@
 /// Utilities to parse binary buffers
 ///
-/// (c) Koheron
+/// (c) Koheron 
 
 #ifndef __BINARY_PARSER_HPP__
 #define __BINARY_PARSER_HPP__

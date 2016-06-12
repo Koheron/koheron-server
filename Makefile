@@ -12,6 +12,9 @@ TMP = tmp
 CORE = core
 MAKE_PY = scripts/make.py
 
+CORE_SRC=$(shell find $(CORE) -name '*.cpp' -o -name '*.c' -o -name '*.hpp' -o -name '*.h' -o -name '*.tpp')
+TMP_CORE_SRC=$(addprefix $(TMP)/, $(CORE_SRC))
+
 ARCH_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --arch-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.arch-flags)
 OPTIM_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --optim-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.optim-flags)
 DEBUG_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --debug-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.debug-flags)
@@ -27,19 +30,21 @@ EXECUTABLE=$(TMP)/$(SERVER)
 
 all: $(EXECUTABLE)
 
-$(TMP): requirements $(CORE) $(DEVICES)
+$(TMP): requirements
 	mkdir -p $(TMP)
 	mkdir -p $(TMP)/middleware
-	cp -r $(CORE) $(TMP)/core
-	rm -f $(TMP)/core/Makefile
-	rm -f $(TMP)/core/main.cpp
-	cp $(CORE)/main.cpp $(TMP)/main.cpp
-	cp $(CORE)/Makefile $(TMP)/Makefile
+
+$(TMP)/$(CORE)/%: $(CORE)/%
+	mkdir -p -- `dirname -- $@`
+	cp $^ $@
+
+$(TMP)/%: $(CORE)/%
+	cp $^ $@
 
 requirements: $(MAKE_PY) $(CONFIG_PATH)
 	$(__PYTHON) $(MAKE_PY) --requirements $(CONFIG_PATH) $(BASE_DIR)
 
-$(EXECUTABLE): $(TMP) $(MAKE_PY) $(CONFIG_PATH)
+$(EXECUTABLE): $(TMP_CORE_SRC) $(TMP)/main.cpp $(TMP)/Makefile $(MAKE_PY) $(CONFIG_PATH) | $(TMP)
 	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(__MIDWARE_PATH)
 	make -C $(TMP) CROSS_COMPILE=$(CROSS_COMPILE) DEFINES=$(DEFINES) SERVER=$(SERVER)             \
 	               ARCH_FLAGS=$(ARCH_FLAGS) OPTIM_FLAGS=$(OPTIM_FLAGS) DEBUG_FLAGS=$(DEBUG_FLAGS) \
