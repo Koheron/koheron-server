@@ -4,56 +4,11 @@
 
 namespace kserver {
 
-const uint32_t* SessionAbstract::RcvHandshake(uint32_t buff_size)
-{
-    SWITCH_SOCK_TYPE(RcvHandshake(buff_size))
-    return nullptr;
-}
-
-int SessionAbstract::SendCstr(const char *string)
-{
-    SWITCH_SOCK_TYPE(SendCstr(string))
-    return -1;
-}
-
-#define SEND_SPECIALIZE_IMPL(session_kind)                          \
-    template<> template<>                                           \
-    int session_kind::Send<std::string>(const std::string& str)     \
-    {                                                               \
-        return SendCstr(str.c_str());                               \
-    }                                                               \
-                                                                    \
-    template<> template<>                                           \
-    int session_kind::Send<uint32_t>(const uint32_t& val)           \
-    {                                                               \
-        return SendArray<uint32_t>(&val, 1);                        \
-    }                                                               \
-                                                                    \
-    template<> template<>                                           \
-    int session_kind::Send<uint64_t>(const uint64_t& val)           \
-    {                                                               \
-        return SendArray<uint64_t>(&val, 1);                        \
-    }                                                               \
-                                                                    \
-    template<> template<>                                           \
-    int session_kind::Send<float>(const float& val)                 \
-    {                                                               \
-        return SendArray<float>(&val, 1);                           \
-    }                                                               \
-                                                                    \
-    template<> template<>                                           \
-    int session_kind::Send<double>(const double& val)               \
-    {                                                               \
-        return SendArray<double>(&val, 1);                          \
-    }
-
 // -----------------------------------------------
 // TCP
 // -----------------------------------------------
 
 #if KSERVER_HAS_TCP || KSERVER_HAS_UNIX_SOCKET
-
-SEND_SPECIALIZE_IMPL(Session<TCP>)
 
 template<> int Session<TCP>::init_socket() {return 0;}
 template<> int Session<TCP>::exit_socket() {return 0;}
@@ -200,8 +155,6 @@ int Session<TCP>::SendCstr(const char *string)
 // -----------------------------------------------
 
 #if KSERVER_HAS_WEBSOCKET
-
-SEND_SPECIALIZE_IMPL(Session<WEBSOCK>)
 
 template<>
 int Session<WEBSOCK>::init_socket()
