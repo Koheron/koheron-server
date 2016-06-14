@@ -26,7 +26,7 @@ inline T pseudo_cast(const U &x)
 // ------------------------
 
 template<typename Tp> constexpr size_t size_of;
-template<typename Tp> Tp extract(const char *buff);       // Deserialization
+template<typename Tp> Tp extract(const char *buff);                // Deserialization
 template<typename Tp> void append(unsigned char *buff, Tp value);  // Serialization
 
 // uint16_t
@@ -100,6 +100,17 @@ template<>
 inline void append<float>(unsigned char *buff, float value)
 {
     append<uint32_t>(buff, pseudo_cast<uint32_t, float>(value));
+}
+
+// double
+
+template<> constexpr size_t size_of<double> = size_of<uint64_t>;
+static_assert(sizeof(double) == size_of<double>, "Invalid float size");
+
+template<>
+inline double extract<double>(const char *buff)
+{
+    return pseudo_cast<double, uint64_t>(extract<uint64_t>(buff));
 }
 
 // bool

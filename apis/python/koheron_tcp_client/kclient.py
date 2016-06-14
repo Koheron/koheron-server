@@ -96,6 +96,12 @@ def float_to_bits(f):
 def _append_float(buff, value):
     return _append_u32(buff, float_to_bits(value))
 
+def double_to_bits(d):
+    return struct.unpack('>q', struct.pack('>d', d))[0]
+
+def _append_double(buff, value):
+    return _append_u64(buff, double_to_bits(value))
+
 def _build_payload(type_str, args):
     size = 0
     payload = bytearray()
@@ -110,6 +116,8 @@ def _build_payload(type_str, args):
             size += _append_u64(payload, args[i])
         elif type_ is 'f': # float
             size += _append_float(payload, args[i])
+        elif type_ is 'd': # double
+            size += _append_double(payload, args[i])
         elif type_ is '?': # bool
             if args[i]:
                 size += _append_u8(payload, 1)

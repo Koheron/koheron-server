@@ -26,6 +26,11 @@ bool Tests::set_float(float f)
     return f == 12.5;
 }
 
+bool Tests::set_double(double d)
+{
+    return abs(d - 1.428571428571428492127) < 1E-15;
+}
+
 bool Tests::set_u64(uint64_t u)
 {
     return u == 2225073854759576792;

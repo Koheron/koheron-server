@@ -17,6 +17,10 @@ class Tests:
     def set_float(self, f):
         return client.recv_bool()
 
+    @command('TESTS', 'd')
+    def set_double(self, d):
+        return client.recv_bool()
+
     @command('TESTS', 'Q')
     def set_u64(self, u):
         return client.recv_bool()
@@ -110,6 +114,10 @@ def test_read_double(tests):
 @pytest.mark.parametrize('tests', [tests])
 def test_set_float(tests):
     assert tests.set_float(12.5)
+
+@pytest.mark.parametrize('tests', [tests])
+def test_set_double(tests):
+    assert tests.set_double(1.428571428571428492127)
 
 @pytest.mark.parametrize('tests', [tests])
 def test_set_u64(tests):
