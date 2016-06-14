@@ -78,14 +78,12 @@ inline uint64_t extract<uint64_t>(const char *buff)
     return static_cast<uint64_t>(u1) + (static_cast<uint64_t>(u2) << 32);
 }
 
-// template<>
-// inline void append<uint32_t>(unsigned char *buff, uint32_t value)
-// {
-//     buff[0] = (value >> 24) & 0xff;
-//     buff[1] = (value >> 16) & 0xff;
-//     buff[2] = (value >>  8) & 0xff;
-//     buff[3] = value & 0xff;
-// }
+template<>
+inline void append<uint64_t>(unsigned char *buff, uint64_t value)
+{
+    append<uint32_t>(buff, (value >> 32));
+    append<uint32_t>(buff + size_of<uint32_t>, value);
+}
 
 // float
 

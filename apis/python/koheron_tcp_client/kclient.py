@@ -106,7 +106,7 @@ def _build_payload(type_str, args):
     for i, type_ in enumerate(type_str):
         if type_ is 'I': # Unsigned
             size += _append_u32(payload, args[i])
-        elif type_ is 'L': # Unsigned long
+        elif type_ is 'Q': # Unsigned long long
             size += _append_u64(payload, args[i])
         elif type_ is 'f': # float
             size += _append_float(payload, args[i])

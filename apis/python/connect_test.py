@@ -17,7 +17,7 @@ class Tests:
     def set_float(self, f):
         return client.recv_bool()
 
-    @command('TESTS', 'L')
+    @command('TESTS', 'Q')
     def set_u64(self, u):
         return client.recv_bool()
 
@@ -71,10 +71,7 @@ class Tests:
 
     @command('TESTS')
     def get_tuple2(self):
-        return client.recv_tuple('If')
-        # buff = client.recv_buffer(8, data_type='uint8')
-        # print buff
-        # return tuple(struct.unpack('>If', buff))
+        return client.recv_tuple('IfQ')
 
     @command('TESTS')
     def get_binary_tuple(self):
@@ -168,6 +165,7 @@ def test_read_tuple2(tests):
     tup = tests.get_tuple2()
     assert tup[0] == 2
     assert abs(tup[1] - 3.14159) < 1E-6
+    assert tup[2] == 742312418498347354
 
 @pytest.mark.parametrize('tests', [tests])
 def test_get_binary_tuple(tests):
