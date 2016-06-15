@@ -29,7 +29,7 @@ _kserver()
     local cur="${COMP_WORDS[COMP_CWORD]}"
     local prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-    local opts="host status kill init -h --help"
+    local opts="host status init -h --help"
 
     case "${prev}" in
     # HOST
@@ -50,7 +50,7 @@ _kserver()
         ;;
     # STATUS
     status)
-        local status_opts="-h --help -d --devices -s --sessions -p --perfs"
+        local status_opts="-h --help -d --devices -s --sessions -v --version"
         COMPREPLY=( $(compgen -W "${status_opts}" -- ${cur}) )
         return 0
         ;;
