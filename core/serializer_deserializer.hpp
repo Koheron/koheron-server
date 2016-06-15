@@ -2,8 +2,8 @@
 ///
 /// (c) Koheron 
 
-#ifndef __BINARY_PARSER_HPP__
-#define __BINARY_PARSER_HPP__
+#ifndef __SERIALIZER_DESERIALIZER_HPP__
+#define __SERIALIZER_DESERIALIZER_HPP__
 
 #include <cstring>
 #include <tuple>
@@ -221,4 +221,4 @@ serialize(const std::tuple<Tp...>& t)
 
 } // namespace kserver
 
-#endif // __BINARY_PARSER_HPP__
+#endif // __SERIALIZER_DESERIALIZER_HPP__
