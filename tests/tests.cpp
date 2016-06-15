@@ -102,9 +102,9 @@ const char* Tests::get_cstr()
 //     return std::make_tuple(2, 3.14159F, 2345.6);
 // }
 
-std::tuple<uint32_t, float, uint64_t> Tests::get_tuple2()
+std::tuple<uint32_t, float, uint64_t, double> Tests::get_tuple2()
 {
-    return std::make_tuple(2, 3.14159F, 742312418498347354);
+    return std::make_tuple(2, 3.14159F, 742312418498347354, 3.14159265358979323846);
 }
 
 std::array<uint32_t, 2> Tests::get_binary_tuple() {

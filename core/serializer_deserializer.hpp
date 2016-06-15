@@ -113,6 +113,12 @@ inline double extract<double>(const char *buff)
     return pseudo_cast<double, uint64_t>(extract<uint64_t>(buff));
 }
 
+template<>
+inline void append<double>(unsigned char *buff, double value)
+{
+    append<uint64_t>(buff, pseudo_cast<uint64_t, double>(value));
+}
+
 // bool
 
 template<> constexpr size_t size_of<bool> = 1;
