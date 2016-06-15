@@ -50,7 +50,7 @@ _kserver()
         ;;
     # STATUS
     status)
-        local status_opts="-h --help -d --devices -s --sessions -p --perfs"
+        local status_opts="-h --help -d --devices -s --sessions -v --version"
         COMPREPLY=( $(compgen -W "${status_opts}" -- ${cur}) )
         return 0
         ;;
