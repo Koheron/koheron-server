@@ -17,7 +17,6 @@ def Generate(device, directory):
         f.write('#include <core/commands.hpp>\n')
         f.write('#include <core/kserver.hpp>\n')
         f.write('#include <core/kserver_session.hpp>\n')
-        #f.write('#include "../core/binary_parser.hpp"\n\n')
         
         f.write('namespace kserver {\n\n')
         
@@ -86,7 +85,7 @@ def PrintParserCore(file_id, device, operation):
     file_id.write("        return -1;\n")
     file_id.write("    }\n\n")
 
-    file_id.write('    auto args_tuple = parse_buffer<0, cmd.buffer.size(), ')
+    file_id.write('    auto args_tuple = deserialize<0, cmd.buffer.size(), ')
     PrintTypeList(file_id, operation)
     file_id.write('>(cmd.buffer);\n')
 
