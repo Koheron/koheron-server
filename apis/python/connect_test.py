@@ -71,7 +71,7 @@ class Tests:
 
     @command('TESTS')
     def get_tuple(self):
-        return client.recv_tuple('Ifd')
+        return client.recv_tuple('Ifd?')
 
     @command('TESTS')
     def get_tuple2(self):
@@ -167,6 +167,7 @@ def test_read_tuple(tests):
     assert tup[0] == 501762438
     assert abs(tup[1] - 507.3858) < 5E-6
     assert abs(tup[2] - 926547.6468507200) < 1E-14
+    assert tup[3]
 
 @pytest.mark.parametrize('tests', [tests])
 def test_read_tuple2(tests):

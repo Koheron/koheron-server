@@ -97,9 +97,9 @@ const char* Tests::get_cstr()
     return "Hello !";
 }
 
-std::tuple<uint32_t, float, double> Tests::get_tuple()
+std::tuple<uint32_t, float, double, bool> Tests::get_tuple()
 {
-    return std::make_tuple(501762438, 507.3858, 926547.6468507200);
+    return std::make_tuple(501762438, 507.3858, 926547.6468507200, true);
 }
 
 std::tuple<uint32_t, float, uint64_t, double> Tests::get_tuple2()

@@ -70,7 +70,7 @@ class Tests
         @kclient.readString(Command(@id, @cmds.get_cstr), cb)
 
     readTuple : (cb) ->
-        @kclient.readTuple(Command(@id, @cmds.get_tuple), 'Ifd', cb)
+        @kclient.readTuple(Command(@id, @cmds.get_tuple), 'Ifd?', cb)
 
 # Unit tests
 
@@ -273,7 +273,7 @@ exports.readString = (assert) ->
     )
 
 exports.readTuple = (assert) ->
-    assert.expect(4)
+    assert.expect(5)
 
     assert.doesNotThrow( =>
         client.init( =>
@@ -282,6 +282,7 @@ exports.readTuple = (assert) ->
                 assert.equals(tuple[0], 501762438)
                 assert.ok(Math.abs(tuple[1] - 507.3858) < 5e-6)
                 assert.ok(Math.abs(tuple[2] - 926547.6468507200) < 1e-14)
+                assert.ok(tuple[3])
                 client.exit()
                 assert.done()
             )

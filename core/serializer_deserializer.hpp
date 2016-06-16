@@ -129,6 +129,12 @@ inline bool extract<bool>(const char *buff)
     return (unsigned char)buff[0] == 1;
 }
 
+template<>
+inline void append<bool>(unsigned char *buff, bool value)
+{
+    value ? buff[0] = 1 : buff[0] = 0;
+}
+
 // ------------------------
 // Deserializer
 // ------------------------

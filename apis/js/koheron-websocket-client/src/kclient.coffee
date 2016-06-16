@@ -361,6 +361,12 @@ class @KClient
                         when 'd'
                             tuple.push(dv.getFloat64(offset))
                             offset += 8
+                        when '?'
+                            if dv.getUint8(offset) == 0
+                                tuple.push(false)
+                            else
+                                tuple.push(true)
+                            offset += 1
                         else
                             throw new TypeError('Unknown or unsupported type ' + types_str[i])
 
