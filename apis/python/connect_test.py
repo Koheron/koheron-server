@@ -71,7 +71,7 @@ class Tests:
 
     @command('TESTS')
     def get_tuple(self):
-        return client.recv_tuple()
+        return client.recv_tuple('Ifd')
 
     @command('TESTS')
     def get_tuple2(self):
@@ -161,12 +161,12 @@ def test_send_buffer(tests):
 def test_read_string(tests):
     assert tests.get_cstr() == 'Hello !'
 
-# @pytest.mark.parametrize('tests', [tests])
-# def test_read_tuple(tests):
-#     tup = tests.get_tuple()
-#     assert tup[0] == 2
-#     assert tup[1] == 3.14159
-#     assert tup[2] == 2345.6
+@pytest.mark.parametrize('tests', [tests])
+def test_read_tuple(tests):
+    tup = tests.get_tuple()
+    assert tup[0] == 501762438
+    assert abs(tup[1] - 507.3858) < 5E-6
+    assert abs(tup[2] - 926547.6468507200) < 1E-14
 
 @pytest.mark.parametrize('tests', [tests])
 def test_read_tuple2(tests):

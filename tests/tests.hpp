@@ -48,7 +48,7 @@ class Tests
     const char* get_cstr();
 
     // Send tuple
-    // std::tuple<int, float, double> get_tuple();
+    std::tuple<uint32_t, float, double> get_tuple();
     std::tuple<uint32_t, float, uint64_t, double> get_tuple2();
     std::array<uint32_t, 2> get_binary_tuple();
 

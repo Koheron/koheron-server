@@ -340,45 +340,29 @@ class @KClient
             fn(num == 1)
         )
 
-    readTuple: (cmd, fn) ->
+    readTuple: (cmd, types_str, fn) ->
         @websockpool.requestSocket( (sockid) =>
             websocket = @websockpool.getSocket(sockid)
             websocket.send(cmd)
 
             websocket.onmessage = (evt) =>
+                dv = new DataView(evt.data)
                 tuple = []
-                elements = evt.data.split(":")
+                offset = 0
 
-                for elmt in elements[0..elements.length-2]
-                    toks = elmt.split("@")
-
-                    switch toks[0]
-                        when "i"
-                            type = "int"
-                            value = parseInt(toks[1], 10)
-                        when "j"
-                            type = "unsigned int"
-                            value = parseInt(toks[1], 10)
-                        when "f"
-                            type = "float"
-                            value = parseFloat(toks[1])
-                        when "d"
-                            type = "double"
-                            value = parseFloat(toks[1])
-                        when "c"
-                            type = "char"
-                            value = toks[1]
-                        when "Ss"
-                            type = "string"
-                            value = toks[1]
+                for i in [0..(types_str.length-1)]
+                    switch types_str[i]
+                        when 'I'
+                            tuple.push(dv.getUint32(offset))
+                            offset += 4
+                        when 'f'
+                            tuple.push(dv.getFloat32(offset))
+                            offset += 4
+                        when 'd'
+                            tuple.push(dv.getFloat64(offset))
+                            offset += 8
                         else
-                            type = toks[0]
-                            value = toks[1]
-
-                    tuple.push({
-                       type: type
-                       value: value
-                    })
+                            throw new TypeError('Unknown or unsupported type ' + types_str[i])
 
                 fn(tuple)
                 @websockpool.freeSocket(sockid)
