@@ -20,6 +20,8 @@ struct tests_device {
     op_id_t read_float_ref;      // "READ_FLOAT" reference
     op_id_t read_double_ref;     // "READ_DOUBLE" reference
     op_id_t set_float_ref;       // "SET_FLOAT" reference
+    op_id_t set_double_ref;      // "SET_DOUBLE" reference
+    op_id_t set_u64_ref;         // "SET_U64" reference
     op_id_t send_std_vector_ref; // "SEND_STD_VECTOR" reference
     op_id_t send_std_array_ref;  // "SEND_STD_ARRAY" reference
     op_id_t send_c_array1_ref;   // "SEND_C_ARRAY1" reference
@@ -39,6 +41,8 @@ void tests_init(struct tests_device *dev, struct kclient *kcl)
     dev->read_float_ref = get_op_id(kcl, dev->id, "READ_FLOAT");
     dev->read_double_ref = get_op_id(kcl, dev->id, "READ_DOUBLE");
     dev->set_float_ref = get_op_id(kcl, dev->id, "SET_FLOAT");
+    dev->set_double_ref = get_op_id(kcl, dev->id, "SET_DOUBLE");
+    dev->set_u64_ref = get_op_id(kcl, dev->id, "SET_U64");
     dev->send_std_vector_ref = get_op_id(kcl, dev->id, "SEND_STD_VECTOR");
     dev->send_std_array_ref = get_op_id(kcl, dev->id, "SEND_STD_ARRAY");
     dev->send_c_array1_ref = get_op_id(kcl, dev->id, "SEND_C_ARRAY1");
@@ -127,6 +131,28 @@ bool test_set_float(struct tests_device *dev)
     bool is_ok;
 
     if (kclient_send_command(dev->kcl, dev->id, dev->set_float_ref, "f", 12.5) < 0
+        || kclient_read_bool(dev->kcl, &is_ok))
+        return false;
+
+    return is_ok;
+}
+
+bool test_set_double(struct tests_device *dev)
+{
+    bool is_ok;
+
+    if (kclient_send_command(dev->kcl, dev->id, dev->set_double_ref, "d", 1.428571428571428492127) < 0
+        || kclient_read_bool(dev->kcl, &is_ok))
+        return false;
+
+    return is_ok;
+}
+
+bool test_set_u64(struct tests_device *dev)
+{
+    bool is_ok;
+
+    if (kclient_send_command(dev->kcl, dev->id, dev->set_u64_ref, "Q", 2225073854759576792) < 0
         || kclient_read_bool(dev->kcl, &is_ok))
         return false;
 
@@ -306,6 +332,8 @@ void unit_tests_tcp(char *IP, unsigned int port)
     UNIT_TEST(read_float)
     UNIT_TEST(read_double)
     UNIT_TEST(set_float)
+    UNIT_TEST(set_double)
+    UNIT_TEST(set_u64)
     UNIT_TEST(rcv_std_vector)
     UNIT_TEST(rcv_std_array)
     UNIT_TEST(rcv_c_array1)
@@ -338,6 +366,8 @@ void unit_tests_unix(char *unix_sock_path)
     UNIT_TEST(read_float)
     UNIT_TEST(read_double)
     UNIT_TEST(set_float)
+    UNIT_TEST(set_double)
+    UNIT_TEST(set_u64)
     UNIT_TEST(rcv_std_vector)
     UNIT_TEST(rcv_std_array)
     UNIT_TEST(rcv_c_array1)
@@ -383,6 +413,8 @@ void speed_tests_tcp(char *IP, unsigned int port)
     SPEED_TEST(read_float)
     SPEED_TEST(read_double)
     SPEED_TEST(set_float)
+    SPEED_TEST(set_double)
+    SPEED_TEST(set_u64)
     SPEED_TEST(rcv_std_vector)
     SPEED_TEST(rcv_std_array)
     SPEED_TEST(rcv_c_array1)
@@ -407,6 +439,8 @@ void speed_tests_unix(char *unix_sock_path)
     SPEED_TEST(read_float)
     SPEED_TEST(read_double)
     SPEED_TEST(set_float)
+    SPEED_TEST(set_double)
+    SPEED_TEST(set_u64)
     SPEED_TEST(rcv_std_vector)
     SPEED_TEST(rcv_std_array)
     SPEED_TEST(rcv_c_array1)
