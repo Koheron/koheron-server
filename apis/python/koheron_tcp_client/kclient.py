@@ -174,7 +174,7 @@ class KClient:
     It is also in charge of reception/emission of data with KServer
     """
 
-    def __init__(self, host, port=36000, verbose=False, timeout=2.0):
+    def __init__(self, host="", port=36000, unixsock="", verbose=False, timeout=2.0):
         """ Initialize connection with tcp-server
 
         Args:
@@ -190,22 +190,33 @@ class KClient:
 
         self.host = host
         self.port = port
+        self.unixsock = unixsock
         self.verbose = verbose
         self.is_connected = False
         self.timeout = timeout
 
-        try:
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # self.sock.settimeout(timeout)
+        if host != "":
+            try:
+                self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                # self.sock.settimeout(timeout)
 
-            #   Disable Nagle algorithm for real-time response:
-            self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-            # Connect to Kserver
-            self.sock.connect((host, port))
-            self.is_connected = True
-        except socket.error as e:
-            print('Failed to connect to {:s}:{:d} : {:s}'
-                  .format(host, port, e))
+                #   Disable Nagle algorithm for real-time response:
+                self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+                # Connect to Kserver
+                self.sock.connect((host, port))
+            except socket.error as e:
+                print('Failed to connect to {:s}:{:d} : {:s}'
+                      .format(host, port, e))
+        elif unixsock != "":
+            try:
+                self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                self.sock.connect(unixsock)
+            except socket.error as e:
+                print('Failed to connect to unix socket address ' + unixsock)
+        else:
+            raise ValueError("Unknown socket type")
+
+        self.is_connected = True
 
         if self.is_connected:
             self._get_commands()
@@ -284,6 +295,7 @@ class KClient:
 
     def recv_bool(self):
         val = self.recv_int(4)
+        print val
         assert val == 0 or val == 1
         return val == 1
 
