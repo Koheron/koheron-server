@@ -3,12 +3,12 @@ set -e
 
 VENV=$1
 
-if [ "${VENV}" == "venv" ] then
+if [ "${VENV}" == "venv" ]; then
 	virtualenv ${VENV}
 	${VENV}/bin/pip install -r requirements.txt
 	PYTHON=${VENV}/bin/python
 else
-	/bin/python
+	PYTHON=/usr/bin/python
 fi
 
 # ---------------------------------------
