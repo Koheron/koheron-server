@@ -14,7 +14,7 @@ make CONFIG=config/config_local.yaml clean cli
 make CONFIG=config/config_armhf.yaml clean cli
 
 # Compile C API Tests
-make -C apis/C/tests TARGET_HOST=x86 clean all
+make -C apis/C/tests TARGET_HOST=local clean all
 make -C apis/C/tests TARGET_HOST=armhf clean all
 make -C apis/C/tests TARGET_HOST=Win32 clean all
 make -C apis/C/tests TARGET_HOST=Win64 clean all
