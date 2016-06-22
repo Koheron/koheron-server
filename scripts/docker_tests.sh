@@ -7,17 +7,14 @@ set -e
 
 # Compile kserverd
 make CONFIG=config/config_local.yaml clean all
-make CONFIG=config/config_armel.yaml clean all
 make CONFIG=config/config_armhf.yaml clean all
 
 # Compile CLI
 make CONFIG=config/config_local.yaml clean cli
-make CONFIG=config/config_armel.yaml clean cli
 make CONFIG=config/config_armhf.yaml clean cli
 
 # Compile C API Tests
 make -C apis/C/tests TARGET_HOST=local clean all
-make -C apis/C/tests TARGET_HOST=arm clean all
 make -C apis/C/tests TARGET_HOST=armhf clean all
 make -C apis/C/tests TARGET_HOST=Win32 clean all
 make -C apis/C/tests TARGET_HOST=Win64 clean all
