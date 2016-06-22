@@ -33,7 +33,7 @@ make -C apis/C/tests TARGET_HOST=armhf clean all
 make -C apis/C/hello_world/ clean all
 
 # Build js API
-make -C apis/js/koheron-websocket-client build
+# make -C apis/js/koheron-websocket-client build
 
 # ---------------------------------------
 # Tests
@@ -51,7 +51,7 @@ ps -A | grep -w "kserverd"
 
 echo "== Test Hello World =="
 apis/C/hello_world/hello_world
-node apis/js/koheron-websocket-client/tests/hello_world.js
+#node apis/js/koheron-websocket-client/tests/hello_world.js
 python apis/python/hello_world.py
 
 echo "== Test CLI =="
@@ -75,8 +75,8 @@ fi
 echo "== Test C API =="
 apis/C/tests/tests --unit 127.0.0.1:36000 /code/kserver.sock
 
-echo "== Test Javascript API =="
-make -C apis/js/koheron-websocket-client tests
+#echo "== Test Javascript API =="
+#make -C apis/js/koheron-websocket-client tests
 
 echo "== Test Python API =="
 cd apis/python && py.test -r connect_test.py
