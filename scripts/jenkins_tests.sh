@@ -46,7 +46,7 @@ make CONFIG=config/config_local.yaml PYTHON=${PYTHON} cli
 make -C apis/C/tests TARGET_HOST=local clean all
 
 echo "== Start server =="
-nohup tmp/kserverd -c config/kserver_docker.conf > /dev/null 2>server.log &
+nohup tmp/kserverd -c config/kserver_local.conf > /dev/null 2>server.log &
 ps -A | grep -w "kserverd"
 
 echo "== Test Hello World =="
@@ -87,3 +87,5 @@ apis/C/tests/tests --speed 127.0.0.1:36000 /code/kserver.sock
 
 echo "== Server log =="
 cat server.log
+
+/usr/bin/pkill -SIGINT kserverd
