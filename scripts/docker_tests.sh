@@ -1,17 +1,27 @@
 #!/bin/bash
 set -e
 
+VENV=$1
+
+if [ "${VENV}" == "venv" ] then
+	virtualenv ${VENV}
+	${VENV}/bin/pip install -r requirements.txt
+	PYTHON=${VENV}/bin/python
+else
+	/bin/python
+fi
+
 # ---------------------------------------
 # Build
 # ---------------------------------------
 
 # Compile kserverd
-make CONFIG=config/config_local.yaml clean all
-make CONFIG=config/config_armhf.yaml clean all
+make CONFIG=config/config_local.yaml PYTHON=${PYTHON} clean all
+make CONFIG=config/config_armhf.yaml PYTHON=${PYTHON} clean all
 
 # Compile CLI
-make CONFIG=config/config_local.yaml clean cli
-make CONFIG=config/config_armhf.yaml clean cli
+make CONFIG=config/config_local.yaml PYTHON=${PYTHON} clean cli
+make CONFIG=config/config_armhf.yaml PYTHON=${PYTHON} clean cli
 
 # Compile C API Tests
 make -C apis/C/tests TARGET_HOST=local clean all
@@ -31,8 +41,8 @@ make -C apis/js/koheron-websocket-client build
 
 # Compile executables in local for tests
 make clean
-make CONFIG=config/config_local.yaml all
-make CONFIG=config/config_local.yaml cli
+make CONFIG=config/config_local.yaml PYTHON=${PYTHON} all
+make CONFIG=config/config_local.yaml PYTHON=${PYTHON} cli
 make -C apis/C/tests TARGET_HOST=local clean all
 
 echo "== Start server =="
