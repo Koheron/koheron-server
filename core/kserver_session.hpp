@@ -16,8 +16,7 @@
 #include "kserver.hpp"
 #include "peer_info.hpp"
 #include "session_manager.hpp"
-#include "tuple_utils.hpp"
-#include "binary_parser.hpp"
+#include "serializer_deserializer.hpp"
 #include "socket_interface_defs.hpp"
 
 #if KSERVER_HAS_WEBSOCKET
@@ -177,12 +176,8 @@ template<int sock_type>
 template<typename... Tp>
 int Session<sock_type>::Send(const std::tuple<Tp...>& t)
 {
-    std::stringstream ss;
-    stringify_tuple(t, ss);
-    ss << std::endl;
-
-    const std::string& tmp = ss.str();
-    return SendCstr(tmp.c_str());
+    const auto& arr = serialize(t);
+    return SendArray<unsigned char>(arr.data(), arr.size());
 }
 
 template<int sock_type>
@@ -224,6 +219,37 @@ int Session<sock_type>::exit_session()
     return exit_socket();
 }
 
+#define SEND_SPECIALIZE_IMPL(session_kind)                              \
+    template<> template<>                                               \
+    inline int session_kind::Send<std::string>(const std::string& str)  \
+    {                                                                   \
+        return SendCstr(str.c_str());                                   \
+    }                                                                   \
+                                                                        \
+    template<> template<>                                               \
+    inline int session_kind::Send<uint32_t>(const uint32_t& val)        \
+    {                                                                   \
+        return SendArray<uint32_t>(&val, 1);                            \
+    }                                                                   \
+                                                                        \
+    template<> template<>                                               \
+    inline int session_kind::Send<uint64_t>(const uint64_t& val)        \
+    {                                                                   \
+        return SendArray<uint64_t>(&val, 1);                            \
+    }                                                                   \
+                                                                        \
+    template<> template<>                                               \
+    inline int session_kind::Send<float>(const float& val)              \
+    {                                                                   \
+        return SendArray<float>(&val, 1);                               \
+    }                                                                   \
+                                                                        \
+    template<> template<>                                               \
+    inline int session_kind::Send<double>(const double& val)            \
+    {                                                                   \
+        return SendArray<double>(&val, 1);                              \
+    }
+
 // -----------------------------------------------
 // TCP
 // -----------------------------------------------
@@ -258,6 +284,8 @@ int Session<TCP>::SendArray(const T *data, unsigned int len)
     session_manager.kserver.syslog.print(SysLog::DEBUG, "[S] [%u bytes]\n", bytes_send);
     return bytes_send;
 }
+
+SEND_SPECIALIZE_IMPL(Session<TCP>)
 
 #endif // KSERVER_HAS_TCP
 
@@ -301,6 +329,8 @@ int Session<WEBSOCK>::SendArray(const T *data, unsigned int len)
 
     return bytes_send;    
 }
+
+SEND_SPECIALIZE_IMPL(Session<WEBSOCK>)
 
 #endif // KSERVER_HAS_WEBSOCKET
 
@@ -375,6 +405,18 @@ template<typename... Tp>
 int SessionAbstract::Send(const std::tuple<Tp...>& t)
 {
     SWITCH_SOCK_TYPE(template Send<Tp...>(t))
+    return -1;
+}
+
+inline const uint32_t* SessionAbstract::RcvHandshake(uint32_t buff_size)
+{
+    SWITCH_SOCK_TYPE(RcvHandshake(buff_size))
+    return nullptr;
+}
+
+inline int SessionAbstract::SendCstr(const char *string)
+{
+    SWITCH_SOCK_TYPE(SendCstr(string))
     return -1;
 }
 

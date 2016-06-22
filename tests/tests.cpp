@@ -26,6 +26,16 @@ bool Tests::set_float(float f)
     return f == 12.5;
 }
 
+bool Tests::set_double(double d)
+{
+    return abs(d - 1.428571428571428492127) < 1E-15;
+}
+
+bool Tests::set_u64(uint64_t u)
+{
+    return u == 2225073854759576792;
+}
+
 std::vector<float>& Tests::send_std_vector()
 {
     data.resize(10);
@@ -87,9 +97,14 @@ const char* Tests::get_cstr()
     return "Hello !";
 }
 
-std::tuple<int, float, double> Tests::get_tuple()
+std::tuple<uint32_t, float, double, bool> Tests::get_tuple()
 {
-    return std::make_tuple(2, 3.14159F, 2345.6);
+    return std::make_tuple(501762438, 507.3858, 926547.6468507200, true);
+}
+
+std::tuple<uint32_t, float, uint64_t, double> Tests::get_tuple2()
+{
+    return std::make_tuple(2, 3.14159F, 742312418498347354, 3.14159265358979323846);
 }
 
 std::array<uint32_t, 2> Tests::get_binary_tuple() {
