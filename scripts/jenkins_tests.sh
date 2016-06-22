@@ -73,7 +73,7 @@ if [ "${VERSION}" != "${SHA}" ]; then
 fi
 
 echo "== Test C API =="
-apis/C/tests/tests --unit 127.0.0.1:36000 /code/kserver.sock
+apis/C/tests/tests --unit 127.0.0.1:36000 /tmp/kserver.sock
 
 #echo "== Test Javascript API =="
 #make -C apis/js/koheron-websocket-client tests
