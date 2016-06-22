@@ -25,7 +25,7 @@ debug:
     - rdynamic
     - g
 
-# Optimization is disactivated when compiled in debug mode
+# Optimization is deactivated when compiled in debug mode
 optimization_flags:
   - O3
   - finline-limit=150

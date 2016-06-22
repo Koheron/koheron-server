@@ -1,4 +1,5 @@
 import sys
+import os
 import pytest
 import struct
 import numpy as np
@@ -84,10 +85,13 @@ class Tests:
 
 # Unit tests
 
+unixsock = os.getenv('PYTEST_UNIXSOCK','/code/kserver.sock')
+print unixsock
+
 client = KClient('127.0.0.1', 36000, verbose=False)
 tests = Tests(client)
 
-client_unix = KClient(unixsock='/code/kserver.sock')
+client_unix = KClient(unixsock=unixsock)
 tests_unix = Tests(client_unix)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
