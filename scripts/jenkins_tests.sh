@@ -50,7 +50,7 @@ nohup tmp/kserverd -c config/kserver_local.conf > /dev/null 2>server.log &
 ps -A | grep -w "kserverd"
 
 echo "== Test Hello World =="
-apis/C/hello_world/hello_world
+#apis/C/hello_world/hello_world
 #node apis/js/koheron-websocket-client/tests/hello_world.js
 python apis/python/hello_world.py
 
