@@ -79,7 +79,7 @@ def _get_write_array_params(remaining):
         assert tokens[i].find('arg') >= 0, '{} must be an argument'.format(key)
         array_params[key] = {}
         array_params[key]['src'] = 'param'
-        array_params['key']['key'] = tokens[i].split('{')[1].split('}')[0].strip() # ?
+        array_params[key][key] = tokens[i].split('{')[1].split('}')[0].strip() # ?
     return array_params
 
 def _get_operation_prototype(method):
