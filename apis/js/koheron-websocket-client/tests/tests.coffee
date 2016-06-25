@@ -74,7 +74,7 @@ class Tests
 
 # Unit tests
 
-client = new websock_client.KClient('127.0.0.1', 1)
+client = new websock_client.KClient('127.0.0.1', 2)
 
 exports.sendManyParams = (assert) ->
     assert.expect(2)

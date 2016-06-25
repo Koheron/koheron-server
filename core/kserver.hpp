@@ -32,22 +32,24 @@ namespace kserver {
 template<int sock_type> class Session;
 
 ////////////////////////////////////////////////////////////////////////////
-/////// Broadcaster
+/////// Broadcast
 
-class Broadcaster
+class Broadcast
 {
   public:
-    Broadcaster()
+    Broadcast()
     : server_chan_subscriptions(0)
     {}
 
     // Session sid subscribes to a channel 
     int subscribe(uint32_t channel, SessID sid)
     {
-        if (channel == SERVER_CHANNEL)
+        if (channel == SERVER_CHANNEL) {
+            printf("Session %u subscribed to channel %u\n", sid, channel);
             server_chan_subscriptions.push_back(sid);
-        else
+        } else {
             return -1;
+        }
 
         return 0;
     }
@@ -192,7 +194,7 @@ class KServer : public KDevice<KServer, KSERVER>
     SysLog syslog;
     std::time_t start_time;
 
-    Broadcaster broadcast;
+    Broadcast broadcast;
     
 #if KSERVER_HAS_THREADS
     std::mutex ks_mutex;

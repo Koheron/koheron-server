@@ -11,7 +11,7 @@ class HelloWorld
     add42 : (num, cb) ->
         @kclient.readUint32(Command(@device.id, @cmds.add_42, 'I', num), cb)
 
-client = new webclient.KClient('127.0.0.1', 1)
+client = new webclient.KClient('127.0.0.1', 2)
 
 client.init( =>
     hw = new HelloWorld(client)

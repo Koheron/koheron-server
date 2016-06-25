@@ -56,7 +56,7 @@ class WebSocketPool
                 console.error "error: " + evt.data + "\n"
                 websocket.close()
 
-    waitForConnection : (websocket, interval, callback) ->
+    waitForConnection: (websocket, interval, callback) ->
         if websocket.readyState == 1
             callback()
         else
@@ -216,10 +216,25 @@ class @KClient
 
     init: (callback) ->
         @websockpool = new WebSocketPool(@websock_pool_size, @url, => 
-            @getCmds(callback)
+            @getCmds( =>
+                @subscribeServerBroadcast()
+                callback()
+            )
         )
 
-    exit: -> @websockpool.exit()
+    subscribeServerBroadcast: ->
+        @websockpool.requestSocket( (sockid) =>
+            @broadcast_socketid = sockid
+            broadcast_socket = @websockpool.getSocket(sockid)
+            broadcast_socket.send(Command(1, 5, 'I', 0)) # Server broadcasts on channel 0
+
+            broadcast_socket.onmessage = (evt) =>
+                console.log 'Event broadcasted by server'
+        )
+
+    exit: ->
+        @websockpool.freeSocket(@broadcast_socketid)
+        @websockpool.exit()
 
     # ------------------------
     #  Send
