@@ -14,6 +14,7 @@
 #endif
 
 #include <array>
+#include <vector>
 #include <string>
 #include <atomic>
 #include <ctime>
@@ -29,6 +30,36 @@
 namespace kserver {
 
 template<int sock_type> class Session;
+
+////////////////////////////////////////////////////////////////////////////
+/////// Broadcaster
+
+class Broadcaster
+{
+  public:
+    Broadcaster()
+    : server_chan_subscriptions(0)
+    {}
+
+    // Session sid subscribes to a channel 
+    int subscribe(uint32_t channel, SessID sid)
+    {
+        if (channel == SERVER_CHANNEL)
+            server_chan_subscriptions.push_back(sid);
+        else
+            return -1;
+
+        return 0;
+    }
+
+    enum Channels {
+        SERVER_CHANNEL,
+        broadcast_channels_num
+    };
+
+  private:
+    std::vector<SessID> server_chan_subscriptions;
+};
 
 ////////////////////////////////////////////////////////////////////////////
 /////// ListeningChannel
@@ -133,6 +164,7 @@ class KServer : public KDevice<KServer, KSERVER>
         GET_STATS,            ///< Get KServer listeners statistics
         GET_DEV_STATUS,       ///< Send the devices status
         GET_RUNNING_SESSIONS, ///< Send the running sessions
+        SUBSCRIBE_BROADCAST,
         kserver_op_num
     };
     
@@ -159,6 +191,8 @@ class KServer : public KDevice<KServer, KSERVER>
     // Logs
     SysLog syslog;
     std::time_t start_time;
+
+    Broadcaster broadcast;
     
 #if KSERVER_HAS_THREADS
     std::mutex ks_mutex;

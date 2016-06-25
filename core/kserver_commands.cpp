@@ -368,6 +368,31 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
     return 0;
 }
 
+/////////////////////////////////////
+// SUBSCRIBE_BROADCAST
+// Subscribe to a broadcast channel
+
+KSERVER_STRUCT_ARGUMENTS(SUBSCRIBE_BROADCAST)
+{
+    uint32_t channel;
+};
+
+KSERVER_PARSE_ARG(SUBSCRIBE_BROADCAST)
+{
+    if (required_buffer_size<uint32_t>() != cmd.payload_size) {
+        kserver->syslog.print(SysLog::ERROR, "Invalid payload size\n");
+        return -1;
+    }
+
+    args.channel = std::get<0>(deserialize<0, cmd.buffer.size(), uint32_t>(cmd.buffer));
+    return 0;
+}
+
+KSERVER_EXECUTE_OP(SUBSCRIBE_BROADCAST)
+{
+    return kserver->broadcast.subscribe(args.channel, sess_id);
+}
+
 ////////////////////////////////////////////////
 
 #define KSERVER_EXECUTE_CMD(cmd_name)                               \
@@ -401,6 +426,8 @@ int KDevice<KServer, KSERVER>::execute(const Command& cmd)
         KSERVER_EXECUTE_CMD(GET_DEV_STATUS)
       case KServer::GET_RUNNING_SESSIONS:
         KSERVER_EXECUTE_CMD(GET_RUNNING_SESSIONS)
+      case KServer::SUBSCRIBE_BROADCAST:
+        KSERVER_EXECUTE_CMD(SUBSCRIBE_BROADCAST)
       case KServer::kserver_op_num:
       default:
         kserver->syslog.print(SysLog::ERROR,
