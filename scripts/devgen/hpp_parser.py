@@ -39,6 +39,9 @@ def _get_pragmas(hpp_filename):
     return pragmas
 
 def _get_method_pragma(method, pragmas):
+    ''' Get the pragma associated to a given function. 
+        It must be on the line just above the function prototype.
+    '''
     assert pragmas != None and len(pragmas) > 0
     key = 'line_number'
     return next((pragma for pragma in pragmas if (method[key]-pragma[key] == 1 )), None)
