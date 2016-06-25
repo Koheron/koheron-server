@@ -39,11 +39,9 @@ def _get_pragmas(hpp_filename):
     return pragmas
 
 def _get_method_pragma(method, pragmas):
-    if pragmas != None and len(pragmas) > 0:
-        for pragma in pragmas:
-            if pragma['line_number'] == method['line_number'] - 1:
-                return pragma
-    return None
+    assert pragmas != None and len(pragmas) > 0:
+    key = 'line_number'
+    return next((pragma for pragma in pragmas if (method[key]-pragma[key] == 1 )), None)
 
 def _set_iotype(operation, _type):
     operation['io_type'] = {}
