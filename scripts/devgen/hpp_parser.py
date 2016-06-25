@@ -74,7 +74,7 @@ def _get_operation(method, pragmas):
 
 def _get_write_array_params(remaining):
     tokens = remaining.split()
-    assert len(tokens) != 2, 'Write_array expects 2 arguments: pointer and length'
+    assert len(tokens) == 2, 'Line ' + pragma['line_number' ] + ': write_array expects 2 arguments: pointer and length'
     for i, key in enumerate(['name','length']):
         assert tokens[i].find('arg') >= 0, '{} must be an argument'.format(key)
         array_params[key] = {}
