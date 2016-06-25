@@ -28,7 +28,8 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
   dev_manager(this),
   session_manager(*this, dev_manager, SessionManager::DFLT_WRITE_PERM_POLICY),
   syslog(config_),
-  start_time(0)
+  start_time(0),
+  broadcast(session_manager)
 {
     if (sig_handler.Init(this))
         exit(EXIT_FAILURE);

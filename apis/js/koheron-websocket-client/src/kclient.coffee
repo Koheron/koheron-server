@@ -216,25 +216,32 @@ class @KClient
 
     init: (callback) ->
         @websockpool = new WebSocketPool(@websock_pool_size, @url, => 
-            @getCmds( =>
-                @subscribeServerBroadcast()
-                callback()
-            )
+            @getCmds(callback)
         )
 
-    subscribeServerBroadcast: ->
+    subscribeServerBroadcast: (callback) ->
         @websockpool.requestSocket( (sockid) =>
+            # console.log 'broadcast_socketid = ' + sockid.toString()
             @broadcast_socketid = sockid
             broadcast_socket = @websockpool.getSocket(sockid)
             broadcast_socket.send(Command(1, 5, 'I', 0)) # Server broadcasts on channel 0
 
             broadcast_socket.onmessage = (evt) =>
                 console.log 'Event broadcasted by server'
+                dv = new DataView(evt.data)
+                channel = dv.getUint32(0)
+                event_id = dv.getUint32(4)
+                callback(channel, event_id)
         )
 
-    exit: ->
-        @websockpool.freeSocket(@broadcast_socketid)
-        @websockpool.exit()
+    triggerBroadcast: (channel) ->
+        @websockpool.requestSocket( (sockid) =>
+            websocket = @websockpool.getSocket(sockid)
+            websocket.send(Command(1, 6, 'I', channel))
+            @websockpool.freeSocket(sockid)
+        )
+
+    exit: -> @websockpool.exit()
 
     # ------------------------
     #  Send
@@ -405,7 +412,7 @@ class @KClient
     # ------------------------
 
     getCmds: (callback) ->
-         @websockpool.requestSocket( (sockid) =>
+        @websockpool.requestSocket( (sockid) =>
             websocket = @websockpool.getSocket(sockid)
             websocket.send(Command(1,1))
             msg_num = 0
