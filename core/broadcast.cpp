@@ -5,6 +5,8 @@
 
 #include "kserver.hpp"
 
+#include <algorithm>
+
 namespace kserver {
 
 Broadcast::Broadcast(SessionManager& session_manager_)
@@ -22,6 +24,18 @@ int Broadcast::subscribe(uint32_t channel, SessID sid)
     }
 
     return 0;
+}
+
+void Broadcast::unsubscribe(SessID sid)
+{
+    // http://stackoverflow.com/questions/39912/how-do-i-remove-an-item-from-a-stl-vector-with-a-certain-value
+    auto it = std::find(subscribers.begin(), subscribers.end(), sid);
+
+    if (it != subscribers.end()) {
+        using std::swap;
+        swap(*it, subscribers.back());
+        subscribers.pop_back();
+    }
 }
 
 } // namespace kserver

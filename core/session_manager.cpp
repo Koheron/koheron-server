@@ -146,6 +146,9 @@ void SessionManager::DeleteSession(SessID id)
         return;
     }
 
+    // Unsubscribe from any broadcast channel
+    kserver.broadcast.unsubscribe(id);
+
     if (session_pool[id] != nullptr) {
         switch (session_pool[id]->kind) {
 #if KSERVER_HAS_TCP

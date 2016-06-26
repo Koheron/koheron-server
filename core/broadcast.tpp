@@ -10,14 +10,14 @@
 namespace kserver {
 
 template<uint32_t channel, uint32_t event, typename... Tp>
-void Broadcast::emit(Tp... args)
+void Broadcast::emit(Tp&&... args)
 {
     for (auto const& sid: subscribers)
         session_manager.GetSession(sid).Send(
-            std::tuple_cat(std::make_tuple(0U,   // RESERVED
-                                           static_cast<uint32_t>(channel),
-                                           static_cast<uint32_t>(event)),
-                           std::forward_as_tuple(args...))
+            std::make_tuple(0U,   // RESERVED
+                            static_cast<uint32_t>(channel),
+                            static_cast<uint32_t>(event),
+                            args...)
         );
 }
 

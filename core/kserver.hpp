@@ -42,14 +42,18 @@ class Broadcast
     // Session sid subscribes to a channel 
     int subscribe(uint32_t channel, SessID sid);
 
+    // Must be called when a session is closed
+    void unsubscribe(SessID sid);
+
     // Event message structure
     // |      RESERVED     |      CHANNEL      |       EVENT       |   Arguments
     // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
     template<uint32_t channel, uint32_t event, typename... Tp>
-    void emit(Tp... args);
+    void emit(Tp&&... args);
 
     enum Channels {
-        SERVER_CHANNEL,
+        SERVER_CHANNEL,         ///< Server events
+        DEVICES_CHANNEL,        ///< Devices events
         broadcast_channels_num
     };
 
