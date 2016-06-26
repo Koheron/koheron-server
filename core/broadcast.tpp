@@ -18,7 +18,4 @@ void Broadcast::emit(Tp&&... args)
         );
 }
 
-// template<> auto emit_event<SERVER_CHANNEL, PING>();
-// template<> auto emit_event<SERVER_CHANNEL, NEW_SESSION, sock_type>(int sock_type);
-
 } // namespace kserver
