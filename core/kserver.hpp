@@ -42,7 +42,11 @@ class Broadcast
     // Session sid subscribes to a channel 
     int subscribe(uint32_t channel, SessID sid);
 
-    void emit(uint32_t channel, uint32_t event);
+    // Event message structure
+    // |      RESERVED     |      CHANNEL      |       EVENT       |   Arguments
+    // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
+    template<uint32_t channel, uint32_t event, typename... Tp>
+    void emit(Tp... args);
 
     enum Channels {
         SERVER_CHANNEL,
@@ -60,16 +64,7 @@ class Broadcast
 
     template<uint32_t channel> using Subscribers = std::vector<SessID>;
     Subscribers<SERVER_CHANNEL> subscribers;
-
-    // Event message structure
-    // |      RESERVED     |      CHANNEL      |       EVENT       |   Arguments
-    // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
-    template<uint32_t channel, uint32_t event, typename... Tp>
-    void emit_event(Tp... args);
 };
-
-// template<> auto emit_event<SERVER_CHANNEL, PING>();
-// template<> auto emit_event<SERVER_CHANNEL, NEW_SESSION, sock_type>(int sock_type);
 
 ////////////////////////////////////////////////////////////////////////////
 /////// ListeningChannel
@@ -166,13 +161,13 @@ class KServer : public KDevice<KServer, KSERVER>
 
     /// Operations associated to the device
     enum Operation {
-        GET_VERSION,          ///< Send th version of the server
-        GET_CMDS,             ///< Send the commands numbers
-        GET_STATS,            ///< Get KServer listeners statistics
-        GET_DEV_STATUS,       ///< Send the devices status
-        GET_RUNNING_SESSIONS, ///< Send the running sessions
-        SUBSCRIBE_BROADCAST,  ///< Subscribe to a broadcast channel
-        TRIGGER_BROADCAST,    ///< Trigger broadcast emission on a given channel
+        GET_VERSION,            ///< Send th version of the server
+        GET_CMDS,               ///< Send the commands numbers
+        GET_STATS,              ///< Get KServer listeners statistics
+        GET_DEV_STATUS,         ///< Send the devices status
+        GET_RUNNING_SESSIONS,   ///< Send the running sessions
+        SUBSCRIBE_BROADCAST,    ///< Subscribe to a broadcast channel
+        BROADCAST_PING,         ///< Emit a ping to server broadcast subscribers
         kserver_op_num
     };
     

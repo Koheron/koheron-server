@@ -5,8 +5,6 @@
 
 #include "kserver.hpp"
 
-#include "kserver_session.hpp"
-
 namespace kserver {
 
 Broadcast::Broadcast(SessionManager& session_manager_)
@@ -24,23 +22,6 @@ int Broadcast::subscribe(uint32_t channel, SessID sid)
     }
 
     return 0;
-}
-
-template<uint32_t channel, uint32_t event, typename... Tp>
-void Broadcast::emit_event(Tp... args)
-{
-    for (auto const& sid: subscribers)
-        session_manager.GetSession(sid).Send(
-            std::tuple_cat(std::make_tuple(0U,   // RESERVED
-                                           static_cast<uint32_t>(channel),
-                                           static_cast<uint32_t>(event)),
-                           std::forward_as_tuple(args...))
-        );
-}
-
-void Broadcast::emit(uint32_t channel, uint32_t event)
-{
-    emit_event<SERVER_CHANNEL, PING>();
 }
 
 } // namespace kserver

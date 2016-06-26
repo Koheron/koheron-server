@@ -9,6 +9,7 @@
 #include "commands.hpp"
 #include "kserver_session.hpp"
 #include "session_manager.hpp"
+#include "broadcast.tpp"
 
 namespace kserver {
 
@@ -394,31 +395,15 @@ KSERVER_EXECUTE_OP(SUBSCRIBE_BROADCAST)
 }
 
 /////////////////////////////////////
-// TRIGGER_BROADCAST
+// BROADCAST_PING
 // Trigger broadcast emission on a given channel
 
-KSERVER_STRUCT_ARGUMENTS(TRIGGER_BROADCAST)
-{
-    uint32_t channel;
-    uint32_t event;
-};
+KSERVER_STRUCT_ARGUMENTS(BROADCAST_PING) {};
+KSERVER_PARSE_ARG(BROADCAST_PING) {return 0;}
 
-KSERVER_PARSE_ARG(TRIGGER_BROADCAST)
+KSERVER_EXECUTE_OP(BROADCAST_PING)
 {
-    if (required_buffer_size<uint32_t, uint32_t>() != cmd.payload_size) {
-        kserver->syslog.print(SysLog::ERROR, "Invalid payload size\n");
-        return -1;
-    }
-
-    auto args_tup = deserialize<0, cmd.buffer.size(), uint32_t, uint32_t>(cmd.buffer);
-    args.channel = std::get<0>(args_tup);
-    args.event = std::get<1>(args_tup);
-    return 0;
-}
-
-KSERVER_EXECUTE_OP(TRIGGER_BROADCAST)
-{
-    kserver->broadcast.emit(args.channel, args.event);
+    kserver->broadcast.emit<Broadcast::SERVER_CHANNEL, Broadcast::PING>();
     return 0;
 }
 
@@ -457,8 +442,8 @@ int KDevice<KServer, KSERVER>::execute(const Command& cmd)
         KSERVER_EXECUTE_CMD(GET_RUNNING_SESSIONS)
       case KServer::SUBSCRIBE_BROADCAST:
         KSERVER_EXECUTE_CMD(SUBSCRIBE_BROADCAST)
-      case KServer::TRIGGER_BROADCAST:
-        KSERVER_EXECUTE_CMD(TRIGGER_BROADCAST)
+      case KServer::BROADCAST_PING:
+        KSERVER_EXECUTE_CMD(BROADCAST_PING)
       case KServer::kserver_op_num:
       default:
         kserver->syslog.print(SysLog::ERROR,

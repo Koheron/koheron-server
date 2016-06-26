@@ -236,10 +236,10 @@ class @KClient
                 callback(channel, event_id)
         )
 
-    triggerBroadcast: (channel, event_id) ->
+    broadcastPing: ->
         @websockpool.requestSocket( (sockid) =>
             websocket = @websockpool.getSocket(sockid)
-            websocket.send(Command(1, 6, 'II', channel, event_id))
+            websocket.send(Command(1, 6))
             @websockpool.freeSocket(sockid)
         )
 
