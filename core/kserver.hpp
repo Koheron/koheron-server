@@ -42,7 +42,7 @@ class Broadcast
     // Session sid subscribes to a channel 
     int subscribe(uint32_t channel, SessID sid);
 
-    void emit(uint32_t channel);
+    void emit(uint32_t channel, uint32_t event);
 
     enum Channels {
         SERVER_CHANNEL,
@@ -50,14 +50,23 @@ class Broadcast
     };
 
     enum ServerChanEvents {
-        PING,
+        PING,                   ///< For tests
+        NEW_SESSION,            ///< A new session has been started
         server_chan_events_num
     };
 
   private:
     SessionManager& session_manager;
-    std::vector<SessID> server_chan_subscriptions;
+
+    template<uint32_t channel> using Subscribers = std::vector<SessID>;
+    Subscribers<SERVER_CHANNEL> subscribers;
+
+    template<uint32_t channel, uint32_t event, typename... Tp>
+    void emit_event(SessID sid, Tp... args);
 };
+
+// template<> auto emit<SERVER_CHANNEL, PING>();
+// template<> auto emit<SERVER_CHANNEL, NEW_SESSION, sock_type>(int sock_type);
 
 ////////////////////////////////////////////////////////////////////////////
 /////// ListeningChannel

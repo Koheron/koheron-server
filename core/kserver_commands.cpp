@@ -400,22 +400,25 @@ KSERVER_EXECUTE_OP(SUBSCRIBE_BROADCAST)
 KSERVER_STRUCT_ARGUMENTS(TRIGGER_BROADCAST)
 {
     uint32_t channel;
+    uint32_t event;
 };
 
 KSERVER_PARSE_ARG(TRIGGER_BROADCAST)
 {
-    if (required_buffer_size<uint32_t>() != cmd.payload_size) {
+    if (required_buffer_size<uint32_t, uint32_t>() != cmd.payload_size) {
         kserver->syslog.print(SysLog::ERROR, "Invalid payload size\n");
         return -1;
     }
 
-    args.channel = std::get<0>(deserialize<0, cmd.buffer.size(), uint32_t>(cmd.buffer));
+    auto args_tup = deserialize<0, cmd.buffer.size(), uint32_t, uint32_t>(cmd.buffer);
+    args.channel = std::get<0>(args_tup);
+    args.event = std::get<1>(args_tup);
     return 0;
 }
 
 KSERVER_EXECUTE_OP(TRIGGER_BROADCAST)
 {
-    kserver->broadcast.emit(args.channel);
+    kserver->broadcast.emit(args.channel, args.event);
     return 0;
 }
 

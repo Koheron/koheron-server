@@ -11,14 +11,14 @@ namespace kserver {
 
 Broadcast::Broadcast(SessionManager& session_manager_)
 : session_manager(session_manager_)
-, server_chan_subscriptions(0)
+, subscribers(0)
 {}
 
 int Broadcast::subscribe(uint32_t channel, SessID sid)
 {
     if (channel == SERVER_CHANNEL) {
         printf("Session %u subscribed to channel %u\n", sid, channel);
-        server_chan_subscriptions.push_back(sid);
+        subscribers.push_back(sid);
     } else {
         return -1;
     }
@@ -26,13 +26,24 @@ int Broadcast::subscribe(uint32_t channel, SessID sid)
     return 0;
 }
 
-void Broadcast::emit(uint32_t channel)
+template<uint32_t channel, uint32_t event, typename... Tp>
+void Broadcast::emit_event(SessID sid, Tp... args)
 {
-    for (auto const& sid: server_chan_subscriptions) {
-    	printf("Broadcasting to session %u on channel %u\n", sid, channel);
-        session_manager.GetSession(sid).Send<uint32_t, uint32_t>(
-            std::make_tuple(static_cast<uint32_t>(SERVER_CHANNEL), static_cast<uint32_t>(PING))
-        );
+    session_manager.GetSession(sid).Send<uint32_t, uint32_t, Tp...>(
+        std::tuple_cat(std::make_tuple(static_cast<uint32_t>(channel),
+                                       static_cast<uint32_t>(event)),
+                       std::forward_as_tuple(args...))
+    );
+}
+
+void Broadcast::emit(uint32_t channel, uint32_t event)
+{
+    for (auto const& sid: subscribers) {
+        printf("Broadcasting to session %u on channel %u\n", sid, channel);
+        emit_event<SERVER_CHANNEL, PING>(sid);
+        // session_manager.GetSession(sid).Send<uint32_t, uint32_t>(
+        //     std::make_tuple(static_cast<uint32_t>(SERVER_CHANNEL), static_cast<uint32_t>(PING))
+        // );
     }
 }
 

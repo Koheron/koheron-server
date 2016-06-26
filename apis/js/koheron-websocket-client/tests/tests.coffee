@@ -88,7 +88,7 @@ exports.triggerServerBroadcast = (assert) ->
                 client.exit()
                 assert.done()
             )
-            client.triggerBroadcast(0)
+            client.triggerBroadcast(0, 0)
         )
     )
 
