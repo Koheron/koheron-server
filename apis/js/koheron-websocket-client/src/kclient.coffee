@@ -56,7 +56,7 @@ class WebSocketPool
                 console.error "error: " + evt.data + "\n"
                 websocket.close()
 
-    waitForConnection : (websocket, interval, callback) ->
+    waitForConnection: (websocket, interval, callback) ->
         if websocket.readyState == 1
             callback()
         else
@@ -219,6 +219,30 @@ class @KClient
             @getCmds(callback)
         )
 
+    subscribeServerBroadcast: (callback) ->
+        @websockpool.requestSocket( (sockid) =>
+            # console.log 'broadcast_socketid = ' + sockid.toString()
+            @broadcast_socketid = sockid
+            broadcast_socket = @websockpool.getSocket(sockid)
+            broadcast_socket.send(Command(1, 5, 'I', 0)) # Server broadcasts on channel 0
+
+            broadcast_socket.onmessage = (evt) =>
+                console.log 'Event broadcasted by server'
+                tup = @deserialize('III', evt.data)
+                reserved = tup[0]
+                console.assert(reserved == 0, 'Non-zero event message reserved bytes')
+                channel = tup[1]
+                event_id = tup[2]
+                callback(channel, event_id)
+        )
+
+    broadcastPing: ->
+        @websockpool.requestSocket( (sockid) =>
+            websocket = @websockpool.getSocket(sockid)
+            websocket.send(Command(1, 6))
+            @websockpool.freeSocket(sockid)
+        )
+
     exit: -> @websockpool.exit()
 
     # ------------------------
@@ -340,39 +364,43 @@ class @KClient
             fn(num == 1)
         )
 
-    readTuple: (cmd, types_str, fn) ->
+    readTuple: (cmd, fmt, fn) ->
         @websockpool.requestSocket( (sockid) =>
             websocket = @websockpool.getSocket(sockid)
             websocket.send(cmd)
 
             websocket.onmessage = (evt) =>
-                dv = new DataView(evt.data)
-                tuple = []
-                offset = 0
-
-                for i in [0..(types_str.length-1)]
-                    switch types_str[i]
-                        when 'I'
-                            tuple.push(dv.getUint32(offset))
-                            offset += 4
-                        when 'f'
-                            tuple.push(dv.getFloat32(offset))
-                            offset += 4
-                        when 'd'
-                            tuple.push(dv.getFloat64(offset))
-                            offset += 8
-                        when '?'
-                            if dv.getUint8(offset) == 0
-                                tuple.push(false)
-                            else
-                                tuple.push(true)
-                            offset += 1
-                        else
-                            throw new TypeError('Unknown or unsupported type ' + types_str[i])
-
-                fn(tuple)
+                fn(@deserialize(fmt, evt.data))
                 @websockpool.freeSocket(sockid)
         )
+
+    deserialize: (fmt, data) ->
+        dv = new DataView(data)
+        tuple = []
+        offset = 0
+
+        for i in [0..(fmt.length-1)]
+            switch fmt[i]
+                when 'I'
+                    tuple.push(dv.getUint32(offset))
+                    offset += 4
+                when 'f'
+                    tuple.push(dv.getFloat32(offset))
+                    offset += 4
+                when 'd'
+                    tuple.push(dv.getFloat64(offset))
+                    offset += 8
+                when '?'
+                    if dv.getUint8(offset) == 0
+                        tuple.push(false)
+                    else
+                        tuple.push(true)
+                    offset += 1
+                else
+                    throw new TypeError('Unknown or unsupported type ' + fmt[i])
+
+        return tuple
+
 
     readString: (cmd, fn) ->
         @websockpool.requestSocket( (sockid) =>
@@ -390,7 +418,7 @@ class @KClient
     # ------------------------
 
     getCmds: (callback) ->
-         @websockpool.requestSocket( (sockid) =>
+        @websockpool.requestSocket( (sockid) =>
             websocket = @websockpool.getSocket(sockid)
             websocket.send(Command(1,1))
             msg_num = 0

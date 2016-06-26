@@ -14,6 +14,7 @@
 #endif
 
 #include <array>
+#include <vector>
 #include <string>
 #include <atomic>
 #include <ctime>
@@ -29,6 +30,46 @@
 namespace kserver {
 
 template<int sock_type> class Session;
+
+////////////////////////////////////////////////////////////////////////////
+/////// Broadcast
+
+class Broadcast
+{
+  public:
+    Broadcast(SessionManager& session_manager_);
+
+    // Session sid subscribes to a channel 
+    int subscribe(uint32_t channel, SessID sid);
+
+    // Must be called when a session is closed
+    void unsubscribe(SessID sid);
+
+    // Event message structure
+    // |      RESERVED     |      CHANNEL      |       EVENT       |   Arguments
+    // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
+    template<uint32_t channel, uint32_t event, typename... Tp>
+    void emit(Tp&&... args);
+
+    enum Channels {
+        SERVER_CHANNEL,         ///< Server events
+        DEVICES_CHANNEL,        ///< Devices events
+        broadcast_channels_num
+    };
+
+    enum ServerChanEvents {
+        PING,                   ///< For tests
+        NEW_SESSION,            ///< A new session has been started
+        DEL_SESSION,            ///< A session has been closed
+        server_chan_events_num
+    };
+
+  private:
+    SessionManager& session_manager;
+
+    template<uint32_t channel> using Subscribers = std::vector<SessID>;
+    Subscribers<SERVER_CHANNEL> subscribers;
+};
 
 ////////////////////////////////////////////////////////////////////////////
 /////// ListeningChannel
@@ -106,9 +147,6 @@ void ListeningChannel<sock_type>::join_worker()
 ////////////////////////////////////////////////////////////////////////////
 /////// KServer
 
-// class DeviceManager;
-// class SessionManager;
-
 /// Main class of the server. It initializes the 
 /// connections and start the sessions.
 ///
@@ -128,11 +166,13 @@ class KServer : public KDevice<KServer, KSERVER>
 
     /// Operations associated to the device
     enum Operation {
-        GET_VERSION,          ///< Send th version of the server
-        GET_CMDS,             ///< Send the commands numbers
-        GET_STATS,            ///< Get KServer listeners statistics
-        GET_DEV_STATUS,       ///< Send the devices status
-        GET_RUNNING_SESSIONS, ///< Send the running sessions
+        GET_VERSION,            ///< Send th version of the server
+        GET_CMDS,               ///< Send the commands numbers
+        GET_STATS,              ///< Get KServer listeners statistics
+        GET_DEV_STATUS,         ///< Send the devices status
+        GET_RUNNING_SESSIONS,   ///< Send the running sessions
+        SUBSCRIBE_BROADCAST,    ///< Subscribe to a broadcast channel
+        BROADCAST_PING,         ///< Emit a ping to server broadcast subscribers
         kserver_op_num
     };
     
@@ -159,6 +199,8 @@ class KServer : public KDevice<KServer, KSERVER>
     // Logs
     SysLog syslog;
     std::time_t start_time;
+
+    Broadcast broadcast;
     
 #if KSERVER_HAS_THREADS
     std::mutex ks_mutex;
@@ -175,9 +217,8 @@ class KServer : public KDevice<KServer, KSERVER>
     void save_session_logs(Session<sock_type> *session, PeerInfo peer_info);
     
 template<int sock_type> friend class ListeningChannel;
-}; // KServer
+};
 
 } // namespace kserver
 
 #endif // __KSERVER_HPP__
-
