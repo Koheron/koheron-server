@@ -29,8 +29,10 @@ int Broadcast::subscribe(uint32_t channel, SessID sid)
 template<uint32_t channel, uint32_t event, typename... Tp>
 void Broadcast::emit_event(SessID sid, Tp... args)
 {
-    session_manager.GetSession(sid).Send<uint32_t, uint32_t, Tp...>(
-        std::tuple_cat(std::make_tuple(static_cast<uint32_t>(channel),
+    session_manager.GetSession(sid)
+      .Send<uint32_t, uint32_t, uint32_t, Tp...>(
+        std::tuple_cat(std::make_tuple(0U,   // RESERVED
+                                       static_cast<uint32_t>(channel),
                                        static_cast<uint32_t>(event)),
                        std::forward_as_tuple(args...))
     );
@@ -41,9 +43,6 @@ void Broadcast::emit(uint32_t channel, uint32_t event)
     for (auto const& sid: subscribers) {
         printf("Broadcasting to session %u on channel %u\n", sid, channel);
         emit_event<SERVER_CHANNEL, PING>(sid);
-        // session_manager.GetSession(sid).Send<uint32_t, uint32_t>(
-        //     std::make_tuple(static_cast<uint32_t>(SERVER_CHANNEL), static_cast<uint32_t>(PING))
-        // );
     }
 }
 

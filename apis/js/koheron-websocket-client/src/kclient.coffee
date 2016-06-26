@@ -229,8 +229,10 @@ class @KClient
             broadcast_socket.onmessage = (evt) =>
                 console.log 'Event broadcasted by server'
                 dv = new DataView(evt.data)
-                channel = dv.getUint32(0)
-                event_id = dv.getUint32(4)
+                reserved = dv.getUint32(0)
+                console.assert(reserved == 0, 'Non-zero event message reserved bytes')
+                channel = dv.getUint32(4)
+                event_id = dv.getUint32(8)
                 callback(channel, event_id)
         )
 
