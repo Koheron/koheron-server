@@ -5,6 +5,7 @@
 #include "session_manager.hpp"
 
 #include "kserver_session.hpp"
+#include "broadcast.tpp"
 
 #if KSERVER_HAS_THREADS
 #  include <thread>
@@ -174,6 +175,8 @@ void SessionManager::DeleteSession(SessID id)
     session_pool.erase(id);
     reusable_ids.push_back(id);
     num_sess--;
+
+    kserver.broadcast.emit<Broadcast::SERVER_CHANNEL, Broadcast::DEL_SESSION>();
 }
 
 void SessionManager::DeleteAll()

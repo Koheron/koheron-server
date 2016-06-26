@@ -60,6 +60,7 @@ class Broadcast
     enum ServerChanEvents {
         PING,                   ///< For tests
         NEW_SESSION,            ///< A new session has been started
+        DEL_SESSION,            ///< A session has been closed
         server_chan_events_num
     };
 
