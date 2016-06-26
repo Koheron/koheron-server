@@ -65,7 +65,7 @@ class Broadcast
     // |      RESERVED     |      CHANNEL      |       EVENT       |   Arguments
     // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
     template<uint32_t channel, uint32_t event, typename... Tp>
-    void emit_event(SessID sid, Tp... args);
+    void emit_event(Tp... args);
 };
 
 // template<> auto emit_event<SERVER_CHANNEL, PING>();
