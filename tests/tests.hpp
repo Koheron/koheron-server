@@ -50,6 +50,7 @@ class Tests
     // Send tuple
     std::tuple<uint32_t, float, double, bool> get_tuple();
     std::tuple<uint32_t, float, uint64_t, double> get_tuple2();
+    std::tuple<bool, float, float> get_tuple3();
     std::array<uint32_t, 2> get_binary_tuple();
 
     // Send numbers
