@@ -72,6 +72,9 @@ class Tests
     readTuple : (cb) ->
         @kclient.readTuple(Command(@id, @cmds.get_tuple), 'Ifd?', cb)
 
+    readTuple3 : (cb) ->
+        @kclient.readTuple(Command(@id, @cmds.get_tuple), '?ff', cb)
+
 # Unit tests
 
 client = new websock_client.KClient('127.0.0.1', 1)
@@ -283,6 +286,22 @@ exports.readTuple = (assert) ->
                 assert.ok(Math.abs(tuple[1] - 507.3858) < 5e-6)
                 assert.ok(Math.abs(tuple[2] - 926547.6468507200) < 1e-14)
                 assert.ok(tuple[3])
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.readTuple3 = (assert) ->
+    assert.expect(4)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.readTuple( (tuple) =>
+                assert.ok(not tuple[0])
+                assert.ok(Math.abs(tuple[1] - 3.14159) < 1e-6)
+                assert.ok(Math.abs(tuple[2] - 507.3858) < 5e-6)
                 client.exit()
                 assert.done()
             )
