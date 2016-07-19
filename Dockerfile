@@ -16,6 +16,7 @@ RUN apt-get -y install gcc-5 g++-5             \
                        make                    \
                        wget                    \
                        unzip                   \
+                       zip                     \
                        curl                    \
                        git                     \
                        python-pip              \
