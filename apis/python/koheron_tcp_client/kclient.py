@@ -386,7 +386,7 @@ class KClient:
         return data
 
     def recv_tuple(self, fmt):
-        buff = self.recv_buffer(struct.calcsize(fmt), data_type='uint8')
+        buff = self.recv_buffer(struct.calcsize('>' + fmt), data_type='uint8')
         return tuple(struct.unpack('>' + fmt, buff))
 
     def send_handshaking(self, data, format_char='I', dtype=np.uint32):

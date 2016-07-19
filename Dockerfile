@@ -16,6 +16,7 @@ RUN apt-get -y install gcc-5 g++-5             \
                        make                    \
                        wget                    \
                        unzip                   \
+                       zip                     \
                        curl                    \
                        git                     \
                        python-pip              \
@@ -31,8 +32,8 @@ RUN apt-get -y install nodejs-legacy           \
                        nodejs                  \
                        default-jre
 
-# Upgrade to Node 5 for Google closure compiler
-RUN curl -sL https://deb.nodesource.com/setup_5.x | bash -
+# Upgrade to Node 6 for Google closure compiler
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
 RUN apt-get install -y nodejs
 
 # Upgrade npm to latest version
