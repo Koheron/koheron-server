@@ -27,6 +27,8 @@ class Tests
 
     bool rcv_many_params(uint32_t u1, uint32_t u2, float f, bool b);
     bool set_float(float f);
+    bool set_double(double d);
+    bool set_u64(uint64_t u);
 
     // Send arrays
     std::vector<float>& send_std_vector();
@@ -46,7 +48,9 @@ class Tests
     const char* get_cstr();
 
     // Send tuple
-    std::tuple<int, float, double> get_tuple();
+    std::tuple<uint32_t, float, double, bool> get_tuple();
+    std::tuple<uint32_t, float, uint64_t, double> get_tuple2();
+    std::tuple<bool, float, float> get_tuple3();
     std::array<uint32_t, 2> get_binary_tuple();
 
     // Send numbers

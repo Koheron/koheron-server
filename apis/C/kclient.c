@@ -136,14 +136,36 @@ static size_t append_u32(char *buff, uint32_t value)
 }
 
 /**
+ * Add an u64 to a buffer
+ * Return the size (in bytes) of the append number
+ */
+static size_t append_u64(char *buff, uint64_t value)
+{
+    append_u32(buff, value);
+    append_u32(buff + 4, (value >> 32));
+    return 8;
+}
+
+/**
  * Add a float to a buffer
  * Return the size (in bytes) of the append number
  */
 static size_t append_float(char *buff, float value)
 {
-    assert(sizeof(float) == 4);
+    _Static_assert(sizeof(float) == 4, "Invalid float size");
     union { float f; uint32_t u; } __value = {value};
     return append_u32(buff, __value.u);
+}
+
+/**
+ * Add a double to a buffer
+ * Return the size (in bytes) of the append number
+ */
+static size_t append_double(char *buff, float value)
+{
+    _Static_assert(sizeof(double) == 8, "Invalid double size");
+    union { double d; uint64_t u; } __value = {value};
+    return append_u64(buff, __value.u);
 }
 
 /**
@@ -184,9 +206,17 @@ int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
             len = append_u32(buffer + PAYLOAD_OFFSET + payload_size,
                              va_arg(args, uint32_t));
             break;
+          case 'Q':
+            len = append_u64(buffer + PAYLOAD_OFFSET + payload_size,
+                             va_arg(args, uint64_t));
+            break;
           case 'f':
             len = append_float(buffer + PAYLOAD_OFFSET + payload_size,
                                (float)va_arg(args, double));
+            break;
+          case 'd':
+            len = append_double(buffer + PAYLOAD_OFFSET + payload_size,
+                                va_arg(args, double));
             break;
           case '?':
             len = append_bool(buffer + PAYLOAD_OFFSET + payload_size,
@@ -404,7 +434,7 @@ int kclient_read_int(struct kclient *kcl, int32_t *rcv_int)
 
 int kclient_read_float(struct kclient *kcl, float *rcv_float)
 {
-    assert(sizeof(float) == 4);
+    _Static_assert(sizeof(float) == 4, "Invalid float size");
     uint32_t rcv_uint;
 
     if (kclient_read_u32(kcl, &rcv_uint) < 0)
@@ -422,7 +452,7 @@ int kclient_read_float(struct kclient *kcl, float *rcv_float)
 
 int kclient_read_double(struct kclient *kcl, double *rcv_double)
 {
-    assert(sizeof(double) == 8);
+    _Static_assert(sizeof(double) == 8, "Invalid double size");
     uint64_t rcv_uint;
 
     if (kclient_read_u64(kcl, &rcv_uint) < 0)

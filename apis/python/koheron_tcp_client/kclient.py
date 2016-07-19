@@ -84,12 +84,23 @@ def _append_u32(buff, value):
     buff.append(value & 0xff)
     return 4
 
+def _append_u64(buff, value):
+    _append_u32(buff, value)
+    _append_u32(buff, (value >> 32))
+    return 8
+
 # http://stackoverflow.com/questions/14431170/get-the-bits-of-a-float-in-python
 def float_to_bits(f):
     return struct.unpack('>l', struct.pack('>f', f))[0]
 
 def _append_float(buff, value):
     return _append_u32(buff, float_to_bits(value))
+
+def double_to_bits(d):
+    return struct.unpack('>q', struct.pack('>d', d))[0]
+
+def _append_double(buff, value):
+    return _append_u64(buff, double_to_bits(value))
 
 def _build_payload(type_str, args):
     size = 0
@@ -101,8 +112,12 @@ def _build_payload(type_str, args):
     for i, type_ in enumerate(type_str):
         if type_ is 'I': # Unsigned
             size += _append_u32(payload, args[i])
+        elif type_ is 'Q': # Unsigned long long
+            size += _append_u64(payload, args[i])
         elif type_ is 'f': # float
             size += _append_float(payload, args[i])
+        elif type_ is 'd': # double
+            size += _append_double(payload, args[i])
         elif type_ is '?': # bool
             if args[i]:
                 size += _append_u8(payload, 1)
@@ -159,7 +174,7 @@ class KClient:
     It is also in charge of reception/emission of data with KServer
     """
 
-    def __init__(self, host, port=36000, verbose=False, timeout=2.0):
+    def __init__(self, host="", port=36000, unixsock="", verbose=False, timeout=2.0):
         """ Initialize connection with tcp-server
 
         Args:
@@ -175,22 +190,33 @@ class KClient:
 
         self.host = host
         self.port = port
+        self.unixsock = unixsock
         self.verbose = verbose
         self.is_connected = False
         self.timeout = timeout
 
-        try:
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # self.sock.settimeout(timeout)
+        if host != "":
+            try:
+                self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                # self.sock.settimeout(timeout)
 
-            #   Disable Nagle algorithm for real-time response:
-            self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-            # Connect to Kserver
-            self.sock.connect((host, port))
-            self.is_connected = True
-        except socket.error as e:
-            print('Failed to connect to {:s}:{:d} : {:s}'
-                  .format(host, port, e))
+                #   Disable Nagle algorithm for real-time response:
+                self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+                # Connect to Kserver
+                self.sock.connect((host, port))
+            except socket.error as e:
+                print('Failed to connect to {:s}:{:d} : {:s}'
+                      .format(host, port, e))
+        elif unixsock != "":
+            try:
+                self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                self.sock.connect(unixsock)
+            except socket.error as e:
+                print('Failed to connect to unix socket address ' + unixsock)
+        else:
+            raise ValueError("Unknown socket type")
+
+        self.is_connected = True
 
         if self.is_connected:
             self._get_commands()
@@ -269,6 +295,7 @@ class KClient:
 
     def recv_bool(self):
         val = self.recv_int(4)
+        print val
         assert val == 0 or val == 1
         return val == 1
 
@@ -358,34 +385,9 @@ class KClient:
         data = np.frombuffer(buff, dtype=np_dtype)
         return data
 
-    def recv_tuple(self):
-        tmp_buffer = [' ']
-        res_tuple = []
-
-        while tmp_buffer[-1] != '\n':
-            char = self.recv_n_bytes(1)
-
-            if char == ':':
-                toks = ''.join(tmp_buffer[1:]).split('@')
-
-                # Receive an unwanted unicode character on the first char
-                # We thus clean all unicode characters
-                elmt_type = toks[0].decode('unicode_escape')\
-                .encode('ascii', 'ignore').strip()
-
-                if elmt_type == 'i' or elmt_type == 'j':
-                    res_tuple.append(int(toks[1]))
-                elif elmt_type == 'f' or elmt_type == 'd':
-                    res_tuple.append(float(toks[1]))
-                else:  # String
-                    res_tuple.append(toks[1])
-
-                tmp_buffer = [' ']
-            else:
-                tmp_buffer.append(char)
-
-        self.recv_n_bytes(1) # Read '\0'
-        return tuple(res_tuple)
+    def recv_tuple(self, fmt):
+        buff = self.recv_buffer(struct.calcsize('>' + fmt), data_type='uint8')
+        return tuple(struct.unpack('>' + fmt, buff))
 
     def send_handshaking(self, data, format_char='I', dtype=np.uint32):
         """ Send data with handshaking protocol
