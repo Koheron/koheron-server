@@ -30,6 +30,7 @@ class Tests
             read_double     : @device.getCmdRef( "READ_DOUBLE"     )
             get_cstr        : @device.getCmdRef( "GET_CSTR"        )
             get_tuple       : @device.getCmdRef( "GET_TUPLE"       )
+            get_tuple3      : @device.getCmdRef( "GET_TUPLE3"      )
 
     sendManyParams : (u1, u2, f, b, cb) ->
         @kclient.readBool(Command(@id, @cmds.rcv_many_params, 'IIf?', u1, u2, f, b), cb)
@@ -73,7 +74,7 @@ class Tests
         @kclient.readTuple(Command(@id, @cmds.get_tuple), 'Ifd?', cb)
 
     readTuple3 : (cb) ->
-        @kclient.readTuple(Command(@id, @cmds.get_tuple), '?ff', cb)
+        @kclient.readTuple(Command(@id, @cmds.get_tuple3), '?ff', cb)
 
 # Unit tests
 
@@ -298,7 +299,7 @@ exports.readTuple3 = (assert) ->
     assert.doesNotThrow( =>
         client.init( =>
             tests = new Tests(client)
-            tests.readTuple( (tuple) =>
+            tests.readTuple3( (tuple) =>
                 assert.ok(not tuple[0])
                 assert.ok(Math.abs(tuple[1] - 3.14159) < 1e-6)
                 assert.ok(Math.abs(tuple[2] - 507.3858) < 5e-6)
