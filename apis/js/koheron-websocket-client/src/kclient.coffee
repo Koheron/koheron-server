@@ -99,6 +99,16 @@ class WebSocketPool
 # === Helper functions to build binary buffer ===
 
 ###*
+# Append an Int8 to the binary buffer
+# @param {Array.<number>} buffer The binary buffer
+# @param {number} value The Int8 to append
+# @return {number} Number of bytes
+###
+appendInt8 = (buffer, value) ->
+    buffer.push(value & 0xff)
+    return 1
+
+###*
 # Append an Uint8 to the binary buffer
 # @param {Array.<number>} buffer The binary buffer
 # @param {number} value The Uint8 to append
@@ -188,6 +198,8 @@ class CommandBase
             switch types_str[i]
                 when 'B'
                     payload_size += appendUint8(payload, params[i])
+                when 'b'
+                    payload_size += appendInt8(payload, params[i])
                 when 'H'
                     payload_size += appendUint16(payload, params[i])
                 when 'I'
@@ -393,6 +405,9 @@ class @KClient
             switch fmt[i]
                 when 'B'
                     tuple.push(dv.getUint8(offset))
+                    offset += 1
+                when 'b'
+                    tuple.push(dv.getInt8(offset))
                     offset += 1
                 when 'H'
                     tuple.push(dv.getUint16(offset))

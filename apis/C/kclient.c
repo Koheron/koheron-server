@@ -111,6 +111,16 @@ static size_t append_u8(char *buff, uint8_t value)
     return 1;
 }
 
+ /**
+ * Add an i8 to a buffer
+ * Return the size (in bytes) of the append number
+ */
+static size_t append_i8(char *buff, int8_t value)
+{
+    buff[0] = value & 0xff;
+    return 1;
+}
+
 /**
  * Add an u16 to a buffer
  * Return the size (in bytes) of the append number
@@ -205,6 +215,10 @@ int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
           case 'B':
             len = append_u8(buffer + PAYLOAD_OFFSET + payload_size,
                              (uint8_t)va_arg(args, uint32_t));
+            break;
+          case 'b':
+            len = append_i8(buffer + PAYLOAD_OFFSET + payload_size,
+                             (int8_t)va_arg(args, uint32_t));
             break;
           case 'H':
             len = append_u16(buffer + PAYLOAD_OFFSET + payload_size,

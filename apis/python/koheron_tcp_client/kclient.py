@@ -68,6 +68,10 @@ def make_command(*args):
 
     return buff
 
+def _append_i8(buff, value):
+    buff.append(value & 0xff)
+    return 1
+
 def _append_u8(buff, value):
     buff.append(value & 0xff)
     return 1
@@ -112,6 +116,8 @@ def _build_payload(type_str, args):
     for i, type_ in enumerate(type_str):
         if type_ is 'B': # Unsigned
             size += _append_u8(payload, args[i])
+        elif type_ is 'b': # Unsigned
+            size += _append_i8(payload, args[i])
         elif type_ is 'H': # Unsigned
             size += _append_u16(payload, args[i])
         elif type_ is 'I': # Unsigned
