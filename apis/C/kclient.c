@@ -143,12 +143,24 @@ static size_t append_i16(char *buff, int16_t value)
     return 2;
 }
 
-
 /**
  * Add an u32 to a buffer
  * Return the size (in bytes) of the append number
  */
 static size_t append_u32(char *buff, uint32_t value)
+{
+    buff[0] = (value >> 24) & 0xff;
+    buff[1] = (value >> 16) & 0xff;
+    buff[2] = (value >>  8) & 0xff;
+    buff[3] = value & 0xff;
+    return 4;
+}
+
+/**
+ * Add an i32 to a buffer
+ * Return the size (in bytes) of the append number
+ */
+static size_t append_i32(char *buff, int32_t value)
 {
     buff[0] = (value >> 24) & 0xff;
     buff[1] = (value >> 16) & 0xff;
@@ -243,6 +255,10 @@ int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
           case 'I':
             len = append_u32(buffer + PAYLOAD_OFFSET + payload_size,
                              va_arg(args, uint32_t));
+            break;
+          case 'i':
+            len = append_i32(buffer + PAYLOAD_OFFSET + payload_size,
+                             (int32_t)va_arg(args, uint32_t));
             break;
           case 'Q':
             len = append_u64(buffer + PAYLOAD_OFFSET + payload_size,

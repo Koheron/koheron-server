@@ -178,7 +178,7 @@ bool test_set_signed(struct tests_device *dev)
 {
     bool is_ok;
 
-    if (kclient_send_command(dev->kcl, dev->id, dev->set_signed_ref, "bh", -125, -32764) < 0
+    if (kclient_send_command(dev->kcl, dev->id, dev->set_signed_ref, "bhi", -125, -32764, -2147483645) < 0
         || kclient_read_bool(dev->kcl, &is_ok))
         return false;
 

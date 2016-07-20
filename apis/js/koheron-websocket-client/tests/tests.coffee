@@ -44,8 +44,8 @@ class Tests
     setUnsigned : (u8, u16, u32, cb) ->
         @kclient.readBool(Command(@id, @cmds.set_unsigned, 'BHI', u8, u16, u32), cb)
 
-    setSigned : (i8, i16, cb) ->
-        @kclient.readBool(Command(@id, @cmds.set_signed, 'bh', i8, i16), cb)
+    setSigned : (i8, i16, i32, cb) ->
+        @kclient.readBool(Command(@id, @cmds.set_signed, 'bhi', i8, i16, i32), cb)
 
     rcvStdVector : (cb) ->
         @kclient.readFloat32Array(Command(@id, @cmds.send_std_vector), cb)
@@ -86,7 +86,7 @@ class Tests
         @kclient.readTuple(Command(@id, @cmds.get_tuple3), '?ffBH', cb)
 
     readTuple4 : (cb) ->
-        @kclient.readTuple(Command(@id, @cmds.get_tuple4), 'bbhh', cb)
+        @kclient.readTuple(Command(@id, @cmds.get_tuple4), 'bbhhii', cb)
 
 # Unit tests
 
@@ -218,7 +218,7 @@ exports.setSigned = (assert) ->
     assert.doesNotThrow( =>
         client.init( =>
             tests = new Tests(client)
-            tests.setSigned(-125, -32764, (is_ok) =>
+            tests.setSigned(-125, -32764, -2147483645, (is_ok) =>
                 assert.ok(is_ok)
                 client.exit()
                 assert.done()
@@ -383,7 +383,7 @@ exports.readTuple3 = (assert) ->
 
 exports.readTuple4 = (assert) ->
     client = new websock_client.KClient('127.0.0.1', 1)
-    assert.expect(5)
+    assert.expect(7)
 
     assert.doesNotThrow( =>
         client.init( =>
@@ -393,6 +393,8 @@ exports.readTuple4 = (assert) ->
                 assert.equals(tuple[1], 127)
                 assert.equals(tuple[2], -32767)
                 assert.equals(tuple[3], 32767)
+                assert.equals(tuple[4], -2147483647)
+                assert.equals(tuple[5], 2147483647)
                 client.exit()
                 assert.done()
             )
