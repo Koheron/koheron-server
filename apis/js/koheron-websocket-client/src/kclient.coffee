@@ -221,13 +221,11 @@ class @KClient
 
     subscribeServerBroadcast: (callback) ->
         @websockpool.requestSocket( (sockid) =>
-            # console.log 'broadcast_socketid = ' + sockid.toString()
             @broadcast_socketid = sockid
             broadcast_socket = @websockpool.getSocket(sockid)
             broadcast_socket.send(Command(1, 5, 'I', 0)) # Server broadcasts on channel 0
 
             broadcast_socket.onmessage = (evt) =>
-                console.log 'Event broadcasted by server'
                 tup = @deserialize('III', evt.data)
                 reserved = tup[0]
                 console.assert(reserved == 0, 'Non-zero event message reserved bytes')
