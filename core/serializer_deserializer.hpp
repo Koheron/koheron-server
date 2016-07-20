@@ -45,6 +45,22 @@ inline void append<uint8_t>(unsigned char *buff, uint8_t value)
     buff[0] = value;
 }
 
+// int8_t
+
+template<> constexpr size_t size_of<int8_t> = 1;
+
+template<>
+inline int8_t extract<int8_t>(const char *buff)
+{
+    return buff[0];
+}
+
+template<>
+inline void append<int8_t>(unsigned char *buff, int8_t value)
+{
+    buff[0] = reinterpret_cast<uint8_t&>(value);
+}
+
 // uint16_t
 
 template<> constexpr size_t size_of<uint16_t> = 2;

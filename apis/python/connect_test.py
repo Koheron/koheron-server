@@ -87,6 +87,10 @@ class Tests:
         return self.client.recv_tuple('?ffBH')
 
     @command('TESTS')
+    def get_tuple4(self):
+        return self.client.recv_tuple('bb')
+
+    @command('TESTS')
     def get_binary_tuple(self):
         buff = self.client.recv_buffer(2, data_type='uint32')
         return tuple(struct.unpack('If', buff))
@@ -204,6 +208,12 @@ def test_read_tuple3(tests):
     assert abs(tup[2] - 507.3858) < 5E-6
     assert tup[3] == 42
     assert tup[4] == 6553
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_read_tuple4(tests):
+    tup = tests.get_tuple4()
+    assert tup[0] == -127
+    assert tup[1] == 127
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_get_binary_tuple(tests):
