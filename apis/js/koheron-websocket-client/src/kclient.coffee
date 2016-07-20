@@ -119,6 +119,17 @@ appendUint8 = (buffer, value) ->
     return 1
 
 ###*
+# Append an Int16 to the binary buffer
+# @param {Array.<number>} buffer The binary buffer
+# @param {number} value The Int16 to append
+# @return {number} Number of bytes
+###
+appendInt16 = (buffer, value) ->
+    buffer.push((value >> 8) & 0xff)
+    buffer.push(value & 0xff)
+    return 2
+
+###*
 # Append an Uint16 to the binary buffer
 # @param {Array.<number>} buffer The binary buffer
 # @param {number} value The Uint16 to append
@@ -202,6 +213,8 @@ class CommandBase
                     payload_size += appendInt8(payload, params[i])
                 when 'H'
                     payload_size += appendUint16(payload, params[i])
+                when 'h'
+                    payload_size += appendInt16(payload, params[i])
                 when 'I'
                     payload_size += appendUint32(payload, params[i])
                 when 'f'
@@ -411,6 +424,9 @@ class @KClient
                     offset += 1
                 when 'H'
                     tuple.push(dv.getUint16(offset))
+                    offset += 2
+                when 'h'
+                    tuple.push(dv.getInt16(offset))
                     offset += 2
                 when 'I'
                     tuple.push(dv.getUint32(offset))
