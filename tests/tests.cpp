@@ -41,9 +41,9 @@ bool Tests::set_unsigned(uint8_t u8, uint16_t u16, uint32_t u32)
     return u8 == 255 && u16 == 65535 && u32 == 4294967295;
 }
 
-bool Tests::set_signed(int8_t i8, int16_t i16)
+bool Tests::set_signed(int8_t i8, int16_t i16, int32_t i32)
 {
-    return i8 == -125 && i16 == -32764;
+    return i8 == -125 && i16 == -32764 && i32 == -2147483645;
 }
 
 std::vector<float>& Tests::send_std_vector()
@@ -123,9 +123,9 @@ std::tuple<bool, float, float, uint8_t, uint16_t> Tests::get_tuple3()
     return std::make_tuple(false, 3.14159F, 507.3858, 42, 6553);
 }
 
-std::tuple<int8_t, int8_t, int16_t, int16_t> Tests::get_tuple4()
+std::tuple<int8_t, int8_t, int16_t, int16_t, int32_t, int32_t> Tests::get_tuple4()
 {
-    return std::make_tuple(-127, 127, -32767, 32767);
+    return std::make_tuple(-127, 127, -32767, 32767, -2147483647, 2147483647);
 }
 
 std::array<uint32_t, 2> Tests::get_binary_tuple() {

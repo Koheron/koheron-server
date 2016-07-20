@@ -86,6 +86,13 @@ def _append_u16(buff, value):
     buff.append(value & 0xff)
     return 2
 
+def _append_i32(buff, value):
+    buff.append((value >> 24) & 0xff)
+    buff.append((value >> 16) & 0xff)
+    buff.append((value >> 8) & 0xff)
+    buff.append(value & 0xff)
+    return 4
+
 def _append_u32(buff, value):
     buff.append((value >> 24) & 0xff)
     buff.append((value >> 16) & 0xff)
@@ -129,6 +136,8 @@ def _build_payload(type_str, args):
             size += _append_i16(payload, args[i])
         elif type_ is 'I':
             size += _append_u32(payload, args[i])
+        elif type_ is 'i':
+            size += _append_i32(payload, args[i])
         elif type_ is 'Q':
             size += _append_u64(payload, args[i])
         elif type_ is 'f':
