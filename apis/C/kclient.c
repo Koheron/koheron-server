@@ -181,6 +181,17 @@ static size_t append_u64(char *buff, uint64_t value)
 }
 
 /**
+ * Add an i64 to a buffer
+ * Return the size (in bytes) of the append number
+ */
+static size_t append_i64(char *buff, int64_t value)
+{
+    append_u32(buff, value);
+    append_u32(buff + 4, (value >> 32));
+    return 8;
+}
+
+/**
  * Add a float to a buffer
  * Return the size (in bytes) of the append number
  */
@@ -263,6 +274,10 @@ int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
           case 'Q':
             len = append_u64(buffer + PAYLOAD_OFFSET + payload_size,
                              va_arg(args, uint64_t));
+            break;
+          case 'q':
+            len = append_i64(buffer + PAYLOAD_OFFSET + payload_size,
+                             (int64_t)va_arg(args, uint64_t));
             break;
           case 'f':
             len = append_float(buffer + PAYLOAD_OFFSET + payload_size,
