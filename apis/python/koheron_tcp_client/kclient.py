@@ -76,6 +76,11 @@ def _append_u8(buff, value):
     buff.append(value & 0xff)
     return 1
 
+def _append_i16(buff, value):
+    buff.append((value >> 8) & 0xff)
+    buff.append(value & 0xff)
+    return 2
+
 def _append_u16(buff, value):
     buff.append((value >> 8) & 0xff)
     buff.append(value & 0xff)
@@ -114,21 +119,23 @@ def _build_payload(type_str, args):
 
     # http://stackoverflow.com/questions/402504/how-to-determine-the-variable-type-in-python
     for i, type_ in enumerate(type_str):
-        if type_ is 'B': # Unsigned
+        if type_ is 'B':
             size += _append_u8(payload, args[i])
-        elif type_ is 'b': # Unsigned
+        elif type_ is 'b':
             size += _append_i8(payload, args[i])
-        elif type_ is 'H': # Unsigned
+        elif type_ is 'H':
             size += _append_u16(payload, args[i])
-        elif type_ is 'I': # Unsigned
+        elif type_ is 'h':
+            size += _append_i16(payload, args[i])
+        elif type_ is 'I':
             size += _append_u32(payload, args[i])
-        elif type_ is 'Q': # Unsigned long long
+        elif type_ is 'Q':
             size += _append_u64(payload, args[i])
-        elif type_ is 'f': # float
+        elif type_ is 'f':
             size += _append_float(payload, args[i])
-        elif type_ is 'd': # double
+        elif type_ is 'd':
             size += _append_double(payload, args[i])
-        elif type_ is '?': # bool
+        elif type_ is '?':
             if args[i]:
                 size += _append_u8(payload, 1)
             else:

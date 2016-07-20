@@ -30,8 +30,8 @@ class Tests:
     def set_unsigned(self, u8, u16, u32):
         return self.client.recv_bool()
 
-    @command('TESTS', 'b')
-    def set_signed(self, i8):
+    @command('TESTS', 'bh')
+    def set_signed(self, i8, i16):
         return self.client.recv_bool()
 
     @command('TESTS')
@@ -92,7 +92,7 @@ class Tests:
 
     @command('TESTS')
     def get_tuple4(self):
-        return self.client.recv_tuple('bb')
+        return self.client.recv_tuple('bbhh')
 
     @command('TESTS')
     def get_binary_tuple(self):
@@ -144,7 +144,7 @@ def test_set_unsigned(tests):
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_set_signed(tests):
-    assert tests.set_signed(-125)
+    assert tests.set_signed(-125, -32764)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_set_double(tests):
@@ -222,6 +222,8 @@ def test_read_tuple4(tests):
     tup = tests.get_tuple4()
     assert tup[0] == -127
     assert tup[1] == 127
+    assert tup[2] == -32767
+    assert tup[3] == 32767
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_get_binary_tuple(tests):
