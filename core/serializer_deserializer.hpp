@@ -29,6 +29,38 @@ template<typename Tp> constexpr size_t size_of;
 template<typename Tp> Tp extract(const char *buff);                // Deserialization
 template<typename Tp> void append(unsigned char *buff, Tp value);  // Serialization
 
+// uint8_t
+
+template<> constexpr size_t size_of<uint8_t> = 1;
+
+template<>
+inline uint8_t extract<uint8_t>(const char *buff)
+{
+    return (unsigned char)buff[0];
+}
+
+template<>
+inline void append<uint8_t>(unsigned char *buff, uint8_t value)
+{
+    buff[0] = value;
+}
+
+// int8_t
+
+template<> constexpr size_t size_of<int8_t> = 1;
+
+template<>
+inline int8_t extract<int8_t>(const char *buff)
+{
+    return buff[0];
+}
+
+template<>
+inline void append<int8_t>(unsigned char *buff, int8_t value)
+{
+    buff[0] = reinterpret_cast<uint8_t&>(value);
+}
+
 // uint16_t
 
 template<> constexpr size_t size_of<uint16_t> = 2;
@@ -44,6 +76,23 @@ inline void append<uint16_t>(unsigned char *buff, uint16_t value)
 {
     buff[0] = (value >> 8) & 0xff;
     buff[1] = value & 0xff;
+}
+
+// int16_t
+
+template<> constexpr size_t size_of<int16_t> = 2;
+
+template<>
+inline int16_t extract<int16_t>(const char *buff)
+{
+    uint16_t tmp = extract<uint16_t>(buff);
+    return *reinterpret_cast<int16_t*>(&tmp);
+}
+
+template<>
+inline void append<int16_t>(unsigned char *buff, int16_t value)
+{
+    append<uint16_t>(buff, reinterpret_cast<uint16_t&>(value));
 }
 
 // uint32_t
@@ -66,6 +115,23 @@ inline void append<uint32_t>(unsigned char *buff, uint32_t value)
     buff[3] = value & 0xff;
 }
 
+// int32_t
+
+template<> constexpr size_t size_of<int32_t> = 4;
+
+template<>
+inline int32_t extract<int32_t>(const char *buff)
+{
+    uint32_t tmp = extract<uint32_t>(buff);
+    return *reinterpret_cast<int32_t*>(&tmp);
+}
+
+template<>
+inline void append<int32_t>(unsigned char *buff, int32_t value)
+{
+    append<uint32_t>(buff, reinterpret_cast<uint32_t&>(value));
+}
+
 // uint64_t
 
 template<> constexpr size_t size_of<uint64_t> = 8;
@@ -83,6 +149,23 @@ inline void append<uint64_t>(unsigned char *buff, uint64_t value)
 {
     append<uint32_t>(buff, (value >> 32));
     append<uint32_t>(buff + size_of<uint32_t>, value);
+}
+
+// int64_t
+
+template<> constexpr size_t size_of<int64_t> = 8;
+
+template<>
+inline int64_t extract<int64_t>(const char *buff)
+{
+    uint64_t tmp = extract<uint64_t>(buff);
+    return *reinterpret_cast<int64_t*>(&tmp);
+}
+
+template<>
+inline void append<int64_t>(unsigned char *buff, int64_t value)
+{
+    append<uint64_t>(buff, reinterpret_cast<uint64_t&>(value));
 }
 
 // float
@@ -105,7 +188,7 @@ inline void append<float>(unsigned char *buff, float value)
 // double
 
 template<> constexpr size_t size_of<double> = size_of<uint64_t>;
-static_assert(sizeof(double) == size_of<double>, "Invalid float size");
+static_assert(sizeof(double) == size_of<double>, "Invalid double size");
 
 template<>
 inline double extract<double>(const char *buff)

@@ -19,6 +19,8 @@ class Tests
         @cmds =
             rcv_many_params : @device.getCmdRef( "RCV_MANY_PARAMS" )
             set_float       : @device.getCmdRef( "SET_FLOAT"       )
+            set_unsigned    : @device.getCmdRef( "SET_UNSIGNED"    )
+            set_signed      : @device.getCmdRef( "SET_SIGNED"      )
             send_std_vector : @device.getCmdRef( "SEND_STD_VECTOR" )
             send_std_array  : @device.getCmdRef( "SEND_STD_ARRAY"  )
             send_c_array1   : @device.getCmdRef( "SEND_C_ARRAY1"   )
@@ -31,12 +33,19 @@ class Tests
             get_cstr        : @device.getCmdRef( "GET_CSTR"        )
             get_tuple       : @device.getCmdRef( "GET_TUPLE"       )
             get_tuple3      : @device.getCmdRef( "GET_TUPLE3"      )
+            get_tuple4      : @device.getCmdRef( "GET_TUPLE4"      )
 
     sendManyParams : (u1, u2, f, b, cb) ->
         @kclient.readBool(Command(@id, @cmds.rcv_many_params, 'IIf?', u1, u2, f, b), cb)
 
     setFloat : (f, cb) ->
         @kclient.readBool(Command(@id, @cmds.set_float, 'f', f), cb)
+
+    setUnsigned : (u8, u16, u32, cb) ->
+        @kclient.readBool(Command(@id, @cmds.set_unsigned, 'BHI', u8, u16, u32), cb)
+
+    setSigned : (i8, i16, i32, cb) ->
+        @kclient.readBool(Command(@id, @cmds.set_signed, 'bhi', i8, i16, i32), cb)
 
     rcvStdVector : (cb) ->
         @kclient.readFloat32Array(Command(@id, @cmds.send_std_vector), cb)
@@ -74,7 +83,10 @@ class Tests
         @kclient.readTuple(Command(@id, @cmds.get_tuple), 'Ifd?', cb)
 
     readTuple3 : (cb) ->
-        @kclient.readTuple(Command(@id, @cmds.get_tuple3), '?ff', cb)
+        @kclient.readTuple(Command(@id, @cmds.get_tuple3), '?ffBH', cb)
+
+    readTuple4 : (cb) ->
+        @kclient.readTuple(Command(@id, @cmds.get_tuple4), 'bbhhii', cb)
 
 # Unit tests
 
@@ -177,6 +189,36 @@ exports.setFloat = (assert) ->
         client.init( =>
             tests = new Tests(client)
             tests.setFloat( 12.5, (is_ok) =>
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.setUnsigned = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.setUnsigned(255, 65535, 4294967295, (is_ok) =>
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.setSigned = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.setSigned(-125, -32764, -2147483645, (is_ok) =>
                 assert.ok(is_ok)
                 client.exit()
                 assert.done()
@@ -322,7 +364,7 @@ exports.readTuple = (assert) ->
 
 exports.readTuple3 = (assert) ->
     client = new websock_client.KClient('127.0.0.1', 1)
-    assert.expect(4)
+    assert.expect(6)
 
     assert.doesNotThrow( =>
         client.init( =>
@@ -331,6 +373,28 @@ exports.readTuple3 = (assert) ->
                 assert.ok(not tuple[0])
                 assert.ok(Math.abs(tuple[1] - 3.14159) < 1e-6)
                 assert.ok(Math.abs(tuple[2] - 507.3858) < 5e-6)
+                assert.equals(tuple[3], 42)
+                assert.equals(tuple[4], 6553)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.readTuple4 = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(7)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.readTuple4( (tuple) =>
+                assert.equals(tuple[0], -127)
+                assert.equals(tuple[1], 127)
+                assert.equals(tuple[2], -32767)
+                assert.equals(tuple[3], 32767)
+                assert.equals(tuple[4], -2147483647)
+                assert.equals(tuple[5], 2147483647)
                 client.exit()
                 assert.done()
             )

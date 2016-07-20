@@ -111,11 +111,32 @@ static size_t append_u8(char *buff, uint8_t value)
     return 1;
 }
 
+ /**
+ * Add an i8 to a buffer
+ * Return the size (in bytes) of the append number
+ */
+static size_t append_i8(char *buff, int8_t value)
+{
+    buff[0] = value & 0xff;
+    return 1;
+}
+
 /**
  * Add an u16 to a buffer
  * Return the size (in bytes) of the append number
  */
 static size_t append_u16(char *buff, uint16_t value)
+{
+    buff[0] = (value >> 8) & 0xff;
+    buff[1] = value & 0xff;
+    return 2;
+}
+
+/**
+ * Add an i16 to a buffer
+ * Return the size (in bytes) of the append number
+ */
+static size_t append_i16(char *buff, int16_t value)
 {
     buff[0] = (value >> 8) & 0xff;
     buff[1] = value & 0xff;
@@ -136,10 +157,34 @@ static size_t append_u32(char *buff, uint32_t value)
 }
 
 /**
+ * Add an i32 to a buffer
+ * Return the size (in bytes) of the append number
+ */
+static size_t append_i32(char *buff, int32_t value)
+{
+    buff[0] = (value >> 24) & 0xff;
+    buff[1] = (value >> 16) & 0xff;
+    buff[2] = (value >>  8) & 0xff;
+    buff[3] = value & 0xff;
+    return 4;
+}
+
+/**
  * Add an u64 to a buffer
  * Return the size (in bytes) of the append number
  */
 static size_t append_u64(char *buff, uint64_t value)
+{
+    append_u32(buff, value);
+    append_u32(buff + 4, (value >> 32));
+    return 8;
+}
+
+/**
+ * Add an i64 to a buffer
+ * Return the size (in bytes) of the append number
+ */
+static size_t append_i64(char *buff, int64_t value)
 {
     append_u32(buff, value);
     append_u32(buff + 4, (value >> 32));
@@ -202,13 +247,37 @@ int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
         }
 
         switch (*types) {
+          case 'B':
+            len = append_u8(buffer + PAYLOAD_OFFSET + payload_size,
+                             (uint8_t)va_arg(args, uint32_t));
+            break;
+          case 'b':
+            len = append_i8(buffer + PAYLOAD_OFFSET + payload_size,
+                             (int8_t)va_arg(args, uint32_t));
+            break;
+          case 'H':
+            len = append_u16(buffer + PAYLOAD_OFFSET + payload_size,
+                             (uint16_t)va_arg(args, uint32_t));
+            break;
+          case 'h':
+            len = append_i16(buffer + PAYLOAD_OFFSET + payload_size,
+                             (int16_t)va_arg(args, uint32_t));
+            break;
           case 'I':
             len = append_u32(buffer + PAYLOAD_OFFSET + payload_size,
                              va_arg(args, uint32_t));
             break;
+          case 'i':
+            len = append_i32(buffer + PAYLOAD_OFFSET + payload_size,
+                             (int32_t)va_arg(args, uint32_t));
+            break;
           case 'Q':
             len = append_u64(buffer + PAYLOAD_OFFSET + payload_size,
                              va_arg(args, uint64_t));
+            break;
+          case 'q':
+            len = append_i64(buffer + PAYLOAD_OFFSET + payload_size,
+                             (int64_t)va_arg(args, uint64_t));
             break;
           case 'f':
             len = append_float(buffer + PAYLOAD_OFFSET + payload_size,
