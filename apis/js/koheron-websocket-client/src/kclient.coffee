@@ -93,6 +93,9 @@ class WebSocketPool
         for websocket in @pool
             websocket.close()
 
+        @free_sockets = []
+        @socket_counter = 0
+
 # === Helper functions to build binary buffer ===
 
 ###*
@@ -213,6 +216,7 @@ class @KClient
     constructor: (IP, @websock_pool_size = 5) ->
         @url = "ws://" + IP + ":8080"
         @devices_list = []
+        @broadcast_socketid = -1
 
     init: (callback) ->
         @websockpool = new WebSocketPool(@websock_pool_size, @url, => 
@@ -241,7 +245,11 @@ class @KClient
             @websockpool.freeSocket(sockid)
         )
 
-    exit: -> @websockpool.exit()
+    exit: ->
+        if @broadcast_socketid >= 0
+            @websockpool.freeSocket(@broadcast_socketid)
+            @broadcast_socketid = -1
+        @websockpool.exit()
 
     # ------------------------
     #  Send
@@ -399,7 +407,6 @@ class @KClient
 
         return tuple
 
-
     readString: (cmd, fn) ->
         @websockpool.requestSocket( (sockid) =>
             websocket = @websockpool.getSocket(sockid)
@@ -418,6 +425,7 @@ class @KClient
     getCmds: (callback) ->
         @websockpool.requestSocket( (sockid) =>
             websocket = @websockpool.getSocket(sockid)
+            console.assert(websocket.readyState == 1, 'Websocket not ready')
             websocket.send(Command(1,1))
             msg_num = 0
 

@@ -78,9 +78,8 @@ class Tests
 
 # Unit tests
 
-client = new websock_client.KClient('127.0.0.1', 2)
-
 exports.triggerServerBroadcast = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 2)
     assert.expect(3)
 
     assert.doesNotThrow( =>
@@ -96,6 +95,7 @@ exports.triggerServerBroadcast = (assert) ->
     )
 
 exports.sendManyParams = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
     assert.expect(2)
 
     assert.doesNotThrow( =>
@@ -110,6 +110,7 @@ exports.sendManyParams = (assert) ->
     )
 
 exports.readUint = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
     assert.expect(2)
 
     assert.doesNotThrow( =>
@@ -124,6 +125,7 @@ exports.readUint = (assert) ->
     )
 
 exports.readInt = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
     assert.expect(2)
 
     assert.doesNotThrow( =>
@@ -138,6 +140,7 @@ exports.readInt = (assert) ->
     )
 
 exports.readFloat = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
     assert.expect(2)
 
     assert.doesNotThrow( =>
@@ -152,6 +155,7 @@ exports.readFloat = (assert) ->
     )
 
 exports.readDouble = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
     assert.expect(2)
 
     assert.doesNotThrow( =>
@@ -166,6 +170,7 @@ exports.readDouble = (assert) ->
     )
 
 exports.setFloat = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
     assert.expect(2)
 
     assert.doesNotThrow( =>
@@ -180,6 +185,7 @@ exports.setFloat = (assert) ->
     )
 
 exports.rcvStdVector = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
     assert.expect(2)
 
     assert.doesNotThrow( =>
@@ -200,6 +206,7 @@ exports.rcvStdVector = (assert) ->
     )
 
 exports.rcvStdArray = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
     assert.expect(2)
 
     assert.doesNotThrow( =>
@@ -220,6 +227,7 @@ exports.rcvStdArray = (assert) ->
     )
 
 exports.rcvCArray1 = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
     assert.expect(3)
 
     assert.doesNotThrow( =>
@@ -242,6 +250,7 @@ exports.rcvCArray1 = (assert) ->
     )
 
 exports.rcvCArray2 = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
     assert.expect(3)
 
     assert.doesNotThrow( =>
@@ -263,6 +272,7 @@ exports.rcvCArray2 = (assert) ->
     )
 
 exports.sendBuffer = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
     assert.expect(2)
 
     assert.doesNotThrow( =>
@@ -278,6 +288,7 @@ exports.sendBuffer = (assert) ->
     )
 
 exports.readString = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
     assert.expect(2)
 
     assert.doesNotThrow( =>
@@ -292,6 +303,7 @@ exports.readString = (assert) ->
     )
 
 exports.readTuple = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
     assert.expect(5)
 
     assert.doesNotThrow( =>
@@ -309,6 +321,7 @@ exports.readTuple = (assert) ->
     )
 
 exports.readTuple3 = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
     assert.expect(4)
 
     assert.doesNotThrow( =>
