@@ -29,6 +29,22 @@ template<typename Tp> constexpr size_t size_of;
 template<typename Tp> Tp extract(const char *buff);                // Deserialization
 template<typename Tp> void append(unsigned char *buff, Tp value);  // Serialization
 
+// uint8_t
+
+template<> constexpr size_t size_of<uint8_t> = 1;
+
+template<>
+inline uint8_t extract<uint8_t>(const char *buff)
+{
+    return (unsigned char)buff[0];
+}
+
+template<>
+inline void append<uint8_t>(unsigned char *buff, uint8_t value)
+{
+    buff[0] = value;
+}
+
 // uint16_t
 
 template<> constexpr size_t size_of<uint16_t> = 2;
@@ -105,7 +121,7 @@ inline void append<float>(unsigned char *buff, float value)
 // double
 
 template<> constexpr size_t size_of<double> = size_of<uint64_t>;
-static_assert(sizeof(double) == size_of<double>, "Invalid float size");
+static_assert(sizeof(double) == size_of<double>, "Invalid double size");
 
 template<>
 inline double extract<double>(const char *buff)

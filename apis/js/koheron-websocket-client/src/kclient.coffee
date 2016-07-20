@@ -387,6 +387,12 @@ class @KClient
 
         for i in [0..(fmt.length-1)]
             switch fmt[i]
+                when 'B'
+                    tuple.push(dv.getUint8(offset))
+                    offset += 1
+                when 'H'
+                    tuple.push(dv.getUint16(offset))
+                    offset += 2
                 when 'I'
                     tuple.push(dv.getUint32(offset))
                     offset += 4
