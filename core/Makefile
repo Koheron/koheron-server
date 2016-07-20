@@ -34,7 +34,8 @@ OBJS_KSERVER = core/kserver.o              \
                core/crypto/base64.o        \
                core/crypto/sha1.o          \
                core/kserver_syslog.o       \
-               core/signal_handler.o
+               core/signal_handler.o       \
+               core/broadcast.o
 
 # Objects in Middleware
 SRC_MIDWARE = $(shell find $(MIDWARE_INC_PATH) -name '*.cpp')

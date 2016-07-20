@@ -78,7 +78,22 @@ class Tests
 
 # Unit tests
 
-client = new websock_client.KClient('127.0.0.1', 1)
+client = new websock_client.KClient('127.0.0.1', 2)
+
+exports.triggerServerBroadcast = (assert) ->
+    assert.expect(3)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            client.subscribeServerBroadcast( (channel, event_id) =>
+                assert.equals(channel, 0)
+                assert.equals(event_id, 0)
+                client.exit()
+                assert.done()
+            )
+            client.broadcastPing()
+        )
+    )
 
 exports.sendManyParams = (assert) ->
     assert.expect(2)
