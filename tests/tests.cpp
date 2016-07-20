@@ -36,6 +36,11 @@ bool Tests::set_u64(uint64_t u)
     return u == 2225073854759576792;
 }
 
+bool Tests::set_unsigned(uint8_t u8, uint16_t u16, uint32_t u32)
+{
+    return u8 == 255 && u16 == 65535 && u32 == 4294967295;
+}
+
 std::vector<float>& Tests::send_std_vector()
 {
     data.resize(10);

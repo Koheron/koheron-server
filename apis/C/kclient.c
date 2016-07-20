@@ -202,6 +202,14 @@ int kclient_send_command(struct kclient *kcl, dev_id_t dev_id,
         }
 
         switch (*types) {
+          case 'B':
+            len = append_u8(buffer + PAYLOAD_OFFSET + payload_size,
+                             (uint8_t)va_arg(args, uint32_t));
+            break;
+          case 'H':
+            len = append_u16(buffer + PAYLOAD_OFFSET + payload_size,
+                             (uint16_t)va_arg(args, uint32_t));
+            break;
           case 'I':
             len = append_u32(buffer + PAYLOAD_OFFSET + payload_size,
                              va_arg(args, uint32_t));

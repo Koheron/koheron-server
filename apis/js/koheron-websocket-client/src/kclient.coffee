@@ -186,6 +186,10 @@ class CommandBase
         payload = []
         for i in [0..(types_str.length-1)]
             switch types_str[i]
+                when 'B'
+                    payload_size += appendUint8(payload, params[i])
+                when 'H'
+                    payload_size += appendUint16(payload, params[i])
                 when 'I'
                     payload_size += appendUint32(payload, params[i])
                 when 'f'

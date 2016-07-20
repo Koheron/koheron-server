@@ -29,6 +29,7 @@ class Tests
     bool set_float(float f);
     bool set_double(double d);
     bool set_u64(uint64_t u);
+    bool set_unsigned(uint8_t u8, uint16_t u16, uint32_t u32);
 
     // Send arrays
     std::vector<float>& send_std_vector();

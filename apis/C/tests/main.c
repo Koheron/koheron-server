@@ -22,6 +22,7 @@ struct tests_device {
     op_id_t set_float_ref;       // "SET_FLOAT" reference
     op_id_t set_double_ref;      // "SET_DOUBLE" reference
     op_id_t set_u64_ref;         // "SET_U64" reference
+    op_id_t set_unsigned_ref;    // "SET_UNSIGNED" reference
     op_id_t send_std_vector_ref; // "SEND_STD_VECTOR" reference
     op_id_t send_std_array_ref;  // "SEND_STD_ARRAY" reference
     op_id_t send_c_array1_ref;   // "SEND_C_ARRAY1" reference
@@ -43,6 +44,7 @@ void tests_init(struct tests_device *dev, struct kclient *kcl)
     dev->set_float_ref = get_op_id(kcl, dev->id, "SET_FLOAT");
     dev->set_double_ref = get_op_id(kcl, dev->id, "SET_DOUBLE");
     dev->set_u64_ref = get_op_id(kcl, dev->id, "SET_U64");
+    dev->set_unsigned_ref = get_op_id(kcl, dev->id, "SET_UNSIGNED");
     dev->send_std_vector_ref = get_op_id(kcl, dev->id, "SEND_STD_VECTOR");
     dev->send_std_array_ref = get_op_id(kcl, dev->id, "SEND_STD_ARRAY");
     dev->send_c_array1_ref = get_op_id(kcl, dev->id, "SEND_C_ARRAY1");
@@ -153,6 +155,17 @@ bool test_set_u64(struct tests_device *dev)
     bool is_ok;
 
     if (kclient_send_command(dev->kcl, dev->id, dev->set_u64_ref, "Q", 2225073854759576792) < 0
+        || kclient_read_bool(dev->kcl, &is_ok))
+        return false;
+
+    return is_ok;
+}
+
+bool test_set_unsigned(struct tests_device *dev)
+{
+    bool is_ok;
+
+    if (kclient_send_command(dev->kcl, dev->id, dev->set_unsigned_ref, "BHI", 255, 65535, 4294967295) < 0
         || kclient_read_bool(dev->kcl, &is_ok))
         return false;
 
@@ -334,6 +347,7 @@ void unit_tests_tcp(char *IP, unsigned int port)
     UNIT_TEST(set_float)
     UNIT_TEST(set_double)
     UNIT_TEST(set_u64)
+    UNIT_TEST(set_unsigned)
     UNIT_TEST(rcv_std_vector)
     UNIT_TEST(rcv_std_array)
     UNIT_TEST(rcv_c_array1)
@@ -368,6 +382,7 @@ void unit_tests_unix(char *unix_sock_path)
     UNIT_TEST(set_float)
     UNIT_TEST(set_double)
     UNIT_TEST(set_u64)
+    UNIT_TEST(set_unsigned)
     UNIT_TEST(rcv_std_vector)
     UNIT_TEST(rcv_std_array)
     UNIT_TEST(rcv_c_array1)
@@ -415,6 +430,7 @@ void speed_tests_tcp(char *IP, unsigned int port)
     SPEED_TEST(set_float)
     SPEED_TEST(set_double)
     SPEED_TEST(set_u64)
+    SPEED_TEST(set_unsigned)
     SPEED_TEST(rcv_std_vector)
     SPEED_TEST(rcv_std_array)
     SPEED_TEST(rcv_c_array1)
@@ -441,6 +457,7 @@ void speed_tests_unix(char *unix_sock_path)
     SPEED_TEST(set_float)
     SPEED_TEST(set_double)
     SPEED_TEST(set_u64)
+    SPEED_TEST(set_unsigned)
     SPEED_TEST(rcv_std_vector)
     SPEED_TEST(rcv_std_array)
     SPEED_TEST(rcv_c_array1)

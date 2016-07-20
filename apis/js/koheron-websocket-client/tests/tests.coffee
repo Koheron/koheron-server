@@ -19,6 +19,7 @@ class Tests
         @cmds =
             rcv_many_params : @device.getCmdRef( "RCV_MANY_PARAMS" )
             set_float       : @device.getCmdRef( "SET_FLOAT"       )
+            set_unsigned    : @device.getCmdRef( "SET_UNSIGNED"    )
             send_std_vector : @device.getCmdRef( "SEND_STD_VECTOR" )
             send_std_array  : @device.getCmdRef( "SEND_STD_ARRAY"  )
             send_c_array1   : @device.getCmdRef( "SEND_C_ARRAY1"   )
@@ -37,6 +38,9 @@ class Tests
 
     setFloat : (f, cb) ->
         @kclient.readBool(Command(@id, @cmds.set_float, 'f', f), cb)
+
+    setUnsigned : (u8, u16, u32, cb) ->
+        @kclient.readBool(Command(@id, @cmds.set_unsigned, 'BHI', u8, u16, u32), cb)
 
     rcvStdVector : (cb) ->
         @kclient.readFloat32Array(Command(@id, @cmds.send_std_vector), cb)
@@ -177,6 +181,21 @@ exports.setFloat = (assert) ->
         client.init( =>
             tests = new Tests(client)
             tests.setFloat( 12.5, (is_ok) =>
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.setUnsigned = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.setUnsigned(255, 65535, 4294967295, (is_ok) =>
                 assert.ok(is_ok)
                 client.exit()
                 assert.done()

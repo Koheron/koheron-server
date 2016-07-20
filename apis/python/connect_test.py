@@ -26,6 +26,10 @@ class Tests:
     def set_u64(self, u):
         return self.client.recv_bool()
 
+    @command('TESTS', 'BHI')
+    def set_unsigned(self, u8, u16, u32):
+        return self.client.recv_bool()
+
     @command('TESTS')
     def read_uint64(self):
         return self.client.recv_uint64()
@@ -125,6 +129,10 @@ def test_read_double(tests):
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_set_float(tests):
     assert tests.set_float(12.5)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_set_unsigned(tests):
+    assert tests.set_unsigned(255, 65535, 4294967295)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_set_double(tests):
