@@ -151,6 +151,23 @@ inline void append<uint64_t>(unsigned char *buff, uint64_t value)
     append<uint32_t>(buff + size_of<uint32_t>, value);
 }
 
+// int64_t
+
+template<> constexpr size_t size_of<int64_t> = 8;
+
+template<>
+inline int64_t extract<int64_t>(const char *buff)
+{
+    uint64_t tmp = extract<uint64_t>(buff);
+    return *reinterpret_cast<int64_t*>(&tmp);
+}
+
+template<>
+inline void append<int64_t>(unsigned char *buff, int64_t value)
+{
+    append<uint64_t>(buff, reinterpret_cast<uint64_t&>(value));
+}
+
 // float
 
 template<> constexpr size_t size_of<float> = size_of<uint32_t>;

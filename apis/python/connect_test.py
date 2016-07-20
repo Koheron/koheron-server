@@ -26,6 +26,10 @@ class Tests:
     def set_u64(self, u):
         return self.client.recv_bool()
 
+    @command('TESTS', 'q')
+    def set_i64(self, i):
+        return self.client.recv_bool()
+
     @command('TESTS', 'BHI')
     def set_unsigned(self, u8, u16, u32):
         return self.client.recv_bool()
@@ -84,7 +88,7 @@ class Tests:
 
     @command('TESTS')
     def get_tuple2(self):
-        return self.client.recv_tuple('IfQd')
+        return self.client.recv_tuple('IfQdq')
 
     @command('TESTS')
     def get_tuple3(self):
@@ -155,6 +159,10 @@ def test_set_u64(tests):
     assert tests.set_u64(2225073854759576792)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_set_i64(tests):
+    assert tests.set_i64(-9223372036854775805)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_rcv_std_vector(tests):
     array = tests.send_std_vector()
     for i in range(len(array)):
@@ -207,6 +215,7 @@ def test_read_tuple2(tests):
     assert abs(tup[1] - 3.14159) < 1E-6
     assert tup[2] == 742312418498347354
     assert abs(tup[3] - 3.14159265358979323846) < 1E-14
+    assert tup[4] == -9223372036854775807
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_read_tuple3(tests):

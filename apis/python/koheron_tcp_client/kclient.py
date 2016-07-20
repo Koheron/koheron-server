@@ -100,6 +100,11 @@ def _append_u32(buff, value):
     buff.append(value & 0xff)
     return 4
 
+def _append_i64(buff, value):
+    _append_u32(buff, value)
+    _append_u32(buff, (value >> 32))
+    return 8
+
 def _append_u64(buff, value):
     _append_u32(buff, value)
     _append_u32(buff, (value >> 32))
@@ -140,6 +145,8 @@ def _build_payload(type_str, args):
             size += _append_i32(payload, args[i])
         elif type_ is 'Q':
             size += _append_u64(payload, args[i])
+        elif type_ is 'q':
+            size += _append_i64(payload, args[i])
         elif type_ is 'f':
             size += _append_float(payload, args[i])
         elif type_ is 'd':
