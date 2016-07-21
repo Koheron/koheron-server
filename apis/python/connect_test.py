@@ -26,6 +26,18 @@ class Tests:
     def set_u64(self, u):
         return self.client.recv_bool()
 
+    @command('TESTS', 'q')
+    def set_i64(self, i):
+        return self.client.recv_bool()
+
+    @command('TESTS', 'BHI')
+    def set_unsigned(self, u8, u16, u32):
+        return self.client.recv_bool()
+
+    @command('TESTS', 'bhi')
+    def set_signed(self, i8, i16, i32):
+        return self.client.recv_bool()
+
     @command('TESTS')
     def read_uint64(self):
         return self.client.recv_uint64()
@@ -76,11 +88,15 @@ class Tests:
 
     @command('TESTS')
     def get_tuple2(self):
-        return self.client.recv_tuple('IfQd')
+        return self.client.recv_tuple('IfQdq')
 
     @command('TESTS')
     def get_tuple3(self):
-        return self.client.recv_tuple('?ff')
+        return self.client.recv_tuple('?ffBH')
+
+    @command('TESTS')
+    def get_tuple4(self):
+        return self.client.recv_tuple('bbhhii')
 
     @command('TESTS')
     def get_binary_tuple(self):
@@ -127,12 +143,24 @@ def test_set_float(tests):
     assert tests.set_float(12.5)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_set_unsigned(tests):
+    assert tests.set_unsigned(255, 65535, 4294967295)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_set_signed(tests):
+    assert tests.set_signed(-125, -32764, -2147483645)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_set_double(tests):
     assert tests.set_double(1.428571428571428492127)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_set_u64(tests):
     assert tests.set_u64(2225073854759576792)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_set_i64(tests):
+    assert tests.set_i64(-9223372036854775805)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_rcv_std_vector(tests):
@@ -187,6 +215,7 @@ def test_read_tuple2(tests):
     assert abs(tup[1] - 3.14159) < 1E-6
     assert tup[2] == 742312418498347354
     assert abs(tup[3] - 3.14159265358979323846) < 1E-14
+    assert tup[4] == -9223372036854775807
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_read_tuple3(tests):
@@ -194,6 +223,18 @@ def test_read_tuple3(tests):
     assert not tup[0]
     assert abs(tup[1] - 3.14159) < 1E-6
     assert abs(tup[2] - 507.3858) < 5E-6
+    assert tup[3] == 42
+    assert tup[4] == 6553
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_read_tuple4(tests):
+    tup = tests.get_tuple4()
+    assert tup[0] == -127
+    assert tup[1] == 127
+    assert tup[2] == -32767
+    assert tup[3] == 32767
+    assert tup[4] == -2147483647
+    assert tup[5] == 2147483647
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_get_binary_tuple(tests):

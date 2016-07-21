@@ -99,6 +99,16 @@ class WebSocketPool
 # === Helper functions to build binary buffer ===
 
 ###*
+# Append an Int8 to the binary buffer
+# @param {Array.<number>} buffer The binary buffer
+# @param {number} value The Int8 to append
+# @return {number} Number of bytes
+###
+appendInt8 = (buffer, value) ->
+    buffer.push(value & 0xff)
+    return 1
+
+###*
 # Append an Uint8 to the binary buffer
 # @param {Array.<number>} buffer The binary buffer
 # @param {number} value The Uint8 to append
@@ -107,6 +117,17 @@ class WebSocketPool
 appendUint8 = (buffer, value) ->
     buffer.push(value & 0xff)
     return 1
+
+###*
+# Append an Int16 to the binary buffer
+# @param {Array.<number>} buffer The binary buffer
+# @param {number} value The Int16 to append
+# @return {number} Number of bytes
+###
+appendInt16 = (buffer, value) ->
+    buffer.push((value >> 8) & 0xff)
+    buffer.push(value & 0xff)
+    return 2
 
 ###*
 # Append an Uint16 to the binary buffer
@@ -118,6 +139,19 @@ appendUint16 = (buffer, value) ->
     buffer.push((value >> 8) & 0xff)
     buffer.push(value & 0xff)
     return 2
+
+###*
+# Append an Int32 to the binary buffer
+# @param {Array.<number>} buffer The binary buffer
+# @param {number} value The Int32 to append
+# @return {number} Number of bytes
+###
+appendInt32 = (buffer, value) ->
+    buffer.push((value >> 24) & 0xff)
+    buffer.push((value >> 16) & 0xff)
+    buffer.push((value >> 8) & 0xff)
+    buffer.push(value & 0xff)
+    return 4
 
 ###*
 # Append an Uint32 to the binary buffer
@@ -186,8 +220,18 @@ class CommandBase
         payload = []
         for i in [0..(types_str.length-1)]
             switch types_str[i]
+                when 'B'
+                    payload_size += appendUint8(payload, params[i])
+                when 'b'
+                    payload_size += appendInt8(payload, params[i])
+                when 'H'
+                    payload_size += appendUint16(payload, params[i])
+                when 'h'
+                    payload_size += appendInt16(payload, params[i])
                 when 'I'
                     payload_size += appendUint32(payload, params[i])
+                when 'i'
+                    payload_size += appendInt32(payload, params[i])
                 when 'f'
                     payload_size += appendFloat32(payload, params[i])
                 when '?'
@@ -387,8 +431,23 @@ class @KClient
 
         for i in [0..(fmt.length-1)]
             switch fmt[i]
+                when 'B'
+                    tuple.push(dv.getUint8(offset))
+                    offset += 1
+                when 'b'
+                    tuple.push(dv.getInt8(offset))
+                    offset += 1
+                when 'H'
+                    tuple.push(dv.getUint16(offset))
+                    offset += 2
+                when 'h'
+                    tuple.push(dv.getInt16(offset))
+                    offset += 2
                 when 'I'
                     tuple.push(dv.getUint32(offset))
+                    offset += 4
+                when 'i'
+                    tuple.push(dv.getInt32(offset))
                     offset += 4
                 when 'f'
                     tuple.push(dv.getFloat32(offset))

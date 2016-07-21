@@ -68,14 +68,30 @@ def make_command(*args):
 
     return buff
 
+def _append_i8(buff, value):
+    buff.append(value & 0xff)
+    return 1
+
 def _append_u8(buff, value):
     buff.append(value & 0xff)
     return 1
+
+def _append_i16(buff, value):
+    buff.append((value >> 8) & 0xff)
+    buff.append(value & 0xff)
+    return 2
 
 def _append_u16(buff, value):
     buff.append((value >> 8) & 0xff)
     buff.append(value & 0xff)
     return 2
+
+def _append_i32(buff, value):
+    buff.append((value >> 24) & 0xff)
+    buff.append((value >> 16) & 0xff)
+    buff.append((value >> 8) & 0xff)
+    buff.append(value & 0xff)
+    return 4
 
 def _append_u32(buff, value):
     buff.append((value >> 24) & 0xff)
@@ -83,6 +99,11 @@ def _append_u32(buff, value):
     buff.append((value >> 8) & 0xff)
     buff.append(value & 0xff)
     return 4
+
+def _append_i64(buff, value):
+    _append_u32(buff, value)
+    _append_u32(buff, (value >> 32))
+    return 8
 
 def _append_u64(buff, value):
     _append_u32(buff, value)
@@ -110,15 +131,27 @@ def _build_payload(type_str, args):
 
     # http://stackoverflow.com/questions/402504/how-to-determine-the-variable-type-in-python
     for i, type_ in enumerate(type_str):
-        if type_ is 'I': # Unsigned
+        if type_ is 'B':
+            size += _append_u8(payload, args[i])
+        elif type_ is 'b':
+            size += _append_i8(payload, args[i])
+        elif type_ is 'H':
+            size += _append_u16(payload, args[i])
+        elif type_ is 'h':
+            size += _append_i16(payload, args[i])
+        elif type_ is 'I':
             size += _append_u32(payload, args[i])
-        elif type_ is 'Q': # Unsigned long long
+        elif type_ is 'i':
+            size += _append_i32(payload, args[i])
+        elif type_ is 'Q':
             size += _append_u64(payload, args[i])
-        elif type_ is 'f': # float
+        elif type_ is 'q':
+            size += _append_i64(payload, args[i])
+        elif type_ is 'f':
             size += _append_float(payload, args[i])
-        elif type_ is 'd': # double
+        elif type_ is 'd':
             size += _append_double(payload, args[i])
-        elif type_ is '?': # bool
+        elif type_ is '?':
             if args[i]:
                 size += _append_u8(payload, 1)
             else:

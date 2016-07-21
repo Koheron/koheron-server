@@ -36,6 +36,22 @@ bool Tests::set_u64(uint64_t u)
     return u == 2225073854759576792;
 }
 
+bool Tests::set_i64(int64_t i)
+{
+    return i == -9223372036854775805;
+}
+
+
+bool Tests::set_unsigned(uint8_t u8, uint16_t u16, uint32_t u32)
+{
+    return u8 == 255 && u16 == 65535 && u32 == 4294967295;
+}
+
+bool Tests::set_signed(int8_t i8, int16_t i16, int32_t i32)
+{
+    return i8 == -125 && i16 == -32764 && i32 == -2147483645;
+}
+
 std::vector<float>& Tests::send_std_vector()
 {
     data.resize(10);
@@ -102,15 +118,21 @@ std::tuple<uint32_t, float, double, bool> Tests::get_tuple()
     return std::make_tuple(501762438, 507.3858, 926547.6468507200, true);
 }
 
-std::tuple<uint32_t, float, uint64_t, double> Tests::get_tuple2()
+std::tuple<uint32_t, float, uint64_t, double, int64_t> Tests::get_tuple2()
 {
-    return std::make_tuple(2, 3.14159F, 742312418498347354, 3.14159265358979323846);
+    return std::make_tuple(2, 3.14159F, 742312418498347354,
+                           3.14159265358979323846, -9223372036854775807);
 }
 
 // To check no alignement issues
-std::tuple<bool, float, float> Tests::get_tuple3()
+std::tuple<bool, float, float, uint8_t, uint16_t> Tests::get_tuple3()
 {
-    return std::make_tuple(false, 3.14159F, 507.3858);
+    return std::make_tuple(false, 3.14159F, 507.3858, 42, 6553);
+}
+
+std::tuple<int8_t, int8_t, int16_t, int16_t, int32_t, int32_t> Tests::get_tuple4()
+{
+    return std::make_tuple(-127, 127, -32767, 32767, -2147483647, 2147483647);
 }
 
 std::array<uint32_t, 2> Tests::get_binary_tuple() {
