@@ -87,6 +87,10 @@ class Tests:
         return self.client.recv_string()
 
     @command('TESTS')
+    def get_json(self):
+        return self.client.recv_json()
+
+    @command('TESTS')
     def get_tuple(self):
         return self.client.recv_tuple('Ifd?')
 
@@ -207,6 +211,20 @@ def test_read_cstring(tests):
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_read_std_string(tests):
     assert tests.get_std_string() == 'Hello World !'
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_rcv_json(tests):
+    data = tests.get_json()
+    assert 'date' in data
+    assert 'machine' in data
+    assert 'time' in data
+    assert 'user' in data
+    assert 'version' in data
+    assert data['date'] == '20/07/2016'
+    assert data['machine'] == 'PC-3'
+    assert data['time'] == '18:16:13'
+    assert data['user'] == 'thomas'
+    assert data['version'] == '0691eed'
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_read_tuple(tests):

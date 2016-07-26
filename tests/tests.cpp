@@ -118,6 +118,11 @@ std::string Tests::get_std_string()
     return "Hello World !";
 }
 
+std::string Tests::get_json()
+{
+    return "{\"date\":\"20/07/2016\",\"machine\":\"PC-3\",\"time\":\"18:16:13\",\"user\":\"thomas\",\"version\":\"0691eed\"}";
+}
+
 std::tuple<uint32_t, float, double, bool> Tests::get_tuple()
 {
     return std::make_tuple(501762438, 507.3858, 926547.6468507200, true);
