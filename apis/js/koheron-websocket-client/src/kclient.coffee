@@ -476,6 +476,9 @@ class @KClient
                 @websockpool.freeSocket(sockid)
         )
 
+    readJSON: (cmd, fn) ->
+        @readString(cmd, (str) => fn(JSON.parse(str)))
+
 
     # ------------------------
     #  Devices

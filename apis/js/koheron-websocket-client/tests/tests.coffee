@@ -32,6 +32,7 @@ class Tests
             read_double     : @device.getCmdRef( "READ_DOUBLE"     )
             get_cstr        : @device.getCmdRef( "GET_CSTR"        )
             get_std_string  : @device.getCmdRef( "GET_STD_STRING"  )
+            get_json        : @device.getCmdRef( "GET_JSON"        )
             get_tuple       : @device.getCmdRef( "GET_TUPLE"       )
             get_tuple3      : @device.getCmdRef( "GET_TUPLE3"      )
             get_tuple4      : @device.getCmdRef( "GET_TUPLE4"      )
@@ -82,6 +83,9 @@ class Tests
 
     readStdString : (cb) ->
         @kclient.readString(Command(@id, @cmds.get_std_string), cb)
+
+    readJSON : (cb) ->
+        @kclient.readJSON(Command(@id, @cmds.get_json), cb)
 
     readTuple : (cb) ->
         @kclient.readTuple(Command(@id, @cmds.get_tuple), 'Ifd?', cb)
@@ -357,6 +361,30 @@ exports.readStdString = (assert) ->
             tests = new Tests(client)
             tests.readStdString( (str) =>
                 assert.equals(str, 'Hello World !')
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.readJSON = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(11)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.readJSON( (data) =>
+                assert.ok(data.date?)
+                assert.ok(data.machine?)
+                assert.ok(data.time?)
+                assert.ok(data.user?)
+                assert.ok(data.version?)
+                assert.equal(data.date, '20/07/2016')
+                assert.equal(data.machine, 'PC-3')
+                assert.equal(data.time, '18:16:13')
+                assert.equal(data.user, 'thomas')
+                assert.equal(data.version, '0691eed')
                 client.exit()
                 assert.done()
             )
