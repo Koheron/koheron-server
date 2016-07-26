@@ -123,6 +123,11 @@ std::string Tests::get_json()
     return "{\"date\":\"20/07/2016\",\"machine\":\"PC-3\",\"time\":\"18:16:13\",\"user\":\"thomas\",\"version\":\"0691eed\"}";
 }
 
+std::string Tests::get_json2()
+{
+    return "{\"firstName\":\"John\",\"lastName\":\"Smith\",\"age\":25,\"phoneNumber\":[{\"type\":\"home\",\"number\":\"212 555-1234\"},{\"type\":\"fax\",\"number\":\"646 555-4567\"}]}";
+}
+
 std::tuple<uint32_t, float, double, bool> Tests::get_tuple()
 {
     return std::make_tuple(501762438, 507.3858, 926547.6468507200, true);

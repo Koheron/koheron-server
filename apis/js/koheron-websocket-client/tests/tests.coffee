@@ -33,6 +33,7 @@ class Tests
             get_cstr        : @device.getCmdRef( "GET_CSTR"        )
             get_std_string  : @device.getCmdRef( "GET_STD_STRING"  )
             get_json        : @device.getCmdRef( "GET_JSON"        )
+            get_json2       : @device.getCmdRef( "GET_JSON2"       )
             get_tuple       : @device.getCmdRef( "GET_TUPLE"       )
             get_tuple3      : @device.getCmdRef( "GET_TUPLE3"      )
             get_tuple4      : @device.getCmdRef( "GET_TUPLE4"      )
@@ -86,6 +87,9 @@ class Tests
 
     readJSON : (cb) ->
         @kclient.readJSON(Command(@id, @cmds.get_json), cb)
+
+    readJSON2 : (cb) ->
+        @kclient.readJSON(Command(@id, @cmds.get_json2), cb)
 
     readTuple : (cb) ->
         @kclient.readTuple(Command(@id, @cmds.get_tuple), 'Ifd?', cb)
@@ -385,6 +389,36 @@ exports.readJSON = (assert) ->
                 assert.equal(data.time, '18:16:13')
                 assert.equal(data.user, 'thomas')
                 assert.equal(data.version, '0691eed')
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.readJSON2 = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(17)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.readJSON2( (data) =>
+                assert.ok(data.firstName?)
+                assert.ok(data.lastName?)
+                assert.ok(data.age?)
+                assert.ok(data.phoneNumber?)
+                assert.equal(data.firstName, 'John')
+                assert.equal(data.lastName, 'Smith')
+                assert.equal(data.age, 25)
+                assert.equal(data.phoneNumber.length, 2)
+                assert.ok(data.phoneNumber[0].type?)
+                assert.ok(data.phoneNumber[0].number?)
+                assert.ok(data.phoneNumber[1].type?)
+                assert.ok(data.phoneNumber[1].number?)
+                assert.equal(data.phoneNumber[0].type, 'home')
+                assert.equal(data.phoneNumber[0].number, '212 555-1234')
+                assert.equal(data.phoneNumber[1].type, 'fax')
+                assert.equal(data.phoneNumber[1].number, '646 555-4567')
                 client.exit()
                 assert.done()
             )

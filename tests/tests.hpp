@@ -52,6 +52,7 @@ class Tests
     const char* get_cstr();
     std::string get_std_string();
     std::string get_json();
+    std::string get_json2();
 
     // Send tuple
     std::tuple<uint32_t, float, double, bool> get_tuple();
