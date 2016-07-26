@@ -31,6 +31,7 @@ class Tests
             read_float      : @device.getCmdRef( "READ_FLOAT"      )
             read_double     : @device.getCmdRef( "READ_DOUBLE"     )
             get_cstr        : @device.getCmdRef( "GET_CSTR"        )
+            get_std_string  : @device.getCmdRef( "GET_STD_STRING"  )
             get_tuple       : @device.getCmdRef( "GET_TUPLE"       )
             get_tuple3      : @device.getCmdRef( "GET_TUPLE3"      )
             get_tuple4      : @device.getCmdRef( "GET_TUPLE4"      )
@@ -78,6 +79,9 @@ class Tests
 
     readString : (cb) ->
         @kclient.readString(Command(@id, @cmds.get_cstr), cb)
+
+    readStdString : (cb) ->
+        @kclient.readString(Command(@id, @cmds.get_std_string), cb)
 
     readTuple : (cb) ->
         @kclient.readTuple(Command(@id, @cmds.get_tuple), 'Ifd?', cb)
@@ -338,6 +342,21 @@ exports.readString = (assert) ->
             tests = new Tests(client)
             tests.readString( (str) =>
                 assert.equals(str, 'Hello !')
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.readStdString = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.readStdString( (str) =>
+                assert.equals(str, 'Hello World !')
                 client.exit()
                 assert.done()
             )

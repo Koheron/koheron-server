@@ -83,6 +83,10 @@ class Tests:
         return self.client.recv_string()
 
     @command('TESTS')
+    def get_std_string(self):
+        return self.client.recv_string()
+
+    @command('TESTS')
     def get_tuple(self):
         return self.client.recv_tuple('Ifd?')
 
@@ -197,8 +201,12 @@ def test_send_buffer(tests):
     assert tests.set_buffer(data)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_read_string(tests):
+def test_read_cstring(tests):
     assert tests.get_cstr() == 'Hello !'
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_read_std_string(tests):
+    assert tests.get_std_string() == 'Hello World !'
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_read_tuple(tests):

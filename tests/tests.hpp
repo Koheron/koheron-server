@@ -4,6 +4,7 @@
 #include <array>
 #include <vector>
 #include <tuple>
+#include <string>
 
 #if KSERVER_HAS_DEVMEM
 #include <drivers/lib/dev_mem.hpp>
@@ -49,6 +50,7 @@ class Tests
 
     // Send string
     const char* get_cstr();
+    std::string get_std_string();
 
     // Send tuple
     std::tuple<uint32_t, float, double, bool> get_tuple();

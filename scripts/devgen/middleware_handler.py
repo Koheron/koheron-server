@@ -191,23 +191,26 @@ class FragmentsGenerator:
                 or operation["prototype"]["ret_type"] == "int"
                 or operation["prototype"]["ret_type"] == "int32_t"
                 or operation["prototype"]["ret_type"] == "bool"):
-                frag.append("    return SEND<uint32_t>(" 
+                frag.append("    return SEND<uint32_t>("
                             + self._build_func_call(operation) + ");\n")
             elif (operation["prototype"]["ret_type"] == "uint64_t"
                   or operation["prototype"]["ret_type"] == "unsigned long long"):
-                frag.append("    return SEND<uint64_t>(" 
+                frag.append("    return SEND<uint64_t>("
                             + self._build_func_call(operation) + ");\n")
             elif (operation["prototype"]["ret_type"] == "float"):
-                frag.append("    return SEND<float>(" 
+                frag.append("    return SEND<float>("
                             + self._build_func_call(operation) + ");\n")
             elif (operation["prototype"]["ret_type"] == "double"):
-                frag.append("    return SEND<double>(" 
+                frag.append("    return SEND<double>("
+                            + self._build_func_call(operation) + ");\n")
+            elif (operation["prototype"]["ret_type"] == "std::string"):
+                frag.append("    return SEND<std::string>("
                             + self._build_func_call(operation) + ");\n")
             elif template != None:
                 type_base = operation["prototype"]["ret_type"].split('<')[0].strip()
                 
                 if (type_base == "std::vector"
-                    or type_base == "std::array" 
+                    or type_base == "std::array"
                     or type_base == "std::tuple"):
                     frag.append("    return SEND<" + template + ">(" 
                                 + self._build_func_call(operation) + ");\n")
@@ -220,7 +223,7 @@ class FragmentsGenerator:
                 raise ValueError("I/O type READ_CSTR expects a char*. Found " 
                                  + operation["prototype"]["ret_type"] + ".\n")
 
-            frag.append("    return SEND_CSTR(" 
+            frag.append("    return SEND_CSTR("
                         + self._build_func_call(operation) + ");\n")
             
         elif operation["io_type"]["value"] == "READ_ARRAY":
