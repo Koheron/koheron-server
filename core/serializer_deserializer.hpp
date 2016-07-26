@@ -7,6 +7,7 @@
 
 #include <cstring>
 #include <tuple>
+#include <array>
 
 #include "commands.hpp"
 
@@ -216,6 +217,18 @@ template<>
 inline void append<bool>(unsigned char *buff, bool value)
 {
     value ? buff[0] = 1 : buff[0] = 0;
+}
+
+// std::array
+template<typename T, size_t N> constexpr size_t size_of<std::array<T, N>> = sizeof(T) * N;
+
+template<typename T, size_t N>
+inline std::array<T, N> extract<std::array<T, N>>(const char *buff)
+{
+    // http://stackoverflow.com/questions/11205186/treat-c-cstyle-array-as-stdarray
+    auto p = reinterpret_cast< std::array<T, N>* >(buff);
+    assert(p->data() == &buff);
+    return *p;
 }
 
 // ------------------------
