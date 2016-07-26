@@ -8,6 +8,7 @@ import functools
 import string
 import sys
 import traceback
+import json
 
 # --------------------------------------------
 # Decorators
@@ -397,6 +398,9 @@ class KClient:
 
     def recv_string(self):
         return self.recv_timeout('\0')[:-1]
+
+    def recv_json(self):
+        return json.loads(self.recv_string())
 
     def recv_buffer(self, buff_size, data_type='uint32'):
         """ Receive a buffer of uint32
