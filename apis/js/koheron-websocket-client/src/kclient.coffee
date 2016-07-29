@@ -358,7 +358,8 @@ class @KClient
                     websocket.onmessage = (evt) =>
                         array = new Uint32Array evt.data
                         cb(array[0])
-                        @websockpool.freeSocket(sockid)
+                        if @websockpool?
+                            @websockpool.freeSocket(sockid)
                 else
                     if @websockpool?
                         @websockpool.freeSocket(sockid)
