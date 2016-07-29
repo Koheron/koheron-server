@@ -32,6 +32,7 @@ class WebSocketPool
         @pool = []
         @free_sockets = []
         @socket_counter = 0
+        @exiting = false
 
         for i in [0..@pool_size-1]
             if window?
@@ -44,9 +45,9 @@ class WebSocketPool
             @pool.push(websocket)
 
             websocket.onopen = (evt) =>
-                # console.log "WebSocket " + @socket_counter.toString() + " connected to " + url + "\n"
-
                 @waitForConnection(websocket, 100, =>
+                    if @exiting then return
+                    # console.log "WebSocket " + @socket_counter.toString() + " connected to " + url + "\n"
                     console.assert(websocket.readyState == 1, "Websocket not ready")
                     @free_sockets.push(@socket_counter)
                     if @socket_counter == 0 then onopen_callback()
@@ -69,12 +70,17 @@ class WebSocketPool
             , interval)
 
     getSocket: (sockid) ->
+        if @exiting then return null
         if sockid not in @free_sockets and sockid >= 0 and sockid < @pool_size
             return @pool[sockid]
         else
             throw new ReferenceError('Socket ID ' + sockid.toString() + ' not available')
 
     requestSocket: (callback) ->
+        if @exiting
+            callback(-1)
+            return
+
         if @free_sockets? and @free_sockets.length > 0
             sockid = @free_sockets[@free_sockets.length-1]
             @free_sockets.pop()
@@ -83,11 +89,14 @@ class WebSocketPool
                 callback(sockid)
             )
         else # All sockets are busy. We wait a bit and retry.
-            setTimeout( => 
+            console.assert(@free_sockets.length == 0, 'Non empty free_sockets')
+            setTimeout( =>
                 @requestSocket(callback)
             , 100)
 
     freeSocket: (sockid) ->
+        if @exiting
+            return
         if sockid not in @free_sockets and sockid >= 0 and sockid < @pool_size
             @free_sockets.push(sockid)
         else
@@ -97,11 +106,12 @@ class WebSocketPool
                 console.error "Undefined Socket ID"
 
     exit: ->
-        for websocket in @pool
-            websocket.close()
-
+        @exiting = true
         @free_sockets = []
         @socket_counter = 0
+
+        for websocket in @pool
+            websocket.close()
 
 # === Helper functions to build binary buffer ===
 
@@ -276,6 +286,7 @@ class @KClient
 
     subscribeServerBroadcast: (callback) ->
         @websockpool.requestSocket( (sockid) =>
+            if sockid < 0 then return callback(null, null)
             @broadcast_socketid = sockid
             broadcast_socket = @websockpool.getSocket(sockid)
             broadcast_socket.send(Command(1, 5, 'I', 0)) # Server broadcasts on channel 0
@@ -290,27 +301,33 @@ class @KClient
         )
 
     broadcastPing: ->
+        if not @websockpool? then return
+
         @websockpool.requestSocket( (sockid) =>
+            if sockid < 0 then return
             websocket = @websockpool.getSocket(sockid)
             websocket.send(Command(1, 6))
-            @websockpool.freeSocket(sockid)
+            if @websockpool?
+                @websockpool.freeSocket(sockid)
         )
 
     exit: ->
-        if @broadcast_socketid >= 0
-            @websockpool.freeSocket(@broadcast_socketid)
-            @broadcast_socketid = -1
         @websockpool.exit()
+        delete @websockpool
 
     # ------------------------
     #  Send
     # ------------------------
 
-    send: (cmd) -> 
+    send: (cmd) ->
+        if not @websockpool? then return
+
         @websockpool.requestSocket( (sockid) =>
+            if sockid < 0 then return
             websocket = @websockpool.getSocket(sockid)
             websocket.send(cmd)
-            @websockpool.freeSocket(sockid)
+            if @websockpool?
+                 @websockpool.freeSocket(sockid)
         )
 
     ###*
@@ -343,93 +360,69 @@ class @KClient
                         cb(array[0])
                         @websockpool.freeSocket(sockid)
                 else
-                    @websockpool.freeSocket(sockid)
+                    if @websockpool?
+                        @websockpool.freeSocket(sockid)
         )
 
     # ------------------------
     #  Receive
     # ------------------------
 
-    readUint32Array: (cmd, fn) ->
+    _readBase: (cmd, fn) ->
+        if not @websockpool? then return fn(null)
+
         @websockpool.requestSocket( (sockid) =>
+            if sockid < 0 then return fn(null)
             websocket = @websockpool.getSocket(sockid)
             websocket.send(cmd)
 
             websocket.onmessage = (evt) =>
-                array = new Uint32Array evt.data
-                fn(array)
-                @websockpool.freeSocket(sockid)
+                fn(evt.data)
+                if @websockpool?
+                    @websockpool.freeSocket(sockid)
+        )
+
+    readUint32Array: (cmd, fn) ->
+        @_readBase(cmd, (data) =>
+            array = new Uint32Array data
+            fn(array)
         )
 
     readFloat32Array: (cmd, fn) ->
-        @websockpool.requestSocket( (sockid) =>
-            websocket = @websockpool.getSocket(sockid)
-            websocket.send(cmd)
-
-            websocket.onmessage = (evt) =>
-                array = new Float32Array evt.data
-                fn(array)
-                @websockpool.freeSocket(sockid)
+        @_readBase(cmd, (data) =>
+            array = new Float32Array data
+            fn(array)
         )
 
     readUint32: (cmd, fn) ->
-        @websockpool.requestSocket( (sockid) =>
-            websocket = @websockpool.getSocket(sockid)
-            websocket.send(cmd)
-
-            websocket.onmessage = (evt) =>
-                array = new Uint32Array evt.data
-                fn(array[0])
-                @websockpool.freeSocket(sockid)
+        @_readBase(cmd, (data) =>
+            array = new Uint32Array data
+            fn(array[0])
         )
 
     readInt32: (cmd, fn) ->
-        @websockpool.requestSocket( (sockid) =>
-            websocket = @websockpool.getSocket(sockid)
-            websocket.send(cmd)
-
-            websocket.onmessage = (evt) =>
-                array = new Int32Array evt.data
-                fn(array[0])
-                @websockpool.freeSocket(sockid)
+        @_readBase(cmd, (data) =>
+            array = new Int32Array data
+            fn(array[0])
         )
 
     readFloat32: (cmd, fn) ->
-        @websockpool.requestSocket( (sockid) =>
-            websocket = @websockpool.getSocket(sockid)
-            websocket.send(cmd)
-
-            websocket.onmessage = (evt) =>
-                array = new Float32Array evt.data
-                fn(array[0])
-                @websockpool.freeSocket(sockid)
+        @_readBase(cmd, (data) =>
+            array = new Float32Array data
+            fn(array[0])
         )
 
     readFloat64: (cmd, fn) ->
-        @websockpool.requestSocket( (sockid) =>
-            websocket = @websockpool.getSocket(sockid)
-            websocket.send(cmd)
-
-            websocket.onmessage = (evt) =>
-                array = new Float64Array evt.data
-                fn(array[0])
-                @websockpool.freeSocket(sockid)
+        @_readBase(cmd, (data) =>
+            array = new Float64Array data
+            fn(array[0])
         )
 
     readBool: (cmd, fn) ->
-        @readUint32(cmd, (num) ->
-            fn(num == 1)
-        )
+        @readUint32(cmd, (num) => fn(num == 1))
 
     readTuple: (cmd, fmt, fn) ->
-        @websockpool.requestSocket( (sockid) =>
-            websocket = @websockpool.getSocket(sockid)
-            websocket.send(cmd)
-
-            websocket.onmessage = (evt) =>
-                fn(@deserialize(fmt, evt.data))
-                @websockpool.freeSocket(sockid)
-        )
+        @_readBase(cmd, (data) => fn(@deserialize(fmt, data)))
 
     deserialize: (fmt, data) ->
         dv = new DataView(data)
@@ -474,18 +467,10 @@ class @KClient
         return tuple
 
     readString: (cmd, fn) ->
-        @websockpool.requestSocket( (sockid) =>
-            websocket = @websockpool.getSocket(sockid)
-            websocket.send(cmd)
-
-            websocket.onmessage = (evt) =>
-                fn(evt.data.toString())
-                @websockpool.freeSocket(sockid)
-        )
+        @_readBase(cmd, (data) => fn(data.toString()))
 
     readJSON: (cmd, fn) ->
         @readString(cmd, (str) => fn(JSON.parse(str)))
-
 
     # ------------------------
     #  Devices
@@ -493,6 +478,7 @@ class @KClient
 
     getCmds: (callback) ->
         @websockpool.requestSocket( (sockid) =>
+            if sockid < 0 then return fn(null)
             websocket = @websockpool.getSocket(sockid)
             console.assert(websocket.readyState == 1, 'Websocket [ID = ' + sockid.toString() + '] not ready')
             websocket.send(Command(1,1))
@@ -517,7 +503,8 @@ class @KClient
 
                 if evt.data == "EOC\n"
                     callback()
-                    @websockpool.freeSocket(sockid)
+                    if @websockpool?
+                        @websockpool.freeSocket(sockid)
         )
 
     getDeviceList: (fn) ->
@@ -529,6 +516,7 @@ class @KClient
 
     getDevStatus: (callback) ->
         @websockpool.requestSocket( (sockid) =>
+            if sockid < 0 then return fn(null)
             websocket = @websockpool.getSocket(sockid)
             websocket.send(Command(1,3))
 
@@ -544,7 +532,8 @@ class @KClient
                 else
                     console.log "Devices status updated"
                     callback()
-                    @websockpool.freeSocket(sockid)
+                    if @websockpool?
+                        @websockpool.freeSocket(sockid)
         )
 
     getDevice: (devname) ->
