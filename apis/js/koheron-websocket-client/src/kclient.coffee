@@ -45,9 +45,13 @@ class WebSocketPool
 
             websocket.onopen = (evt) =>
                 # console.log "WebSocket " + @socket_counter.toString() + " connected to " + url + "\n"
-                @free_sockets.push(@socket_counter)
-                if @socket_counter == 0 then @waitForConnection(websocket, 100, onopen_callback)
-                @socket_counter++
+
+                @waitForConnection(websocket, 100, =>
+                    console.assert(websocket.readyState == 1, "Websocket not ready")
+                    @free_sockets.push(@socket_counter)
+                    if @socket_counter == 0 then onopen_callback()
+                    @socket_counter++
+                )
 
             # websocket.onclose = (evt) =>
             #     console.log "disconnected\n"
@@ -74,7 +78,10 @@ class WebSocketPool
         if @free_sockets? and @free_sockets.length > 0
             sockid = @free_sockets[@free_sockets.length-1]
             @free_sockets.pop()
-            callback(sockid)
+            @waitForConnection(@pool[sockid], 100, =>
+                console.assert(@pool[sockid].readyState == 1, "Websocket not ready")
+                callback(sockid)
+            )
         else # All sockets are busy. We wait a bit and retry.
             setTimeout( => 
                 @requestSocket(callback)
@@ -487,7 +494,7 @@ class @KClient
     getCmds: (callback) ->
         @websockpool.requestSocket( (sockid) =>
             websocket = @websockpool.getSocket(sockid)
-            console.assert(websocket.readyState == 1, 'Websocket not ready')
+            console.assert(websocket.readyState == 1, 'Websocket [ID = ' + sockid.toString() + '] not ready')
             websocket.send(Command(1,1))
             msg_num = 0
 
