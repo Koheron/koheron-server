@@ -31,6 +31,7 @@ struct tests_device {
     op_id_t send_c_array2_ref;   // "SEND_C_ARRAY2" reference
     op_id_t set_buffer_ref;      // "SET_BUFFER" reference
     op_id_t get_cstr_ref;        // "GET_CSTR" reference
+    op_id_t get_std_string_ref;  // "GET_STD_STRING" reference
 };
 
 void tests_init(struct tests_device *dev, struct kclient *kcl)
@@ -55,6 +56,7 @@ void tests_init(struct tests_device *dev, struct kclient *kcl)
     dev->send_c_array2_ref = get_op_id(kcl, dev->id, "SEND_C_ARRAY2");
     dev->set_buffer_ref = get_op_id(kcl, dev->id, "SET_BUFFER");
     dev->get_cstr_ref = get_op_id(kcl, dev->id, "GET_CSTR");
+    dev->get_std_string_ref = get_op_id(kcl, dev->id, "GET_STD_STRING");
 
     assert(dev->send_std_array_ref    >= 0 
            && dev->set_buffer_ref     >= 0
@@ -315,6 +317,15 @@ bool test_read_string(struct tests_device *dev)
     return strcmp(dev->kcl->buffer, "Hello !") == 0;
 }
 
+bool test_read_std_string(struct tests_device *dev)
+{
+    if (kclient_send_command(dev->kcl, dev->id, dev->get_std_string_ref, "") < 0
+        || kclient_read_string(dev->kcl) < 0)
+        return false;
+
+    return strcmp(dev->kcl->buffer, "Hello World !") == 0;
+}
+
 // http://stackoverflow.com/questions/1961209/making-some-text-in-printf-appear-in-green-and-red
 #define RESET       "\x1B[0m"
 #define BOLDRED     "\033[1m\033[31m"
@@ -382,6 +393,7 @@ void unit_tests_tcp(char *IP, unsigned int port)
     UNIT_TEST(rcv_c_array2)
     UNIT_TEST(send_buffer)
     UNIT_TEST(read_string)
+    UNIT_TEST(read_std_string)
     TEARDOWN
     
     if (tests_fail == 0) {
@@ -419,6 +431,7 @@ void unit_tests_unix(char *unix_sock_path)
     UNIT_TEST(rcv_c_array2)
     UNIT_TEST(send_buffer)
     UNIT_TEST(read_string)
+    UNIT_TEST(read_std_string)
     TEARDOWN
     
     if (tests_fail == 0) {
@@ -469,6 +482,7 @@ void speed_tests_tcp(char *IP, unsigned int port)
     SPEED_TEST(rcv_c_array2)
     SPEED_TEST(send_buffer)
     SPEED_TEST(read_string)
+    SPEED_TEST(read_std_string)
     TEARDOWN
 }
 
@@ -498,6 +512,7 @@ void speed_tests_unix(char *unix_sock_path)
     SPEED_TEST(rcv_c_array2)
     SPEED_TEST(send_buffer)
     SPEED_TEST(read_string)
+    SPEED_TEST(read_std_string)
     TEARDOWN
 }
 #endif

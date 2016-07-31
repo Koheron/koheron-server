@@ -31,6 +31,9 @@ class Tests
             read_float      : @device.getCmdRef( "READ_FLOAT"      )
             read_double     : @device.getCmdRef( "READ_DOUBLE"     )
             get_cstr        : @device.getCmdRef( "GET_CSTR"        )
+            get_std_string  : @device.getCmdRef( "GET_STD_STRING"  )
+            get_json        : @device.getCmdRef( "GET_JSON"        )
+            get_json2       : @device.getCmdRef( "GET_JSON2"       )
             get_tuple       : @device.getCmdRef( "GET_TUPLE"       )
             get_tuple3      : @device.getCmdRef( "GET_TUPLE3"      )
             get_tuple4      : @device.getCmdRef( "GET_TUPLE4"      )
@@ -78,6 +81,15 @@ class Tests
 
     readString : (cb) ->
         @kclient.readString(Command(@id, @cmds.get_cstr), cb)
+
+    readStdString : (cb) ->
+        @kclient.readString(Command(@id, @cmds.get_std_string), cb)
+
+    readJSON : (cb) ->
+        @kclient.readJSON(Command(@id, @cmds.get_json), cb)
+
+    readJSON2 : (cb) ->
+        @kclient.readJSON(Command(@id, @cmds.get_json2), cb)
 
     readTuple : (cb) ->
         @kclient.readTuple(Command(@id, @cmds.get_tuple), 'Ifd?', cb)
@@ -338,6 +350,75 @@ exports.readString = (assert) ->
             tests = new Tests(client)
             tests.readString( (str) =>
                 assert.equals(str, 'Hello !')
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.readStdString = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.readStdString( (str) =>
+                assert.equals(str, 'Hello World !')
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.readJSON = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(11)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.readJSON( (data) =>
+                assert.ok(data.date?)
+                assert.ok(data.machine?)
+                assert.ok(data.time?)
+                assert.ok(data.user?)
+                assert.ok(data.version?)
+                assert.equal(data.date, '20/07/2016')
+                assert.equal(data.machine, 'PC-3')
+                assert.equal(data.time, '18:16:13')
+                assert.equal(data.user, 'thomas')
+                assert.equal(data.version, '0691eed')
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.readJSON2 = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(17)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.readJSON2( (data) =>
+                assert.ok(data.firstName?)
+                assert.ok(data.lastName?)
+                assert.ok(data.age?)
+                assert.ok(data.phoneNumber?)
+                assert.equal(data.firstName, 'John')
+                assert.equal(data.lastName, 'Smith')
+                assert.equal(data.age, 25)
+                assert.equal(data.phoneNumber.length, 2)
+                assert.ok(data.phoneNumber[0].type?)
+                assert.ok(data.phoneNumber[0].number?)
+                assert.ok(data.phoneNumber[1].type?)
+                assert.ok(data.phoneNumber[1].number?)
+                assert.equal(data.phoneNumber[0].type, 'home')
+                assert.equal(data.phoneNumber[0].number, '212 555-1234')
+                assert.equal(data.phoneNumber[1].type, 'fax')
+                assert.equal(data.phoneNumber[1].number, '646 555-4567')
                 client.exit()
                 assert.done()
             )

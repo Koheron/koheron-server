@@ -83,6 +83,18 @@ class Tests:
         return self.client.recv_string()
 
     @command('TESTS')
+    def get_std_string(self):
+        return self.client.recv_string()
+
+    @command('TESTS')
+    def get_json(self):
+        return self.client.recv_json()
+
+    @command('TESTS')
+    def get_json2(self):
+        return self.client.recv_json()
+
+    @command('TESTS')
     def get_tuple(self):
         return self.client.recv_tuple('Ifd?')
 
@@ -197,8 +209,46 @@ def test_send_buffer(tests):
     assert tests.set_buffer(data)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_read_string(tests):
+def test_read_cstring(tests):
     assert tests.get_cstr() == 'Hello !'
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_read_std_string(tests):
+    assert tests.get_std_string() == 'Hello World !'
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_rcv_json(tests):
+    data = tests.get_json()
+    assert 'date' in data
+    assert 'machine' in data
+    assert 'time' in data
+    assert 'user' in data
+    assert 'version' in data
+    assert data['date'] == '20/07/2016'
+    assert data['machine'] == 'PC-3'
+    assert data['time'] == '18:16:13'
+    assert data['user'] == 'thomas'
+    assert data['version'] == '0691eed'
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_rcv_json2(tests):
+    data = tests.get_json2()
+    assert 'firstName' in data
+    assert 'lastName' in data
+    assert 'age' in data
+    assert 'phoneNumber' in data
+    assert data['firstName'] == 'John'
+    assert data['lastName'] == 'Smith'
+    assert data['age'] == 25
+    assert len(data['phoneNumber']) == 2
+    assert 'number' in data['phoneNumber'][0]
+    assert 'type' in data['phoneNumber'][0]
+    assert 'number' in data['phoneNumber'][1]
+    assert 'type' in data['phoneNumber'][1]
+    assert data['phoneNumber'][0]['number'] == '212 555-1234'
+    assert data['phoneNumber'][0]['type'] == 'home'
+    assert data['phoneNumber'][1]['number'] == '646 555-4567'
+    assert data['phoneNumber'][1]['type'] == 'fax'
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_read_tuple(tests):
