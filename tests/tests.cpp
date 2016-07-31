@@ -108,6 +108,11 @@ bool Tests::set_buffer(const uint32_t *data, uint32_t len)
     return is_ok;
 }
 
+// bool deserialize_array(std::array<uint32_t, 10> arr)
+// {
+//     return false;
+// }
+
 const char* Tests::get_cstr()
 {
     return "Hello !";

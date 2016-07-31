@@ -48,6 +48,8 @@ class Tests
     #pragma tcp-server write_array arg{data} arg{len}
     bool set_buffer(const uint32_t *data, uint32_t len);
 
+    // bool deserialize_array(std::array<uint32_t, 10> arr);
+
     // Send string
     const char* get_cstr();
     std::string get_std_string();
