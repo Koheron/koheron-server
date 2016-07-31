@@ -225,11 +225,11 @@ inline void append<bool>(unsigned char *buff, bool value)
 // template<typename T, size_t N> constexpr size_t size_of<std::array<T, N>> = sizeof(T) * N;
 
 template<size_t position, typename T, size_t N>
-inline std::array<T, N>& extract_array(const char *buff)
+inline const std::array<T, N>& extract_array(const char *buff)
 {
     // http://stackoverflow.com/questions/11205186/treat-c-cstyle-array-as-stdarray
-    auto p = reinterpret_cast< std::array<T, N>* >(&buff[position]);
-    assert(p->data() == &buff[position]);
+    auto p = reinterpret_cast<const std::array<T, N>*>(&buff[position]);
+    assert(p->data() == (const T*)&buff[position]);
     return *p;
 }
 

@@ -130,8 +130,9 @@ class MiddlewareHppParser:
 
                         arg = {}
                         arg["name"] = param["name"]
-                        arg["type"] = param["type"]
+                        arg["type"] = param["type"].strip()
                         arg["description"] = ""
+                        self._format_argument(arg)
 
                         if "arguments" in operation:
                             operation["arguments"].append(arg)
@@ -146,11 +147,21 @@ class MiddlewareHppParser:
                 for param in op["prototype"]["params"]:
                     arg = {}
                     arg["name"] = param["name"]
-                    arg["type"] = param["type"]
+                    arg["type"] = param["type"].strip()
                     arg["description"] = ""
+                    self._format_argument(arg)
                     operation["arguments"].append(arg)
 
         return operation
+
+    def _format_argument(self, arg):
+        if arg["type"][-1:] == '&': # Argument passed by reference
+            arg["by_reference"] = True
+            arg["type"] = arg["type"][:-2].strip()
+
+        if arg["type"][:5] == 'const':# Argument is const
+            arg["is_const"] = True
+            arg["type"] = arg["type"][5:].strip()
         
 class FragmentsGenerator:
     def __init__(self, parser):

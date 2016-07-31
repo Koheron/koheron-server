@@ -108,7 +108,7 @@ bool Tests::set_buffer(const uint32_t *data, uint32_t len)
     return is_ok;
 }
 
-bool Tests::rcv_std_array(uint32_t u, float f, std::array<uint32_t, 10>& arr, double d, int64_t i)
+bool Tests::rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 10>& arr, double d, int64_t i)
 {
     return false;
 }
