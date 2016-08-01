@@ -28,7 +28,7 @@ bool Tests::set_float(float f)
 
 bool Tests::set_double(double d)
 {
-    return abs(d - 1.428571428571428492127) < 1E-15;
+    return fabs(d - 1.428571428571428492127) < 1E-15;
 }
 
 bool Tests::set_u64(uint64_t u)
@@ -118,7 +118,16 @@ bool Tests::rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 8192>&
 bool Tests::rcv_std_array2(const std::array<float, 8192>& arr)
 {
     for (unsigned int i=0; i<8192; i++)
-        if (abs(arr[i] - log(static_cast<float>(i + 1))) > 1E-6)
+        if (fabs(arr[i] - log(static_cast<float>(i + 1))) > 1E-6)
+            return false;
+
+    return true;
+}
+
+bool Tests::rcv_std_array3(const std::array<double, 8192>& arr)
+{
+    for (unsigned int i=0; i<8192; i++)
+        if (fabs(arr[i] - sin(static_cast<double>(i))) > 1E-15)
             return false;
 
     return true;

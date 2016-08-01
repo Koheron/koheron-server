@@ -86,6 +86,10 @@ class Tests:
     def rcv_std_array2(self, arr):
         return self.client.recv_bool()
 
+    @command('TESTS', 'A')
+    def rcv_std_array3(self, arr):
+        return self.client.recv_bool()
+
     @command('TESTS')
     def get_cstr(self):
         return self.client.recv_string()
@@ -227,8 +231,12 @@ def test_rcv_std_array(tests):
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_rcv_std_array2(tests):
     arr = np.log(np.arange(8192, dtype='float32') + 1)
-    print arr
     assert tests.rcv_std_array2(arr)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_rcv_std_array3(tests):
+    arr = np.sin(np.arange(8192, dtype='float64'))
+    assert tests.rcv_std_array3(arr)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_get_cstring(tests):
