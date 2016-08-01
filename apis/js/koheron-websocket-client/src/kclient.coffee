@@ -25,8 +25,7 @@ class Device
 
     getCmds : ->
         cmds_dict = {}
-        for cmd, idx in @cmds
-            cmds_dict[cmd.toLowerCase()] = idx
+        cmds_dict[cmd.toLowerCase()] = idx for cmd, idx in @cmds
         return cmds_dict
 
 class WebSocketPool
@@ -44,9 +43,11 @@ class WebSocketPool
             if window?
                 websocket = new WebSocket url
             else # Node
+                clientConfig = {}
+                clientConfig.fragmentOutgoingMessages = false
                 __WebSocket = require('websocket').w3cwebsocket
-                websocket = new __WebSocket url
-            
+                websocket = new __WebSocket(url, null, null, null, null, clientConfig)
+
             websocket.binaryType = 'arraybuffer'
             @pool.push(websocket)
 
@@ -214,6 +215,11 @@ bytesTofloat = (bytes) ->
 appendFloat32 = (buffer, value) ->
     appendUint32(buffer, floatToBytes(value))
 
+appendArray = (buffer, array) ->
+    for byte_idx, byte of array.buffer
+        buffer.push(byte)
+    return array.buffer.byteLength
+
 class CommandBase
     "use strict"
 
@@ -262,9 +268,12 @@ class CommandBase
                         payload_size += appendUint8(payload, 1)
                     else
                         payload_size += appendUint8(payload, 0)
+                when 'A'
+                    payload_size += appendArray(payload, params[i])
                 else
                     throw new TypeError('Unknown type ' + types_str[i])
 
+        console.log payload_size + 12
         appendUint32(buffer, payload_size)
         return new Uint8Array(buffer.concat(payload))
 

@@ -50,22 +50,19 @@ int WebSocket::authenticate()
     static const std::string WSKeyIdentifier("Sec-WebSocket-Key: ");
     static const std::string WSProtocolIdentifier("Sec-WebSocket-Protocol: ");
     static const std::string WSMagic("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
-    
+
     bool is_protocol 
         = (http_packet.find(WSProtocolIdentifier) != std::string::npos);
 
     std::size_t pos = http_packet.find(WSKeyIdentifier);
-    
+
     if (pos == std::string::npos) {
         kserver->syslog.print(SysLog::CRITICAL, "WebSocket: No WebSocket Key");
         return -1;
     }
-    
-    // TODO (TV 27/01/2016) Remove this try-catch 
-    // and use standard error handling
-    
+
     std::string key;
-    
+
     try {
         static const int WSKeyLen = 24;
         key = http_packet.substr(pos + WSKeyIdentifier.length(), WSKeyLen);
@@ -74,18 +71,18 @@ int WebSocket::authenticate()
     }
 
     key.append(WSMagic);
-    
+
     SHA1(reinterpret_cast<const unsigned char*>(key.c_str()), 
          key.length(), sha_str);
     std::string final_str = base64_encode(sha_str, 20);
-    
+
     std::ostringstream oss;
     oss << "HTTP/1.1 101 Switching Protocols\r\n";
     oss << "Upgrade: websocket\r\n";
     oss << "Connection: Upgrade\r\n";
     oss << "Sec-WebSocket-Accept: " << final_str << "\r\n";
-    
-    // XXX Chrome is not happy when the Protocol wasn't 
+
+    // Chrome is not happy when the Protocol wasn't
     // specified in the HTTP request:
     // "Response must not include 'Sec-WebSocket-Protocol' 
     // header if not present in request: chat"
@@ -95,18 +92,15 @@ int WebSocket::authenticate()
 
     oss << "\r\n";
 
-    if (send_request(oss.str()) < 0)
-        return -1;
-
-    return 0;
+    return send_request(oss.str());
 }
 
 int WebSocket::read_http_packet()
 {
     reset_read_buff();
-    
+
     int nb_bytes_rcvd = read(comm_fd, read_str, WEBSOCK_READ_STR_LEN);
-    
+
     // Check reception ...
     if (nb_bytes_rcvd < 0) {
         kserver->syslog.print(SysLog::CRITICAL, "WebSocket: Read error\n");
@@ -123,18 +117,18 @@ int WebSocket::read_http_packet()
         connection_closed = true;
         return -1;
     }
-    
+
     http_packet = std::string(read_str);
     std::size_t delim_pos = http_packet.find("\r\n\r\n");
-    
+
     if (delim_pos == std::string::npos) {
         kserver->syslog.print(SysLog::CRITICAL, 
                               "WebSocket: No HTML header found\n");
         return -1;
     }
-    
+
     kserver->syslog.print(SysLog::DEBUG, "[R] HTTP header\n");
-    
+
     return nb_bytes_rcvd;
 }
 
@@ -168,7 +162,7 @@ int WebSocket::set_send_header(unsigned char *bits, long long data_len,
         bits[9] = data_len & 255;
         mask_offset = WebSocketMaskOffset::BigOffset;
     }
-    
+
     return mask_offset;
 }
 
@@ -176,9 +170,9 @@ int WebSocket::send(const std::string& stream)
 {
     long long data_len = stream.length();
     unsigned char *bits = new unsigned char[10 + data_len];
-    
+
     int mask_offset = set_send_header(bits, data_len, TEXT);
-    
+
     // XXX This copy is not very nice. 
     // It might produce some significant time for large buffers.
     // However not easy to concatenate bits with the buffer without copy:
@@ -188,11 +182,9 @@ int WebSocket::send(const std::string& stream)
     // of the buffer not easy nothing guarantees that we can allocate
     // the space before the buffer.
     std::copy(stream.begin(), stream.end(), &bits[mask_offset]);
-    
-    int err = send_request(bits, mask_offset + data_len);
-		
-    delete [] bits;
 
+    int err = send_request(bits, mask_offset + data_len);
+    delete [] bits;
     return err;
 }
 
@@ -200,13 +192,13 @@ int WebSocket::receive()
 {
     if (read_stream() < 0)
         return -1;
-    
+
     if (decode_raw_stream() < 0) {
         kserver->syslog.print(SysLog::CRITICAL, 
                               "WebSocket: Cannot decode stream\n");
         return -1;
     }
-    
+
     kserver->syslog.print(SysLog::DEBUG, 
                           "[R] WebSocket: %u bytes\n", header.payload_size);
 
@@ -217,36 +209,35 @@ int WebSocket::decode_raw_stream()
 {
     if (read_str_len < (int)header.header_size + 1)
         return -1;
-    
+
     char masks[4];
     memcpy(masks, read_str+header.mask_offset, 4);
     memcpy(payload, read_str+header.mask_offset + 4, header.payload_size);
-    
+
     for (unsigned long long i = 0; i < header.payload_size; ++i)
         payload[i] = (payload[i] ^ masks[i % 4]);
-    
+
     payload[header.payload_size] = '\0';
-    
     return 0;
 }
 
 int WebSocket::read_stream()
 {
     reset_read_buff();
-    
+
     if (read_header() < 0) {
         kserver->syslog.print(SysLog::CRITICAL,
                               "WebSocket: Cannot read header\n");
         return -1;
     }
-    
+
     // Read payload
     if (read_n_bytes(header.payload_size, header.payload_size) < 0) {
         kserver->syslog.print(SysLog::CRITICAL,
                               "WebSocket: Cannot read payload\n");
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -266,11 +257,11 @@ int WebSocket::check_opcode(unsigned int opcode)
                               "WebSocket: Ping is not suported\n");
         return -1;
       case WebSocketOpCode::Pong:
-      
+
         // TODO If not sollicited by a Ping,
         // we should just ignore an unwanted Pong
         // instead of returning an error.
-        
+
         kserver->syslog.print(SysLog::CRITICAL,
                               "WebSocket: Pong is not suported\n");
         return -1;
@@ -278,7 +269,7 @@ int WebSocket::check_opcode(unsigned int opcode)
         kserver->syslog.print(SysLog::CRITICAL, "WebSocket: Invalid opcode\n");        
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -286,19 +277,19 @@ int WebSocket::read_header()
 {    
     if (read_n_bytes(6,6) < 0)
         return -1;
-    
+
 //    printf("%s\n", read_str);
-    
+
     header.fin = read_str[0] & 0x80;
 
     header.masked = read_str[1] & 0x80;
     unsigned char stream_size = read_str[1] & 0x7F;
 
     header.opcode = read_str[0] & 0x0F;
-    
+
     if (check_opcode(header.opcode) < 0)
         return -1;
-    
+
     if (stream_size <= WebSocketStreamSize::SmallStream) {        
         header.header_size = WebSocketHeaderSize::SmallHeader;
         header.payload_size = stream_size;
@@ -343,22 +334,22 @@ int WebSocket::read_n_bytes(int bytes, int expected)
 {
     int remaining = bytes;
     int bytes_read = -1;
-    
+
     while (expected > 0) {
         while ((remaining > 0) && 
                ((bytes_read 
                    = read(comm_fd, &read_str[read_str_len], remaining)) > 0)) {
-         
+
             if (bytes_read > 0) {
                 read_str_len += bytes_read;
                 remaining -= bytes_read;
                 expected -= bytes_read;	
             }
-            
+
             if (expected < 0)
                 expected = 0;
         }
-        
+
         if (bytes_read == 0) {
             kserver->syslog.print(SysLog::ERROR,
                               "WebSocket: Connection closed by client\n");
@@ -372,7 +363,7 @@ int WebSocket::read_n_bytes(int bytes, int expected)
             return -1;
         }
     }
-    
+
     return 0;
 }
 
@@ -387,7 +378,7 @@ int WebSocket::send_request(const unsigned char *bits, long long len)
     int bytes_send = 0;
     int remaining = len;
     int offset = 0;
-    
+
     while ((remaining > 0) && 
            (bytes_send = write(comm_fd, &bits[offset], remaining)) > 0) {
         if (bytes_send > 0) {
@@ -400,16 +391,16 @@ int WebSocket::send_request(const unsigned char *bits, long long len)
             return -1;
         }
     }
-    
+
     if (bytes_send < 0) {
         kserver->syslog.print(SysLog::ERROR,
                               "WebSocket: Cannot send request. Error #%u\n",
                               bytes_send);
         return -1;
     }
-    
+
     kserver->syslog.print(SysLog::DEBUG, "[S] %i bytes\n", bytes_send);
-    
+
     return bytes_send;
 }
 
@@ -425,10 +416,9 @@ int WebSocket::get_payload(char *payload_, unsigned int size)
         kserver->syslog.print(SysLog::CRITICAL, "Buffer overflow\n");
         return -1;
     }
-    
+
     memcpy(payload_, (const char*)&payload, header.payload_size);
     return header.payload_size;
 }
 
 } // namespace kserver
-

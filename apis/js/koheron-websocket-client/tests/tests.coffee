@@ -15,30 +15,7 @@ class Tests
     constructor : (@kclient) ->
         @device = @kclient.getDevice("TESTS")
         @id = @device.id
-
         @cmds = @device.getCmds()
-    
-        # @cmds =
-        #     rcv_many_params : @device.getCmdRef( "RCV_MANY_PARAMS" )
-        #     set_float       : @device.getCmdRef( "SET_FLOAT"       )
-        #     set_unsigned    : @device.getCmdRef( "SET_UNSIGNED"    )
-        #     set_signed      : @device.getCmdRef( "SET_SIGNED"      )
-        #     send_std_vector : @device.getCmdRef( "SEND_STD_VECTOR" )
-        #     send_std_array  : @device.getCmdRef( "SEND_STD_ARRAY"  )
-        #     send_c_array1   : @device.getCmdRef( "SEND_C_ARRAY1"   )
-        #     send_c_array2   : @device.getCmdRef( "SEND_C_ARRAY2"   )
-        #     set_buffer      : @device.getCmdRef( "SET_BUFFER"      )
-        #     read_uint       : @device.getCmdRef( "READ_UINT"       )
-        #     read_int        : @device.getCmdRef( "READ_INT"        )
-        #     read_float      : @device.getCmdRef( "READ_FLOAT"      )
-        #     read_double     : @device.getCmdRef( "READ_DOUBLE"     )
-        #     get_cstr        : @device.getCmdRef( "GET_CSTR"        )
-        #     get_std_string  : @device.getCmdRef( "GET_STD_STRING"  )
-        #     get_json        : @device.getCmdRef( "GET_JSON"        )
-        #     get_json2       : @device.getCmdRef( "GET_JSON2"       )
-        #     get_tuple       : @device.getCmdRef( "GET_TUPLE"       )
-        #     get_tuple3      : @device.getCmdRef( "GET_TUPLE3"      )
-        #     get_tuple4      : @device.getCmdRef( "GET_TUPLE4"      )
 
     sendManyParams : (u1, u2, f, b, cb) ->
         @kclient.readBool(Command(@id, @cmds.rcv_many_params, 'IIf?', u1, u2, f, b), cb)
@@ -66,8 +43,13 @@ class Tests
 
     sendBuffer : (len, cb) ->
         buffer = new Uint32Array(len)
-        (buffer[i] = i*i for i in [0..len])
+        buffer[i] = i*i for i in [0..len]
         @kclient.sendArray(Command(@id, @cmds.set_buffer, 'I', buffer.length), buffer, (ok) -> cb(ok==1))
+
+    sendStdArray2 : (cb) ->
+        array = new Float32Array(8192)
+        array[i] = Math.log(i + 1) for i in [0..array.length]
+        @kclient.readBool(Command(@id, @cmds.rcv_std_array2, 'A', array), cb)
 
     readUint : (cb) ->
         @kclient.readUint32(Command(@id, @cmds.read_uint), cb)
@@ -336,6 +318,21 @@ exports.sendBuffer = (assert) ->
             tests = new Tests(client)
             len = 10
             tests.sendBuffer(len, (is_ok) =>
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.sendStdArray2 = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.sendStdArray2( (is_ok) =>
                 assert.ok(is_ok)
                 client.exit()
                 assert.done()
