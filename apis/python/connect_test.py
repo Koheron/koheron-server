@@ -138,10 +138,6 @@ tests = Tests(client)
 client_unix = KClient(unixsock=unixsock)
 tests_unix = Tests(client_unix)
 
-# len_ = 10
-# arr = np.arange(len_, dtype='uint32')**2
-# print tests.rcv_std_array(4223453, 3.141592, arr, 2.654798454646, -56789)
-
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_send_many_params(tests):
     assert tests.rcv_many_params(429496729, 2048, 3.14, True)
