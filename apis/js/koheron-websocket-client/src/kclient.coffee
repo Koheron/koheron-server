@@ -281,7 +281,7 @@ class @KClient
 
     init: (callback) ->
         @websockpool = new WebSocketPool(@websock_pool_size, @url, => 
-            @getCmds(callback)
+            @loadCmds(callback)
         )
 
     subscribeServerBroadcast: (callback) ->
@@ -477,7 +477,7 @@ class @KClient
     #  Devices
     # ------------------------
 
-    getCmds: (callback) ->
+    loadCmds: (callback) ->
         @websockpool.requestSocket( (sockid) =>
             if sockid < 0 then return fn(null)
             websocket = @websockpool.getSocket(sockid)
