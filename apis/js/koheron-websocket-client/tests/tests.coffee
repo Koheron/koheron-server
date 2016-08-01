@@ -49,6 +49,15 @@ class Tests
         buffer[i] = i*i for i in [0..len]
         @kclient.sendArray(Command(@id, @cmds.set_buffer, 'I', buffer.length), buffer, (ok) -> cb(ok==1))
 
+    sendStdArray : (cb) ->
+        u = 4223453
+        f = 3.141592
+        d = 2.654798454646
+        i = -56789
+        array = new Uint32Array(8192)
+        array[_i] = _i for _i in [0..array.length]
+        @kclient.readBool(Command(@id, @cmds.rcv_std_array, 'IfAdi', u, f, array, d, i), cb)
+
     sendStdArray2 : (cb) ->
         array = new Float32Array(8192)
         array[i] = Math.log(i + 1) for i in [0..array.length]
@@ -336,6 +345,21 @@ exports.sendBuffer = (assert) ->
             tests = new Tests(client)
             len = 10
             tests.sendBuffer(len, (is_ok) =>
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.sendStdArray = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.sendStdArray( (is_ok) =>
                 assert.ok(is_ok)
                 client.exit()
                 assert.done()
