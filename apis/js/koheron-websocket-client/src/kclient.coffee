@@ -242,8 +242,8 @@ appendFloat64 = (buffer, value) ->
 # @return {number} Number of bytes
 ###
 appendArray = (buffer, array) ->
-    for byte_idx, byte of array.buffer
-        if byte_idx < array.buffer.byteLength then buffer.push(byte)
+    for byte_idx, _byte of array.buffer
+        if byte_idx < array.buffer.byteLength then buffer.push(_byte)
     return array.buffer.byteLength
 
 class CommandBase
