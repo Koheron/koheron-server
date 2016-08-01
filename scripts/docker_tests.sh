@@ -86,5 +86,9 @@ cd ../..
 echo "== Speed tests =="
 apis/C/tests/tests --speed 127.0.0.1:36000 /code/kserver.sock
 
-echo "== Server log =="
-cat server.log
+function finish {
+    echo "== Server log =="
+    cat server.log
+}
+
+trap finish EXIT
