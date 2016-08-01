@@ -23,6 +23,12 @@ class Device
 
         throw new ReferenceError(cmd_name + ': command not found')
 
+    getCmds : ->
+        cmds_dict = {}
+        for cmd, idx in @cmds
+            cmds_dict[cmd.toLowerCase()] = idx
+        return cmds_dict
+
 class WebSocketPool
     "use strict"
 
