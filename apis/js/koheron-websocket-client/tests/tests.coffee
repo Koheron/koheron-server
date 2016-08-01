@@ -63,6 +63,11 @@ class Tests
         array[i] = Math.log(i + 1) for i in [0..array.length]
         @kclient.readBool(Command(@id, @cmds.rcv_std_array2, 'A', array), cb)
 
+    sendStdArray3 : (cb) ->
+        array = new Float64Array(8192)
+        array[i] = Math.sin(i) for i in [0..array.length]
+        @kclient.readBool(Command(@id, @cmds.rcv_std_array3, 'A', array), cb)
+
     readUint : (cb) ->
         @kclient.readUint32(Command(@id, @cmds.read_uint), cb)
 
@@ -375,6 +380,21 @@ exports.sendStdArray2 = (assert) ->
         client.init( =>
             tests = new Tests(client)
             tests.sendStdArray2( (is_ok) =>
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.sendStdArray3 = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.sendStdArray3( (is_ok) =>
                 assert.ok(is_ok)
                 client.exit()
                 assert.done()
