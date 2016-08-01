@@ -79,21 +79,19 @@ def PrintParserCore(file_id, device, operation):
     if GetTotalArgNum(operation) == 0:
         return
 
-    file_id.write('    static_assert(required_buffer_size<')
-    PrintTypeList(file_id, operation)
-    file_id.write('>() < cmd.buffer.size(),\n                  "Buffer size too small");\n\n');
+    packs = build_args_packs(file_id, operation)
 
-    file_id.write('    if (required_buffer_size<')
-    PrintTypeList(file_id, operation)
-    file_id.write('>() != cmd.payload_size) {\n')
+    print_req_buff_size(file_id, packs)
+
+    file_id.write('    static_assert(req_buff_size <= cmd.buffer.size(), "Buffer size too small");\n\n');
+
+    file_id.write('    if (req_buff_size != cmd.payload_size) {\n')
     file_id.write("        kserver->syslog.print(SysLog::ERROR, \"Invalid payload size\\n\");\n")
     file_id.write("        return -1;\n")
     file_id.write("    }\n\n")
 
     file_id.write('    constexpr size_t position0 = 0;\n')
     pos_cnt = 0
-
-    packs = build_args_packs(file_id, operation)
 
     for idx, pack in enumerate(packs):
         if pack['familly'] == 'scalar':
@@ -104,13 +102,12 @@ def PrintParserCore(file_id, device, operation):
             for i, arg in enumerate(pack['args']):
                 file_id.write('    args.' + arg["name"] + ' = ' + 'std::get<' + str(i) + '>(args_tuple' + str(idx) + ');\n');
 
-            if idx < len(packs) - 2:
+            if idx < len(packs) - 1:
                 file_id.write('\n    constexpr size_t position' + str(pos_cnt + 1) + ' = position' + str(pos_cnt)
                               + ' + required_buffer_size<')
                 pos_cnt += 1
                 print_type_list_pack(file_id, pack)
                 file_id.write('>();\n')
-
         elif pack['familly'] == 'array':
             array_params = get_std_array_params(pack['args']['type'])
             print array_params
@@ -124,12 +121,32 @@ def PrintParserCore(file_id, device, operation):
         else:
             raise ValueError('Unknown argument familly')
 
-def PrintTypeList(file_id, operation):
-    for idx, arg in enumerate(operation["arguments"]):
-        if idx < GetTotalArgNum(operation) - 1:   
-            file_id.write(arg["type"] + ', ')
-        else:
-            file_id.write(arg["type"])
+def print_req_buff_size(file_id, packs):
+    file_id.write('    constexpr size_t req_buff_size = ');
+
+    for idx, pack in enumerate(packs):
+        if pack['familly'] == 'scalar':
+            if idx == 0:
+                file_id.write('required_buffer_size<')
+            else:
+                file_id.write('                                     + required_buffer_size<')
+            print_type_list_pack(file_id, pack)
+            if idx < len(packs) - 1:
+                file_id.write('>()\n')
+            else:
+                file_id.write('>();\n')
+        elif pack['familly'] == 'array':
+            array_params = get_std_array_params(pack['args']['type'])
+            if idx == 0:
+                file_id.write('size_of<')
+            else:
+                file_id.write('                                     + size_of<')
+            file_id.write(array_params['T'] + ', ' + array_params['N'] + '>')
+            if idx < len(packs) - 1:
+                file_id.write('\n')
+            else:
+                file_id.write(';\n')
+    file_id.write('\n')
 
 def print_type_list_pack(file_id, pack):
     for idx, arg in enumerate(pack['args']):
@@ -138,8 +155,9 @@ def print_type_list_pack(file_id, pack):
         else:
             file_id.write(arg['type'])
 
-# Groups the adjacent scalars together for deserialization and identify the arrays
 def build_args_packs(file_id, operation):
+    ''' Packs the adjacent scalars together for deserialization
+        and separate them from the arrays '''
     packs = []
     args_list = []
     for idx, arg in enumerate(operation["arguments"]):
