@@ -49,6 +49,7 @@ class Tests
     bool set_buffer(const uint32_t *data, uint32_t len);
 
     bool rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 8192>& arr, double d, int32_t i);
+    bool rcv_std_array2(const std::array<float, 8192>& arr);
 
     // Send string
     const char* get_cstr();

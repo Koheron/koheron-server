@@ -110,7 +110,6 @@ def PrintParserCore(file_id, device, operation):
                 file_id.write('>();\n')
         elif pack['familly'] == 'array':
             array_params = get_std_array_params(pack['args']['type'])
-            print array_params
             file_id.write('    args.' + pack['args']['name'] + ' = extract_array<position' + str(pos_cnt)
                           + ', ' + array_params['T'] + ', ' + array_params['N'] + '>(cmd.buffer.data);\n')
 
@@ -164,8 +163,9 @@ def build_args_packs(file_id, operation):
         if not is_std_array(arg['type']):
             args_list.append(arg)
         else: # std::array
-            packs.append({'familly': 'scalar', 'args': args_list})
-            args_list = []
+            if len(args_list) > 0:
+                packs.append({'familly': 'scalar', 'args': args_list})
+                args_list = []
             packs.append({'familly': 'array', 'args': arg})
     if len(args_list) > 0:
         packs.append({'familly': 'scalar', 'args': args_list})

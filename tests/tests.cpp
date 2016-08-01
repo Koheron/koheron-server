@@ -93,19 +93,13 @@ float* Tests::send_c_array2()
 
 bool Tests::set_buffer(const uint32_t *data, uint32_t len)
 {
-    if (len != 10)
-        return false;
+    if (len != 10) return false;
 
-    bool is_ok = true;
+    for (unsigned int i=0; i<len; i++)
+        if (data[i] != i*i)
+            return false;
 
-    for (unsigned int i=0; i<len; i++) {
-        if (data[i] != i*i) {
-            is_ok = false;
-            break;
-        }
-    }
-
-    return is_ok;
+    return true;
 }
 
 bool Tests::rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 8192>& arr, double d, int32_t i)
@@ -115,16 +109,19 @@ bool Tests::rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 8192>&
     if (abs(d - 2.654798454646) > 1E-15) return false;
     if (i != -56789) return false;
 
-    bool is_ok = true;
+    for (unsigned int i=0; i<8192; i++)
+        if (arr[i] != i) return false;
 
-    for (unsigned int i=0; i<8192; i++) {
-        if (arr[i] != i) {
-            is_ok = false;
-            break;
-        }
-    }
+    return true;
+}
 
-    return is_ok;
+bool Tests::rcv_std_array2(const std::array<float, 8192>& arr)
+{
+    for (unsigned int i=0; i<8192; i++)
+        if (abs(arr[i] - log(static_cast<float>(i + 1))) > 1E-6)
+            return false;
+
+    return true;
 }
 
 const char* Tests::get_cstr()

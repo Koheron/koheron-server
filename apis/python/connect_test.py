@@ -82,6 +82,10 @@ class Tests:
     def rcv_std_array(self, u, f, arr, d, i):
         return self.client.recv_bool()
 
+    @command('TESTS', 'A')
+    def rcv_std_array2(self, arr):
+        return self.client.recv_bool()
+
     @command('TESTS')
     def get_cstr(self):
         return self.client.recv_string()
@@ -212,15 +216,19 @@ def test_send_c_array2(tests):
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_set_buffer(tests):
-    len_ = 10
-    data = np.arange(len_)**2
+    data = np.arange(10)**2
     assert tests.set_buffer(data)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_rcv_std_array(tests):
-    len_ = 8192
-    arr = np.arange(len_, dtype='uint32')
+    arr = np.arange(8192, dtype='uint32')
     assert tests.rcv_std_array(4223453, 3.141592, arr, 2.654798454646, -56789)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_rcv_std_array2(tests):
+    arr = np.log(np.arange(8192, dtype='float32') + 1)
+    print arr
+    assert tests.rcv_std_array2(arr)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_get_cstring(tests):
