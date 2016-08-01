@@ -108,9 +108,18 @@ bool Tests::set_buffer(const uint32_t *data, uint32_t len)
     return is_ok;
 }
 
-bool Tests::rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 10>& arr, double d, int64_t i)
+bool Tests::rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 8192>& arr, double d, int32_t i)
 {
-    return false;
+    bool is_ok = true;
+
+    for (unsigned int i=0; i<8192; i++) {
+        if (arr[i] != i) {
+            is_ok = false;
+            break;
+        }
+    }
+
+    return is_ok;
 }
 
 const char* Tests::get_cstr()

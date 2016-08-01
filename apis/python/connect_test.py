@@ -78,6 +78,10 @@ class Tests:
     def set_buffer(self, data):
         return self.client.recv_bool()
 
+    @command('TESTS', 'IfAdi')
+    def rcv_std_array(self, u, f, arr, d, i):
+        return self.client.recv_bool()
+
     @command('TESTS')
     def get_cstr(self):
         return self.client.recv_string()
@@ -125,6 +129,10 @@ tests = Tests(client)
 
 client_unix = KClient(unixsock=unixsock)
 tests_unix = Tests(client_unix)
+
+# len_ = 10
+# arr = np.arange(len_, dtype='uint32')**2
+# print tests.rcv_std_array(4223453, 3.141592, arr, 2.654798454646, -56789)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_send_many_params(tests):
@@ -175,19 +183,19 @@ def test_set_i64(tests):
     assert tests.set_i64(-9223372036854775805)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_rcv_std_vector(tests):
+def test_send_std_vector(tests):
     array = tests.send_std_vector()
     for i in range(len(array)):
         assert array[i] == i*i*i
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_rcv_std_array(tests):
+def test_send_std_array(tests):
     array = tests.send_std_array()
     for i in range(len(array)):
         assert array[i] == i*i
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_rcv_c_array1(tests):
+def test_send_c_array1(tests):
     len_ = 10
     array = tests.send_c_array1(len_)
     assert len(array) == 2*len_
@@ -196,28 +204,34 @@ def test_rcv_c_array1(tests):
         assert array[i] == 0.5 * i
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_rcv_c_array2(tests):
+def test_send_c_array2(tests):
     array = tests.send_c_array2()
 
     for i in range(len(array)):
         assert array[i] == 0.25 * i
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_send_buffer(tests):
+def test_set_buffer(tests):
     len_ = 10
     data = np.arange(len_)**2
     assert tests.set_buffer(data)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_read_cstring(tests):
+def test_rcv_std_array(tests):
+    len_ = 8192
+    arr = np.arange(len_, dtype='uint32')
+    assert tests.rcv_std_array(4223453, 3.141592, arr, 2.654798454646, -56789)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_get_cstring(tests):
     assert tests.get_cstr() == 'Hello !'
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_read_std_string(tests):
+def test_get_std_string(tests):
     assert tests.get_std_string() == 'Hello World !'
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_rcv_json(tests):
+def test_get_json(tests):
     data = tests.get_json()
     assert 'date' in data
     assert 'machine' in data
@@ -231,7 +245,7 @@ def test_rcv_json(tests):
     assert data['version'] == '0691eed'
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_rcv_json2(tests):
+def test_get_json2(tests):
     data = tests.get_json2()
     assert 'firstName' in data
     assert 'lastName' in data
@@ -251,7 +265,7 @@ def test_rcv_json2(tests):
     assert data['phoneNumber'][1]['type'] == 'fax'
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_read_tuple(tests):
+def test_get_tuple(tests):
     tup = tests.get_tuple()
     assert tup[0] == 501762438
     assert abs(tup[1] - 507.3858) < 5E-6
@@ -259,7 +273,7 @@ def test_read_tuple(tests):
     assert tup[3]
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_read_tuple2(tests):
+def test_get_tuple2(tests):
     tup = tests.get_tuple2()
     assert tup[0] == 2
     assert abs(tup[1] - 3.14159) < 1E-6
@@ -268,7 +282,7 @@ def test_read_tuple2(tests):
     assert tup[4] == -9223372036854775807
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_read_tuple3(tests):
+def test_get_tuple3(tests):
     tup = tests.get_tuple3()
     assert not tup[0]
     assert abs(tup[1] - 3.14159) < 1E-6
@@ -277,7 +291,7 @@ def test_read_tuple3(tests):
     assert tup[4] == 6553
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_read_tuple4(tests):
+def test_get_tuple4(tests):
     tup = tests.get_tuple4()
     assert tup[0] == -127
     assert tup[1] == 127
