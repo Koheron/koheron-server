@@ -86,7 +86,7 @@ def PrintParserCore(file_id, device, operation):
     file_id.write('    static_assert(req_buff_size <= cmd.buffer.size(), "Buffer size too small");\n\n');
 
     file_id.write('    if (req_buff_size != cmd.payload_size) {\n')
-    file_id.write("        kserver->syslog.print(SysLog::ERROR, \"Invalid payload size\\n\");\n")
+    file_id.write("        kserver->syslog.print(SysLog::ERROR, \"Invalid payload size. Expected %zu bytes. Received %zu bytes.\\n\", req_buff_size, cmd.payload_size);\n")
     file_id.write("        return -1;\n")
     file_id.write("    }\n\n")
 
