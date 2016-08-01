@@ -215,9 +215,35 @@ bytesTofloat = (bytes) ->
 appendFloat32 = (buffer, value) ->
     appendUint32(buffer, floatToBytes(value))
 
+###*
+# Append a Float64 to the binary buffer
+# @param {Array.<number>} buffer The binary buffer
+# @param {number} value The double to append
+# @return {number} Number of bytes
+###
+appendFloat64 = (buffer, value) ->
+    buf = new ArrayBuffer(8);
+    (new Float64Array(buf))[0] = value;
+    appendUint8(buffer, buf['3'])
+    appendUint8(buffer, buf['2'])
+    appendUint8(buffer, buf['1'])
+    appendUint8(buffer, buf['0'])
+    appendUint8(buffer, buf['7'])
+    appendUint8(buffer, buf['6'])
+    appendUint8(buffer, buf['5'])
+    appendUint8(buffer, buf['4'])
+    console.assert(buf.byteLength == 8, "Invalid float64 size")
+    return buf.byteLength
+
+###*
+# Append an Array to the binary buffer
+# @param {Array.<number>} buffer The binary buffer
+# @param {Array.<number>} array The array to append
+# @return {number} Number of bytes
+###
 appendArray = (buffer, array) ->
     for byte_idx, byte of array.buffer
-        buffer.push(byte)
+        if byte_idx < array.buffer.byteLength then buffer.push(byte)
     return array.buffer.byteLength
 
 class CommandBase
@@ -263,6 +289,8 @@ class CommandBase
                     payload_size += appendInt32(payload, params[i])
                 when 'f'
                     payload_size += appendFloat32(payload, params[i])
+                when 'd'
+                    payload_size += appendFloat64(payload, params[i])
                 when '?'
                     if params[i]
                         payload_size += appendUint8(payload, 1)
@@ -273,7 +301,6 @@ class CommandBase
                 else
                     throw new TypeError('Unknown type ' + types_str[i])
 
-        console.log payload_size + 12
         appendUint32(buffer, payload_size)
         return new Uint8Array(buffer.concat(payload))
 

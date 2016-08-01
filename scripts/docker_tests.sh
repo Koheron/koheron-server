@@ -63,6 +63,7 @@ ${CLI} status --devices
 ${CLI} status --devices KSERVER
 ${CLI} status --devices TESTS
 
+echo "== Test version =="
 VERSION=$(${CLI} status --version)
 SHA=$(git rev-parse --short HEAD)
 echo ${VERSION}

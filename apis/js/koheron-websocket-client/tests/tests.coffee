@@ -23,6 +23,9 @@ class Tests
     setFloat : (f, cb) ->
         @kclient.readBool(Command(@id, @cmds.set_float, 'f', f), cb)
 
+    setDouble : (d, cb) ->
+        @kclient.readBool(Command(@id, @cmds.set_double, 'd', d), cb)
+
     setUnsigned : (u8, u16, u32, cb) ->
         @kclient.readBool(Command(@id, @cmds.set_unsigned, 'BHI', u8, u16, u32), cb)
 
@@ -185,6 +188,21 @@ exports.setFloat = (assert) ->
         client.init( =>
             tests = new Tests(client)
             tests.setFloat( 12.5, (is_ok) =>
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.setDouble = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.setDouble( 1.428571428571428492127, (is_ok) =>
                 assert.ok(is_ok)
                 client.exit()
                 assert.done()

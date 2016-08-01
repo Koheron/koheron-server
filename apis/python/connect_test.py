@@ -138,6 +138,8 @@ tests = Tests(client)
 client_unix = KClient(unixsock=unixsock)
 tests_unix = Tests(client_unix)
 
+tests.set_double(1.428571428571428492127)
+
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_send_many_params(tests):
     assert tests.rcv_many_params(429496729, 2048, 3.14, True)
