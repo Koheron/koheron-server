@@ -110,6 +110,11 @@ bool Tests::set_buffer(const uint32_t *data, uint32_t len)
 
 bool Tests::rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 8192>& arr, double d, int32_t i)
 {
+    if (u != 4223453) return false;
+    if (abs(f - 3.141592) > 1E-6) return false;
+    if (abs(d - 2.654798454646) > 1E-15) return false;
+    if (i != -56789) return false;
+
     bool is_ok = true;
 
     for (unsigned int i=0; i<8192; i++) {
