@@ -218,8 +218,8 @@ int WebSocket::decode_raw_stream()
         return -1;
 
     char masks[4];
-    memcpy(masks, read_str+header.mask_offset, 4);
-    memcpy(payload, read_str+header.mask_offset + 4, header.payload_size);
+    memcpy(masks, read_str + header.mask_offset, 4);
+    memcpy(payload, read_str + header.mask_offset + 4, header.payload_size);
 
     for (unsigned long long i = 0; i < header.payload_size; ++i)
         payload[i] = (payload[i] ^ masks[i % 4]);
@@ -291,6 +291,9 @@ int WebSocket::read_header()
     if (read_n_bytes(6,6) < 0)
         return -1;
 
+    if (connection_closed)
+        return 0;
+
 //    printf("%s\n", read_str);
 
     header.fin = read_str[0] & 0x80;
@@ -318,6 +321,9 @@ int WebSocket::read_header()
         if (read_n_bytes(2, 2) < 0)
             return -1;
 
+        if (connection_closed)
+            return 0;
+
         header.header_size = WebSocketHeaderSize::MediumHeader;
         unsigned short s = 0;
         memcpy(&s, (const char*)&read_str[2], 2);
@@ -327,6 +333,9 @@ int WebSocket::read_header()
     else if (stream_size == WebSocketStreamSize::BigStream) {
         if (read_n_bytes(8, 8) < 0)
             return -1;
+
+        if (connection_closed)
+            return 0;
         
         header.header_size = WebSocketHeaderSize::BigHeader;
         unsigned long long l = 0;
