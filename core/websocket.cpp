@@ -190,8 +190,15 @@ int WebSocket::send(const std::string& stream)
 
 int WebSocket::receive()
 {
-    if (read_stream() < 0)
+    if (connection_closed)
+        return 0;
+
+    int err = read_stream();
+
+    if (err < 0)
         return -1;
+    else if (err == 1) // Connection closed by client
+        return 0;
 
     if (decode_raw_stream() < 0) {
         kserver->syslog.print(SysLog::CRITICAL, 
@@ -232,13 +239,15 @@ int WebSocket::read_stream()
     }
 
     // Read payload
-    if (read_n_bytes(header.payload_size, header.payload_size) < 0) {
+    int err = read_n_bytes(header.payload_size, header.payload_size);
+
+    if (err < 0) {
         kserver->syslog.print(SysLog::CRITICAL,
                               "WebSocket: Cannot read payload\n");
         return -1;
     }
 
-    return 0;
+    return err;
 }
 
 int WebSocket::check_opcode(unsigned int opcode)
@@ -252,6 +261,10 @@ int WebSocket::check_opcode(unsigned int opcode)
         break;
       case WebSocketOpCode::BinaryFrame:
         break;
+      case ConnectionClose:
+        kserver->syslog.print(SysLog::INFO,
+                    "WebSocket: Connection close\n");
+        return 1;
       case WebSocketOpCode::Ping:
         kserver->syslog.print(SysLog::CRITICAL,
                               "WebSocket: Ping is not suported\n");
@@ -266,7 +279,7 @@ int WebSocket::check_opcode(unsigned int opcode)
                               "WebSocket: Pong is not suported\n");
         return -1;
       default:
-        kserver->syslog.print(SysLog::CRITICAL, "WebSocket: Invalid opcode\n");        
+        kserver->syslog.print(SysLog::CRITICAL, "WebSocket: Invalid opcode %u\n", opcode);
         return -1;
     }
 
@@ -287,10 +300,16 @@ int WebSocket::read_header()
 
     header.opcode = read_str[0] & 0x0F;
 
-    if (check_opcode(header.opcode) < 0)
-        return -1;
+    int opcode_err = check_opcode(header.opcode);
 
-    if (stream_size <= WebSocketStreamSize::SmallStream) {        
+    if (opcode_err < 0) {
+        return -1;
+    } else if (opcode_err == 1) {
+        connection_closed = true;
+        return 0;
+    }
+
+    if (stream_size <= WebSocketStreamSize::SmallStream) {
         header.header_size = WebSocketHeaderSize::SmallHeader;
         header.payload_size = stream_size;
         header.mask_offset = WebSocketMaskOffset::SmallOffset;
@@ -298,7 +317,7 @@ int WebSocket::read_header()
     else if (stream_size == WebSocketStreamSize::MediumStream) {
         if (read_n_bytes(2, 2) < 0)
             return -1;
-        
+
         header.header_size = WebSocketHeaderSize::MediumHeader;
         unsigned short s = 0;
         memcpy(&s, (const char*)&read_str[2], 2);
@@ -351,10 +370,10 @@ int WebSocket::read_n_bytes(int bytes, int expected)
         }
 
         if (bytes_read == 0) {
-            kserver->syslog.print(SysLog::ERROR,
+            kserver->syslog.print(SysLog::INFO,
                               "WebSocket: Connection closed by client\n");
             connection_closed = true;
-            return -1;
+            return 1;
         }
 
         if (read_str_len == KSERVER_READ_STR_LEN) {
