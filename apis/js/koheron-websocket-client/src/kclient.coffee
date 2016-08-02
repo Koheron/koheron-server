@@ -197,14 +197,14 @@ appendUint32 = (buffer, value) ->
 # @return {number} Uint32 containing the float binary representation
 ###
 floatToBytes = (f) ->
-    buf = new ArrayBuffer(4);
-    (new Float32Array(buf))[0] = f;
-    return (new Uint32Array(buf))[0];
+    buf = new ArrayBuffer(4)
+    (new Float32Array(buf))[0] = f
+    return (new Uint32Array(buf))[0]
 
 bytesTofloat = (bytes) ->
-    buffer = new ArrayBuffer(4);
-    (new Uint32Array(buffer))[0] = bytes;
-    return new Float32Array(buffer)[0];
+    buffer = new ArrayBuffer(4)
+    (new Uint32Array(buffer))[0] = bytes
+    return new Float32Array(buffer)[0]
 
 ###*
 # Append a Float32 to the binary buffer
@@ -222,16 +222,10 @@ appendFloat32 = (buffer, value) ->
 # @return {number} Number of bytes
 ###
 appendFloat64 = (buffer, value) ->
-    buf = new ArrayBuffer(8);
-    (new Float64Array(buf))[0] = value;
-    appendUint8(buffer, buf['3'])
-    appendUint8(buffer, buf['2'])
-    appendUint8(buffer, buf['1'])
-    appendUint8(buffer, buf['0'])
-    appendUint8(buffer, buf['7'])
-    appendUint8(buffer, buf['6'])
-    appendUint8(buffer, buf['5'])
-    appendUint8(buffer, buf['4'])
+    buf = new ArrayBuffer(8)
+    (new Float64Array(buf))[0] = value
+    appendUint32(buffer, (new Uint32Array(buf, 0))[0])
+    appendUint32(buffer, (new Uint32Array(buf, 4))[0])
     console.assert(buf.byteLength == 8, "Invalid float64 size")
     return buf.byteLength
 
@@ -242,8 +236,8 @@ appendFloat64 = (buffer, value) ->
 # @return {number} Number of bytes
 ###
 appendArray = (buffer, array) ->
-    for byte_idx, _byte of array.buffer
-        if byte_idx < array.buffer.byteLength then buffer.push(_byte)
+    bytes = new Uint8Array(array.buffer)
+    buffer.push(_byte) for _byte in bytes
     return array.buffer.byteLength
 
 class CommandBase
