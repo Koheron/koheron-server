@@ -79,7 +79,7 @@ class WebSocket
     /// Copy the received payload
     /// @payload_ Buffer where the payload must be copied
     /// @size Allocated size of @payload_ for sanity check
-    int get_payload(char *payload_, unsigned int size);
+    // int get_payload(char *payload_, unsigned int size);
     
     bool is_closed() const {return connection_closed;}
     
@@ -92,7 +92,8 @@ class WebSocket
     // Buffers
     int read_str_len;
     char read_str[WEBSOCK_READ_STR_LEN];
-    char payload[WEBSOCK_READ_STR_LEN];
+    // char payload[WEBSOCK_READ_STR_LEN];
+    char *payload;
     unsigned char sha_str[21];
     
     void reset_read_buff();

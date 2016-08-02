@@ -33,7 +33,7 @@ WebSocket::WebSocket(std::shared_ptr<KServerConfig> config_, KServer *kserver_)
 {
     // Set buffers
     bzero(read_str, WEBSOCK_READ_STR_LEN);
-    bzero(payload, WEBSOCK_READ_STR_LEN);
+    // bzero(payload, WEBSOCK_READ_STR_LEN);
     bzero(sha_str, 21);
 }
 
@@ -217,12 +217,15 @@ int WebSocket::decode_raw_stream()
     if (read_str_len < (int)header.header_size + 1)
         return -1;
 
-    char masks[4];
-    memcpy(masks, read_str + header.mask_offset, 4);
-    memcpy(payload, read_str + header.mask_offset + 4, header.payload_size);
+    // char masks[4];
+    // memcpy(masks, read_str + header.mask_offset, 4);
+    // memcpy(payload, read_str + header.mask_offset + 4, header.payload_size);
+
+    char *mask = read_str + header.mask_offset;
+    payload = read_str + header.mask_offset + 4;
 
     for (unsigned long long i = 0; i < header.payload_size; ++i)
-        payload[i] = (payload[i] ^ masks[i % 4]);
+        payload[i] = (payload[i] ^ mask[i % 4]);
 
     payload[header.payload_size] = '\0';
     return 0;
@@ -434,19 +437,19 @@ int WebSocket::send_request(const unsigned char *bits, long long len)
 
 void WebSocket::reset_read_buff()
 {
-    bzero(read_str, WEBSOCK_READ_STR_LEN);
+    // bzero(read_str, WEBSOCK_READ_STR_LEN);
     read_str_len = 0;
 }
 
-int WebSocket::get_payload(char *payload_, unsigned int size)
-{
-    if (size <= header.payload_size) {
-        kserver->syslog.print(SysLog::CRITICAL, "Buffer overflow\n");
-        return -1;
-    }
+// int WebSocket::get_payload(char *payload_, unsigned int size)
+// {
+//     if (size <= header.payload_size) {
+//         kserver->syslog.print(SysLog::CRITICAL, "Buffer overflow\n");
+//         return -1;
+//     }
 
-    memcpy(payload_, (const char*)&payload, header.payload_size);
-    return header.payload_size;
-}
+//     memcpy(payload_, (const char*)&payload, header.payload_size);
+//     return header.payload_size;
+// }
 
 } // namespace kserver

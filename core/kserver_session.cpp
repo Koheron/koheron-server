@@ -242,10 +242,11 @@ const uint32_t* Session<WEBSOCK>::RcvHandshake(uint32_t buff_size)
         return nullptr;
     }
 
-    if (websock.get_payload(recv_data_buff.data, recv_data_buff.size()) < 0)
-        return nullptr;
+    // if (websock.get_payload(recv_data_buff.data, recv_data_buff.size()) < 0)
+    //     return nullptr;
 
-    return reinterpret_cast<const uint32_t*>(recv_data_buff.data);
+    // return reinterpret_cast<const uint32_t*>(recv_data_buff.data);
+    return reinterpret_cast<const uint32_t*>(websock.get_payload_no_copy());
 }
 
 template<>
