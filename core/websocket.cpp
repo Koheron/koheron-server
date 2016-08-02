@@ -31,9 +31,7 @@ WebSocket::WebSocket(std::shared_ptr<KServerConfig> config_, KServer *kserver_)
   read_str_len(0),
   connection_closed(false)
 {
-    // Set buffers
     bzero(read_str, WEBSOCK_READ_STR_LEN);
-    // bzero(payload, WEBSOCK_READ_STR_LEN);
     bzero(sha_str, 21);
 }
 
@@ -72,7 +70,7 @@ int WebSocket::authenticate()
 
     key.append(WSMagic);
 
-    SHA1(reinterpret_cast<const unsigned char*>(key.c_str()), 
+    SHA1(reinterpret_cast<const unsigned char*>(key.c_str()),
          key.length(), sha_str);
     std::string final_str = base64_encode(sha_str, 20);
 
@@ -84,7 +82,7 @@ int WebSocket::authenticate()
 
     // Chrome is not happy when the Protocol wasn't
     // specified in the HTTP request:
-    // "Response must not include 'Sec-WebSocket-Protocol' 
+    // "Response must not include 'Sec-WebSocket-Protocol'
     // header if not present in request: chat"
     // so only answer protocol if requested
     if (is_protocol)
@@ -108,7 +106,7 @@ int WebSocket::read_http_packet()
     }
 
     if (nb_bytes_rcvd == KSERVER_READ_STR_LEN) {
-        kserver->syslog.print(SysLog::CRITICAL, 
+        kserver->syslog.print(SysLog::CRITICAL,
                               "WebSocket: Read buffer overflow\n");
         return -1;
     }
@@ -122,7 +120,7 @@ int WebSocket::read_http_packet()
     std::size_t delim_pos = http_packet.find("\r\n\r\n");
 
     if (delim_pos == std::string::npos) {
-        kserver->syslog.print(SysLog::CRITICAL, 
+        kserver->syslog.print(SysLog::CRITICAL,
                               "WebSocket: No HTML header found\n");
         return -1;
     }
@@ -144,7 +142,7 @@ int WebSocket::set_send_header(unsigned char *bits, long long data_len,
         bits[1] = data_len;
         mask_offset = WebSocketMaskOffset::SmallOffset;
     }
-    else if (data_len > WebSocketStreamSize::SmallStream 
+    else if (data_len > WebSocketStreamSize::SmallStream
              && data_len <= 65535) {
         bits[1] = WebSocketStreamSize::MediumStream;
         bits[2] = (data_len >> 8) & 255;
@@ -201,12 +199,12 @@ int WebSocket::receive()
         return 0;
 
     if (decode_raw_stream() < 0) {
-        kserver->syslog.print(SysLog::CRITICAL, 
+        kserver->syslog.print(SysLog::CRITICAL,
                               "WebSocket: Cannot decode stream\n");
         return -1;
     }
 
-    kserver->syslog.print(SysLog::DEBUG, 
+    kserver->syslog.print(SysLog::DEBUG,
                           "[R] WebSocket: %u bytes\n", header.payload_size);
 
     return header.payload_size;
@@ -216,10 +214,6 @@ int WebSocket::decode_raw_stream()
 {
     if (read_str_len < (int)header.header_size + 1)
         return -1;
-
-    // char masks[4];
-    // memcpy(masks, read_str + header.mask_offset, 4);
-    // memcpy(payload, read_str + header.mask_offset + 4, header.payload_size);
 
     char *mask = read_str + header.mask_offset;
     payload = read_str + header.mask_offset + 4;
@@ -282,7 +276,8 @@ int WebSocket::check_opcode(unsigned int opcode)
                               "WebSocket: Pong is not suported\n");
         return -1;
       default:
-        kserver->syslog.print(SysLog::CRITICAL, "WebSocket: Invalid opcode %u\n", opcode);
+        kserver->syslog.print(SysLog::CRITICAL,
+                              "WebSocket: Invalid opcode %u\n", opcode);
         return -1;
     }
 
@@ -290,7 +285,7 @@ int WebSocket::check_opcode(unsigned int opcode)
 }
 
 int WebSocket::read_header()
-{    
+{
     if (read_n_bytes(6,6) < 0)
         return -1;
 
@@ -339,11 +334,11 @@ int WebSocket::read_header()
 
         if (connection_closed)
             return 0;
-        
+
         header.header_size = WebSocketHeaderSize::BigHeader;
         unsigned long long l = 0;
         memcpy(&l, (const char*)&read_str[2], 8);
-			
+
         header.payload_size = be64toh(l);
         header.mask_offset = WebSocketMaskOffset::BigOffset;
     } else {
@@ -389,7 +384,7 @@ int WebSocket::read_n_bytes(int bytes, int expected)
         }
 
         if (read_str_len == KSERVER_READ_STR_LEN) {
-            kserver->syslog.print(SysLog::CRITICAL, 
+            kserver->syslog.print(SysLog::CRITICAL,
                                   "WebSocket: Read buffer overflow\n");
             return -1;
         }
@@ -405,7 +400,7 @@ int WebSocket::send_request(const std::string& request)
 }
 
 int WebSocket::send_request(const unsigned char *bits, long long len)
-{   
+{
     int bytes_send = 0;
     int remaining = len;
     int offset = 0;
@@ -440,16 +435,5 @@ void WebSocket::reset_read_buff()
     // bzero(read_str, WEBSOCK_READ_STR_LEN);
     read_str_len = 0;
 }
-
-// int WebSocket::get_payload(char *payload_, unsigned int size)
-// {
-//     if (size <= header.payload_size) {
-//         kserver->syslog.print(SysLog::CRITICAL, "Buffer overflow\n");
-//         return -1;
-//     }
-
-//     memcpy(payload_, (const char*)&payload, header.payload_size);
-//     return header.payload_size;
-// }
 
 } // namespace kserver

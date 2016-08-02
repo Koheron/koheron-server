@@ -211,6 +211,10 @@ int Session<WEBSOCK>::read_command(Command& cmd)
             "Expected %zu bytes. Received %zu bytes.\n",
             payload_size + HEADER_LENGTH, websock.payload_size());
 
+    // TODO Eliminate this memset and memcpy
+    // The buffer should be pass as an argument to
+    // the Websocket class constructor.
+
     bzero(cmd.buffer.data, cmd.buffer.size());
     memcpy(cmd.buffer.data, websock.get_payload_no_copy() + HEADER_LENGTH, payload_size);
 

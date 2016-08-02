@@ -27,7 +27,7 @@ typedef enum WebSocketSendFormat {
     TEXT = 129,
     BINARY = 130
 } WS_SendFormat_t; 
-	
+
 enum WebSocketOpCode {
     ContinuationFrame = 0x0,
     TextFrame         = 0x1,
@@ -61,47 +61,38 @@ class WebSocket
 {
   public:
     WebSocket(std::shared_ptr<KServerConfig> config_, KServer *kserver_);
-    
+
     void set_id(int comm_fd_);
-    
     int authenticate();
-    
     int receive();
-    
     int send(const std::string& stream);
-    
+
     template<class T>
     int send(const T *data, unsigned int len);
 
     char* get_payload_no_copy() {return payload;}
     unsigned int payload_size() const {return header.payload_size;}
     
-    /// Copy the received payload
-    /// @payload_ Buffer where the payload must be copied
-    /// @size Allocated size of @payload_ for sanity check
-    // int get_payload(char *payload_, unsigned int size);
-    
     bool is_closed() const {return connection_closed;}
-    
+
   private:
     std::shared_ptr<KServerConfig> config;
     KServer *kserver;
-    
+
     int comm_fd;
-    
+
     // Buffers
     int read_str_len;
     char read_str[WEBSOCK_READ_STR_LEN];
-    // char payload[WEBSOCK_READ_STR_LEN];
     char *payload;
     unsigned char sha_str[21];
-    
+
     void reset_read_buff();
-    
+
     std::string http_packet;
     WebSocketStreamHeader header;
     bool connection_closed;
-    
+
     // Internal functions
     int read_http_packet();
     int decode_raw_stream();
@@ -109,7 +100,7 @@ class WebSocket
     int read_header();
     int check_opcode(unsigned int opcode);
     int read_n_bytes(int bytes, int expected);
-    
+
     int set_send_header(unsigned char *bits, long long data_len,
                         WS_SendFormat_t format);
     int send_request(const std::string& request);
