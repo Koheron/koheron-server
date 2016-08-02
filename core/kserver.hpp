@@ -96,34 +96,34 @@ class ListeningChannel
 
     int init();
     void shutdown();
-    
+
     /// True if the maximum of threads set by the config is reached
     bool is_max_threads();
-    
+
     inline void inc_thread_num() { num_threads++; }
     inline void dec_thread_num() { num_threads--; }
-    
+
     int start_worker();
 #if KSERVER_HAS_THREADS
     void detach_worker();
     void join_worker();
 #endif
-    
+
     int open_communication();
-  
+
     /// Listening socket ID
     int listen_fd;
-  
+
     /// Number of sessions using the channel
     std::atomic<int> num_threads;
-    
+
 #if KSERVER_HAS_THREADS
     std::thread comm_thread; ///< Listening thread
 #endif
 
     KServer *kserver;
     ListenerStats<sock_type> stats;
-        
+
   private:  
     int __start_worker();
 }; // ListeningChannel
@@ -152,7 +152,7 @@ void ListeningChannel<sock_type>::join_worker()
 ///
 /// Derived from KDevice, therefore it is seen as 
 /// a device from the client stand point.
-class KServer : public KDevice<KServer, KSERVER> 
+class KServer : public KDevice<KServer, KSERVER>
 {
   public:
     const device_t kind = KSERVER;
@@ -161,7 +161,7 @@ class KServer : public KDevice<KServer, KSERVER>
   public:
     KServer(std::shared_ptr<kserver::KServerConfig> config_);
     ~KServer();
-    
+
     int Run(void);
 
     /// Operations associated to the device
@@ -175,10 +175,10 @@ class KServer : public KDevice<KServer, KSERVER>
         BROADCAST_PING,         ///< Emit a ping to server broadcast subscribers
         kserver_op_num
     };
-    
+
     std::shared_ptr<kserver::KServerConfig> config;
     SignalHandler sig_handler;
-    
+
     std::atomic<bool> exit_comm;
 
     // Listeners    
@@ -195,27 +195,27 @@ class KServer : public KDevice<KServer, KSERVER>
     // Managers
     DeviceManager dev_manager;
     SessionManager session_manager;
-	
+
     // Logs
     SysLog syslog;
     std::time_t start_time;
 
     Broadcast broadcast;
-    
+
 #if KSERVER_HAS_THREADS
     std::mutex ks_mutex;
 #endif
-    
+
   private:
     // Internal functions
     int start_listeners_workers();
     void detach_listeners_workers();
-    void join_listeners_workers();    
+    void join_listeners_workers();
     void close_listeners();
 
     template<int sock_type>
     void save_session_logs(Session<sock_type> *session, PeerInfo peer_info);
-    
+
 template<int sock_type> friend class ListeningChannel;
 };
 

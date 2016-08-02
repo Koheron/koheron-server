@@ -36,7 +36,7 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
 
     if (dev_manager.Init() < 0)
         exit (EXIT_FAILURE);
-    
+
     exit_comm.store(false);
 
 #if KSERVER_HAS_TCP
@@ -101,16 +101,16 @@ int KServer::start_listeners_workers()
     if (unix_listener.start_worker() < 0)
         return -1;
 #endif
-    
+
     return 0;
 }
 
 void KServer::detach_listeners_workers()
 {
-#if KSERVER_HAS_TCP && KSERVER_HAS_THREADS 
+#if KSERVER_HAS_TCP && KSERVER_HAS_THREADS
     tcp_listener.detach_worker();
 #endif
-    
+
 #if KSERVER_HAS_WEBSOCKET && KSERVER_HAS_THREADS
     websock_listener.detach_worker();
 #endif
@@ -122,10 +122,10 @@ void KServer::detach_listeners_workers()
 
 void KServer::join_listeners_workers()
 {
-#if KSERVER_HAS_TCP && KSERVER_HAS_THREADS 
+#if KSERVER_HAS_TCP && KSERVER_HAS_THREADS
     tcp_listener.join_worker();
 #endif
-    
+
 #if KSERVER_HAS_WEBSOCKET && KSERVER_HAS_THREADS
     websock_listener.join_worker();
 #endif
@@ -138,7 +138,7 @@ void KServer::join_listeners_workers()
 int KServer::Run()
 {
     start_time = std::time(nullptr);
-    
+
     if (start_listeners_workers() < 0)
         return -1;
 
@@ -146,18 +146,18 @@ int KServer::Run()
         if (sig_handler.Interrupt()) {
             syslog.print(SysLog::INFO, 
                          "Interrupt received, killing KServer ...\n");
-            
+
             detach_listeners_workers();
 
             syslog.print(SysLog::INFO, "Closing all active sessions ...\n");
             session_manager.DeleteAll(); 
-            
+
             goto exit;
         }
-        
+
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
-       
+
     join_listeners_workers();
 
 exit:
@@ -167,4 +167,3 @@ exit:
 }
 
 } // namespace kserver
-

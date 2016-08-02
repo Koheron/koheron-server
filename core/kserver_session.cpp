@@ -62,14 +62,14 @@ int Session<TCP>::read_command(Command& cmd)
 
         if (payload_bytes < 0) {
             session_manager.kserver.syslog.print(SysLog::ERROR, 
-                "TCPSocket: Cannot read payload for device %u, operation %u\n", 
+                "TCPSocket: Cannot read payload for device %u, operation %u\n",
                 cmd.device, cmd.operation);
             return header_bytes;
         }
     }
 
     session_manager.kserver.syslog.print(SysLog::DEBUG, 
-        "TCPSocket: Receive command for device %u, operation %u [%u bytes]\n", 
+        "TCPSocket: Receive command for device %u, operation %u [%u bytes]\n",
         cmd.device, cmd.operation, cmd.payload_size);
 
     return header_bytes + payload_bytes;
@@ -89,7 +89,7 @@ int Session<TCP>::rcv_n_bytes(Buffer<len>& buffer, uint32_t n_bytes)
 
     while (bytes_read < n_bytes) {
         bytes_rcv = read(comm_fd, buffer.data + bytes_read, n_bytes - bytes_read);
-        
+
         if (bytes_rcv == 0) {
             session_manager.kserver.syslog.print(SysLog::INFO,
                 "TCPSocket: Connection closed by client\n");
@@ -246,10 +246,6 @@ const uint32_t* Session<WEBSOCK>::RcvHandshake(uint32_t buff_size)
         return nullptr;
     }
 
-    // if (websock.get_payload(recv_data_buff.data, recv_data_buff.size()) < 0)
-    //     return nullptr;
-
-    // return reinterpret_cast<const uint32_t*>(recv_data_buff.data);
     return reinterpret_cast<const uint32_t*>(websock.get_payload_no_copy());
 }
 
@@ -259,7 +255,7 @@ int Session<WEBSOCK>::SendCstr(const char *string)
     int err = websock.send(std::string(string));
 
     if (err < 0) {
-        session_manager.kserver.syslog.print(SysLog::ERROR, 
+        session_manager.kserver.syslog.print(SysLog::ERROR,
                               "WebSocket::SendCstr: Can't write to client\n");
         return -1;
     }
