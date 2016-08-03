@@ -24,49 +24,49 @@ typedef enum {
 struct KServerConfig
 {
     KServerConfig();
-    
+
     /// Load the config from a JSON configuration file
     int load_file(char *filename);
-    
+
     void show();
 
     /// Display messages emitted and received
     bool verbose;
-    
+
     /// Enable/Disable the Nagle algorithm in the TCP buffer
     bool tcp_nodelay;
-    
+
     /// Send messages to syslog
     bool syslog;
-    
+
     /// Run KServer as a daemon if true
     bool daemon;
-    
+
     /// TCP listening port
     unsigned int tcp_port;
     /// TCP max parallel connections
     unsigned int tcp_worker_connections;
-    
+
     /// Websocket listening port
     unsigned int websock_port;
     /// Websocket max parallel connections
     unsigned int websock_worker_connections;
-    
+
     /// Unix socket file path
     char unixsock_path[UNIX_SOCKET_PATH_LEN];
     /// Unix socket max parallel connections
     unsigned int unixsock_worker_connections;
-    
+
     /// Allowed memory region for memory mapping
     intptr_t addr_limit_down;
     intptr_t addr_limit_up;
-    
+
   private:
     char* _get_source(char *filename);
-    
+
     // Performs some checks and tuning on the loaded configuration
     void _check_config();
-        
+
     int _read_verbose(JsonValue value);
     int _read_tcp_nodelay(JsonValue value);
     int _read_daemon(JsonValue value);
@@ -81,5 +81,3 @@ struct KServerConfig
 } // namespace kserver
 
 #endif // __CONFIG_HPP__
-
-
