@@ -28,7 +28,7 @@ extern "C" {
 
 namespace kserver {
 
-int create_tcp_listening(unsigned int port, SysLog *syslog, 
+int create_tcp_listening(unsigned int port, SysLog *syslog,
                          const std::shared_ptr<KServerConfig>& config)
 {
     int listen_fd_ = socket(AF_INET, SOCK_STREAM, 0);
@@ -119,10 +119,8 @@ int open_tcp_communication(int listen_fd, SysLog *syslog,
 {
     int comm_fd = accept(listen_fd, (struct sockaddr*) NULL, NULL);
 
-    if (comm_fd < 0) {
-        syslog->print(SysLog::CRITICAL, "Connection to client rejected\n");
-        return -1;
-    }
+    if (comm_fd < 0)
+        return comm_fd;
 
     if (set_comm_sock_opts(comm_fd, syslog, config) < 0)
         return -1;
@@ -186,11 +184,17 @@ void comm_thread_call(ListeningChannel<sock_type> *listener)
 
         // The program may have exited while
         // waiting for communication opening
-        if (listener->kserver->exit_comm.load())
+        if (listener->kserver->exit_comm.load()) {
+            listener->kserver->syslog.print(SysLog::DEBUG,
+                "Exit listener [sock_type = %u]\n", sock_type);
             break;
+        }
 
-        if (comm_fd < 0)
+        if (comm_fd < 0) {
+            listener->kserver->syslog.print(SysLog::CRITICAL,
+                                "Connection to client rejected\n");
             continue;
+        }
 
 #if KSERVER_HAS_TCP
         if (sock_type == TCP)
@@ -225,7 +229,7 @@ int ListeningChannel<sock_type>::__start_worker()
 {
     if (listen_fd >= 0) {
         if (listen(listen_fd, KSERVER_BACKLOG) < 0) {
-            kserver->syslog.print(SysLog::PANIC, "Listen %s error\n", 
+            kserver->syslog.print(SysLog::PANIC, "Listen %s error\n",
                                   listen_channel_desc[sock_type].c_str());
             return -1;
         }
@@ -306,7 +310,7 @@ int ListeningChannel<WEBSOCK>::init()
     if (kserver->config->websock_worker_connections > 0) {
         listen_fd = create_tcp_listening(kserver->config->websock_port,
                                            &kserver->syslog, kserver->config);
-        return listen_fd;      
+        return listen_fd;
     } else {
         return 0; // Nothing to be done
     }
@@ -414,7 +418,7 @@ int ListeningChannel<UNIX>::open_communication()
     int comm_fd_unix = accept(listen_fd, (struct sockaddr *)&remote, &t);
 
     if (comm_fd_unix < 0) {
-        kserver->syslog.print(SysLog::CRITICAL, 
+        kserver->syslog.print(SysLog::CRITICAL,
                               "Connection to client rejected\n");
         return -1;
     }
