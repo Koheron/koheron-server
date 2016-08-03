@@ -163,7 +163,7 @@ int KServer::Run()
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 
-    join_listeners_workers();
+    // join_listeners_workers();
 
 exit:
     close_listeners();

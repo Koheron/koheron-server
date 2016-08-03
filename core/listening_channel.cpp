@@ -191,7 +191,7 @@ void comm_thread_call(ListeningChannel<sock_type> *listener)
 
         if (comm_fd < 0) {
             listener->kserver->syslog.print(SysLog::CRITICAL,
-                                "Connection to client rejected\n");
+                "Connection to client rejected [sock_type = %u]\n", sock_type);
             continue;
         }
 
@@ -207,19 +207,17 @@ void comm_thread_call(ListeningChannel<sock_type> *listener)
 
 #if KSERVER_HAS_THREADS
         if (listener->is_max_threads()) {
-            listener->kserver->syslog.print(SysLog::INFO,
+            listener->kserver->syslog.print(SysLog::WARNING,
                         "Maximum number of workers exceeded\n");
             continue;
         }
 
         std::thread sess_thread(session_thread_call<sock_type>,
                                 comm_fd, peer_info, listener);
-        sess_thread.detach();        
+        sess_thread.detach();
 #else
         session_thread_call<sock_type>(comm_fd, peer_info, listener);
 #endif
-    // /!\ Everything here will be executed 
-    //     before the session thread is over
     }
 
     listener->is_closed.store(true);
@@ -415,16 +413,7 @@ int ListeningChannel<UNIX>::open_communication()
 {
     struct sockaddr_un remote;
     uint32_t t = sizeof(remote);
-
-    int comm_fd_unix = accept(listen_fd, (struct sockaddr *)&remote, &t);
-
-    if (comm_fd_unix < 0) {
-        kserver->syslog.print(SysLog::CRITICAL,
-                              "Connection to client rejected\n");
-        return -1;
-    }
-
-    return comm_fd_unix;
+    return accept(listen_fd, (struct sockaddr *)&remote, &t);
 }
 
 template<>
