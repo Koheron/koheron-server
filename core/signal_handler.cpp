@@ -16,7 +16,7 @@ extern "C" {
 
 namespace kserver {
 
-KServer* SignalHandler::kserver = nullptr;
+KServer *SignalHandler::kserver = nullptr;
 
 int SignalHandler::init(KServer *kserver_)
 {

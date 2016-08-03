@@ -186,6 +186,48 @@ int WebSocket::send(const std::string& stream)
     return err;
 }
 
+int WebSocket::receive_cmd(Command& cmd)
+{
+    if (connection_closed)
+        return 0;
+
+    int err = read_stream();
+
+    if (err < 0)
+        return -1;
+    else if (err == 1) // Connection closed by client
+        return 0;
+
+    if (decode_raw_stream_cmd(cmd) < 0) {
+        kserver->syslog.print(SysLog::CRITICAL,
+                              "WebSocket: Cannot decode stream\n");
+        return -1;
+    }
+
+    kserver->syslog.print(SysLog::DEBUG,
+                          "[R] WebSocket: %u bytes\n", header.payload_size);
+
+    return header.payload_size;
+}
+
+int WebSocket::decode_raw_stream_cmd(Command& cmd)
+{
+    if (read_str_len < (int)header.header_size + 1)
+        return -1;
+
+    char *mask = read_str + header.mask_offset;
+    char *payload_ptr = read_str + header.mask_offset + 4;
+
+    for (unsigned long long i = 0; i < HEADER_SIZE; ++i)
+        cmd.header.data[i] = (payload_ptr[i] ^ mask[i % 4]);
+
+    for (unsigned long long i = HEADER_SIZE; i < header.payload_size; ++i)
+        cmd.buffer.data[i - HEADER_SIZE] = (payload_ptr[i] ^ mask[i % 4]);
+
+    // payload[header.payload_size] = '\0';
+    return 0;
+}
+
 int WebSocket::receive()
 {
     if (connection_closed)
@@ -221,7 +263,7 @@ int WebSocket::decode_raw_stream()
     for (unsigned long long i = 0; i < header.payload_size; ++i)
         payload[i] = (payload[i] ^ mask[i % 4]);
 
-    payload[header.payload_size] = '\0';
+    // payload[header.payload_size] = '\0';
     return 0;
 }
 

@@ -10,6 +10,7 @@
 
 #include "kserver_defs.hpp"
 #include "config.hpp"
+#include "commands.hpp"
 
 namespace kserver {
 
@@ -65,6 +66,7 @@ class WebSocket
     void set_id(int comm_fd_);
     int authenticate();
     int receive();
+    int receive_cmd(Command& cmd);
     int send(const std::string& stream);
 
     template<class T>
@@ -96,6 +98,7 @@ class WebSocket
     // Internal functions
     int read_http_packet();
     int decode_raw_stream();
+    int decode_raw_stream_cmd(Command& cmd);
     int read_stream();
     int read_header();
     int check_opcode(unsigned int opcode);

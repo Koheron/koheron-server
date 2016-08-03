@@ -171,11 +171,8 @@ void comm_thread_call(ListeningChannel<sock_type> *listener)
 
         int comm_fd = listener->open_communication();
 
-        if (listener->kserver->exit_comm.load()) {
-            listener->kserver->syslog.print(SysLog::DEBUG,
-                "Exit listener [sock_type = %u]\n", sock_type);
+        if (listener->kserver->exit_comm.load())
             break;
-        }
 
         if (comm_fd < 0) {
             listener->kserver->syslog.print(SysLog::CRITICAL,
@@ -207,6 +204,9 @@ void comm_thread_call(ListeningChannel<sock_type> *listener)
         session_thread_call<sock_type>(comm_fd, peer_info, listener);
 #endif
     }
+
+    listener->kserver->syslog.print(SysLog::INFO,
+                "%s listener closed.\n", listen_channel_desc[sock_type].c_str());
 }
 
 template<int sock_type>

@@ -81,7 +81,7 @@ class Session : public SessionAbstract
     // Receive - Send
 
     // TODO Move in Session<TCP> specialization
-    template<size_t len> int rcv_n_bytes(Buffer<len>& buffer, uint32_t n_bytes);
+    int rcv_n_bytes(char *buffer, uint32_t n_bytes);
 
     /// Receive data from client with handshaking
     /// @buff_size Size of the buffer to receive
@@ -117,7 +117,8 @@ class Session : public SessionAbstract
     SessionManager& session_manager;
     SessionPermissions permissions;
 
-    Buffer<KSERVER_RECV_DATA_BUFF_LEN> recv_data_buff;
+    Command cmd;
+    Buffer<KSERVER_RECV_DATA_BUFF_LEN> recv_data_buff; // For RcvHandshake
 #if KSERVER_HAS_WEBSOCKET
     WebSocket websock; // TODO Move in Session<WEBSOCK> specialization
 #endif
@@ -149,6 +150,7 @@ Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
 , peer_info(peer_info_)
 , session_manager(session_manager_)
 , permissions()
+, cmd()
 #if KSERVER_HAS_WEBSOCKET
 , websock(config_, &session_manager_.kserver)
 #endif
@@ -196,7 +198,6 @@ int Session<sock_type>::Run()
         return -1;
 
     while (!session_manager.kserver.exit_comm.load()) {
-        Command cmd;
         int nb_bytes_rcvd = read_command(cmd);
 
         if (session_manager.kserver.exit_comm.load())
@@ -259,8 +260,8 @@ int Session<sock_type>::exit_session()
 
 #if KSERVER_HAS_TCP || KSERVER_HAS_UNIX_SOCKET
 
-template<> template<size_t len>
-int Session<TCP>::rcv_n_bytes(Buffer<len>& buffer, uint32_t n_bytes);
+template<>
+int Session<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes);
 
 template<> const uint32_t* Session<TCP>::RcvHandshake(uint32_t buff_size);
 template<> int Session<TCP>::SendCstr(const char *string);
