@@ -9,7 +9,7 @@
 #include <utility>
 
 extern "C" {
-  #include <unistd.h> 
+  #include <unistd.h>
   #include <getopt.h>
 }
 
@@ -51,7 +51,7 @@ void parse_options(int argc, char **argv,
     int cmdx = 0;
     int opt_ch;
 
-    while ((opt_ch = getopt_long(argc, argv, opt_str, 
+    while ((opt_ch = getopt_long(argc, argv, opt_str,
                                 lopts, &cmdx)) != EOF) {
         switch (opt_ch) {
           case 'v':
@@ -121,7 +121,7 @@ int main(int argc, char **argv)
     // Load config and options
     auto config = std::make_shared<kserver::KServerConfig>();
     parse_options(argc, argv, config);
-    
+
 #if KSERVER_IS_DAEMON
     if (config->daemon)
         daemonize();
@@ -140,4 +140,3 @@ int main(int argc, char **argv)
 
     return 0;
 }
-

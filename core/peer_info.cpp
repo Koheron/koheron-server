@@ -31,4 +31,3 @@ PeerInfo::PeerInfo(const PeerInfo& peer_info)
 }
 
 } // namespace kserver
-

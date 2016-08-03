@@ -30,7 +30,7 @@ int SignalHandler::Init(KServer *kserver_)
 {
     kserver = kserver_;
 
-    if (set_interrup_signals() < 0 || 
+    if (set_interrup_signals() < 0 ||
         set_ignore_signals()   < 0 ||
         set_crash_signals()    < 0)
         return -1;
@@ -59,7 +59,7 @@ int SignalHandler::set_interrup_signals()
         kserver->syslog.print(SysLog::CRITICAL, "Cannot set SIGINT handler\n");
         return -1;
     }
-    
+
     if (sigaction(SIGTERM, &sig_int_handler, NULL) < 0) {
         kserver->syslog.print(SysLog::CRITICAL, "Cannot set SIGTERM handler\n");
         return -1;
@@ -73,11 +73,11 @@ int SignalHandler::set_interrup_signals()
 int SignalHandler::set_ignore_signals()
 {
     struct sigaction sig_ign_handler;
-    
+
     sig_ign_handler.sa_handler = SIG_IGN;
     sig_ign_handler.sa_flags = 0;
     sigemptyset(&sig_ign_handler.sa_mask);
-    
+
     // Disable SIGPIPE which is call by the socket write function
     // when client closes its connection during writing.
     // Results in an unwanted server shutdown
@@ -85,19 +85,19 @@ int SignalHandler::set_ignore_signals()
         kserver->syslog.print(SysLog::CRITICAL, "Cannot disable SIGPIPE\n");
         return -1;
     }
-    
+
     // XXX TV
     // According to this:
     // http://stackoverflow.com/questions/7296923/different-signal-handler-for-thread-and-process-is-it-possible
     //
     // SIGPIPE is delivered to the thread generating it. 
     // It might thus be possible to stop the session emitting it.
-    
+
     if (sigaction(SIGTSTP, &sig_ign_handler, 0) < 0) {
         kserver->syslog.print(SysLog::CRITICAL, "Cannot disable SIGTSTP\n");
         return -1;
     }
-    
+
     return 0;
 }
 
@@ -115,9 +115,9 @@ void crash_signal_handler(int sig)
     // So only display the backtrace the first time
     if (SignalHandler::s_interrupted)
         return;
-        
+
     const char *sig_name;
-    
+
     switch (sig) {
       case SIGBUS:
         sig_name = "(Bus Error)";
@@ -136,22 +136,22 @@ void crash_signal_handler(int sig)
                               "CRASH: signal %d %s\n", sig, sig_name);
 
     void *buffer[BACKTRACE_BUFF_SIZE];
-    size_t size = backtrace(buffer, BACKTRACE_BUFF_SIZE);             
+    size_t size = backtrace(buffer, BACKTRACE_BUFF_SIZE);
     char **messages = backtrace_symbols(buffer, size);
-    
+
     if (messages == NULL) {
-        SignalHandler::kserver->syslog.print(SysLog::ERROR, 
+        SignalHandler::kserver->syslog.print(SysLog::ERROR,
                                              "No backtrace_symbols");
         goto exit;
     }
-    
+
     for (unsigned int i = 0; i < size && messages != NULL; i++) {
         char *mangled_name = 0, *offset_begin = 0, *offset_end = 0;
 
         // Find parantheses and +address offset surrounding mangled name
         for (char *p = messages[i]; *p; ++p) {
             if (*p == '(') {
-                mangled_name = p; 
+                mangled_name = p;
             }
             else if (*p == '+') {
                 offset_begin = p;
@@ -173,22 +173,22 @@ void crash_signal_handler(int sig)
             char *real_name = abi::__cxa_demangle(mangled_name, 0, 0, &status);
 
             // If demangling is successful, output the demangled function name
-            if (status == 0) {  
-                SignalHandler::kserver->syslog.print(SysLog::INFO, 
+            if (status == 0) {
+                SignalHandler::kserver->syslog.print(SysLog::INFO,
                         "[bt]: (%d) %s : %s+%s%s\n", 
                         i, messages[i], real_name, offset_begin, offset_end);
             } else { // Otherwise, output the mangled function name
-                SignalHandler::kserver->syslog.print(SysLog::INFO, 
+                SignalHandler::kserver->syslog.print(SysLog::INFO,
                         "[bt]: (%d) %s : %s+%s%s\n", 
                         i, messages[i], mangled_name, offset_begin, offset_end);
             }
-            
+
             free(real_name);
         }
     }
-        
+
     free(messages);
-    
+
 exit: // Exit Server
     SignalHandler::s_interrupted = 1;
 }
@@ -196,7 +196,7 @@ exit: // Exit Server
 int SignalHandler::set_crash_signals()
 {
     struct sigaction sig_crash_handler;
-    
+
     sig_crash_handler.sa_handler = crash_signal_handler;
     sigemptyset(&sig_crash_handler.sa_mask);
     sig_crash_handler.sa_flags = SA_RESTART | SA_SIGINFO;
@@ -205,7 +205,7 @@ int SignalHandler::set_crash_signals()
         kserver->syslog.print(SysLog::CRITICAL, "Cannot set SIGSEGV handler\n");
         return -1;
     }
-    
+
     if (sigaction(SIGBUS, &sig_crash_handler, NULL) < 0) {
         kserver->syslog.print(SysLog::CRITICAL, "Cannot set SIGBUS handler\n");
         return -1;
