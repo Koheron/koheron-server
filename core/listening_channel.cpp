@@ -256,9 +256,9 @@ int ListeningChannel<TCP>::init()
         listen_fd = create_tcp_listening(kserver->config->tcp_port,
                                          &kserver->syslog, kserver->config);
         return listen_fd;
-    } else {
-        return 0; // Nothing to be done
     }
+
+    return 0;
 }
 
 template<>
