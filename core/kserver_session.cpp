@@ -45,7 +45,7 @@ int Session<TCP>::read_command(Command& cmd)
     cmd.payload_size = payload_size;
 
     if (payload_size > cmd.buffer.size()) {
-        session_manager.kserver.syslog.print(SysLog::ERROR, 
+        session_manager.kserver.syslog.print(SysLog::ERROR,
                   "TCPSocket: Command payload buffer size too small\n"
                   "payload_size = %u cmd.buffer.size = %u\n",
                   payload_size, cmd.buffer.size());
@@ -61,14 +61,14 @@ int Session<TCP>::read_command(Command& cmd)
             return payload_bytes;
 
         if (payload_bytes < 0) {
-            session_manager.kserver.syslog.print(SysLog::ERROR, 
+            session_manager.kserver.syslog.print(SysLog::ERROR,
                 "TCPSocket: Cannot read payload for device %u, operation %u\n",
                 cmd.device, cmd.operation);
             return header_bytes;
         }
     }
 
-    session_manager.kserver.syslog.print(SysLog::DEBUG, 
+    session_manager.kserver.syslog.print(SysLog::DEBUG,
         "TCPSocket: Receive command for device %u, operation %u [%u bytes]\n",
         cmd.device, cmd.operation, cmd.payload_size);
 
@@ -107,7 +107,7 @@ int Session<TCP>::rcv_n_bytes(Buffer<len>& buffer, uint32_t n_bytes)
     }
 
     assert(bytes_read == n_bytes);
-    session_manager.kserver.syslog.print(SysLog::DEBUG, 
+    session_manager.kserver.syslog.print(SysLog::DEBUG,
                 "[R@%u] [%u bytes]\n", id, bytes_read);
 
     return bytes_read;
@@ -127,7 +127,7 @@ const uint32_t* Session<TCP>::RcvHandshake(uint32_t buff_size)
     if (n_bytes_received < 0)
         return nullptr;
 
-    session_manager.kserver.syslog.print(SysLog::DEBUG, "[R@%u] [%u bytes]\n", 
+    session_manager.kserver.syslog.print(SysLog::DEBUG, "[R@%u] [%u bytes]\n",
                           id, n_bytes_received);
 
     return reinterpret_cast<const uint32_t*>(recv_data_buff.data);
@@ -140,7 +140,7 @@ int Session<TCP>::SendCstr(const char *string)
     int err = write(comm_fd, string, bytes_send);
 
     if (err < 0) {
-        session_manager.kserver.syslog.print(SysLog::ERROR, 
+        session_manager.kserver.syslog.print(SysLog::ERROR,
                               "TCPSocket::SendCstr: Can't write to client\n");
         return -1;
     }
@@ -162,8 +162,8 @@ int Session<WEBSOCK>::init_socket()
     websock.set_id(comm_fd);
 
     if (websock.authenticate() < 0) {
-        session_manager.kserver.syslog.print(SysLog::CRITICAL, 
-                              "Cannot connect websocket to client\n");  
+        session_manager.kserver.syslog.print(SysLog::CRITICAL,
+                              "Cannot connect websocket to client\n");
         return -1;
     }
 

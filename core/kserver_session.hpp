@@ -69,8 +69,8 @@ class Session : public SessionAbstract
             SessionManager& session_manager_);
 
     int Run();
-    
-    inline unsigned int RequestNum(void) const {return requests_num;}    
+
+    inline unsigned int RequestNum(void) const {return requests_num;}
     inline unsigned int ErrorNum(void) const {return errors_num;}
     inline SessID GetID() const {return id;}
     inline const char* GetClientIP() const {return peer_info.ip_str;}
@@ -195,7 +195,7 @@ int Session<sock_type>::Run()
     if (init_session() < 0)
         return -1;
 
-    while (!session_manager.kserver.exit_comm.load()) {    
+    while (!session_manager.kserver.exit_comm.load()) {
         Command cmd;
         int nb_bytes_rcvd = read_command(cmd);
 
@@ -270,13 +270,13 @@ int Session<TCP>::SendArray(const T *data, unsigned int len)
     int n_bytes_send = write(comm_fd, (void*)data, bytes_send);
 
     if (n_bytes_send < 0) {
-       session_manager.kserver.syslog.print(SysLog::ERROR, 
+       session_manager.kserver.syslog.print(SysLog::ERROR,
           "TCPSocket::SendArray: Can't write to client\n");
        return -1;
     }
 
     if (n_bytes_send != bytes_send) {
-        session_manager.kserver.syslog.print(SysLog::ERROR, 
+        session_manager.kserver.syslog.print(SysLog::ERROR,
             "TCPSocket::SendArray: Some bytes have not been sent\n");
         return -1;
     }
@@ -322,12 +322,12 @@ int Session<WEBSOCK>::SendArray(const T *data, unsigned int len)
     int bytes_send = websock.send<T>(data, len);
 
     if (bytes_send < 0) {
-        session_manager.kserver.syslog.print(SysLog::ERROR, 
+        session_manager.kserver.syslog.print(SysLog::ERROR,
                               "SendArray: Can't write to client\n");
         return -1;
     }
 
-    return bytes_send;    
+    return bytes_send;
 }
 
 SEND_SPECIALIZE_IMPL(Session<WEBSOCK>)
