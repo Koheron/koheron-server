@@ -12,10 +12,7 @@ class KServer;
 class SignalHandler
 {
   public:
-    SignalHandler();
-    ~SignalHandler();
-
-    int Init(KServer *kserver_);
+    int init(KServer *kserver_);
 
     int Interrupt() const {return s_interrupted;}
 

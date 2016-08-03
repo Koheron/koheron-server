@@ -18,15 +18,7 @@ namespace kserver {
 
 KServer* SignalHandler::kserver = nullptr;
 
-SignalHandler::SignalHandler()
-{}
-
-SignalHandler::~SignalHandler()
-{
-    // TODO Restore disabled signals
-}
-
-int SignalHandler::Init(KServer *kserver_)
+int SignalHandler::init(KServer *kserver_)
 {
     kserver = kserver_;
 
@@ -132,7 +124,7 @@ void crash_signal_handler(int sig)
         sig_name = "(Unidentify signal)";
     }
 
-    SignalHandler::kserver->syslog.print(SysLog::PANIC, 
+    SignalHandler::kserver->syslog.print(SysLog::PANIC,
                               "CRASH: signal %d %s\n", sig, sig_name);
 
     void *buffer[BACKTRACE_BUFF_SIZE];

@@ -31,7 +31,7 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
   start_time(0),
   broadcast(session_manager)
 {
-    if (sig_handler.Init(this))
+    if (sig_handler.init(this) < 0)
         exit(EXIT_FAILURE);
 
     if (dev_manager.Init() < 0)
