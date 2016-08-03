@@ -166,23 +166,11 @@ void session_thread_call(int comm_fd, PeerInfo peer_info,
 template<int sock_type>
 void comm_thread_call(ListeningChannel<sock_type> *listener)
 {
-    // Sending the signal kserver->exit_comm
-    // is not enough for immediate exit of
-    // the thread as it is very likely to be
-    // blocked in the accept() function.
-    //
-    // Probably need to use non-blocking sockets and select() ...
-
-    // http://stackoverflow.com/questions/2486335/wake-up-thread-blocked-on-accept-call
-    // Use http://linux.die.net/man/3/shutdown
-
     while (!listener->kserver->exit_comm.load()) {
         PeerInfo peer_info;
 
         int comm_fd = listener->open_communication();
 
-        // The program may have exited while
-        // waiting for communication opening
         if (listener->kserver->exit_comm.load()) {
             listener->kserver->syslog.print(SysLog::DEBUG,
                 "Exit listener [sock_type = %u]\n", sock_type);
@@ -219,8 +207,6 @@ void comm_thread_call(ListeningChannel<sock_type> *listener)
         session_thread_call<sock_type>(comm_fd, peer_info, listener);
 #endif
     }
-
-    listener->is_closed.store(true);
 }
 
 template<int sock_type>

@@ -127,7 +127,6 @@ int main(int argc, char **argv)
         daemonize();
 #endif
 
-    // Start and run KServer
     kserver::KServer server(config);
     server.Run();
 

@@ -64,16 +64,12 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
 #endif // KSERVER_HAS_UNIX_SOCKET
 }
 
-KServer::~KServer()
-{}
-
 // This cannot be done in the destructor
 // since it is called after the "delete config"
 // at the end of the main()
 void KServer::close_listeners()
 {
     exit_comm.store(true);
-
     assert(config != NULL);
 
 #if KSERVER_HAS_TCP
@@ -86,10 +82,9 @@ void KServer::close_listeners()
     unix_listener.shutdown();
 #endif
 
-    do { std::this_thread::sleep_for(std::chrono::milliseconds(50)); }
-    while ( !tcp_listener.is_closed.load()
-         || !websock_listener.is_closed.load()
-         || !unix_listener.is_closed.load());
+#if KSERVER_HAS_THREADS
+    join_listeners_workers();
+#endif
 }
 
 int KServer::start_listeners_workers()
@@ -108,21 +103,6 @@ int KServer::start_listeners_workers()
 #endif
 
     return 0;
-}
-
-void KServer::detach_listeners_workers()
-{
-#if KSERVER_HAS_TCP && KSERVER_HAS_THREADS
-    tcp_listener.detach_worker();
-#endif
-
-#if KSERVER_HAS_WEBSOCKET && KSERVER_HAS_THREADS
-    websock_listener.detach_worker();
-#endif
-
-#if KSERVER_HAS_UNIX_SOCKET && KSERVER_HAS_THREADS
-    unix_listener.detach_worker();
-#endif
 }
 
 void KServer::join_listeners_workers()
@@ -149,25 +129,17 @@ int KServer::Run()
 
     while (1) {
         if (sig_handler.Interrupt()) {
-            syslog.print(SysLog::INFO, 
-                         "Interrupt received, killing KServer ...\n");
-
-            detach_listeners_workers();
-
+            syslog.print(SysLog::INFO, "Interrupt received, killing KServer ...\n");
             syslog.print(SysLog::INFO, "Closing all active sessions ...\n");
-            session_manager.DeleteAll(); 
-
-            goto exit;
+            session_manager.DeleteAll();
+            close_listeners();
+            syslog.close();
+            return 0;
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 
-    // join_listeners_workers();
-
-exit:
-    close_listeners();
-    syslog.close();
     return 0;
 }
 

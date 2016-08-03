@@ -92,7 +92,6 @@ class ListeningChannel
       kserver(kserver_)
     {
         num_threads.store(-1);
-        is_closed.store(false);
     }
 
     int init();
@@ -106,7 +105,6 @@ class ListeningChannel
 
     int start_worker();
 #if KSERVER_HAS_THREADS
-    void detach_worker();
     void join_worker();
 #endif
 
@@ -125,20 +123,11 @@ class ListeningChannel
     KServer *kserver;
     ListenerStats<sock_type> stats;
 
-    std::atomic<bool> is_closed;
-
   private:  
     int __start_worker();
 }; // ListeningChannel
 
 #if KSERVER_HAS_THREADS
-template<int sock_type>
-void ListeningChannel<sock_type>::detach_worker()
-{
-    if (listen_fd >= 0)
-        comm_thread.detach();
-}
-
 template<int sock_type>
 void ListeningChannel<sock_type>::join_worker()
 {
@@ -163,9 +152,8 @@ class KServer : public KDevice<KServer, KSERVER>
 
   public:
     KServer(std::shared_ptr<kserver::KServerConfig> config_);
-    ~KServer();
 
-    int Run(void);
+    int Run();
 
     /// Operations associated to the device
     enum Operation {
