@@ -199,6 +199,9 @@ int Session<sock_type>::Run()
         Command cmd;
         int nb_bytes_rcvd = read_command(cmd);
 
+        if (session_manager.kserver.exit_comm.load())
+            break;
+
         if (nb_bytes_rcvd <= 0) {
             exit_session();
             return nb_bytes_rcvd;

@@ -175,11 +175,19 @@ void comm_thread_call(ListeningChannel<sock_type> *listener)
     //
     // Probably need to use non-blocking sockets and select() ...
 
+    // http://stackoverflow.com/questions/2486335/wake-up-thread-blocked-on-accept-call
+    // Use http://linux.die.net/man/3/shutdown
+
     while (!listener->kserver->exit_comm.load()) {
         int comm_fd;
         PeerInfo peer_info;
 
         comm_fd = listener->open_communication();
+
+        // The program may have exited while
+        // waiting for communication opening
+        if (listener->kserver->exit_comm.load())
+            break;
 
         if (comm_fd < 0)
             continue;
@@ -243,8 +251,8 @@ int ListeningChannel<TCP>::init()
 
     if (kserver->config->tcp_worker_connections > 0) {
         listen_fd = create_tcp_listening(kserver->config->tcp_port,
-                                           &kserver->syslog, kserver->config);  
-        return listen_fd;      
+                                           &kserver->syslog, kserver->config);
+        return listen_fd;
     } else {
         return 0; // Nothing to be done
     }
@@ -255,6 +263,11 @@ void ListeningChannel<TCP>::shutdown()
 {
     if (kserver->config->tcp_worker_connections > 0) {
         kserver->syslog.print(SysLog::INFO, "Closing TCP listener ...\n");
+
+        if (::shutdown(listen_fd, SHUT_RDWR) < 0)
+            kserver->syslog.print(SysLog::WARNING,
+                         "Cannot shutdown socket for TCP listener\n");
+
         close(listen_fd);
     }
 }
@@ -304,6 +317,11 @@ void ListeningChannel<WEBSOCK>::shutdown()
 {
     if (kserver->config->websock_worker_connections > 0) {
         kserver->syslog.print(SysLog::INFO, "Closing WebSocket listener ...\n");
+
+        if (::shutdown(listen_fd, SHUT_RDWR) < 0)
+            kserver->syslog.print(SysLog::WARNING,
+                         "Cannot shutdown socket for WebSocket listener\n");
+
         close(listen_fd);
     }
 }
@@ -378,6 +396,11 @@ void ListeningChannel<UNIX>::shutdown()
 {
     if (kserver->config->unixsock_worker_connections > 0) {
         kserver->syslog.print(SysLog::INFO, "Closing Unix listener ...\n");
+
+        if (::shutdown(listen_fd, SHUT_RDWR) < 0)
+            kserver->syslog.print(SysLog::WARNING,
+                         "Cannot shutdown socket for Unix listener\n");
+
         close(listen_fd);
     }
 }

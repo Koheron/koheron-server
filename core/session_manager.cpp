@@ -7,6 +7,8 @@
 #include "kserver_session.hpp"
 #include "broadcast.tpp"
 
+#include <sys/socket.h>
+
 #if KSERVER_HAS_THREADS
 #  include <thread>
 #  include <mutex>
@@ -141,8 +143,10 @@ void SessionManager::DeleteSession(SessID id)
     std::lock_guard<std::mutex> lock(mutex);
 #endif
 
+    int sess_fd;
+
     if (!is_current_id(id)) {
-        kserver.syslog.print(SysLog::INFO, 
+        kserver.syslog.print(SysLog::INFO,
                              "Not allocated session ID: %u\n", id);
         return;
     }
@@ -154,21 +158,26 @@ void SessionManager::DeleteSession(SessID id)
         switch (session_pool[id]->kind) {
 #if KSERVER_HAS_TCP
           case TCP:
-            close(cast_to_session<TCP>(session_pool[id])->comm_fd);
+            sess_fd = cast_to_session<TCP>(session_pool[id])->comm_fd;
             break;
 #endif
 #if KSERVER_HAS_UNIX_SOCKET
           case UNIX:
-            close(cast_to_session<UNIX>(session_pool[id])->comm_fd);
+            sess_fd = cast_to_session<UNIX>(session_pool[id])->comm_fd;
             break;
 #endif
 #if KSERVER_HAS_WEBSOCKET
           case WEBSOCK:
-            close(cast_to_session<WEBSOCK>(session_pool[id])->comm_fd);
+            sess_fd = cast_to_session<WEBSOCK>(session_pool[id])->comm_fd;
             break;
 #endif
           default: assert(false);
         }
+
+        if (shutdown(sess_fd, SHUT_RDWR) < 0)
+            kserver.syslog.print(SysLog::WARNING,
+                         "Cannot shutdown socket for session ID: %u\n", id);
+        close(sess_fd);
     }
 
     reset_permissions(id);
