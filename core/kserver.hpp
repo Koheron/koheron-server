@@ -92,6 +92,7 @@ class ListeningChannel
       kserver(kserver_)
     {
         num_threads.store(-1);
+        is_closed.store(false);
     }
 
     int init();
@@ -123,6 +124,8 @@ class ListeningChannel
 
     KServer *kserver;
     ListenerStats<sock_type> stats;
+
+    std::atomic<bool> is_closed;
 
   private:  
     int __start_worker();

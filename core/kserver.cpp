@@ -85,6 +85,11 @@ void KServer::close_listeners()
 #if KSERVER_HAS_UNIX_SOCKET
     unix_listener.shutdown();
 #endif
+
+    do { std::this_thread::sleep_for(std::chrono::milliseconds(50)); }
+    while ( !tcp_listener.is_closed.load()
+         || !websock_listener.is_closed.load()
+         || !unix_listener.is_closed.load());
 }
 
 int KServer::start_listeners_workers()

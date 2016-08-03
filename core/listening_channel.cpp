@@ -177,10 +177,9 @@ void comm_thread_call(ListeningChannel<sock_type> *listener)
     // Use http://linux.die.net/man/3/shutdown
 
     while (!listener->kserver->exit_comm.load()) {
-        int comm_fd;
         PeerInfo peer_info;
 
-        comm_fd = listener->open_communication();
+        int comm_fd = listener->open_communication();
 
         // The program may have exited while
         // waiting for communication opening
@@ -222,6 +221,8 @@ void comm_thread_call(ListeningChannel<sock_type> *listener)
     // /!\ Everything here will be executed 
     //     before the session thread is over
     }
+
+    listener->is_closed.store(true);
 }
 
 template<int sock_type>
@@ -255,7 +256,7 @@ int ListeningChannel<TCP>::init()
 
     if (kserver->config->tcp_worker_connections > 0) {
         listen_fd = create_tcp_listening(kserver->config->tcp_port,
-                                           &kserver->syslog, kserver->config);
+                                         &kserver->syslog, kserver->config);
         return listen_fd;
     } else {
         return 0; // Nothing to be done
