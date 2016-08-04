@@ -131,8 +131,7 @@ def main(argv):
 
     elif cmd == '--optim-flags':
         with open('tmp/.optim-flags', 'w') as f:
-            if not config['debug']['status']:
-                f.write('"-' + ' -'.join(config['optimization_flags']) + '"')
+            f.write('"-' + ' -'.join(config['optimization_flags']) + '"')
 
     elif cmd == '--debug-flags':
         with open('tmp/.debug-flags', 'w') as f:
