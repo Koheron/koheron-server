@@ -200,12 +200,12 @@ int WebSocket::receive_cmd(Command& cmd)
 
     if (decode_raw_stream_cmd(cmd) < 0) {
         kserver->syslog.print(SysLog::CRITICAL,
-                              "WebSocket: Cannot decode stream\n");
+                        "WebSocket: Cannot decode command stream\n");
         return -1;
     }
 
     kserver->syslog.print(SysLog::DEBUG,
-                          "[R] WebSocket: %u bytes\n", header.payload_size);
+            "[R] WebSocket: command of %u bytes\n", header.payload_size);
 
     return header.payload_size;
 }
@@ -224,7 +224,6 @@ int WebSocket::decode_raw_stream_cmd(Command& cmd)
     for (unsigned long long i = HEADER_SIZE; i < header.payload_size; ++i)
         cmd.buffer.data[i - HEADER_SIZE] = (payload_ptr[i] ^ mask[i % 4]);
 
-    // payload[header.payload_size] = '\0';
     return 0;
 }
 
@@ -263,7 +262,6 @@ int WebSocket::decode_raw_stream()
     for (unsigned long long i = 0; i < header.payload_size; ++i)
         payload[i] = (payload[i] ^ mask[i % 4]);
 
-    // payload[header.payload_size] = '\0';
     return 0;
 }
 
@@ -474,7 +472,7 @@ int WebSocket::send_request(const unsigned char *bits, long long len)
 
 void WebSocket::reset_read_buff()
 {
-    // bzero(read_str, WEBSOCK_READ_STR_LEN);
+    bzero(read_str, read_str_len);
     read_str_len = 0;
 }
 

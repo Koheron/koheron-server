@@ -9,10 +9,6 @@
 
 #include <memory>
 
-#if KSERVER_HAS_THREADS
-#  include <mutex>
-#endif
-
 namespace kserver {
 
 #define FMT_BUFF_LEN 512
@@ -38,14 +34,9 @@ struct SysLog
 
 private:
     std::shared_ptr<KServerConfig> config;
-
     char fmt_buffer[FMT_BUFF_LEN];
 
     int print_stderr(const char *header, const char *message, va_list argptr);
-
-#if KSERVER_HAS_THREADS
-    std::mutex mutex;
-#endif
 };
 
 } // namespace kserver

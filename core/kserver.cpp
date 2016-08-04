@@ -130,7 +130,6 @@ int KServer::Run()
     while (1) {
         if (sig_handler.Interrupt()) {
             syslog.print(SysLog::INFO, "Interrupt received, killing KServer ...\n");
-            syslog.print(SysLog::INFO, "Closing all active sessions ...\n");
             session_manager.DeleteAll();
             close_listeners();
             syslog.close();

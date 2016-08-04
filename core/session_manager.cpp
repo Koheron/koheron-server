@@ -32,11 +32,6 @@ SessionManager::~SessionManager()
     DeleteAll();
 }
 
-size_t SessionManager::GetNumSess() const
-{
-    return session_pool.size();
-}
-
 unsigned int SessionManager::num_sess = 0;
 
 void SessionManager::print_reusable_ids()
@@ -51,12 +46,6 @@ void SessionManager::print_reusable_ids()
             
         printf("}\n");
     }
-}
-
-SessionAbstract& SessionManager::GetSession(SessID id) const
-{
-    assert(session_pool.at(id) != nullptr);
-    return *session_pool.at(id);
 }
 
 bool SessionManager::is_reusable_id(SessID id)
@@ -190,6 +179,7 @@ void SessionManager::DeleteSession(SessID id)
 
 void SessionManager::DeleteAll()
 {
+    kserver.syslog.print(SysLog::INFO, "Closing all active sessions ...\n");
     assert(num_sess == session_pool.size());
 
     if (!session_pool.empty()) {

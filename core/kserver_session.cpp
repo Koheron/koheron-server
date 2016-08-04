@@ -77,9 +77,6 @@ int Session<TCP>::read_command(Command& cmd)
 template<>
 int Session<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes)
 {
-    if (n_bytes == 0)
-        return 0;
-
     int bytes_rcv = 0;
     uint32_t bytes_read = 0;
 
@@ -206,19 +203,10 @@ int Session<WEBSOCK>::read_command(Command& cmd)
             "Expected %zu bytes. Received %zu bytes.\n",
             payload_size + HEADER_LENGTH, websock.payload_size());
 
-    // TODO Eliminate this memset and memcpy
-    // The buffer should be pass as an argument to
-    // the Websocket class constructor.
-
-    // bzero(cmd.buffer.data, cmd.buffer.size());
-    // memcpy(cmd.buffer.data, websock.get_payload_no_copy() + HEADER_LENGTH, payload_size);
-
     cmd.sess_id = id;
     cmd.device = static_cast<device_t>(std::get<0>(header_tuple));
     cmd.operation = std::get<1>(header_tuple);
     cmd.payload_size = payload_size;
-
-    cmd.print();
 
     return HEADER_LENGTH + payload_size;
 }

@@ -60,10 +60,12 @@ int SysLog::print_stderr(const char *header, const char *message, va_list argptr
 }
 
 void SysLog::print(unsigned int severity, const char *message, ...)
-{    
-#if KSERVER_HAS_THREADS
-    std::lock_guard<std::mutex> lock(mutex);
-#endif
+{
+    // Return immediatly when a debug message must be
+    // logged. Avoids the sinificant va_copy overhead.
+
+    if (severity == DEBUG && !config->verbose)
+        return;
 
     va_list argptr, argptr2, argptr3;
     va_start(argptr, message);
@@ -113,8 +115,8 @@ void SysLog::print(unsigned int severity, const char *message, ...)
         if (config->verbose)
             vprintf(message, argptr);
 
-        if (config->syslog)
-            vsyslog(LOG_DEBUG, message, argptr2);
+        // if (config->syslog)
+        //     vsyslog(LOG_DEBUG, message, argptr2);
 
         break;
       default:
