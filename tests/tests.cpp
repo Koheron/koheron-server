@@ -28,7 +28,6 @@ bool Tests::set_float(float f)
 
 bool Tests::set_double(double d)
 {
-    // printf("%.17f\n", d);
     return fabs(d - 1.428571428571428492127) < 1E-15;
 }
 

@@ -114,10 +114,10 @@ void SysLog::print(unsigned int severity, const char *message, ...)
       //   if (config->verbose)
       //       vprintf(message, argptr);
 
-        // if (config->syslog)
-        //     vsyslog(LOG_DEBUG, message, argptr2);
+      //   if (config->syslog)
+      //       vsyslog(LOG_DEBUG, message, argptr2);
 
-        break;
+      //   break;
       default:
         fprintf(stderr, "Invalid severity level\n");
     }

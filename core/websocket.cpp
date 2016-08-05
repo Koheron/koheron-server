@@ -457,6 +457,7 @@ int WebSocket::send_request(const unsigned char *bits, long long len)
     }
 
     kserver->syslog.print_dbg("[S] %i bytes\n", bytes_send);
+
     return bytes_send;
 }
 
