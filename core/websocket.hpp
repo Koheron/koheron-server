@@ -88,6 +88,7 @@ class WebSocket
     char read_str[WEBSOCK_READ_STR_LEN];
     char *payload;
     unsigned char sha_str[21];
+    unsigned char send_buf[WEBSOCK_SEND_BUF_LEN];
 
     void reset_read_buff();
 
@@ -109,22 +110,6 @@ class WebSocket
     int send_request(const std::string& request);
     int send_request(const unsigned char *bits, long long len);
 };
-
-template<class T>
-int WebSocket::send(const T *data, unsigned int len)
-{
-    long unsigned int char_data_len = len*sizeof(T)/sizeof(char);
-
-    unsigned char *bits = new unsigned char[10 + char_data_len];
-    int mask_offset = set_send_header(bits, char_data_len, BINARY);
-    
-    memcpy(&bits[mask_offset], data, char_data_len);
-
-    int err = send_request(bits, mask_offset + char_data_len);
-    delete [] bits;
-
-    return err;
-}
 
 } // namespace kserver
 

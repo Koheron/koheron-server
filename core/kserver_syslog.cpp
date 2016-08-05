@@ -6,7 +6,6 @@
 
 #include <stdio.h>
 #include <syslog.h>
-#include <cstdarg>
 #include <cstring>
 
 #if KSERVER_HAS_THREADS
@@ -64,8 +63,8 @@ void SysLog::print(unsigned int severity, const char *message, ...)
     // Return immediatly when a debug message must be
     // logged. Avoids the sinificant va_copy overhead.
 
-    if (severity == DEBUG && !config->verbose)
-        return;
+    // if (severity == DEBUG && !config->verbose)
+    //     return;
 
     va_list argptr, argptr2, argptr3;
     va_start(argptr, message);
@@ -111,9 +110,9 @@ void SysLog::print(unsigned int severity, const char *message, ...)
             vsyslog(LOG_NOTICE, message, argptr2);
 
         break;
-      case DEBUG:
-        if (config->verbose)
-            vprintf(message, argptr);
+      // case DEBUG:
+      //   if (config->verbose)
+      //       vprintf(message, argptr);
 
         // if (config->syslog)
         //     vsyslog(LOG_DEBUG, message, argptr2);

@@ -125,7 +125,7 @@ int WebSocket::read_http_packet()
         return -1;
     }
 
-    kserver->syslog.print(SysLog::DEBUG, "[R] HTTP header\n");
+    kserver->syslog.print_dbg("[R] HTTP header\n");
 
     return nb_bytes_rcvd;
 }
@@ -166,24 +166,17 @@ int WebSocket::set_send_header(unsigned char *bits, long long data_len,
 
 int WebSocket::send(const std::string& stream)
 {
-    long long data_len = stream.length();
-    unsigned char *bits = new unsigned char[10 + data_len];
+    unsigned long data_len = stream.length();
 
-    int mask_offset = set_send_header(bits, data_len, TEXT);
+    if (data_len + 10 > WEBSOCK_SEND_BUF_LEN) {
+        kserver->syslog.print(SysLog::ERROR,
+                              "WebSocket: send_buf too small\n");
+        return -1;
+    }
 
-    // XXX This copy is not very nice. 
-    // It might produce some significant time for large buffers.
-    // However not easy to concatenate bits with the buffer without copy:
-    // http://stackoverflow.com/questions/541634/concatenating-two-memory-buffers-without-memcpy
-    //
-    // Maybe it would be better to copy the template header instead
-    // of the buffer not easy nothing guarantees that we can allocate
-    // the space before the buffer.
-    std::copy(stream.begin(), stream.end(), &bits[mask_offset]);
-
-    int err = send_request(bits, mask_offset + data_len);
-    delete [] bits;
-    return err;
+    int mask_offset = set_send_header(send_buf, data_len, TEXT);
+    std::copy(stream.begin(), stream.end(), &send_buf[mask_offset]);
+    return send_request(send_buf, mask_offset + data_len);
 }
 
 int WebSocket::receive_cmd(Command& cmd)
@@ -193,18 +186,18 @@ int WebSocket::receive_cmd(Command& cmd)
 
     int err = read_stream();
 
-    if (err < 0)
+    if (unlikely(err < 0))
         return -1;
     else if (err == 1) // Connection closed by client
         return 0;
 
-    if (decode_raw_stream_cmd(cmd) < 0) {
+    if (unlikely(decode_raw_stream_cmd(cmd) < 0)) {
         kserver->syslog.print(SysLog::CRITICAL,
                         "WebSocket: Cannot decode command stream\n");
         return -1;
     }
 
-    kserver->syslog.print(SysLog::DEBUG,
+    kserver->syslog.print_dbg(
             "[R] WebSocket: command of %u bytes\n", header.payload_size);
 
     return header.payload_size;
@@ -212,7 +205,7 @@ int WebSocket::receive_cmd(Command& cmd)
 
 int WebSocket::decode_raw_stream_cmd(Command& cmd)
 {
-    if (read_str_len < (int)header.header_size + 1)
+    if (unlikely(read_str_len < (int)header.header_size + 1))
         return -1;
 
     char *mask = read_str + header.mask_offset;
@@ -234,26 +227,24 @@ int WebSocket::receive()
 
     int err = read_stream();
 
-    if (err < 0)
+    if (unlikely(err < 0))
         return -1;
     else if (err == 1) // Connection closed by client
         return 0;
 
-    if (decode_raw_stream() < 0) {
+    if (unlikely(decode_raw_stream() < 0)) {
         kserver->syslog.print(SysLog::CRITICAL,
                               "WebSocket: Cannot decode stream\n");
         return -1;
     }
 
-    kserver->syslog.print(SysLog::DEBUG,
-                          "[R] WebSocket: %u bytes\n", header.payload_size);
-
+    kserver->syslog.print_dbg("[R] WebSocket: %u bytes\n", header.payload_size);
     return header.payload_size;
 }
 
 int WebSocket::decode_raw_stream()
 {
-    if (read_str_len < (int)header.header_size + 1)
+    if (unlikely(read_str_len < (int)header.header_size + 1))
         return -1;
 
     char *mask = read_str + header.mask_offset;
@@ -269,7 +260,7 @@ int WebSocket::read_stream()
 {
     reset_read_buff();
 
-    if (read_header() < 0) {
+    if (unlikely(read_header() < 0)) {
         kserver->syslog.print(SysLog::CRITICAL,
                               "WebSocket: Cannot read header\n");
         return -1;
@@ -278,7 +269,7 @@ int WebSocket::read_stream()
     // Read payload
     int err = read_n_bytes(header.payload_size, header.payload_size);
 
-    if (err < 0) {
+    if (unlikely(err < 0)) {
         kserver->syslog.print(SysLog::CRITICAL,
                               "WebSocket: Cannot read payload\n");
         return -1;
@@ -343,7 +334,7 @@ int WebSocket::read_header()
 
     int opcode_err = check_opcode(header.opcode);
 
-    if (opcode_err < 0) {
+    if (unlikely(opcode_err < 0)) {
         return -1;
     } else if (opcode_err == 1) {
         connection_closed = true;
@@ -387,7 +378,7 @@ int WebSocket::read_header()
         return -1;
     }
 
-    if (header.payload_size > WEBSOCK_READ_STR_LEN - 56) {
+    if (unlikely(header.payload_size > WEBSOCK_READ_STR_LEN - 56)) {
         kserver->syslog.print(SysLog::CRITICAL,
                               "WebSocket: Message too large\n");
         return -1;
@@ -423,7 +414,7 @@ int WebSocket::read_n_bytes(int bytes, int expected)
             return 1;
         }
 
-        if (read_str_len == KSERVER_READ_STR_LEN) {
+        if (unlikely(read_str_len == KSERVER_READ_STR_LEN)) {
             kserver->syslog.print(SysLog::CRITICAL,
                                   "WebSocket: Read buffer overflow\n");
             return -1;
@@ -458,15 +449,14 @@ int WebSocket::send_request(const unsigned char *bits, long long len)
         }
     }
 
-    if (bytes_send < 0) {
+    if (unlikely(bytes_send < 0)) {
         kserver->syslog.print(SysLog::ERROR,
                               "WebSocket: Cannot send request. Error #%u\n",
                               bytes_send);
         return -1;
     }
 
-    kserver->syslog.print(SysLog::DEBUG, "[S] %i bytes\n", bytes_send);
-
+    kserver->syslog.print_dbg("[S] %i bytes\n", bytes_send);
     return bytes_send;
 }
 

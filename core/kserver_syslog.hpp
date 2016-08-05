@@ -8,6 +8,7 @@
 #include "config.hpp"
 
 #include <memory>
+#include <cstdarg>
 
 namespace kserver {
 
@@ -26,11 +27,20 @@ struct SysLog
         ERROR,    ///< Typically when a command execution failed
         WARNING,
         INFO,
-        DEBUG,
+        // DEBUG, // Special print function for debug
         syslog_severity_num
     };
 
     void print(unsigned int severity, const char *message, ...);
+
+    void print_dbg(const char *message, ...)
+    {
+        if (config->verbose) {
+            va_list argptr;
+            va_start(argptr, message);
+            vprintf(message, argptr);
+        }
+    }
 
 private:
     std::shared_ptr<KServerConfig> config;

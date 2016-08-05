@@ -21,6 +21,7 @@
 
 #if KSERVER_HAS_WEBSOCKET
 #include "websocket.hpp"
+#include "websocket.tpp"
 #endif
 
 namespace kserver {
@@ -273,7 +274,7 @@ int Session<TCP>::SendArray(const T *data, unsigned int len)
     int bytes_send = sizeof(T) * len;
     int n_bytes_send = write(comm_fd, (void*)data, bytes_send);
 
-    if (n_bytes_send < 0) {
+    if (unlikely(n_bytes_send < 0)) {
        session_manager.kserver.syslog.print(SysLog::ERROR,
           "TCPSocket::SendArray: Can't write to client\n");
        return -1;
@@ -285,7 +286,9 @@ int Session<TCP>::SendArray(const T *data, unsigned int len)
         return -1;
     }
 
-    session_manager.kserver.syslog.print(SysLog::DEBUG, "[S] [%u bytes]\n", bytes_send);
+    if (config->verbose)
+        session_manager.kserver.syslog.print_dbg("[S] [%u bytes]\n", bytes_send);
+
     return bytes_send;
 }
 
@@ -325,7 +328,7 @@ int Session<WEBSOCK>::SendArray(const T *data, unsigned int len)
 {
     int bytes_send = websock.send<T>(data, len);
 
-    if (bytes_send < 0) {
+    if (unlikely(bytes_send < 0)) {
         session_manager.kserver.syslog.print(SysLog::ERROR,
                               "SendArray: Can't write to client\n");
         return -1;

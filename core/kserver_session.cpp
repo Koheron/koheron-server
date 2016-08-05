@@ -28,7 +28,7 @@ int Session<TCP>::read_command(Command& cmd)
     if (header_bytes == 0)
         return header_bytes;
 
-    if (header_bytes < 0) {
+    if (unlikely(header_bytes < 0)) {
         session_manager.kserver.syslog.print(SysLog::ERROR,
             "TCPSocket: Cannot read header\n");
         return header_bytes;
@@ -59,7 +59,7 @@ int Session<TCP>::read_command(Command& cmd)
         if (payload_bytes == 0)
             return payload_bytes;
 
-        if (payload_bytes < 0) {
+        if (unlikely(payload_bytes < 0)) {
             session_manager.kserver.syslog.print(SysLog::ERROR,
                 "TCPSocket: Cannot read payload for device %u, operation %u\n",
                 cmd.device, cmd.operation);
@@ -67,9 +67,10 @@ int Session<TCP>::read_command(Command& cmd)
         }
     }
 
-    session_manager.kserver.syslog.print(SysLog::DEBUG,
-        "TCPSocket: Receive command for device %u, operation %u [%u bytes]\n",
-        cmd.device, cmd.operation, cmd.payload_size);
+    if (config->verbose)
+        session_manager.kserver.syslog.print_dbg(
+            "TCPSocket: Receive command for device %u, operation %u [%u bytes]\n",
+            cmd.device, cmd.operation, cmd.payload_size);
 
     return header_bytes + payload_bytes;
 }
@@ -89,7 +90,7 @@ int Session<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes)
             return 0;
         }
 
-        if (bytes_rcv < 0) {
+        if (unlikely(bytes_rcv < 0)) {
             session_manager.kserver.syslog.print(SysLog::ERROR,
                 "TCPSocket: Can't receive data\n");
             return -1;
@@ -99,8 +100,10 @@ int Session<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes)
     }
 
     assert(bytes_read == n_bytes);
-    session_manager.kserver.syslog.print(SysLog::DEBUG,
-                "[R@%u] [%u bytes]\n", id, bytes_read);
+
+    if (config->verbose)
+        session_manager.kserver.syslog.print_dbg("[R@%u] [%u bytes]\n",
+                                                 id, bytes_read);
 
     return bytes_read;
 }
@@ -108,7 +111,7 @@ int Session<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes)
 template<>
 const uint32_t* Session<TCP>::RcvHandshake(uint32_t buff_size)
 {
-    if (Send<uint32_t>(htonl(buff_size)) < 0) {
+    if (unlikely(Send<uint32_t>(htonl(buff_size)) < 0)) {
         session_manager.kserver.syslog.print(SysLog::ERROR,
             "TCPSocket: Cannot send buffer size\n");
         return nullptr;
@@ -116,11 +119,12 @@ const uint32_t* Session<TCP>::RcvHandshake(uint32_t buff_size)
 
     int n_bytes_received = rcv_n_bytes(recv_data_buff.data, sizeof(uint32_t) * buff_size);
 
-    if (n_bytes_received < 0)
+    if (unlikely(n_bytes_received < 0))
         return nullptr;
 
-    session_manager.kserver.syslog.print(SysLog::DEBUG, "[R@%u] [%u bytes]\n",
-                          id, n_bytes_received);
+    if (config->verbose)
+        session_manager.kserver.syslog.print_dbg("[R@%u] [%u bytes]\n",
+                                                 id, n_bytes_received);
 
     return reinterpret_cast<const uint32_t*>(recv_data_buff.data);
 }
@@ -131,7 +135,7 @@ int Session<TCP>::SendCstr(const char *string)
     int bytes_send = strlen(string) + 1;
     int err = write(comm_fd, string, bytes_send);
 
-    if (err < 0) {
+    if (unlikely(err < 0)) {
         session_manager.kserver.syslog.print(SysLog::ERROR,
                               "TCPSocket::SendCstr: Can't write to client\n");
         return -1;
@@ -167,7 +171,7 @@ template<> int Session<WEBSOCK>::exit_socket() {return 0;}
 template<>
 int Session<WEBSOCK>::read_command(Command& cmd)
 {
-    if (websock.receive_cmd(cmd) < 0)
+    if (unlikely(websock.receive_cmd(cmd) < 0))
         return -1;
 
     if (websock.is_closed())
@@ -184,7 +188,7 @@ int Session<WEBSOCK>::read_command(Command& cmd)
 
     uint32_t payload_size = std::get<2>(header_tuple);
 
-    if (payload_size > CMD_PAYLOAD_BUFFER_LEN) {
+    if (unlikely(payload_size > CMD_PAYLOAD_BUFFER_LEN)) {
         DEBUG_MSG("WebSocket: Command payload buffer size too small\n");
         return -1;
     }
@@ -214,7 +218,7 @@ int Session<WEBSOCK>::read_command(Command& cmd)
 template<>
 const uint32_t* Session<WEBSOCK>::RcvHandshake(uint32_t buff_size)
 {
-    if (Send<uint32_t>(buff_size) < 0) {
+    if (unlikely(Send<uint32_t>(buff_size) < 0)) {
         session_manager.kserver.syslog.print(SysLog::ERROR,
             "WebSocket: Error sending the buffer size\n");
         return nullptr;
@@ -222,7 +226,7 @@ const uint32_t* Session<WEBSOCK>::RcvHandshake(uint32_t buff_size)
 
     int payload_size = websock.receive();
 
-    if (payload_size < 0)
+    if (unlikely(payload_size < 0))
         return nullptr;
 
     if (static_cast<uint32_t>(payload_size) != sizeof(uint32_t) * buff_size) {
@@ -239,7 +243,7 @@ int Session<WEBSOCK>::SendCstr(const char *string)
 {
     int err = websock.send(std::string(string));
 
-    if (err < 0) {
+    if (unlikely(err < 0)) {
         session_manager.kserver.syslog.print(SysLog::ERROR,
                               "WebSocket::SendCstr: Can't write to client\n");
         return -1;

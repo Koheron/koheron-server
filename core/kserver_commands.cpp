@@ -123,7 +123,7 @@ KSERVER_EXECUTE_OP(GET_CMDS)
     if ((bytes = GET_SESSION.SendCstr("EOC\n")) < 0)
        return -1;
 
-    kserver->syslog.print(SysLog::DEBUG, "[S] [%u bytes]\n", bytes_send+bytes);
+    kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send+bytes);
 
     return 0;
 }
@@ -221,7 +221,7 @@ KSERVER_EXECUTE_OP(GET_STATS)
     if ((bytes = GET_SESSION.SendCstr("EOKS\n")) < 0)
         return -1;
 
-    kserver->syslog.print(SysLog::DEBUG, "[S] [%u bytes]\n", bytes_send+bytes);
+    kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send+bytes);
 
     return 0;
 }
@@ -269,9 +269,7 @@ KSERVER_EXECUTE_OP(GET_DEV_STATUS)
     if ((bytes = GET_SESSION.SendCstr("EODS\n")) < 0)
         return -1;
 
-    kserver->syslog.print(SysLog::DEBUG,
-                          "[S] [%u bytes]\n", bytes_send + bytes);
-
+    kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send + bytes);
     return 0;
 }
 
@@ -364,7 +362,7 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
     if ((bytes = GET_SESSION.SendCstr("EORS\n")) < 0)
         return -1;
 
-    kserver->syslog.print(SysLog::DEBUG, "[S] [%u bytes]\n", bytes_send+bytes);
+    kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send + bytes);
 
     return 0;
 }
