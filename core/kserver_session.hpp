@@ -211,7 +211,7 @@ int Session<sock_type>::Run()
 
         requests_num++;
 
-        if (session_manager.dev_manager.Execute(cmd) < 0)
+        if (unlikely(session_manager.dev_manager.Execute(cmd) < 0))
             errors_num++;
     }
 

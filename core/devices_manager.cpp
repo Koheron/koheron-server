@@ -64,10 +64,7 @@ int DeviceManager::StartDev(device_t dev)
 #endif
 
     assert(dev < device_num);
-
-    // If already started, nothing to do
-    if (is_started[dev])
-        return 0;
+    assert(!is_started[dev]);
 
     if (dev == NO_DEVICE) {
         is_started[dev] = 1;
@@ -114,8 +111,9 @@ int DeviceManager::StartDev(device_t dev)
 
 int DeviceManager::Execute(const Command& cmd)
 {
-    if (StartDev(cmd.device) < 0)
-        return -1;
+    if (!is_started[cmd.device])
+        if (StartDev(cmd.device) < 0)
+            return -1;
 
     if (cmd.device == 0)
         return 0;

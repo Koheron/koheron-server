@@ -125,7 +125,8 @@ int WebSocket::read_http_packet()
         return -1;
     }
 
-    kserver->syslog.print_dbg("[R] HTTP header\n");
+    if (config->verbose)
+        kserver->syslog.print_dbg("[R] HTTP header\n");
 
     return nb_bytes_rcvd;
 }
@@ -197,8 +198,9 @@ int WebSocket::receive_cmd(Command& cmd)
         return -1;
     }
 
-    kserver->syslog.print_dbg(
-            "[R] WebSocket: command of %u bytes\n", header.payload_size);
+    if (config->verbose)
+        kserver->syslog.print_dbg(
+                "[R] WebSocket: command of %u bytes\n", header.payload_size);
 
     return header.payload_size;
 }
@@ -238,7 +240,9 @@ int WebSocket::receive()
         return -1;
     }
 
-    kserver->syslog.print_dbg("[R] WebSocket: %u bytes\n", header.payload_size);
+    if (config->verbose)
+        kserver->syslog.print_dbg("[R] WebSocket: %u bytes\n", header.payload_size);
+
     return header.payload_size;
 }
 
@@ -456,7 +460,8 @@ int WebSocket::send_request(const unsigned char *bits, long long len)
         return -1;
     }
 
-    kserver->syslog.print_dbg("[S] %i bytes\n", bytes_send);
+    if (config->verbose)
+        kserver->syslog.print_dbg("[S] %i bytes\n", bytes_send);
 
     return bytes_send;
 }
