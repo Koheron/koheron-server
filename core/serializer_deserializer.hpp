@@ -7,6 +7,7 @@
 
 #include <cstring>
 #include <tuple>
+#include <array>
 
 #include "commands.hpp"
 
@@ -25,7 +26,9 @@ inline T pseudo_cast(const U &x)
 // Definitions
 // ------------------------
 
-template<typename Tp> constexpr size_t size_of;
+template<typename Tp, size_t N=0> constexpr size_t size_of;
+template<typename Tp, size_t N> constexpr size_t size_of = size_of<Tp> * N;
+
 template<typename Tp> Tp extract(const char *buff);                // Deserialization
 template<typename Tp> void append(unsigned char *buff, Tp value);  // Serialization
 
@@ -216,6 +219,18 @@ template<>
 inline void append<bool>(unsigned char *buff, bool value)
 {
     value ? buff[0] = 1 : buff[0] = 0;
+}
+
+// std::array
+// template<typename T, size_t N> constexpr size_t size_of<std::array<T, N>> = sizeof(T) * N;
+
+template<size_t position, typename T, size_t N>
+inline const std::array<T, N>& extract_array(const char *buff)
+{
+    // http://stackoverflow.com/questions/11205186/treat-c-cstyle-array-as-stdarray
+    auto p = reinterpret_cast<const std::array<T, N>*>(&buff[position]);
+    assert(p->data() == (const T*)&buff[position]);
+    return *p;
 }
 
 // ------------------------

@@ -46,7 +46,8 @@ make CONFIG=config/config_local.yaml PYTHON=${PYTHON} cli
 make -C apis/C/tests TARGET_HOST=local clean all
 
 echo "== Start server =="
-nohup tmp/kserverd -c config/kserver_docker.conf > /dev/null 2>server.log &
+nohup tmp/kserverd -c config/kserver_docker.conf > /dev/null 2> server.log &
+# nohup tmp/kserverd -c config/kserver_docker.conf 0<&- &> server.log &
 ps -A | grep -w "kserverd"
 
 echo "== Test Hello World =="
@@ -63,6 +64,7 @@ ${CLI} status --devices
 ${CLI} status --devices KSERVER
 ${CLI} status --devices TESTS
 
+echo "== Test version =="
 VERSION=$(${CLI} status --version)
 SHA=$(git rev-parse --short HEAD)
 echo ${VERSION}

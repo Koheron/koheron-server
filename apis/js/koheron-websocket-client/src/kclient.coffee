@@ -23,6 +23,11 @@ class Device
 
         throw new ReferenceError(cmd_name + ': command not found')
 
+    getCmds : ->
+        cmds_dict = {}
+        cmds_dict[cmd.toLowerCase()] = idx for cmd, idx in @cmds
+        return cmds_dict
+
 class WebSocketPool
     "use strict"
 
@@ -38,9 +43,11 @@ class WebSocketPool
             if window?
                 websocket = new WebSocket url
             else # Node
+                clientConfig = {}
+                clientConfig.fragmentOutgoingMessages = false
                 __WebSocket = require('websocket').w3cwebsocket
-                websocket = new __WebSocket url
-            
+                websocket = new __WebSocket(url, null, null, null, null, clientConfig)
+
             websocket.binaryType = 'arraybuffer'
             @pool.push(websocket)
 
@@ -190,14 +197,14 @@ appendUint32 = (buffer, value) ->
 # @return {number} Uint32 containing the float binary representation
 ###
 floatToBytes = (f) ->
-    buf = new ArrayBuffer(4);
-    (new Float32Array(buf))[0] = f;
-    return (new Uint32Array(buf))[0];
+    buf = new ArrayBuffer(4)
+    (new Float32Array(buf))[0] = f
+    return (new Uint32Array(buf))[0]
 
 bytesTofloat = (bytes) ->
-    buffer = new ArrayBuffer(4);
-    (new Uint32Array(buffer))[0] = bytes;
-    return new Float32Array(buffer)[0];
+    buffer = new ArrayBuffer(4)
+    (new Uint32Array(buffer))[0] = bytes
+    return new Float32Array(buffer)[0]
 
 ###*
 # Append a Float32 to the binary buffer
@@ -207,6 +214,31 @@ bytesTofloat = (bytes) ->
 ###
 appendFloat32 = (buffer, value) ->
     appendUint32(buffer, floatToBytes(value))
+
+###*
+# Append a Float64 to the binary buffer
+# @param {Array.<number>} buffer The binary buffer
+# @param {number} value The double to append
+# @return {number} Number of bytes
+###
+appendFloat64 = (buffer, value) ->
+    buf = new ArrayBuffer(8)
+    (new Float64Array(buf))[0] = value
+    appendUint32(buffer, (new Uint32Array(buf, 0))[0])
+    appendUint32(buffer, (new Uint32Array(buf, 4))[0])
+    console.assert(buf.byteLength == 8, "Invalid float64 size")
+    return buf.byteLength
+
+###*
+# Append an Array to the binary buffer
+# @param {Array.<number>} buffer The binary buffer
+# @param {Array.<number>} array The array to append
+# @return {number} Number of bytes
+###
+appendArray = (buffer, array) ->
+    bytes = new Uint8Array(array.buffer)
+    buffer.push(_byte) for _byte in bytes
+    return array.buffer.byteLength
 
 class CommandBase
     "use strict"
@@ -251,11 +283,15 @@ class CommandBase
                     payload_size += appendInt32(payload, params[i])
                 when 'f'
                     payload_size += appendFloat32(payload, params[i])
+                when 'd'
+                    payload_size += appendFloat64(payload, params[i])
                 when '?'
                     if params[i]
                         payload_size += appendUint8(payload, 1)
                     else
                         payload_size += appendUint8(payload, 0)
+                when 'A'
+                    payload_size += appendArray(payload, params[i])
                 else
                     throw new TypeError('Unknown type ' + types_str[i])
 
@@ -281,7 +317,7 @@ class @KClient
 
     init: (callback) ->
         @websockpool = new WebSocketPool(@websock_pool_size, @url, => 
-            @getCmds(callback)
+            @loadCmds(callback)
         )
 
     subscribeServerBroadcast: (callback) ->
@@ -477,7 +513,7 @@ class @KClient
     #  Devices
     # ------------------------
 
-    getCmds: (callback) ->
+    loadCmds: (callback) ->
         @websockpool.requestSocket( (sockid) =>
             if sockid < 0 then return fn(null)
             websocket = @websockpool.getSocket(sockid)

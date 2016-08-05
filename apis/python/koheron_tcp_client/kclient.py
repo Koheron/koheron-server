@@ -111,6 +111,11 @@ def _append_u64(buff, value):
     _append_u32(buff, (value >> 32))
     return 8
 
+def _append_np_array(buff, array):
+    arr_bytes = bytearray(array)
+    buff += arr_bytes
+    return len(arr_bytes)
+
 # http://stackoverflow.com/questions/14431170/get-the-bits-of-a-float-in-python
 def float_to_bits(f):
     return struct.unpack('>l', struct.pack('>f', f))[0]
@@ -157,6 +162,8 @@ def _build_payload(type_str, args):
                 size += _append_u8(payload, 1)
             else:
                 size += _append_u8(payload, 0)
+        elif type_ is 'A':
+            size += _append_np_array(payload, args[i])
         else:
             raise ValueError('Unsupported type' + type(arg))
 

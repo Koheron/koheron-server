@@ -175,12 +175,11 @@ template<> int Session<WEBSOCK>::exit_socket() {return 0;}
 template<>
 int Session<WEBSOCK>::read_command(Command& cmd)
 {
-    if (websock.receive() < 0) { 
-        if (websock.is_closed())
-            return 0; // Connection closed by client
-        else
-            return -1;
-    }
+    if (websock.receive() < 0)
+        return -1;
+
+    if (websock.is_closed())
+        return 0;
 
     if (websock.payload_size() < HEADER_LENGTH) {
         session_manager.kserver.syslog.print(SysLog::ERROR,
@@ -200,13 +199,17 @@ int Session<WEBSOCK>::read_command(Command& cmd)
 
     if (payload_size + HEADER_LENGTH > websock.payload_size()) {
         session_manager.kserver.syslog.print(SysLog::ERROR,
-            "WebSocket: Command payload reception incomplete\n");
+            "WebSocket: Command payload reception incomplete. "
+            "Expected %zu bytes. Received %zu bytes.\n",
+            payload_size + HEADER_LENGTH, websock.payload_size());
         return -1;
     }
 
     if (payload_size + HEADER_LENGTH < websock.payload_size())
         session_manager.kserver.syslog.print(SysLog::WARNING,
-            "WebSocket: Received more data than expected\n");
+            "WebSocket: Received more data than expected. "
+            "Expected %zu bytes. Received %zu bytes.\n",
+            payload_size + HEADER_LENGTH, websock.payload_size());
 
     bzero(cmd.buffer.data, cmd.buffer.size());
     memcpy(cmd.buffer.data, websock.get_payload_no_copy() + HEADER_LENGTH, payload_size);

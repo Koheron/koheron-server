@@ -70,7 +70,6 @@ void tests_init(struct tests_device *dev, struct kclient *kcl)
 bool test_send_many_params(struct tests_device *dev)
 {
     bool is_ok;
-
     if (kclient_send_command(dev->kcl, dev->id, dev->rcv_many_params_ref, 
                              "IIf?", 429496729, 2048, 3.14, true) < 0
         || kclient_read_bool(dev->kcl, &is_ok))
@@ -82,7 +81,6 @@ bool test_send_many_params(struct tests_device *dev)
 bool test_read_uint64(struct tests_device *dev)
 {
     uint64_t rcv_uint64;
-
     if (kclient_send_command(dev->kcl, dev->id, dev->read_uint64_ref, "") < 0
         || kclient_read_u64(dev->kcl, &rcv_uint64))
         return false;
@@ -93,7 +91,6 @@ bool test_read_uint64(struct tests_device *dev)
 bool test_read_uint(struct tests_device *dev)
 {
     uint32_t rcv_uint;
-
     if (kclient_send_command(dev->kcl, dev->id, dev->read_uint_ref, "") < 0
         || kclient_read_u32(dev->kcl, &rcv_uint))
         return false;
@@ -104,7 +101,6 @@ bool test_read_uint(struct tests_device *dev)
 bool test_read_int(struct tests_device *dev)
 {
     int rcv_int;
-
     if (kclient_send_command(dev->kcl, dev->id, dev->read_int_ref, "") < 0
         || kclient_read_int(dev->kcl, &rcv_int))
         return false;
@@ -115,7 +111,6 @@ bool test_read_int(struct tests_device *dev)
 bool test_read_float(struct tests_device *dev)
 {
     float rcv_float;
-
     if (kclient_send_command(dev->kcl, dev->id, dev->read_float_ref, "") < 0
         || kclient_read_float(dev->kcl, &rcv_float))
         return false;
@@ -126,7 +121,6 @@ bool test_read_float(struct tests_device *dev)
 bool test_read_double(struct tests_device *dev)
 {
     double rcv_double;
-
     if (kclient_send_command(dev->kcl, dev->id, dev->read_double_ref, "") < 0
         || kclient_read_double(dev->kcl, &rcv_double))
         return false;
@@ -137,7 +131,6 @@ bool test_read_double(struct tests_device *dev)
 bool test_set_float(struct tests_device *dev)
 {
     bool is_ok;
-
     if (kclient_send_command(dev->kcl, dev->id, dev->set_float_ref, "f", 12.5) < 0
         || kclient_read_bool(dev->kcl, &is_ok))
         return false;
@@ -148,7 +141,6 @@ bool test_set_float(struct tests_device *dev)
 bool test_set_double(struct tests_device *dev)
 {
     bool is_ok;
-
     if (kclient_send_command(dev->kcl, dev->id, dev->set_double_ref, "d", 1.428571428571428492127) < 0
         || kclient_read_bool(dev->kcl, &is_ok))
         return false;
@@ -159,7 +151,6 @@ bool test_set_double(struct tests_device *dev)
 bool test_set_u64(struct tests_device *dev)
 {
     bool is_ok;
-
     if (kclient_send_command(dev->kcl, dev->id, dev->set_u64_ref, "Q", 2225073854759576792) < 0
         || kclient_read_bool(dev->kcl, &is_ok))
         return false;
@@ -170,7 +161,6 @@ bool test_set_u64(struct tests_device *dev)
 bool test_set_i64(struct tests_device *dev)
 {
     bool is_ok;
-
     if (kclient_send_command(dev->kcl, dev->id, dev->set_i64_ref, "q", -9223372036854775805) < 0
         || kclient_read_bool(dev->kcl, &is_ok))
         return false;
@@ -181,7 +171,6 @@ bool test_set_i64(struct tests_device *dev)
 bool test_set_unsigned(struct tests_device *dev)
 {
     bool is_ok;
-
     if (kclient_send_command(dev->kcl, dev->id, dev->set_unsigned_ref, "BHI", 255, 65535, 4294967295) < 0
         || kclient_read_bool(dev->kcl, &is_ok))
         return false;
@@ -192,7 +181,6 @@ bool test_set_unsigned(struct tests_device *dev)
 bool test_set_signed(struct tests_device *dev)
 {
     bool is_ok;
-
     if (kclient_send_command(dev->kcl, dev->id, dev->set_signed_ref, "bhi", -125, -32764, -2147483645) < 0
         || kclient_read_bool(dev->kcl, &is_ok))
         return false;
