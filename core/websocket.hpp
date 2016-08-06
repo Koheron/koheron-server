@@ -65,8 +65,8 @@ class WebSocket
 
     void set_id(int comm_fd_);
     int authenticate();
-    int receive();
-    int receive_cmd(Command& cmd);
+    int receive();                  // General purpose data reception
+    int receive_cmd(Command& cmd);  // Specialization to receive a command
     int send(const std::string& stream);
 
     template<class T>

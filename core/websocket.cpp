@@ -180,30 +180,34 @@ int WebSocket::send(const std::string& stream)
     return send_request(send_buf, mask_offset + data_len);
 }
 
-int WebSocket::receive_cmd(Command& cmd)
-{
-    if (connection_closed)
-        return 0;
-
-    int err = read_stream();
-
-    if (unlikely(err < 0))
-        return -1;
-    else if (err == 1) // Connection closed by client
-        return 0;
-
-    if (unlikely(decode_raw_stream_cmd(cmd) < 0)) {
-        kserver->syslog.print(SysLog::CRITICAL,
-                        "WebSocket: Cannot decode command stream\n");
-        return -1;
-    }
-
-    if (config->verbose)
-        kserver->syslog.print_dbg(
-                "[R] WebSocket: command of %u bytes\n", header.payload_size);
-
-    return header.payload_size;
+#define WEBSOCK_RCV(type, arg1, arg2)                                          \
+int WebSocket::receive##type(arg1)                                             \
+{                                                                              \
+    if (connection_closed)                                                     \
+        return 0;                                                              \
+                                                                               \
+    int err = read_stream();                                                   \
+                                                                               \
+    if (unlikely(err < 0))                                                     \
+        return -1;                                                             \
+    else if (err == 1) /* Connection closed by client*/                        \
+        return 0;                                                              \
+                                                                               \
+    if (unlikely(decode_raw_stream##type(arg2) < 0)) {                         \
+        kserver->syslog.print(SysLog::CRITICAL,                                \
+                        "WebSocket: Cannot decode command stream\n");          \
+        return -1;                                                             \
+    }                                                                          \
+                                                                               \
+    if (config->verbose)                                                       \
+        kserver->syslog.print_dbg(                                             \
+                "[R] WebSocket: command of %u bytes\n", header.payload_size);  \
+                                                                               \
+    return header.payload_size;                                                \
 }
+
+WEBSOCK_RCV(_cmd, Command& cmd, cmd)
+WEBSOCK_RCV(,,)
 
 int WebSocket::decode_raw_stream_cmd(Command& cmd)
 {
@@ -220,30 +224,6 @@ int WebSocket::decode_raw_stream_cmd(Command& cmd)
         cmd.buffer.data[i - HEADER_SIZE] = (payload_ptr[i] ^ mask[i % 4]);
 
     return 0;
-}
-
-int WebSocket::receive()
-{
-    if (connection_closed)
-        return 0;
-
-    int err = read_stream();
-
-    if (unlikely(err < 0))
-        return -1;
-    else if (err == 1) // Connection closed by client
-        return 0;
-
-    if (unlikely(decode_raw_stream() < 0)) {
-        kserver->syslog.print(SysLog::CRITICAL,
-                              "WebSocket: Cannot decode stream\n");
-        return -1;
-    }
-
-    if (config->verbose)
-        kserver->syslog.print_dbg("[R] WebSocket: %u bytes\n", header.payload_size);
-
-    return header.payload_size;
 }
 
 int WebSocket::decode_raw_stream()
