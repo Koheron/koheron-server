@@ -320,21 +320,18 @@ class Session<UNIX> : public Session<TCP>
 #if KSERVER_HAS_WEBSOCKET
 
 template<> const uint32_t* Session<WEBSOCK>::RcvHandshake(uint32_t buff_size);
-template<> int Session<WEBSOCK>::SendCstr(const char *string);
 
 template<>
 template<class T>
-int Session<WEBSOCK>::SendArray(const T *data, unsigned int len)
+inline int Session<WEBSOCK>::SendArray(const T *data, unsigned int len)
 {
-    int bytes_send = websock.send<T>(data, len);
+    return websock.send(data, len);
+}
 
-    if (unlikely(bytes_send < 0)) {
-        session_manager.kserver.syslog.print(SysLog::ERROR,
-                              "SendArray: Can't write to client\n");
-        return -1;
-    }
-
-    return bytes_send;
+template<>
+inline int Session<WEBSOCK>::SendCstr(const char *string)
+{
+    return websock.send_cstr(string);
 }
 
 SEND_SPECIALIZE_IMPL(Session<WEBSOCK>)

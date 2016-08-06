@@ -165,19 +165,19 @@ int WebSocket::set_send_header(unsigned char *bits, long long data_len,
     return mask_offset;
 }
 
-int WebSocket::send(const std::string& stream)
+int WebSocket::send_cstr(const char *string)
 {
-    unsigned long data_len = stream.length();
+    long unsigned int char_data_len = strlen(string);
 
-    if (data_len + 10 > WEBSOCK_SEND_BUF_LEN) {
+    if (char_data_len + 10 > WEBSOCK_SEND_BUF_LEN) {
         kserver->syslog.print(SysLog::ERROR,
                               "WebSocket: send_buf too small\n");
         return -1;
     }
 
-    int mask_offset = set_send_header(send_buf, data_len, TEXT);
-    std::copy(stream.begin(), stream.end(), &send_buf[mask_offset]);
-    return send_request(send_buf, mask_offset + data_len);
+    int mask_offset = set_send_header(send_buf, char_data_len, TEXT);
+    memcpy(&send_buf[mask_offset], string, char_data_len);
+    return send_request(send_buf, mask_offset + char_data_len);
 }
 
 #define WEBSOCK_RCV(type, arg1, arg2)                                          \
@@ -206,8 +206,8 @@ int WebSocket::receive##type(arg1)                                             \
     return header.payload_size;                                                \
 }
 
-WEBSOCK_RCV(_cmd, Command& cmd, cmd)
-WEBSOCK_RCV(,,)
+WEBSOCK_RCV(_cmd, Command& cmd, cmd) // receive_cmd
+WEBSOCK_RCV(,,)                      // receive
 
 int WebSocket::decode_raw_stream_cmd(Command& cmd)
 {

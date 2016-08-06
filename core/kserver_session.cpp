@@ -237,20 +237,6 @@ const uint32_t* Session<WEBSOCK>::RcvHandshake(uint32_t buff_size)
 
     return reinterpret_cast<const uint32_t*>(websock.get_payload_no_copy());
 }
-
-template<>
-int Session<WEBSOCK>::SendCstr(const char *string)
-{
-    int err = websock.send(std::string(string));
-
-    if (unlikely(err < 0)) {
-        session_manager.kserver.syslog.print(SysLog::ERROR,
-                              "WebSocket::SendCstr: Can't write to client\n");
-        return -1;
-    }
-
-    return strlen(string) + 1;
-}
 #endif
 
 } // namespace kserver
