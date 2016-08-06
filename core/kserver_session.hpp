@@ -9,6 +9,7 @@
 #include <array>
 #include <memory>
 #include <unistd.h>
+#include <type_traits>
 
 #include "commands.hpp"
 #include "devices_manager.hpp"
@@ -119,9 +120,17 @@ class Session : public SessionAbstract
     SessionPermissions permissions;
 
     Command cmd;
-    Buffer<KSERVER_RECV_DATA_BUFF_LEN> recv_data_buff; // For RcvHandshake
+
+    struct EmptyBuffer {};
+    std::conditional_t<sock_type == TCP || sock_type == UNIX,
+            Buffer<KSERVER_RECV_DATA_BUFF_LEN>, EmptyBuffer> recv_data_buff;
+
 #if KSERVER_HAS_WEBSOCKET
-    WebSocket websock; // TODO Move in Session<WEBSOCK> specialization
+    struct EmptyWebsock {
+        EmptyWebsock(std::shared_ptr<KServerConfig> config_, KServer *kserver_){}
+    };
+
+    std::conditional_t<sock_type == WEBSOCK, WebSocket, EmptyWebsock> websock;
 #endif
 
     // Monitoring
@@ -280,7 +289,7 @@ int Session<TCP>::SendArray(const T *data, unsigned int len)
        return -1;
     }
 
-    if (n_bytes_send != bytes_send) {
+    if (unlikely(n_bytes_send != bytes_send)) {
         session_manager.kserver.syslog.print(SysLog::ERROR,
             "TCPSocket::SendArray: Some bytes have not been sent\n");
         return -1;
