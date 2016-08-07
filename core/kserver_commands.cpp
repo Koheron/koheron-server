@@ -50,7 +50,7 @@ KSERVER_PARSE_ARG(GET_VERSION) {return 0;}
 
 KSERVER_EXECUTE_OP(GET_VERSION)
 {
-    return GET_SESSION.SendCstr(xstr(SHA));
+    return GET_SESSION.send_cstr(xstr(SHA));
 }
 
 /////////////////////////////////////
@@ -82,7 +82,7 @@ KSERVER_EXECUTE_OP(GET_CMDS)
         return -1;
     }
 
-    if ((bytes = GET_SESSION.SendCstr(cmds_str)) < 0)
+    if ((bytes = GET_SESSION.send_cstr(cmds_str)) < 0)
         return -1;
 
     bytes_send += bytes;
@@ -113,14 +113,14 @@ KSERVER_EXECUTE_OP(GET_CMDS)
 
         strcat(cmds_str, "\n");
 
-        if ((bytes = GET_SESSION.SendCstr(cmds_str)) < 0)
+        if ((bytes = GET_SESSION.send_cstr(cmds_str)) < 0)
             return -1;
 
         bytes_send += bytes;
     }
 
     // Send EOC (End Of Commands)
-    if ((bytes = GET_SESSION.SendCstr("EOC\n")) < 0)
+    if ((bytes = GET_SESSION.send_cstr("EOC\n")) < 0)
        return -1;
 
     kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send+bytes);
@@ -161,7 +161,7 @@ int send_listener_stats(SessID sess_id, KServer *kserver,
         return -1;
     }
 
-    if ((bytes_send = GET_SESSION.SendCstr(send_str)) < 0)
+    if ((bytes_send = GET_SESSION.send_cstr(send_str)) < 0)
         return -1;
 
     return bytes_send;
@@ -190,7 +190,7 @@ KSERVER_EXECUTE_OP(GET_STATS)
         return -1;
     }
 
-    if ((bytes = GET_SESSION.SendCstr(send_str)) < 0)
+    if ((bytes = GET_SESSION.send_cstr(send_str)) < 0)
         return -1;
 
     bytes_send += bytes;
@@ -218,7 +218,7 @@ KSERVER_EXECUTE_OP(GET_STATS)
 #endif
 
     // Send EORS (End Of KServer Stats)
-    if ((bytes = GET_SESSION.SendCstr("EOKS\n")) < 0)
+    if ((bytes = GET_SESSION.send_cstr("EOKS\n")) < 0)
         return -1;
 
     kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send+bytes);
@@ -259,14 +259,14 @@ KSERVER_EXECUTE_OP(GET_DEV_STATUS)
             return -1;
         }
 
-        if ((bytes = GET_SESSION.SendCstr(send_str)) < 0)
+        if ((bytes = GET_SESSION.send_cstr(send_str)) < 0)
             return -1;
 
         bytes_send += bytes;
     }
 
     // Send EODS (End Of Device Status)
-    if ((bytes = GET_SESSION.SendCstr("EODS\n")) < 0)
+    if ((bytes = GET_SESSION.send_cstr("EODS\n")) < 0)
         return -1;
 
     kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send + bytes);
@@ -352,14 +352,14 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
             return -1;
         }
 
-        if ((bytes = GET_SESSION.SendCstr(send_str)) < 0)
+        if ((bytes = GET_SESSION.send_cstr(send_str)) < 0)
             return -1;
 
         bytes_send += bytes;
     }
 
     // Send EORS (End Of Running Sessions)
-    if ((bytes = GET_SESSION.SendCstr("EORS\n")) < 0)
+    if ((bytes = GET_SESSION.send_cstr("EORS\n")) < 0)
         return -1;
 
     kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send + bytes);
