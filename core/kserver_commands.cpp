@@ -15,7 +15,7 @@ namespace kserver {
 
 #define KS_DEV_WRITE_STR_LEN 1024
 
-#define GET_SESSION kserver->session_manager.GetSession(sess_id)
+#define GET_SESSION kserver->session_manager.get_session(sess_id)
 #define GET_CMD_LOG GET_SESSION.GetCmdLog()
 
 #define KSERVER_STRUCT_ARGUMENTS(cmd_name)                          \
@@ -298,10 +298,10 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
     unsigned int bytes_send = 0;
     const SessionPermissions* perms;
 
-    std::vector<SessID> ids = kserver->session_manager.GetCurrentIDs();
+    const auto& ids = kserver->session_manager.get_current_ids();
 
-    for (unsigned int i=0; i<ids.size(); i++) {
-        SessionAbstract& session = kserver->session_manager.GetSession(ids[i]);
+    for (auto& id : ids) {
+        SessionAbstract& session = kserver->session_manager.get_session(id);
 
         const char *sock_type_name;
         const char *ip;
@@ -335,7 +335,7 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
 
         int ret = snprintf(send_str, KS_DEV_WRITE_STR_LEN,
                            "%u:%s:%s:%u:%u:%u:%li:%s\n",
-                           ids[i], sock_type_name,
+                           id, sock_type_name,
                            ip, port, req_num, err_num,
                            std::time(nullptr) - start_time,
                            perms_str);

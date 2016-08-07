@@ -11,8 +11,8 @@
 namespace kserver {
 
 template<int sock_type>
-SessID SessionManager::CreateSession(const std::shared_ptr<KServerConfig>& config_,
-                                     int comm_fd, PeerInfo peer_info)
+SessID SessionManager::create_session(const std::shared_ptr<KServerConfig>& config_,
+                                      int comm_fd, PeerInfo peer_info)
 {
 #if KSERVER_HAS_THREADS
     std::lock_guard<std::mutex> lock(mutex);
@@ -64,10 +64,10 @@ void SessionManager::apply_permissions(
       case LCFS:
         // Set write permission of all current sessions to false
         if (!session_pool.empty()) {
-            std::vector<SessID> ids = GetCurrentIDs();
+            const auto& ids = get_current_ids();
             
-            for (size_t i=0; i<ids.size(); i++)         
-                cast_to_session<sock_type>(session_pool[ids[i]])
+            for (auto& id : ids)
+                cast_to_session<sock_type>(session_pool[id])
                                             ->permissions.write = false;
         }
 

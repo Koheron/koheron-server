@@ -27,10 +27,7 @@ SessionManager::SessionManager(KServer& kserver_, DeviceManager& dev_manager_,
   reusable_ids(0)
 {}
 
-SessionManager::~SessionManager()
-{
-    DeleteAll();
-}
+SessionManager::~SessionManager() {delete_all();}
 
 unsigned int SessionManager::num_sess = 0;
 
@@ -59,7 +56,7 @@ bool SessionManager::is_reusable_id(SessID id)
 
 bool SessionManager::is_current_id(SessID id)
 {
-    auto curr_ids = GetCurrentIDs();
+    auto curr_ids = get_current_ids();
 
     for (auto& curr_id : curr_ids)
         if (curr_id == id)
@@ -68,7 +65,7 @@ bool SessionManager::is_current_id(SessID id)
     return false;
 }
 
-std::vector<SessID> SessionManager::GetCurrentIDs()
+std::vector<SessID> SessionManager::get_current_ids()
 {
     std::vector<SessID> res(0);
 
@@ -126,7 +123,7 @@ void SessionManager::reset_permissions(SessID id)
     }
 }
 
-void SessionManager::DeleteSession(SessID id)
+void SessionManager::delete_session(SessID id)
 {
 #if KSERVER_HAS_THREADS
     std::lock_guard<std::mutex> lock(mutex);
@@ -177,17 +174,17 @@ void SessionManager::DeleteSession(SessID id)
     kserver.broadcast.emit<Broadcast::SERVER_CHANNEL, Broadcast::DEL_SESSION>();
 }
 
-void SessionManager::DeleteAll()
+void SessionManager::delete_all()
 {
     kserver.syslog.print(SysLog::INFO, "Closing all active sessions ...\n");
     assert(num_sess == session_pool.size());
 
     if (!session_pool.empty()) {
-        auto ids = GetCurrentIDs();
+        auto ids = get_current_ids();
         
         for (auto& id : ids) {
             kserver.syslog.print(SysLog::INFO, "Delete session %u\n", id);
-            DeleteSession(id);
+            delete_session(id);
         }
     }
 

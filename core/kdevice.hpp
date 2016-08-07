@@ -88,11 +88,11 @@ friend Dev;
 };
 
 /// Macros to simplify edition of operations 
-#define VERBOSE kserver->session_manager.GetSession(sess_id).GetParams().Verbose()
-#define SEND kserver->session_manager.GetSession(sess_id).send
-#define SEND_ARRAY kserver->session_manager.GetSession(sess_id).send_array
-#define SEND_CSTR kserver->session_manager.GetSession(sess_id).send_cstr
-#define RCV_HANDSHAKE kserver->session_manager.GetSession(sess_id).rcv_handshake
+#define VERBOSE kserver->session_manager.get_session(sess_id).GetParams().Verbose()
+#define SEND kserver->session_manager.get_session(sess_id).send
+#define SEND_ARRAY kserver->session_manager.get_session(sess_id).send_array
+#define SEND_CSTR kserver->session_manager.get_session(sess_id).send_cstr
+#define RCV_HANDSHAKE kserver->session_manager.get_session(sess_id).rcv_handshake
 
 // Example of Device implementation
 #ifdef NE_PAS_DEFINIR_CETTE_MACRO
