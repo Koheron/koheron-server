@@ -142,7 +142,7 @@ class Session : public SessionAbstract
     int init_socket();
     int exit_socket();
     int init_session();
-    int exit_session();
+    void exit_session();
     int read_command(Command& cmd);
 
 friend class SessionManager;
@@ -202,6 +202,14 @@ int Session<sock_type>::init_session()
 }
 
 template<int sock_type>
+void Session<sock_type>::exit_session()
+{
+    if (exit_socket() < 0)
+        session_manager.kserver.syslog.print(SysLog::WARNING,
+        "An error occured during session exit\n");
+}
+
+template<int sock_type>
 int Session<sock_type>::Run()
 {
     if (init_session() < 0)
@@ -224,13 +232,8 @@ int Session<sock_type>::Run()
             errors_num++;
     }
 
+    exit_session();
     return 0;
-}
-
-template<int sock_type>
-int Session<sock_type>::exit_session()
-{
-    return exit_socket();
 }
 
 #define SEND_SPECIALIZE_IMPL(session_kind)                              \

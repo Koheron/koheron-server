@@ -157,7 +157,7 @@ int WebSocket::set_send_header(unsigned char *bits, long long data_len,
         bits[5] = (data_len >> 32) & 255;
         bits[6] = (data_len >> 24) & 255;
         bits[7] = (data_len >> 16) & 255;
-        bits[8] = (data_len >> 8) & 255;
+        bits[8] = (data_len >>  8) & 255;
         bits[9] = data_len & 255;
         mask_offset = WebSocketMaskOffset::BigOffset;
     }
@@ -180,8 +180,13 @@ int WebSocket::send_cstr(const char *string)
     return send_request(send_buf, mask_offset + char_data_len);
 }
 
-#define WEBSOCK_RCV(type, arg1, arg2)                                          \
-int WebSocket::receive##type(arg1)                                             \
+int WebSocket::exit()
+{
+    return send_request(send_buf, set_send_header(send_buf, 0, CLOSE));
+}
+
+#define WEBSOCK_RCV(type, arg_type, arg_name)                                  \
+int WebSocket::receive##type(arg_type arg_name)                                \
 {                                                                              \
     if (connection_closed)                                                     \
         return 0;                                                              \
@@ -193,7 +198,7 @@ int WebSocket::receive##type(arg1)                                             \
     else if (err == 1) /* Connection closed by client*/                        \
         return 0;                                                              \
                                                                                \
-    if (unlikely(decode_raw_stream##type(arg2) < 0)) {                         \
+    if (unlikely(decode_raw_stream##type(arg_name) < 0)) {                     \
         kserver->syslog.print(SysLog::CRITICAL,                                \
                         "WebSocket: Cannot decode command stream\n");          \
         return -1;                                                             \
@@ -206,7 +211,7 @@ int WebSocket::receive##type(arg1)                                             \
     return header.payload_size;                                                \
 }
 
-WEBSOCK_RCV(_cmd, Command& cmd, cmd) // receive_cmd
+WEBSOCK_RCV(_cmd, Command&, cmd) // receive_cmd
 WEBSOCK_RCV(,,)                      // receive
 
 int WebSocket::decode_raw_stream_cmd(Command& cmd)

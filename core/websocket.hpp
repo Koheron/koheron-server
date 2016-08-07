@@ -26,7 +26,8 @@ struct WebSocketStreamHeader {
 
 typedef enum WebSocketSendFormat {
     TEXT = 129,
-    BINARY = 130
+    BINARY = 130,
+    CLOSE = 136
 } WS_SendFormat_t; 
 
 enum WebSocketOpCode {
@@ -81,6 +82,7 @@ class WebSocket
     
     bool is_closed() const {return connection_closed;}
 
+    int exit();
   private:
     std::shared_ptr<KServerConfig> config;
     KServer *kserver;

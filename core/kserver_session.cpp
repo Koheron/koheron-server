@@ -166,7 +166,10 @@ int Session<WEBSOCK>::init_socket()
     return 0;
 }
 
-template<> int Session<WEBSOCK>::exit_socket() {return 0;}
+template<> int Session<WEBSOCK>::exit_socket()
+{
+    return websock.exit();
+}
 
 template<>
 int Session<WEBSOCK>::read_command(Command& cmd)
