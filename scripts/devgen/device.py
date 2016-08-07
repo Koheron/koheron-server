@@ -13,34 +13,34 @@ def GetClassName(dev_name):
     return 'KS_' + dev_name[0].upper() + dev_name[1:].lower()
 
 def IsFlags(operation):
-    """ Test whether flags are defined for a given operation """
-    return ("flags" in operation) and (operation["flags"] != None)
+    ''' Test whether flags are defined for a given operation '''
+    return ('flags' in operation) and (operation['flags'] != None)
 
 def IsArgs(operation):
-    """ Test whether arguments are defined for a given operation """
-    return ("arguments" in operation) and (operation["arguments"] != None)
+    ''' Test whether arguments are defined for a given operation '''
+    return ('arguments' in operation) and (operation['arguments'] != None)
 
 def IsDefaultVal(arg):
-    """ Test whether a default value is defined for an argument """
-    return ("default" in arg) and (arg["default"] != None) and (len(arg["default"]) != 0)
+    ''' Test whether a default value is defined for an argument '''
+    return ('default' in arg) and (arg['default'] != None) and (len(arg['default']) != 0)
 
 def IsReturn(operation):
-    """ Test whether a return description are defined for a given operation """
-    return ("return" in operation) and (operation["return"] != None)
+    ''' Test whether a return description are defined for a given operation '''
+    return ('return' in operation) and (operation['return'] != None)
 
 class Device:
     def __init__(self, path, midware_path):
-        print "Parsing and analysing " + path + "..."
+        print 'Parsing and analysing ' + path + '...'
         mid_handler = MiddlewareHandler(os.path.join(midware_path, path))
         self.header_path = os.path.dirname(path)
         self._data = mid_handler.get_device_data()
         self.fragments = mid_handler.get_fragments()
 
-        self.operations = Operations(self._data["operations"])
-        self.name = self._data["name"]
+        self.operations = Operations(self._data['operations'])
+        self.name = self._data['name']
         self.class_name = GetClassName(self.name)
-        self.objects = Objects(self._data["objects"])
-        self.includes = Includes(self._data["includes"])
+        self.objects = Objects(self._data['objects'])
+        self.includes = Includes(self._data['includes'])
 
     def generate(self, directory):
         self._render_ks_device_header(directory)          # Generate KServer header file (hpp)
@@ -74,18 +74,18 @@ class Operations:
         return self._operations[index]
 
     def is_valid_op(self, op_name):
-        """ Test whether an operation is valid
+        ''' Test whether an operation is valid
         Args:
             - op_name: Name of the operation to check
-        """
+        '''
         for operation in self:
-            if operation["name"] == op_name:
+            if operation['name'] == op_name:
                 return True
 
         return False
 
 class Objects:
-    """ Objects from external API """
+    ''' Objects from external API '''
 
     def __init__(self, objects):
         if objects == None:
@@ -102,7 +102,7 @@ class Objects:
         return self._objects[index]
 
 class Includes:
-    """ API files to include """
+    ''' API files to include '''
     def __init__(self, includes):
         if includes == None:
             self._includes = []
