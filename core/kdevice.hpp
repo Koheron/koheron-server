@@ -46,7 +46,7 @@ public:
 
 struct Command;
 
-/// @brief Polymorph class for a KServer device
+/// Polymorph class for a KServer device
 /// 
 /// Uses static polymorphism with Curiously Recurring Template Pattern (CRTP)
 /// http://en.wikipedia.org/wiki/Curiously_recurring_template_pattern 

@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 #endif
 
     kserver::KServer server(config);
-    server.Run();
+    server.run();
 
     // FIXME Not a clean way to terminate
     // But else the program doesn't close

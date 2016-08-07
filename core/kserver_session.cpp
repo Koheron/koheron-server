@@ -133,11 +133,10 @@ template<>
 int Session<TCP>::send_cstr(const char *string)
 {
     int bytes_send = strlen(string) + 1;
-    int err = write(comm_fd, string, bytes_send);
 
-    if (unlikely(err < 0)) {
+    if (unlikely(write(comm_fd, string, bytes_send) < 0)) {
         session_manager.kserver.syslog.print(SysLog::ERROR,
-                              "TCPSocket::SendCstr: Can't write to client\n");
+                              "TCPSocket::send_cstr: Can't write to client\n");
         return -1;
     }
 

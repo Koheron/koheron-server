@@ -153,7 +153,7 @@ class KServer : public KDevice<KServer, KSERVER>
   public:
     KServer(std::shared_ptr<kserver::KServerConfig> config_);
 
-    int Run();
+    int run();
 
     /// Operations associated to the device
     enum Operation {

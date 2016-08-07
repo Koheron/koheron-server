@@ -120,7 +120,7 @@ void KServer::join_listeners_workers()
 #endif
 }
 
-int KServer::Run()
+int KServer::run()
 {
     start_time = std::time(nullptr);
 
