@@ -70,7 +70,7 @@ class Session : public SessionAbstract
             int comm_fd, SessID id_, PeerInfo peer_info,
             SessionManager& session_manager_);
 
-    int Run();
+    int run();
 
     inline unsigned int RequestNum(void) const {return requests_num;}
     inline unsigned int ErrorNum(void) const {return errors_num;}
@@ -210,7 +210,7 @@ void Session<sock_type>::exit_session()
 }
 
 template<int sock_type>
-int Session<sock_type>::Run()
+int Session<sock_type>::run()
 {
     if (init_session() < 0)
         return -1;

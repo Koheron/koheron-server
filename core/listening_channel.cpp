@@ -148,7 +148,7 @@ void session_thread_call(int comm_fd, PeerInfo peer_info,
                 sid, session->GetClientIP(), session->GetClientPort(),
                 session->GetStartTime());
 
-    if (session->Run() < 0)
+    if (session->run() < 0)
         listener->kserver->syslog.print(SysLog::ERROR,
                                         "An error occured during session\n");
 
