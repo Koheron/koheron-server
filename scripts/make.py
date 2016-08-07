@@ -31,14 +31,12 @@ def render_device_table(devices):
 def generate(devices_list, midware_path):
     devices = [] # List of generated devices
     obj_files = []  # Object file names
-
     for path in devices_list:
         if path.endswith('.hpp') or path.endswith('.h'):
             device = Device(path, midware_path)
-            print "Generate " + device.name
+            print 'Generating ' + device.name + '...'
             device.generate(os.path.join(midware_path, os.path.dirname(path)))
             devices.append(device)
-
     return devices
 
 def install_requirements(config, base_dir):

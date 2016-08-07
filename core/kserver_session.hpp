@@ -239,35 +239,53 @@ int Session<sock_type>::run()
     return 0;
 }
 
-#define SEND_SPECIALIZE_IMPL(session_kind)                              \
-    template<> template<>                                               \
-    inline int session_kind::send<std::string>(const std::string& str)  \
-    {                                                                   \
-        return send_cstr(str.c_str());                                  \
-    }                                                                   \
-                                                                        \
-    template<> template<>                                               \
-    inline int session_kind::send<uint32_t>(const uint32_t& val)        \
-    {                                                                   \
-        return send_array<uint32_t>(&val, 1);                           \
-    }                                                                   \
-                                                                        \
-    template<> template<>                                               \
-    inline int session_kind::send<uint64_t>(const uint64_t& val)        \
-    {                                                                   \
-        return send_array<uint64_t>(&val, 1);                           \
-    }                                                                   \
-                                                                        \
-    template<> template<>                                               \
-    inline int session_kind::send<float>(const float& val)              \
-    {                                                                   \
-        return send_array<float>(&val, 1);                              \
-    }                                                                   \
-                                                                        \
-    template<> template<>                                               \
-    inline int session_kind::send<double>(const double& val)            \
-    {                                                                   \
-        return send_array<double>(&val, 1);                             \
+#define SEND_SPECIALIZE_IMPL(session_kind)                                            \
+    template<> template<>                                                             \
+    inline int session_kind::send<std::string>(const std::string& str)                \
+    {                                                                                 \
+        return send_cstr(str.c_str());                                                \
+    }                                                                                 \
+                                                                                      \
+    template<> template<>                                                             \
+    inline int session_kind::send<uint32_t>(const uint32_t& val)                      \
+    {                                                                                 \
+        return send_array<uint32_t>(&val, 1);                                         \
+    }                                                                                 \
+                                                                                      \
+    template<> template<>                                                             \
+    inline int session_kind::send<bool>(const bool& val)                              \
+    {                                                                                 \
+        return send<uint32_t>(val);                                                   \
+    }                                                                                 \
+                                                                                      \
+    template<> template<>                                                             \
+    inline int session_kind::send<int>(const int& val)                                \
+    {                                                                                 \
+        return send<uint32_t>(val);                                                   \
+    }                                                                                 \
+                                                                                      \
+    template<> template<>                                                             \
+    inline int session_kind::send<uint64_t>(const uint64_t& val)                      \
+    {                                                                                 \
+        return send_array<uint64_t>(&val, 1);                                         \
+    }                                                                                 \
+                                                                                      \
+    template<> template<>                                                             \
+    inline int session_kind::send<unsigned long long>(const unsigned long long& val)  \
+    {                                                                                 \
+        return send<uint64_t>(val);                                                   \
+    }                                                                                 \
+                                                                                      \
+    template<> template<>                                                             \
+    inline int session_kind::send<float>(const float& val)                            \
+    {                                                                                 \
+        return send_array<float>(&val, 1);                                            \
+    }                                                                                 \
+                                                                                      \
+    template<> template<>                                                             \
+    inline int session_kind::send<double>(const double& val)                          \
+    {                                                                                 \
+        return send_array<double>(&val, 1);                                           \
     }
 
 // -----------------------------------------------

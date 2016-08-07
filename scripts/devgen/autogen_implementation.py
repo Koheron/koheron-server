@@ -166,7 +166,7 @@ def get_std_array_params(arg_type):
 def GetTotalArgNum(operation):
     if not dev_utils.IsArgs(operation):
         return 0
-    return len(operation["arguments"])
+    return len(operation['arguments'])
 
 # -----------------------------------------------------------
 # ExecuteOp
@@ -177,13 +177,13 @@ def PrintExecuteOp(file_id, device, operation):
     file_id.write('template<>\n')
 
     file_id.write('int KDevice<' + device.class_name + ',' + device.name + '>::\n')
-    file_id.write('        execute_op<' + device.class_name + '::' + operation["name"] + '> \n' )
-    file_id.write('        (const Argument<' + device.class_name + '::' + operation["name"] + '>& args, SessID sess_id)\n')
+    file_id.write('        execute_op<' + device.class_name + '::' + operation['name'] + '> \n' )
+    file_id.write('        (const Argument<' + device.class_name + '::' + operation['name'] + '>& args, SessID sess_id)\n')
     file_id.write('{\n')
 
     # Load code fragments
     for frag in device.fragments:
-        if operation["name"] == frag['name']:
+        if operation['name'] == frag['name']:
             for line in frag['fragment']:
                 file_id.write(line)
 
