@@ -222,7 +222,10 @@ int Session<sock_type>::Run()
             break;
 
         if (nb_bytes_rcvd <= 0) {
-            exit_session();
+
+            // We don't call exit_session() here because the
+            // socket is already closed.
+
             return nb_bytes_rcvd;
         }
 
