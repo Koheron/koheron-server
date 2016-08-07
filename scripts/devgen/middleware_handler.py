@@ -193,85 +193,85 @@ class FragmentsGenerator:
             known_types = {'uint32_t', 'unsigned int', 'unsigned long', 'int', 'int32_t', 'bool',
                            'uint64_t', 'unsigned long long', 'float', 'double', 'std::string'}
 
+            known_template_types = {'std::vector', 'std::array', 'std::tuple'}
+
             if operation['prototype']['ret_type'] in known_types:
                 frag.append('    return SEND('+ self._build_func_call(operation) + ');\n')
             elif template != None:
-                type_base = operation["prototype"]["ret_type"].split('<')[0].strip()
+                type_base = operation['prototype']['ret_type'].split('<')[0].strip()
 
-                if (type_base == "std::vector"
-                    or type_base == "std::array"
-                    or type_base == "std::tuple"):
-                    frag.append("    return SEND<" + template + ">(" 
-                                + self._build_func_call(operation) + ");\n")
+                if type_base in known_template_types:
+                    frag.append('    return SEND<' + template + '>('
+                                + self._build_func_call(operation) + ');\n')
             else:
-                raise ValueError("No available interface to send type " 
-                                 + operation["prototype"]["ret_type"])
+                raise ValueError('No available interface to send type '
+                                 + operation['prototype']['ret_type'])
 
-        elif operation["io_type"]["value"] == "READ_CSTR":
-            if operation["prototype"]["ret_type"] not in CSTR_TYPES:
-                raise ValueError("I/O type READ_CSTR expects a char*. Found "
-                                 + operation["prototype"]["ret_type"] + ".\n")
+        elif operation['io_type']['value'] == 'READ_CSTR':
+            if operation['prototype']['ret_type'] not in CSTR_TYPES:
+                raise ValueError('I/O type READ_CSTR expects a char*. Found '
+                                 + operation['prototype']['ret_type'] + '.\n')
 
-            frag.append("    return SEND_CSTR("
-                        + self._build_func_call(operation) + ");\n")
+            frag.append('    return SEND_CSTR('
+                        + self._build_func_call(operation) + ');\n')
 
-        elif operation["io_type"]["value"] == "READ_ARRAY":
-            ptr_type = self._get_ptr_type(operation["prototype"]["ret_type"])
-            remaining = operation["io_type"]["remaining"]
+        elif operation['io_type']['value'] == 'READ_ARRAY':
+            ptr_type = self._get_ptr_type(operation['prototype']['ret_type'])
+            remaining = operation['io_type']['remaining']
 
             if remaining.find('this') >= 0:
-                obj_name = self.parser.device["objects"][0]["name"]
+                obj_name = self.parser.device['objects'][0]['name']
                 member_name = remaining.split('{')[1].split('}')[0].strip()
-                member_call = "THIS->" + obj_name + "." + member_name
+                member_call = 'THIS->' + obj_name + '.' + member_name
                 length = remaining.replace('this{' + member_name + '}', member_call)
             elif remaining.find('arg') >= 0:
-                length = ""
-                for param in operation["prototype"]["params"]:
+                length = ''
+                for param in operation['prototype']['params']:
                     if remaining.find(param['name']) >= 0:
-                        length = remaining.replace('arg{' + param['name'] + '}', "args." + param['name'])
-                if length == "": # Length is a constant independent of a parameter
+                        length = remaining.replace('arg{' + param['name'] + '}', 'args.' + param['name'])
+                if length == '': # Length is a constant independent of a parameter
                     length = remaining
             else: # Length is a constant independent of a parameter
                 length = remaining
 
-            frag.append("    auto ptr = " + self._build_func_call(operation) + ";\n")
-            frag.append("    return SEND_ARRAY<" + ptr_type + ">(ptr, " + length + ");\n")
+            frag.append('    auto ptr = ' + self._build_func_call(operation) + ';\n')
+            frag.append('    return SEND_ARRAY<' + ptr_type + '>(ptr, ' + length + ');\n')
 
-        elif operation["io_type"]["value"] == "WRITE_ARRAY":
-            len_name = operation["array_params"]['length']['length']
+        elif operation['io_type']['value'] == 'WRITE_ARRAY':
+            len_name = operation['array_params']['length']['length']
 
-            frag.append("    const uint32_t *data_ptr = RCV_HANDSHAKE(args." + len_name + ");\n\n")
-            frag.append("    if (data_ptr == nullptr)\n")
-            frag.append("       return -1;\n\n")
-            if (operation["prototype"]["ret_type"] == "uint32_t"
-                or operation["prototype"]["ret_type"] == "unsigned int"
-                or operation["prototype"]["ret_type"] == "unsigned long"
-                or operation["prototype"]["ret_type"] == "int"
-                or operation["prototype"]["ret_type"] == "int32_t"
-                or operation["prototype"]["ret_type"] == "bool"):
-                frag.append("    return SEND<uint32_t>(" + self._build_write_array_func_call(operation) + ");\n")
+            frag.append('    const uint32_t *data_ptr = RCV_HANDSHAKE(args.' + len_name + ');\n\n')
+            frag.append('    if (data_ptr == nullptr)\n')
+            frag.append('       return -1;\n\n')
+            if (operation['prototype']['ret_type'] == 'uint32_t'
+                or operation['prototype']['ret_type'] == 'unsigned int'
+                or operation['prototype']['ret_type'] == 'unsigned long'
+                or operation['prototype']['ret_type'] == 'int'
+                or operation['prototype']['ret_type'] == 'int32_t'
+                or operation['prototype']['ret_type'] == 'bool'):
+                frag.append('    return SEND<uint32_t>(' + self._build_write_array_func_call(operation) + ');\n')
             else:
-                frag.append("    " + self._build_write_array_func_call(operation) + ";\n\n")
-                frag.append("    return 0;\n")
+                frag.append('    ' + self._build_write_array_func_call(operation) + ';\n\n')
+                frag.append('    return 0;\n')
 
         # self._show_fragment(frag)
         return frag
 
     def _get_ptr_type(self, ret_type):
-        """Get the pointer type
+        '''Get the pointer type
         Ex. if ret_type is char* it returns char.
         Raise an error if ret_type is not a pointer.
-        """
+        '''
         tokens = ret_type.split('*')
 
         # T*
         if len(tokens) == 2:
             return tokens[0].strip()
         # const T*
-        elif tokens[0].split(' ')[0].strip() == "const" and len(tokens) == 2:
+        elif tokens[0].split(' ')[0].strip() == 'const' and len(tokens) == 2:
             return tokens[0].split(' ')[1].strip()
         else:
-            raise ValueError("Return type " + ret_type + " is not a pointer")
+            raise ValueError('Return type ' + ret_type + ' is not a pointer')
 
     def _get_operation_data(self, op_name):
         for op in self.parser.raw_dev_data["operations"]:
