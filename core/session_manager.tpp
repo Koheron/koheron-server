@@ -34,7 +34,7 @@ SessID SessionManager::CreateSession(const std::shared_ptr<KServerConfig>& confi
     assert(session != nullptr);
     apply_permissions(session);
 
-    session_pool.insert(std::pair<SessID, std::unique_ptr<SessionAbstract>>(new_id, 
+    session_pool.insert(std::pair<SessID, std::unique_ptr<SessionAbstract>>(new_id,
                 static_cast<std::unique_ptr<SessionAbstract>>(std::move(session))));
     num_sess++;
 
@@ -55,7 +55,7 @@ void SessionManager::apply_permissions(
       case FCFS:
         if (fcfs_id == -1) { // Write permission not attributed
             last_created_session->permissions.write = true;
-            fcfs_id = last_created_session->GetID();
+            fcfs_id = last_created_session->get_id();
         } else {
             last_created_session->permissions.write = false;
         }
@@ -72,7 +72,7 @@ void SessionManager::apply_permissions(
         }
 
         last_created_session->permissions.write = true;
-        lclf_lifo.push(last_created_session->GetID());        
+        lclf_lifo.push(last_created_session->get_id());
         break;
       default:
         kserver.syslog.print(SysLog::ERROR, "BUG: Invalid permission policy\n");

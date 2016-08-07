@@ -72,13 +72,13 @@ class Session : public SessionAbstract
 
     int run();
 
-    inline unsigned int RequestNum(void) const {return requests_num;}
-    inline unsigned int ErrorNum(void) const {return errors_num;}
-    inline SessID GetID() const {return id;}
-    inline const char* GetClientIP() const {return peer_info.ip_str;}
-    inline int GetClientPort() const {return peer_info.port;}
-    inline std::time_t GetStartTime() const {return start_time;}
-    inline const SessionPermissions* GetPermissions() const {return &permissions;}
+    inline unsigned int request_num() const {return requests_num;}
+    inline unsigned int error_num() const {return errors_num;}
+    inline SessID get_id() const {return id;}
+    inline const char* get_client_ip() const {return peer_info.ip_str;}
+    inline int get_client_port() const {return peer_info.port;}
+    inline std::time_t get_start_time() const {return start_time;}
+    inline const SessionPermissions* get_permissions() const {return &permissions;}
 
     // Receive - Send
 

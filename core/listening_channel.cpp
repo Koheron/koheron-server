@@ -145,8 +145,8 @@ void session_thread_call(int comm_fd, PeerInfo peer_info,
     listener->kserver->syslog.print(SysLog::INFO,
                 "Start session id = %u. "
                 "Client IP = %s, port = %u. Start time = %li\n",
-                sid, session->GetClientIP(), session->GetClientPort(),
-                session->GetStartTime());
+                sid, session->get_client_ip(), session->get_client_port(),
+                session->get_start_time());
 
     if (session->run() < 0)
         listener->kserver->syslog.print(SysLog::ERROR,
@@ -154,9 +154,9 @@ void session_thread_call(int comm_fd, PeerInfo peer_info,
 
     listener->kserver->syslog.print(SysLog::INFO,
                 "Close session id = %u with #req = %u. #err = %u\n",
-                sid, session->RequestNum(), session->ErrorNum());
+                sid, session->request_num(), session->error_num());
 
-    listener->stats.total_requests_num += session->RequestNum();
+    listener->stats.total_requests_num += session->request_num();
     listener->kserver->session_manager.DeleteSession(sid);
 
     listener->dec_thread_num();

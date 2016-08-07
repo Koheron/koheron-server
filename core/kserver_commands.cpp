@@ -283,12 +283,12 @@ KSERVER_PARSE_ARG(GET_RUNNING_SESSIONS) {return 0;}
 #define SET_SESSION_PARAMS(sock_type)                                             \
     case sock_type:                                                               \
       sock_type_name = #sock_type;                                                \
-      perms = static_cast<Session<sock_type>*>(&session)->GetPermissions();       \
-      ip = static_cast<Session<sock_type>*>(&session)->GetClientIP();             \
-      port = static_cast<Session<sock_type>*>(&session)->GetClientPort();         \
-      req_num = static_cast<Session<sock_type>*>(&session)->RequestNum();         \
-      err_num = static_cast<Session<sock_type>*>(&session)->ErrorNum();           \
-      start_time = static_cast<Session<sock_type>*>(&session)->GetStartTime();    \
+      perms = static_cast<Session<sock_type>*>(&session)->get_permissions();      \
+      ip = static_cast<Session<sock_type>*>(&session)->get_client_ip();           \
+      port = static_cast<Session<sock_type>*>(&session)->get_client_port();       \
+      req_num = static_cast<Session<sock_type>*>(&session)->request_num();        \
+      err_num = static_cast<Session<sock_type>*>(&session)->error_num();          \
+      start_time = static_cast<Session<sock_type>*>(&session)->get_start_time();  \
       break;
 
 KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
