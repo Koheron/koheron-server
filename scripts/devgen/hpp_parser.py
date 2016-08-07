@@ -10,13 +10,11 @@ def parse_header(hpp_filename):
         cpp_header = CppHeaderParser.CppHeader(hpp_filename)
     except CppHeaderParser.CppParseError as e:
         print(e)
-        
-    pragmas = _get_pragmas(hpp_filename)
 
+    pragmas = _get_pragmas(hpp_filename)
     devices = []
     for classname in cpp_header.classes:
         devices.append(_get_device(cpp_header.classes[classname], pragmas))
-
     return devices
 
 def _get_pragmas(hpp_filename):
@@ -79,7 +77,6 @@ def _get_operation(method, pragmas):
 
 def _get_write_array_params(remaining):
     tokens = remaining.split()
-
     if len(tokens) != 2:
         raise ValueError('Line ' + pragma['line_number' ] 
                          + ': write_array expects to arguments: pointer and length')
@@ -143,7 +140,6 @@ def _get_device(_class, pragmas):
         # We eliminate constructor and destructor
         if method['name'] == _class['name'] or method['name'] == '~' + _class['name']:
             continue
-
         if 'is_failed' in device and method['name'] == device['is_failed']['name']:
             continue
 

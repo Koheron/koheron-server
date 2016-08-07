@@ -28,13 +28,9 @@ def IsReturn(operation):
     """ Test whether a return description are defined for a given operation """
     return ("return" in operation) and (operation["return"] != None)
 
-def IsDesc(operation):
-    """ Test whether a description is associated to a given operation """
-    return ("description" in operation) and (operation["description"] != None)
-
 class Device:
     def __init__(self, path, midware_path):
-        print "Generating device description for " + path + "..."
+        print "Parsing and analysing " + path + "..."
         mid_handler = MiddlewareHandler(os.path.join(midware_path, path))
         self.header_path = os.path.dirname(path)
         self._data = mid_handler.get_device_data()
@@ -43,7 +39,6 @@ class Device:
         self.operations = Operations(self._data["operations"])
         self.name = self._data["name"]
         self.class_name = GetClassName(self.name)
-        self.description = self._data["description"]
         self.objects = Objects(self._data["objects"])
         self.includes = Includes(self._data["includes"])
 
