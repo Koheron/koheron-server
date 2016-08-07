@@ -6,56 +6,12 @@
 #define __WEBSOCKET_HPP__
 
 #include <string>
-#include <memory>
 
 #include "kserver_defs.hpp"
 #include "config.hpp"
 #include "commands.hpp"
 
 namespace kserver {
-
-struct WebSocketStreamHeader {
-    unsigned int header_size;
-    int mask_offset;
-    unsigned int payload_size;
-    bool fin;
-    bool masked;
-    unsigned char opcode;
-    unsigned char res[3];
-};
-
-typedef enum WebSocketSendFormat {
-    TEXT = 129,
-    BINARY = 130,
-    CLOSE = 136
-} WS_SendFormat_t; 
-
-enum WebSocketOpCode {
-    ContinuationFrame = 0x0,
-    TextFrame         = 0x1,
-    BinaryFrame       = 0x2,
-    ConnectionClose   = 0x8,
-    Ping              = 0x9,
-    Pong              = 0xA
-};
-
-enum WebSocketStreamSize {
-    SmallStream = 125,
-    MediumStream = 126,
-    BigStream = 127
-};
-
-enum WebSocketHeaderSize {
-    SmallHeader = 6,
-    MediumHeader = 8,
-    BigHeader = 14
-};
-
-enum WebSocketMaskOffset {
-    SmallOffset = 2,
-    MediumOffset = 4,
-    BigOffset = 10
-};
 
 class KServer;
 
@@ -83,6 +39,7 @@ class WebSocket
     bool is_closed() const {return connection_closed;}
 
     int exit();
+
   private:
     std::shared_ptr<KServerConfig> config;
     KServer *kserver;
@@ -99,8 +56,45 @@ class WebSocket
     void reset_read_buff();
 
     std::string http_packet;
-    WebSocketStreamHeader header;
+
+    struct {
+        unsigned int header_size;
+        int mask_offset;
+        unsigned int payload_size;
+        bool fin;
+        bool masked;
+        unsigned char opcode;
+        unsigned char res[3];
+    } header;
+
     bool connection_closed;
+
+    enum OpCode {
+        CONTINUATION_FRAME = 0x0,
+        TEXT_FRAME         = 0x1,
+        BINARY_FRAME       = 0x2,
+        CONNECTION_CLOSE   = 0x8,
+        PING               = 0x9,
+        PONG               = 0xA
+    };
+
+    enum StreamSize {
+        SMALL_STREAM  = 125,
+        MEDIUM_STREAM = 126,
+        BIG_STREAM    = 127
+    };
+
+    enum HeaderSize {
+        SMALL_HEADER  = 6,
+        MEDIUM_HEADER = 8,
+        BIG_HEADER    = 14
+    };
+
+    enum MaskOffset {
+        SMALL_OFFSET  = 2,
+        MEDIUM_OFFSET = 4,
+        BIG_OFFSET    = 10
+    };
 
     // Internal functions
     int read_http_packet();
@@ -112,7 +106,7 @@ class WebSocket
     int read_n_bytes(int bytes, int expected);
 
     int set_send_header(unsigned char *bits, long long data_len,
-                        WS_SendFormat_t format);
+                        unsigned int format);
     int send_request(const std::string& request);
     int send_request(const unsigned char *bits, long long len);
 };

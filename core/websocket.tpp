@@ -18,7 +18,7 @@ int WebSocket::send(const T *data, unsigned int len)
         return -1;
     }
 
-    int mask_offset = set_send_header(send_buf, char_data_len, BINARY);
+    int mask_offset = set_send_header(send_buf, char_data_len, (1 << 7) + BINARY_FRAME);
     memcpy(&send_buf[mask_offset], data, char_data_len);
     return send_request(send_buf, mask_offset + char_data_len);
 }
