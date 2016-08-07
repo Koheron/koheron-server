@@ -88,7 +88,6 @@ friend Dev;
 };
 
 /// Macros to simplify edition of operations 
-#define VERBOSE kserver->session_manager.get_session(sess_id).GetParams().Verbose()
 #define SEND kserver->session_manager.get_session(sess_id).send
 #define SEND_ARRAY kserver->session_manager.get_session(sess_id).send_array
 #define SEND_CSTR kserver->session_manager.get_session(sess_id).send_cstr
