@@ -109,7 +109,7 @@ int Session<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes)
 }
 
 template<>
-const uint32_t* Session<TCP>::RcvHandshake(uint32_t buff_size)
+const uint32_t* Session<TCP>::rcv_handshake(uint32_t buff_size)
 {
     if (unlikely(Send<uint32_t>(htonl(buff_size)) < 0)) {
         session_manager.kserver.syslog.print(SysLog::ERROR,
@@ -219,7 +219,7 @@ int Session<WEBSOCK>::read_command(Command& cmd)
 }
 
 template<>
-const uint32_t* Session<WEBSOCK>::RcvHandshake(uint32_t buff_size)
+const uint32_t* Session<WEBSOCK>::rcv_handshake(uint32_t buff_size)
 {
     if (unlikely(Send<uint32_t>(buff_size) < 0)) {
         session_manager.kserver.syslog.print(SysLog::ERROR,

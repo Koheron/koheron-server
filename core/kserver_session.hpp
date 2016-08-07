@@ -45,7 +45,7 @@ class SessionAbstract
     : kind(sock_type_) {}
 
     int SendCstr(const char *string);
-    const uint32_t* RcvHandshake(uint32_t buff_size);
+    const uint32_t* rcv_handshake(uint32_t buff_size);
     template<typename... Tp> int Send(const std::tuple<Tp...>& t);
     template<typename T, size_t N> int Send(const std::array<T, N>& vect);
     template<typename T> int Send(const std::vector<T>& vect);
@@ -95,7 +95,7 @@ class Session : public SessionAbstract
     /// 2) KServer acknowledges reception readiness by sending
     ///    the number of points to receive to the client
     /// 3) The client send the data buffer
-    const uint32_t* RcvHandshake(uint32_t buff_size);
+    const uint32_t* rcv_handshake(uint32_t buff_size);
 
     /// Send scalar data
     template<class T> int Send(const T& data);
@@ -279,7 +279,7 @@ int Session<sock_type>::Run()
 template<>
 int Session<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes);
 
-template<> const uint32_t* Session<TCP>::RcvHandshake(uint32_t buff_size);
+template<> const uint32_t* Session<TCP>::rcv_handshake(uint32_t buff_size);
 template<> int Session<TCP>::SendCstr(const char *string);
 
 template<>
@@ -334,7 +334,7 @@ class Session<UNIX> : public Session<TCP>
 
 #if KSERVER_HAS_WEBSOCKET
 
-template<> const uint32_t* Session<WEBSOCK>::RcvHandshake(uint32_t buff_size);
+template<> const uint32_t* Session<WEBSOCK>::rcv_handshake(uint32_t buff_size);
 
 template<>
 template<class T>
@@ -427,9 +427,9 @@ int SessionAbstract::Send(const std::tuple<Tp...>& t)
     return -1;
 }
 
-inline const uint32_t* SessionAbstract::RcvHandshake(uint32_t buff_size)
+inline const uint32_t* SessionAbstract::rcv_handshake(uint32_t buff_size)
 {
-    SWITCH_SOCK_TYPE(RcvHandshake(buff_size))
+    SWITCH_SOCK_TYPE(rcv_handshake(buff_size))
     return nullptr;
 }
 

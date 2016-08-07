@@ -92,7 +92,7 @@ friend Dev;
 #define SEND kserver->session_manager.GetSession(sess_id).Send
 #define SEND_ARRAY kserver->session_manager.GetSession(sess_id).SendArray
 #define SEND_CSTR kserver->session_manager.GetSession(sess_id).SendCstr
-#define RCV_HANDSHAKE kserver->session_manager.GetSession(sess_id).RcvHandshake
+#define RCV_HANDSHAKE kserver->session_manager.GetSession(sess_id).rcv_handshake
 
 // Example of Device implementation
 #ifdef NE_PAS_DEFINIR_CETTE_MACRO
