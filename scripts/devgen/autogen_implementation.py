@@ -51,9 +51,9 @@ def PrintParseArg(file_id, device, operation):
     file_id.write('template<>\n')
     file_id.write('template<>\n')
     file_id.write('int KDevice<' + device.class_name + ',' + device.name + '>::\n')
-    file_id.write('        parse_arg<' + device.class_name + '::' + operation["name"] + '> (const Command& cmd,\n' )
+    file_id.write('        parse_arg<' + device.class_name + '::' + operation['name'] + '> (const Command& cmd,\n' )
     file_id.write('                KDevice<' + device.class_name + ',' + device.name + '>::\n')
-    file_id.write('                Argument<' + device.class_name + '::' + operation["name"] + '>& args)\n' )
+    file_id.write('                Argument<' + device.class_name + '::' + operation['name'] + '>& args)\n' )
     file_id.write('{\n')
     PrintParserCore(file_id, device, operation)
     file_id.write('    return 0;\n')
@@ -68,9 +68,9 @@ def PrintParserCore(file_id, device, operation):
 
     file_id.write('    static_assert(req_buff_size <= cmd.buffer.size(), "Buffer size too small");\n\n');
     file_id.write('    if (req_buff_size != cmd.payload_size) {\n')
-    file_id.write("        kserver->syslog.print(SysLog::ERROR, \"Invalid payload size. Expected %zu bytes. Received %zu bytes.\\n\", req_buff_size, cmd.payload_size);\n")
-    file_id.write("        return -1;\n")
-    file_id.write("    }\n\n")
+    file_id.write('        kserver->syslog.print(SysLog::ERROR, \" [' + device.name + ' - ' + operation['name'] + '] Invalid payload size. Expected %zu bytes. Received %zu bytes.\\n\", req_buff_size, cmd.payload_size);\n')
+    file_id.write('        return -1;\n')
+    file_id.write('    }\n\n')
     file_id.write('    constexpr size_t position0 = 0;\n')
     pos_cnt = 0
 
