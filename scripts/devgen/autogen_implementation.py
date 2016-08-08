@@ -119,7 +119,6 @@ def PrintParserCore(file_id, device, operation):
                 pos_cnt += 1
         else:
             raise ValueError('Unknown argument family')
-
 def print_req_buff_size(file_id, packs):
     file_id.write('    constexpr size_t req_buff_size = ');
 
