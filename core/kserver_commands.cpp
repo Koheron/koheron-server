@@ -15,7 +15,7 @@ namespace kserver {
 
 #define KS_DEV_WRITE_STR_LEN 1024
 
-#define GET_SESSION kserver->session_manager.GetSession(sess_id)
+#define GET_SESSION kserver->session_manager.get_session(sess_id)
 #define GET_CMD_LOG GET_SESSION.GetCmdLog()
 
 #define KSERVER_STRUCT_ARGUMENTS(cmd_name)                          \
@@ -50,7 +50,7 @@ KSERVER_PARSE_ARG(GET_VERSION) {return 0;}
 
 KSERVER_EXECUTE_OP(GET_VERSION)
 {
-    return GET_SESSION.SendCstr(xstr(SHA));
+    return GET_SESSION.send_cstr(xstr(SHA));
 }
 
 /////////////////////////////////////
@@ -82,7 +82,7 @@ KSERVER_EXECUTE_OP(GET_CMDS)
         return -1;
     }
 
-    if ((bytes = GET_SESSION.SendCstr(cmds_str)) < 0)
+    if ((bytes = GET_SESSION.send_cstr(cmds_str)) < 0)
         return -1;
 
     bytes_send += bytes;
@@ -95,13 +95,13 @@ KSERVER_EXECUTE_OP(GET_CMDS)
                         (device_desc[i][0]).c_str() );
 
         if (ret < 0) {
-            kserver->syslog.print(SysLog::ERROR, 
+            kserver->syslog.print(SysLog::ERROR,
                                   "KServer::GET_CMDS Format error\n");
             return -1;
         }
 
         if (ret >= KS_DEV_WRITE_STR_LEN) {
-            kserver->syslog.print(SysLog::ERROR, 
+            kserver->syslog.print(SysLog::ERROR,
                                   "KServer::GET_CMDS Buffer overflow\n");
             return -1;
         }
@@ -113,17 +113,17 @@ KSERVER_EXECUTE_OP(GET_CMDS)
 
         strcat(cmds_str, "\n");
 
-        if ((bytes = GET_SESSION.SendCstr(cmds_str)) < 0)
+        if ((bytes = GET_SESSION.send_cstr(cmds_str)) < 0)
             return -1;
 
         bytes_send += bytes;
     }
 
     // Send EOC (End Of Commands)
-    if ((bytes = GET_SESSION.SendCstr("EOC\n")) < 0)
+    if ((bytes = GET_SESSION.send_cstr("EOC\n")) < 0)
        return -1;
 
-    kserver->syslog.print(SysLog::DEBUG, "[S] [%u bytes]\n", bytes_send+bytes);
+    kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send+bytes);
 
     return 0;
 }
@@ -136,7 +136,7 @@ KSERVER_STRUCT_ARGUMENTS(GET_STATS) {};
 KSERVER_PARSE_ARG(GET_STATS) {return 0;}
 
 template<int sock_type>
-int send_listener_stats(SessID sess_id, KServer *kserver, 
+int send_listener_stats(SessID sess_id, KServer *kserver,
                         ListeningChannel<sock_type> *listener)
 {
     char send_str[KS_DEV_WRITE_STR_LEN];
@@ -144,27 +144,27 @@ int send_listener_stats(SessID sess_id, KServer *kserver,
 
     int ret = snprintf(send_str, KS_DEV_WRITE_STR_LEN,
                     "%s:%d:%d:%d\n", 
-                    listen_channel_desc[sock_type].c_str(), 
+                    listen_channel_desc[sock_type].c_str(),
                     listener->stats.opened_sessions_num,
                     listener->stats.total_sessions_num,
                     listener->stats.total_requests_num);
 
     if (ret < 0) {
-        kserver->syslog.print(SysLog::ERROR, 
+        kserver->syslog.print(SysLog::ERROR,
                               "KServer::GET_STATS Format error\n");
         return -1;
     }
 
     if (ret >= KS_DEV_WRITE_STR_LEN) {
-        kserver->syslog.print(SysLog::ERROR, 
+        kserver->syslog.print(SysLog::ERROR,
                               "KServer::GET_STATS Buffer overflow\n");
         return -1;
     }
 
-    if ((bytes_send = GET_SESSION.SendCstr(send_str)) < 0)
+    if ((bytes_send = GET_SESSION.send_cstr(send_str)) < 0)
         return -1;
 
-    return bytes_send;  
+    return bytes_send;
 }
 
 KSERVER_EXECUTE_OP(GET_STATS)
@@ -175,42 +175,42 @@ KSERVER_EXECUTE_OP(GET_STATS)
 
     // Send start time
     int ret = snprintf(send_str, KS_DEV_WRITE_STR_LEN,
-                    "%s:%lu\n", "UPTIME", 
+                    "%s:%lu\n", "UPTIME",
                     std::time(nullptr) - kserver->start_time);
 
     if (ret < 0) {
-        kserver->syslog.print(SysLog::ERROR, 
+        kserver->syslog.print(SysLog::ERROR,
                               "KServer::GET_STATS Format error\n");
         return -1;
     }
 
     if (ret >= KS_DEV_WRITE_STR_LEN) {
-        kserver->syslog.print(SysLog::ERROR, 
+        kserver->syslog.print(SysLog::ERROR,
                               "KServer::GET_STATS Buffer overflow\n");
         return -1;
     }
 
-    if ((bytes = GET_SESSION.SendCstr(send_str)) < 0)
+    if ((bytes = GET_SESSION.send_cstr(send_str)) < 0)
         return -1;
 
     bytes_send += bytes;
 
 #if KSERVER_HAS_TCP
-    if ((bytes = send_listener_stats<TCP>(sess_id, kserver, 
+    if ((bytes = send_listener_stats<TCP>(sess_id, kserver,
                     &(kserver->tcp_listener))) < 0)
         return -1;
 
     bytes_send += bytes;
 #endif
 #if KSERVER_HAS_WEBSOCKET
-    if ((bytes = send_listener_stats<WEBSOCK>(sess_id, kserver, 
+    if ((bytes = send_listener_stats<WEBSOCK>(sess_id, kserver,
                     &(kserver->websock_listener))) < 0)
         return -1;
 
     bytes_send += bytes;
 #endif
 #if KSERVER_HAS_UNIX_SOCKET
-    if ((bytes = send_listener_stats<UNIX>(sess_id, kserver, 
+    if ((bytes = send_listener_stats<UNIX>(sess_id, kserver,
                     &(kserver->unix_listener))) < 0)
         return -1;
 
@@ -218,10 +218,10 @@ KSERVER_EXECUTE_OP(GET_STATS)
 #endif
 
     // Send EORS (End Of KServer Stats)
-    if ((bytes = GET_SESSION.SendCstr("EOKS\n")) < 0)
+    if ((bytes = GET_SESSION.send_cstr("EOKS\n")) < 0)
         return -1;
 
-    kserver->syslog.print(SysLog::DEBUG, "[S] [%u bytes]\n", bytes_send+bytes);
+    kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send+bytes);
 
     return 0;
 }
@@ -242,36 +242,34 @@ KSERVER_EXECUTE_OP(GET_DEV_STATUS)
     // Send dev#:dev_name:status
     for (unsigned int i=KSERVER; i<device_num; i++) {
         int ret = snprintf(send_str, KS_DEV_WRITE_STR_LEN,
-                    "%u:%s:%s\n", i, (device_desc[i][0]).c_str(), 
-                    KS_dev_status_desc[ 
-                        kserver->dev_manager.GetStatus((device_t)i) 
+                    "%u:%s:%s\n", i, (device_desc[i][0]).c_str(),
+                    KS_dev_status_desc[
+                        kserver->dev_manager.GetStatus((device_t)i)
                     ].c_str());
 
         if (ret < 0) {
-            kserver->syslog.print(SysLog::ERROR, 
+            kserver->syslog.print(SysLog::ERROR,
                                   "KServer::GET_DEV_STATUS Format error\n");
             return -1;
         }
 
         if (ret >= KS_DEV_WRITE_STR_LEN) {
-            kserver->syslog.print(SysLog::ERROR, 
+            kserver->syslog.print(SysLog::ERROR,
                                   "KServer::GET_DEV_STATUS Buffer overflow\n");
             return -1;
         }
 
-        if ((bytes = GET_SESSION.SendCstr(send_str)) < 0)
+        if ((bytes = GET_SESSION.send_cstr(send_str)) < 0)
             return -1;
 
         bytes_send += bytes;
     }
 
     // Send EODS (End Of Device Status)
-    if ((bytes = GET_SESSION.SendCstr("EODS\n")) < 0)
+    if ((bytes = GET_SESSION.send_cstr("EODS\n")) < 0)
         return -1;
 
-    kserver->syslog.print(SysLog::DEBUG, 
-                          "[S] [%u bytes]\n", bytes_send + bytes);
-
+    kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send + bytes);
     return 0;
 }
 
@@ -285,12 +283,12 @@ KSERVER_PARSE_ARG(GET_RUNNING_SESSIONS) {return 0;}
 #define SET_SESSION_PARAMS(sock_type)                                             \
     case sock_type:                                                               \
       sock_type_name = #sock_type;                                                \
-      perms = static_cast<Session<sock_type>*>(&session)->GetPermissions();       \
-      ip = static_cast<Session<sock_type>*>(&session)->GetClientIP();             \
-      port = static_cast<Session<sock_type>*>(&session)->GetClientPort();         \
-      req_num = static_cast<Session<sock_type>*>(&session)->RequestNum();         \
-      err_num = static_cast<Session<sock_type>*>(&session)->ErrorNum();           \
-      start_time = static_cast<Session<sock_type>*>(&session)->GetStartTime();    \
+      perms = static_cast<Session<sock_type>*>(&session)->get_permissions();      \
+      ip = static_cast<Session<sock_type>*>(&session)->get_client_ip();           \
+      port = static_cast<Session<sock_type>*>(&session)->get_client_port();       \
+      req_num = static_cast<Session<sock_type>*>(&session)->request_num();        \
+      err_num = static_cast<Session<sock_type>*>(&session)->error_num();          \
+      start_time = static_cast<Session<sock_type>*>(&session)->get_start_time();  \
       break;
 
 KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
@@ -300,10 +298,10 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
     unsigned int bytes_send = 0;
     const SessionPermissions* perms;
 
-    std::vector<SessID> ids = kserver->session_manager.GetCurrentIDs();
+    const auto& ids = kserver->session_manager.get_current_ids();
 
-    for (unsigned int i=0; i<ids.size(); i++) {
-        SessionAbstract& session = kserver->session_manager.GetSession(ids[i]);
+    for (auto& id : ids) {
+        SessionAbstract& session = kserver->session_manager.get_session(id);
 
         const char *sock_type_name;
         const char *ip;
@@ -336,35 +334,35 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
             perms_str = "";
 
         int ret = snprintf(send_str, KS_DEV_WRITE_STR_LEN,
-                           "%u:%s:%s:%u:%u:%u:%li:%s\n", 
-                           ids[i], sock_type_name, 
+                           "%u:%s:%s:%u:%u:%u:%li:%s\n",
+                           id, sock_type_name,
                            ip, port, req_num, err_num,
                            std::time(nullptr) - start_time,
                            perms_str);
 
         if (ret < 0) {
-            kserver->syslog.print(SysLog::ERROR, 
+            kserver->syslog.print(SysLog::ERROR,
                             "KServer::GET_RUNNING_SESSIONS Format error\n");
             return -1;
         }
 
         if (ret >= KS_DEV_WRITE_STR_LEN) {
-            kserver->syslog.print(SysLog::ERROR, 
+            kserver->syslog.print(SysLog::ERROR,
                           "KServer::GET_RUNNING_SESSIONS Buffer overflow\n");
             return -1;
         }
 
-        if ((bytes = GET_SESSION.SendCstr(send_str)) < 0)
+        if ((bytes = GET_SESSION.send_cstr(send_str)) < 0)
             return -1;
 
         bytes_send += bytes;
     }
 
     // Send EORS (End Of Running Sessions)
-    if ((bytes = GET_SESSION.SendCstr("EORS\n")) < 0)
+    if ((bytes = GET_SESSION.send_cstr("EORS\n")) < 0)
         return -1;
 
-    kserver->syslog.print(SysLog::DEBUG, "[S] [%u bytes]\n", bytes_send+bytes);
+    kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send + bytes);
 
     return 0;
 }
@@ -453,7 +451,7 @@ int KDevice<KServer, KSERVER>::execute(const Command& cmd)
 }
 
 template<>
-bool KDevice<KServer, KSERVER>::is_failed(void) 
+bool KDevice<KServer, KSERVER>::is_failed(void)
 {
     return 0; // Never fail
 }

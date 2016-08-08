@@ -7,6 +7,8 @@
 #include "kserver_session.hpp"
 #include "broadcast.tpp"
 
+#include <sys/socket.h>
+
 #if KSERVER_HAS_THREADS
 #  include <thread>
 #  include <mutex>
@@ -25,15 +27,7 @@ SessionManager::SessionManager(KServer& kserver_, DeviceManager& dev_manager_,
   reusable_ids(0)
 {}
 
-SessionManager::~SessionManager()
-{
-    DeleteAll();
-}
-
-size_t SessionManager::GetNumSess() const
-{
-    return session_pool.size();
-}
+SessionManager::~SessionManager() {delete_all();}
 
 unsigned int SessionManager::num_sess = 0;
 
@@ -51,12 +45,6 @@ void SessionManager::print_reusable_ids()
     }
 }
 
-SessionAbstract& SessionManager::GetSession(SessID id) const
-{
-    assert(session_pool.at(id) != nullptr);
-    return *session_pool.at(id);
-}
-
 bool SessionManager::is_reusable_id(SessID id)
 {
     for (auto& reusable_id : reusable_ids)
@@ -68,7 +56,7 @@ bool SessionManager::is_reusable_id(SessID id)
 
 bool SessionManager::is_current_id(SessID id)
 {
-    auto curr_ids = GetCurrentIDs();
+    auto curr_ids = get_current_ids();
 
     for (auto& curr_id : curr_ids)
         if (curr_id == id)
@@ -77,7 +65,7 @@ bool SessionManager::is_current_id(SessID id)
     return false;
 }
 
-std::vector<SessID> SessionManager::GetCurrentIDs()
+std::vector<SessID> SessionManager::get_current_ids()
 {
     std::vector<SessID> res(0);
 
@@ -135,14 +123,16 @@ void SessionManager::reset_permissions(SessID id)
     }
 }
 
-void SessionManager::DeleteSession(SessID id)
+void SessionManager::delete_session(SessID id)
 {
 #if KSERVER_HAS_THREADS
     std::lock_guard<std::mutex> lock(mutex);
 #endif
 
+    int sess_fd;
+
     if (!is_current_id(id)) {
-        kserver.syslog.print(SysLog::INFO, 
+        kserver.syslog.print(SysLog::INFO,
                              "Not allocated session ID: %u\n", id);
         return;
     }
@@ -154,21 +144,26 @@ void SessionManager::DeleteSession(SessID id)
         switch (session_pool[id]->kind) {
 #if KSERVER_HAS_TCP
           case TCP:
-            close(cast_to_session<TCP>(session_pool[id])->comm_fd);
+            sess_fd = cast_to_session<TCP>(session_pool[id])->comm_fd;
             break;
 #endif
 #if KSERVER_HAS_UNIX_SOCKET
           case UNIX:
-            close(cast_to_session<UNIX>(session_pool[id])->comm_fd);
+            sess_fd = cast_to_session<UNIX>(session_pool[id])->comm_fd;
             break;
 #endif
 #if KSERVER_HAS_WEBSOCKET
           case WEBSOCK:
-            close(cast_to_session<WEBSOCK>(session_pool[id])->comm_fd);
+            sess_fd = cast_to_session<WEBSOCK>(session_pool[id])->comm_fd;
             break;
 #endif
           default: assert(false);
         }
+
+        if (shutdown(sess_fd, SHUT_RDWR) < 0)
+            kserver.syslog.print(SysLog::WARNING,
+                         "Cannot shutdown socket for session ID: %u\n", id);
+        close(sess_fd);
     }
 
     reset_permissions(id);
@@ -179,16 +174,17 @@ void SessionManager::DeleteSession(SessID id)
     kserver.broadcast.emit<Broadcast::SERVER_CHANNEL, Broadcast::DEL_SESSION>();
 }
 
-void SessionManager::DeleteAll()
+void SessionManager::delete_all()
 {
+    kserver.syslog.print(SysLog::INFO, "Closing all active sessions ...\n");
     assert(num_sess == session_pool.size());
 
     if (!session_pool.empty()) {
-        auto ids = GetCurrentIDs();
+        auto ids = get_current_ids();
         
         for (auto& id : ids) {
             kserver.syslog.print(SysLog::INFO, "Delete session %u\n", id);
-            DeleteSession(id);
+            delete_session(id);
         }
     }
 

@@ -12,7 +12,7 @@ namespace kserver {
 #define EXPAND_AS_IS_FAILED(num, name, operations ...)          \
         case num:                                               \
             return ((KDevice<name, num>*)this)->is_failed();
-      
+
 bool KDeviceAbstract::is_failed(void) 
 {
     switch (kind) {
@@ -20,9 +20,9 @@ bool KDeviceAbstract::is_failed(void)
         return 0;
       case KSERVER:
         return ((KDevice<KServer, KSERVER>*)this)->is_failed();
-        
+
       DEVICES_TABLE(EXPAND_AS_IS_FAILED) // X-Macro
-            
+
       case device_num:
       default:
         fprintf(stderr, "is_failed: Unknown device");

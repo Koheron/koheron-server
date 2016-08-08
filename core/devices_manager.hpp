@@ -26,9 +26,9 @@ namespace kserver {
 
 /// Status of a device
 typedef enum {
-    DEV_OFF,	///< Device OFF
-    DEV_ON,		///< Device ON
-    DEV_FAIL,	///< Device failed to start
+    DEV_OFF,    ///< Device OFF
+    DEV_ON,     ///< Device ON
+    DEV_FAIL,   ///< Device failed to start
     KS_device_status_num
 } KS_device_status;
 
@@ -79,7 +79,7 @@ class DeviceManager
 
     /// Device status
     KS_device_status GetStatus(device_t dev);
-    
+
 #if KSERVER_HAS_DEVMEM
     Klib::DevMem& GetDevMem() {return dev_mem;}
 #endif
@@ -94,7 +94,7 @@ class DeviceManager
 
     /// True if a device is started
     std::bitset<device_num> is_started;
-    
+
 #if KSERVER_HAS_THREADS
     std::mutex mutex;
 #endif

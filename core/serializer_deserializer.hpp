@@ -222,7 +222,6 @@ inline void append<bool>(unsigned char *buff, bool value)
 }
 
 // std::array
-// template<typename T, size_t N> constexpr size_t size_of<std::array<T, N>> = sizeof(T) * N;
 
 template<size_t position, typename T, size_t N>
 inline const std::array<T, N>& extract_array(const char *buff)

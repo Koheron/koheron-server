@@ -10,13 +10,11 @@ def parse_header(hpp_filename):
         cpp_header = CppHeaderParser.CppHeader(hpp_filename)
     except CppHeaderParser.CppParseError as e:
         print(e)
-        
-    pragmas = _get_pragmas(hpp_filename)
 
+    pragmas = _get_pragmas(hpp_filename)
     devices = []
     for classname in cpp_header.classes:
         devices.append(_get_device(cpp_header.classes[classname], pragmas))
-
     return devices
 
 def _get_pragmas(hpp_filename):
@@ -28,12 +26,12 @@ def _get_pragmas(hpp_filename):
         if '# pragma tcp-server' in line:
             pragmas.append({
               'line_number': line_cnt,
-              'data': line.split("# pragma tcp-server")[1].strip()
+              'data': line.split('# pragma tcp-server')[1].strip()
             })
         elif '#pragma tcp-server' in line:
             pragmas.append({
               'line_number': line_cnt,
-              'data': line.split("#pragma tcp-server")[1].strip()
+              'data': line.split('#pragma tcp-server')[1].strip()
             })
     fd.close()
     return pragmas
@@ -63,10 +61,10 @@ def _get_operation(method, pragmas):
             return None
         elif pragma['data'].find('read_array') >= 0:
             remaining = pragma['data'].split('read_array')[1].strip()
-            operation["io_type"] = {'value': 'READ_ARRAY', 'remaining': remaining}
+            operation['io_type'] = {'value': 'READ_ARRAY', 'remaining': remaining}
         elif pragma['data'].find('write_array') >= 0:
             remaining = pragma['data'].split('write_array')[1].strip()
-            operation["io_type"] = {'value': 'WRITE_ARRAY', 'remaining': remaining}
+            operation['io_type'] = {'value': 'WRITE_ARRAY', 'remaining': remaining}
             operation['array_params'] = _get_write_array_params(remaining)
         else:
             _set_iotype(operation, method['rtnType'])
@@ -79,7 +77,6 @@ def _get_operation(method, pragmas):
 
 def _get_write_array_params(remaining):
     tokens = remaining.split()
-
     if len(tokens) != 2:
         raise ValueError('Line ' + pragma['line_number' ] 
                          + ': write_array expects to arguments: pointer and length')
@@ -128,11 +125,11 @@ def _get_is_failed(_class, pragmas):
 
 def _get_device(_class, pragmas):
     device = {}
-    device["objects"] = [{
-      "name": _class['name'].lower(),
-      "type": str(_class['name'])
+    device['objects'] = [{
+      'name': _class['name'].lower(),
+      'type': str(_class['name'])
     }]
-    device["name"] = _class['name']
+    device['name'] = _class['name']
 
     is_failed_data = _get_is_failed(_class, pragmas)
     if is_failed_data != None:
@@ -143,7 +140,6 @@ def _get_device(_class, pragmas):
         # We eliminate constructor and destructor
         if method['name'] == _class['name'] or method['name'] == '~' + _class['name']:
             continue
-
         if 'is_failed' in device and method['name'] == device['is_failed']['name']:
             continue
 

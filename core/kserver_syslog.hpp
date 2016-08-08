@@ -8,10 +8,7 @@
 #include "config.hpp"
 
 #include <memory>
-
-#if KSERVER_HAS_THREADS
-#  include <mutex>
-#endif
+#include <cstdarg>
 
 namespace kserver {
 
@@ -30,22 +27,26 @@ struct SysLog
         ERROR,    ///< Typically when a command execution failed
         WARNING,
         INFO,
-        DEBUG,
+        // DEBUG, // Special print function for debug
         syslog_severity_num
     };
 
     void print(unsigned int severity, const char *message, ...);
 
+    void print_dbg(const char *message, ...)
+    {
+        if (config->verbose) {
+            va_list argptr;
+            va_start(argptr, message);
+            vprintf(message, argptr);
+        }
+    }
+
 private:
     std::shared_ptr<KServerConfig> config;
-
     char fmt_buffer[FMT_BUFF_LEN];
 
     int print_stderr(const char *header, const char *message, va_list argptr);
-
-#if KSERVER_HAS_THREADS
-    std::mutex mutex;
-#endif
 };
 
 } // namespace kserver

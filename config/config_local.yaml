@@ -20,12 +20,11 @@ defines:
   - LOCAL
 
 debug:
-  status: no # set to yes to compile in debug mode
+  status: yes # set to yes to compile in debug mode
   flags:
     - rdynamic
     - g
 
-# Optimization is deactivated when compiled in debug mode
 optimization_flags:
   - O3
   - finline-limit=150

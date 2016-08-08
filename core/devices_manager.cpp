@@ -37,7 +37,7 @@ int DeviceManager::Init()
         return -1;
     }
 #endif
-    
+
     return 0;
 }
 
@@ -65,7 +65,6 @@ int DeviceManager::StartDev(device_t dev)
 
     assert(dev < device_num);
 
-    // If already started, nothing to do
     if (is_started[dev])
         return 0;
 
@@ -73,7 +72,7 @@ int DeviceManager::StartDev(device_t dev)
         is_started[dev] = 1;
         return 0;
     }
-    
+
     if (dev == KSERVER)
         if (!is_started[dev]) {
             kserver->syslog.print(SysLog::CRITICAL,
@@ -89,9 +88,9 @@ int DeviceManager::StartDev(device_t dev)
         kserver->syslog.print(SysLog::CRITICAL, "Unknown device\n");
         return -1;
     }
-	
+
     assert(device_list.at(dev) != NULL);
-			
+
     if (IsFailed(dev)) {
         kserver->syslog.print(SysLog::CRITICAL, "Failed to start %s\n", 
                               GET_DEVICE_NAME(dev).c_str() );
@@ -114,8 +113,9 @@ int DeviceManager::StartDev(device_t dev)
 
 int DeviceManager::Execute(const Command& cmd)
 {
-    if (StartDev(cmd.device) < 0)
-        return -1;
+    if (!is_started[cmd.device])
+        if (StartDev(cmd.device) < 0)
+            return -1;
 
     if (cmd.device == 0)
         return 0;
@@ -135,9 +135,9 @@ int DeviceManager::Execute(const Command& cmd)
         error = dev->execute(cmd);
         break;
       }
-	    
+
       DEVICES_TABLE(EXPAND_AS_EXECUTE_DEVICE) // X-Macro
-	
+
       case device_num:
       default:
         kserver->syslog.print(SysLog::CRITICAL, "Execute: Unknown device\n");
@@ -148,15 +148,15 @@ int DeviceManager::Execute(const Command& cmd)
 }
 
 bool DeviceManager::IsStarted(device_t dev) const
-{ 
-    assert(dev < device_num);
-    return is_started[(unsigned int) (dev)]; 
-}
-
-void DeviceManager::SetDevStarted(device_t dev) 
 {
     assert(dev < device_num);
-    is_started[(unsigned int) (dev)] = 1; 
+    return is_started[(unsigned int) (dev)];
+}
+
+void DeviceManager::SetDevStarted(device_t dev)
+{
+    assert(dev < device_num);
+    is_started[(unsigned int) (dev)] = 1;
 }
 
 bool DeviceManager::IsFailed(device_t dev)
@@ -165,10 +165,10 @@ bool DeviceManager::IsFailed(device_t dev)
     if (dev == NO_DEVICE)
         return 0;
 
-    assert(dev < device_num);	
+    assert(dev < device_num);
     assert(device_list.at(dev) != 0);
-    
-    return device_list.at(dev)->is_failed(); 
+
+    return device_list.at(dev)->is_failed();
 }
 
 // X Macro: Stop device
@@ -188,7 +188,7 @@ void DeviceManager::StopDev(device_t dev)
 #endif
 
     assert(dev < device_num);
-    
+
     // A direct call to delete as:
     // delete device_list[dev];
     // doesn't call the specific destructor of each class
@@ -229,7 +229,7 @@ int DeviceManager::StartAll(void)
     for (unsigned int i=0; i<device_num; i++)
         if (StartDev((device_t)i) < 0)
             ret = -1;
-		
+
     return ret;
 }
 
@@ -244,7 +244,7 @@ KS_device_status DeviceManager::GetStatus(device_t dev)
 
     if (!is_started[dev])
         return DEV_OFF;
-	
+
     if (IsFailed(dev))
         return DEV_FAIL;
     else
@@ -252,4 +252,3 @@ KS_device_status DeviceManager::GetStatus(device_t dev)
 }
 
 } // namespace kserver
-

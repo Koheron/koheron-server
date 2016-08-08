@@ -69,8 +69,8 @@ class Tests
     uint64_t read_uint64();
     int read_int();
     unsigned int read_uint();
-    unsigned long read_ulong();
-    unsigned long long read_ulonglong();
+    uint32_t read_ulong();
+    uint64_t read_ulonglong();
     float read_float();
     double read_double();
     bool read_bool();
