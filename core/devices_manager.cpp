@@ -64,7 +64,9 @@ int DeviceManager::StartDev(device_t dev)
 #endif
 
     assert(dev < device_num);
-    assert(!is_started[dev]);
+
+    if (is_started[dev])
+        return 0;
 
     if (dev == NO_DEVICE) {
         is_started[dev] = 1;
