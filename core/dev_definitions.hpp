@@ -24,7 +24,7 @@ typedef unsigned int operation_t;
 
 // String conversions
 // Useful to convert op_param_array elements
-#define STRING_TO_BOOL(str)	  ( (str).at(0) == '1' )
+#define STRING_TO_BOOL(str)   ( (str).at(0) == '1' )
 #define STRING_TO_ULONG(str)  strtoul((str).c_str(), NULL, 10)
 #define STRING_TO_UINT(str)   (unsigned int) STRING_TO_ULONG(str)
 #define STRING_TO_FLOAT(str)  (float) atof((str).c_str())
@@ -36,20 +36,20 @@ typedef unsigned int operation_t;
 
 /// Execution status
 typedef enum {
-	exec_done,	    ///< Execution performed with success
-	exec_err,	    ///< Error at execution
-	exec_skip,	    ///< Execution skipped (because of earlier error)
-	exec_pending,	///< Execution pending
-	exec_status_num
+    exec_done,      ///< Execution performed with success
+    exec_err,       ///< Error at execution
+    exec_skip,      ///< Execution skipped (because of earlier error)
+    exec_pending,   ///< Execution pending
+    exec_status_num
 } exec_status_t;
 
 /// Status descriptions
-const std::array< std::string, exec_status_num > 
+const std::array< std::string, exec_status_num >
 exec_status_desc = {{
-	"Done",
-	"Error",
-	"Skipped",
-	"Pending"
+    "Done",
+    "Error",
+    "Skipped",
+    "Pending"
 }};
 
 /// Return the status description string of a Command cmd

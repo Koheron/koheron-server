@@ -9,6 +9,7 @@
 #include <array>
 #include <memory>
 #include <unistd.h>
+#include <type_traits>
 
 #include "commands.hpp"
 #include "devices_manager.hpp"
@@ -21,6 +22,7 @@
 
 #if KSERVER_HAS_WEBSOCKET
 #include "websocket.hpp"
+#include "websocket.tpp"
 #endif
 
 namespace kserver {
@@ -42,13 +44,13 @@ class SessionAbstract
     SessionAbstract(int sock_type_)
     : kind(sock_type_) {}
 
-    int SendCstr(const char *string);
-    const uint32_t* RcvHandshake(uint32_t buff_size);
-    template<typename... Tp> int Send(const std::tuple<Tp...>& t);
-    template<typename T, size_t N> int Send(const std::array<T, N>& vect);
-    template<typename T> int Send(const std::vector<T>& vect);
-    template<typename T> int SendArray(const T* data, unsigned int len);
-    template<class T> int Send(const T& data);
+    int send_cstr(const char *string);
+    const uint32_t* rcv_handshake(uint32_t buff_size);
+    template<typename... Tp> int send(const std::tuple<Tp...>& t);
+    template<typename T, size_t N> int send(const std::array<T, N>& vect);
+    template<typename T> int send(const std::vector<T>& vect);
+    template<typename T> int send_array(const T* data, unsigned int len);
+    template<class T> int send(const T& data);
 
     int kind;
 };
@@ -68,20 +70,20 @@ class Session : public SessionAbstract
             int comm_fd, SessID id_, PeerInfo peer_info,
             SessionManager& session_manager_);
 
-    int Run();
-    
-    inline unsigned int RequestNum(void) const {return requests_num;}    
-    inline unsigned int ErrorNum(void) const {return errors_num;}
-    inline SessID GetID() const {return id;}
-    inline const char* GetClientIP() const {return peer_info.ip_str;}
-    inline int GetClientPort() const {return peer_info.port;}
-    inline std::time_t GetStartTime() const {return start_time;}
-    inline const SessionPermissions* GetPermissions() const {return &permissions;}
+    int run();
+
+    inline unsigned int request_num() const {return requests_num;}
+    inline unsigned int error_num() const {return errors_num;}
+    inline SessID get_id() const {return id;}
+    inline const char* get_client_ip() const {return peer_info.ip_str;}
+    inline int get_client_port() const {return peer_info.port;}
+    inline std::time_t get_start_time() const {return start_time;}
+    inline const SessionPermissions* get_permissions() const {return &permissions;}
 
     // Receive - Send
 
     // TODO Move in Session<TCP> specialization
-    template<size_t len> int rcv_n_bytes(Buffer<len>& buffer, uint32_t n_bytes);
+    int rcv_n_bytes(char *buffer, uint32_t n_bytes);
 
     /// Receive data from client with handshaking
     /// @buff_size Size of the buffer to receive
@@ -93,20 +95,20 @@ class Session : public SessionAbstract
     /// 2) KServer acknowledges reception readiness by sending
     ///    the number of points to receive to the client
     /// 3) The client send the data buffer
-    const uint32_t* RcvHandshake(uint32_t buff_size);
+    const uint32_t* rcv_handshake(uint32_t buff_size);
 
     /// Send scalar data
-    template<class T> int Send(const T& data);
+    template<class T> int send(const T& data);
 
     /// Send a C string
     /// @string The null-terminated string
     /// @return The number of bytes send if success, -1 if failure
-    int SendCstr(const char* string);
+    int send_cstr(const char* string);
 
-    template<typename T> int SendArray(const T* data, unsigned int len);
-    template<typename T> int Send(const std::vector<T>& vect);
-    template<typename T, size_t N> int Send(const std::array<T, N>& vect);
-    template<typename... Tp> int Send(const std::tuple<Tp...>& t);
+    template<typename T> int send_array(const T* data, unsigned int len);
+    template<typename T> int send(const std::vector<T>& vect);
+    template<typename T, size_t N> int send(const std::array<T, N>& vect);
+    template<typename... Tp> int send(const std::tuple<Tp...>& t);
 
   private:
     std::shared_ptr<KServerConfig> config;
@@ -117,9 +119,18 @@ class Session : public SessionAbstract
     SessionManager& session_manager;
     SessionPermissions permissions;
 
-    Buffer<KSERVER_RECV_DATA_BUFF_LEN> recv_data_buff;
+    Command cmd;
+
+    struct EmptyBuffer {};
+    std::conditional_t<sock_type == TCP || sock_type == UNIX,
+            Buffer<KSERVER_RECV_DATA_BUFF_LEN>, EmptyBuffer> recv_data_buff;
+
 #if KSERVER_HAS_WEBSOCKET
-    WebSocket websock; // TODO Move in Session<WEBSOCK> specialization
+    struct EmptyWebsock {
+        EmptyWebsock(std::shared_ptr<KServerConfig> config_, KServer *kserver_){}
+    };
+
+    std::conditional_t<sock_type == WEBSOCK, WebSocket, EmptyWebsock> websock;
 #endif
 
     // Monitoring
@@ -131,7 +142,7 @@ class Session : public SessionAbstract
     int init_socket();
     int exit_socket();
     int init_session();
-    int exit_session();
+    void exit_session();
     int read_command(Command& cmd);
 
 friend class SessionManager;
@@ -149,6 +160,7 @@ Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
 , peer_info(peer_info_)
 , session_manager(session_manager_)
 , permissions()
+, cmd()
 #if KSERVER_HAS_WEBSOCKET
 , websock(config_, &session_manager_.kserver)
 #endif
@@ -159,25 +171,25 @@ Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
 
 template<int sock_type>
 template<typename T>
-int Session<sock_type>::Send(const std::vector<T>& vect)
+int Session<sock_type>::send(const std::vector<T>& vect)
 {
-    return SendArray<T>(vect.data(), vect.size());
+    return send_array<T>(vect.data(), vect.size());
 }
 
 template<int sock_type>
 template<typename T, size_t N>
-int Session<sock_type>::Send(const std::array<T, N>& vect)
+int Session<sock_type>::send(const std::array<T, N>& vect)
 {
-    return SendArray<T>(vect.data(), N);
+    return send_array<T>(vect.data(), N);
 }
 
 // http://stackoverflow.com/questions/1374468/stringstream-string-and-char-conversion-confusion
 template<int sock_type>
 template<typename... Tp>
-int Session<sock_type>::Send(const std::tuple<Tp...>& t)
+int Session<sock_type>::send(const std::tuple<Tp...>& t)
 {
     const auto& arr = serialize(t);
-    return SendArray<unsigned char>(arr.data(), arr.size());
+    return send_array<unsigned char>(arr.data(), arr.size());
 }
 
 template<int sock_type>
@@ -190,64 +202,84 @@ int Session<sock_type>::init_session()
 }
 
 template<int sock_type>
-int Session<sock_type>::Run()
+void Session<sock_type>::exit_session()
+{
+    if (exit_socket() < 0)
+        session_manager.kserver.syslog.print(SysLog::WARNING,
+        "An error occured during session exit\n");
+}
+
+template<int sock_type>
+int Session<sock_type>::run()
 {
     if (init_session() < 0)
         return -1;
 
-    while (!session_manager.kserver.exit_comm.load()) {    
-        Command cmd;
+    while (!session_manager.kserver.exit_comm.load()) {
         int nb_bytes_rcvd = read_command(cmd);
 
+        if (session_manager.kserver.exit_comm.load())
+            break;
+
         if (nb_bytes_rcvd <= 0) {
-            exit_session();
+
+            // We don't call exit_session() here because the
+            // socket is already closed.
+
             return nb_bytes_rcvd;
         }
 
         requests_num++;
 
-        if (session_manager.dev_manager.Execute(cmd) < 0)
+        if (unlikely(session_manager.dev_manager.Execute(cmd) < 0))
             errors_num++;
     }
 
+    exit_session();
     return 0;
 }
 
-template<int sock_type>
-int Session<sock_type>::exit_session()
-{
-    return exit_socket();
-}
-
-#define SEND_SPECIALIZE_IMPL(session_kind)                              \
-    template<> template<>                                               \
-    inline int session_kind::Send<std::string>(const std::string& str)  \
-    {                                                                   \
-        return SendCstr(str.c_str());                                   \
-    }                                                                   \
-                                                                        \
-    template<> template<>                                               \
-    inline int session_kind::Send<uint32_t>(const uint32_t& val)        \
-    {                                                                   \
-        return SendArray<uint32_t>(&val, 1);                            \
-    }                                                                   \
-                                                                        \
-    template<> template<>                                               \
-    inline int session_kind::Send<uint64_t>(const uint64_t& val)        \
-    {                                                                   \
-        return SendArray<uint64_t>(&val, 1);                            \
-    }                                                                   \
-                                                                        \
-    template<> template<>                                               \
-    inline int session_kind::Send<float>(const float& val)              \
-    {                                                                   \
-        return SendArray<float>(&val, 1);                               \
-    }                                                                   \
-                                                                        \
-    template<> template<>                                               \
-    inline int session_kind::Send<double>(const double& val)            \
-    {                                                                   \
-        return SendArray<double>(&val, 1);                              \
+#define SEND_SPECIALIZE_IMPL(session_kind)                                            \
+    template<> template<>                                                             \
+    inline int session_kind::send<std::string>(const std::string& str)                \
+    {                                                                                 \
+        return send_cstr(str.c_str());                                                \
+    }                                                                                 \
+                                                                                      \
+    template<> template<>                                                             \
+    inline int session_kind::send<uint32_t>(const uint32_t& val)                      \
+    {                                                                                 \
+        return send_array<uint32_t>(&val, 1);                                         \
+    }                                                                                 \
+                                                                                      \
+    template<> template<>                                                             \
+    inline int session_kind::send<bool>(const bool& val)                              \
+    {                                                                                 \
+        return send<uint32_t>(val);                                                   \
+    }                                                                                 \
+                                                                                      \
+    template<> template<>                                                             \
+    inline int session_kind::send<int>(const int& val)                                \
+    {                                                                                 \
+        return send<uint32_t>(val);                                                   \
+    }                                                                                 \
+                                                                                      \
+    template<> template<>                                                             \
+    inline int session_kind::send<uint64_t>(const uint64_t& val)                      \
+    {                                                                                 \
+        return send_array<uint64_t>(&val, 1);                                         \
+    }                                                                                 \
+                                                                                      \
+    template<> template<>                                                             \
+    inline int session_kind::send<float>(const float& val)                            \
+    {                                                                                 \
+        return send_array<float>(&val, 1);                                            \
+    }                                                                                 \
+                                                                                      \
+    template<> template<>                                                             \
+    inline int session_kind::send<double>(const double& val)                          \
+    {                                                                                 \
+        return send_array<double>(&val, 1);                                           \
     }
 
 // -----------------------------------------------
@@ -256,32 +288,34 @@ int Session<sock_type>::exit_session()
 
 #if KSERVER_HAS_TCP || KSERVER_HAS_UNIX_SOCKET
 
-template<> template<size_t len>
-int Session<TCP>::rcv_n_bytes(Buffer<len>& buffer, uint32_t n_bytes);
+template<>
+int Session<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes);
 
-template<> const uint32_t* Session<TCP>::RcvHandshake(uint32_t buff_size);
-template<> int Session<TCP>::SendCstr(const char *string);
+template<> const uint32_t* Session<TCP>::rcv_handshake(uint32_t buff_size);
+template<> int Session<TCP>::send_cstr(const char *string);
 
 template<>
 template<class T>
-int Session<TCP>::SendArray(const T *data, unsigned int len)
+int Session<TCP>::send_array(const T *data, unsigned int len)
 {
     int bytes_send = sizeof(T) * len;
     int n_bytes_send = write(comm_fd, (void*)data, bytes_send);
 
-    if (n_bytes_send < 0) {
-       session_manager.kserver.syslog.print(SysLog::ERROR, 
+    if (unlikely(n_bytes_send < 0)) {
+       session_manager.kserver.syslog.print(SysLog::ERROR,
           "TCPSocket::SendArray: Can't write to client\n");
        return -1;
     }
 
-    if (n_bytes_send != bytes_send) {
-        session_manager.kserver.syslog.print(SysLog::ERROR, 
+    if (unlikely(n_bytes_send != bytes_send)) {
+        session_manager.kserver.syslog.print(SysLog::ERROR,
             "TCPSocket::SendArray: Some bytes have not been sent\n");
         return -1;
     }
 
-    session_manager.kserver.syslog.print(SysLog::DEBUG, "[S] [%u bytes]\n", bytes_send);
+    if (config->verbose)
+        session_manager.kserver.syslog.print_dbg("[S] [%u bytes]\n", bytes_send);
+
     return bytes_send;
 }
 
@@ -312,22 +346,19 @@ class Session<UNIX> : public Session<TCP>
 
 #if KSERVER_HAS_WEBSOCKET
 
-template<> const uint32_t* Session<WEBSOCK>::RcvHandshake(uint32_t buff_size);
-template<> int Session<WEBSOCK>::SendCstr(const char *string);
+template<> const uint32_t* Session<WEBSOCK>::rcv_handshake(uint32_t buff_size);
 
 template<>
 template<class T>
-int Session<WEBSOCK>::SendArray(const T *data, unsigned int len)
+inline int Session<WEBSOCK>::send_array(const T *data, unsigned int len)
 {
-    int bytes_send = websock.send<T>(data, len);
+    return websock.send(data, len);
+}
 
-    if (bytes_send < 0) {
-        session_manager.kserver.syslog.print(SysLog::ERROR, 
-                              "SendArray: Can't write to client\n");
-        return -1;
-    }
-
-    return bytes_send;    
+template<>
+inline int Session<WEBSOCK>::send_cstr(const char *string)
+{
+    return websock.send_cstr(string);
 }
 
 SEND_SPECIALIZE_IMPL(Session<WEBSOCK>)
@@ -374,49 +405,49 @@ SEND_SPECIALIZE_IMPL(Session<WEBSOCK>)
 // http://stackoverflow.com/questions/1682844/templates-template-function-not-playing-well-with-classs-template-member-funct/1682885#1682885
 
 template<class T>
-int SessionAbstract::Send(const T& data)
+int SessionAbstract::send(const T& data)
 {
-    SWITCH_SOCK_TYPE(template Send<T>(data))
+    SWITCH_SOCK_TYPE(template send<T>(data))
     return -1;
 }
 
 template<typename T> 
-int SessionAbstract::SendArray(const T* data, unsigned int len)
+int SessionAbstract::send_array(const T* data, unsigned int len)
 {
-    SWITCH_SOCK_TYPE(template SendArray<T>(data, len))
+    SWITCH_SOCK_TYPE(template send_array<T>(data, len))
     return -1;
 }
 
 template<typename T>
-int SessionAbstract::Send(const std::vector<T>& vect)
+int SessionAbstract::send(const std::vector<T>& vect)
 {
-    SWITCH_SOCK_TYPE(template Send<T>(vect));
+    SWITCH_SOCK_TYPE(template send<T>(vect));
     return -1;
 }
 
 template<typename T, size_t N>
-int SessionAbstract::Send(const std::array<T, N>& vect)
+int SessionAbstract::send(const std::array<T, N>& vect)
 {
-    SWITCH_SOCK_TYPE(template Send<T, N>(vect))
+    SWITCH_SOCK_TYPE(template send<T, N>(vect))
     return -1;
 }
 
 template<typename... Tp>
-int SessionAbstract::Send(const std::tuple<Tp...>& t)
+int SessionAbstract::send(const std::tuple<Tp...>& t)
 {
-    SWITCH_SOCK_TYPE(template Send<Tp...>(t))
+    SWITCH_SOCK_TYPE(template send<Tp...>(t))
     return -1;
 }
 
-inline const uint32_t* SessionAbstract::RcvHandshake(uint32_t buff_size)
+inline const uint32_t* SessionAbstract::rcv_handshake(uint32_t buff_size)
 {
-    SWITCH_SOCK_TYPE(RcvHandshake(buff_size))
+    SWITCH_SOCK_TYPE(rcv_handshake(buff_size))
     return nullptr;
 }
 
-inline int SessionAbstract::SendCstr(const char *string)
+inline int SessionAbstract::send_cstr(const char *string)
 {
-    SWITCH_SOCK_TYPE(SendCstr(string))
+    SWITCH_SOCK_TYPE(send_cstr(string))
     return -1;
 }
 

@@ -31,12 +31,12 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
   start_time(0),
   broadcast(session_manager)
 {
-    if (sig_handler.Init(this))
+    if (sig_handler.init(this) < 0)
         exit(EXIT_FAILURE);
 
     if (dev_manager.Init() < 0)
         exit (EXIT_FAILURE);
-    
+
     exit_comm.store(false);
 
 #if KSERVER_HAS_TCP
@@ -64,16 +64,12 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
 #endif // KSERVER_HAS_UNIX_SOCKET
 }
 
-KServer::~KServer()
-{}
-
 // This cannot be done in the destructor
 // since it is called after the "delete config"
 // at the end of the main()
 void KServer::close_listeners()
 {
     exit_comm.store(true);
-
     assert(config != NULL);
 
 #if KSERVER_HAS_TCP
@@ -84,6 +80,10 @@ void KServer::close_listeners()
 #endif
 #if KSERVER_HAS_UNIX_SOCKET
     unix_listener.shutdown();
+#endif
+
+#if KSERVER_HAS_THREADS
+    join_listeners_workers();
 #endif
 }
 
@@ -101,31 +101,16 @@ int KServer::start_listeners_workers()
     if (unix_listener.start_worker() < 0)
         return -1;
 #endif
-    
+
     return 0;
-}
-
-void KServer::detach_listeners_workers()
-{
-#if KSERVER_HAS_TCP && KSERVER_HAS_THREADS 
-    tcp_listener.detach_worker();
-#endif
-    
-#if KSERVER_HAS_WEBSOCKET && KSERVER_HAS_THREADS
-    websock_listener.detach_worker();
-#endif
-
-#if KSERVER_HAS_UNIX_SOCKET && KSERVER_HAS_THREADS
-    unix_listener.detach_worker();
-#endif
 }
 
 void KServer::join_listeners_workers()
 {
-#if KSERVER_HAS_TCP && KSERVER_HAS_THREADS 
+#if KSERVER_HAS_TCP && KSERVER_HAS_THREADS
     tcp_listener.join_worker();
 #endif
-    
+
 #if KSERVER_HAS_WEBSOCKET && KSERVER_HAS_THREADS
     websock_listener.join_worker();
 #endif
@@ -135,36 +120,26 @@ void KServer::join_listeners_workers()
 #endif
 }
 
-int KServer::Run()
+int KServer::run()
 {
     start_time = std::time(nullptr);
-    
+
     if (start_listeners_workers() < 0)
         return -1;
 
     while (1) {
         if (sig_handler.Interrupt()) {
-            syslog.print(SysLog::INFO, 
-                         "Interrupt received, killing KServer ...\n");
-            
-            detach_listeners_workers();
-
-            syslog.print(SysLog::INFO, "Closing all active sessions ...\n");
-            session_manager.DeleteAll(); 
-            
-            goto exit;
+            syslog.print(SysLog::INFO, "Interrupt received, killing KServer ...\n");
+            session_manager.delete_all();
+            close_listeners();
+            syslog.close();
+            return 0;
         }
-        
+
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
-       
-    join_listeners_workers();
 
-exit:
-    close_listeners();
-    syslog.close();
     return 0;
 }
 
 } // namespace kserver
-

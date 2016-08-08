@@ -115,8 +115,11 @@ namespace kserver {
 /// Number of char for the operation identification
 #define N_CHAR_OP 16
 
-/// Websocket buffer size
+/// Websocket receive buffer size
 #define WEBSOCK_READ_STR_LEN KSERVER_RECV_DATA_BUFF_LEN
+
+/// Websocket send buffer size (bytes)
+#define WEBSOCK_SEND_BUF_LEN 16384 * 2 * 4
 
 /// Maximum length of the Unix socket file path 
 ///
@@ -153,6 +156,9 @@ namespace kserver {
 // ------------------------------------------
 
 typedef int SessID;
+
+#define likely(x)       __builtin_expect(!!(x), 1)
+#define unlikely(x)     __builtin_expect(!!(x), 0)
 
 // ------------------------------------------
 // Checks

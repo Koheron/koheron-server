@@ -11,8 +11,8 @@
 namespace kserver {
 
 template<int sock_type>
-SessID SessionManager::CreateSession(const std::shared_ptr<KServerConfig>& config_,
-                                     int comm_fd, PeerInfo peer_info)
+SessID SessionManager::create_session(const std::shared_ptr<KServerConfig>& config_,
+                                      int comm_fd, PeerInfo peer_info)
 {
 #if KSERVER_HAS_THREADS
     std::lock_guard<std::mutex> lock(mutex);
@@ -34,7 +34,7 @@ SessID SessionManager::CreateSession(const std::shared_ptr<KServerConfig>& confi
     assert(session != nullptr);
     apply_permissions(session);
 
-    session_pool.insert(std::pair<SessID, std::unique_ptr<SessionAbstract>>(new_id, 
+    session_pool.insert(std::pair<SessID, std::unique_ptr<SessionAbstract>>(new_id,
                 static_cast<std::unique_ptr<SessionAbstract>>(std::move(session))));
     num_sess++;
 
@@ -55,7 +55,7 @@ void SessionManager::apply_permissions(
       case FCFS:
         if (fcfs_id == -1) { // Write permission not attributed
             last_created_session->permissions.write = true;
-            fcfs_id = last_created_session->GetID();
+            fcfs_id = last_created_session->get_id();
         } else {
             last_created_session->permissions.write = false;
         }
@@ -64,15 +64,15 @@ void SessionManager::apply_permissions(
       case LCFS:
         // Set write permission of all current sessions to false
         if (!session_pool.empty()) {
-            std::vector<SessID> ids = GetCurrentIDs();
+            const auto& ids = get_current_ids();
             
-            for (size_t i=0; i<ids.size(); i++)         
-                cast_to_session<sock_type>(session_pool[ids[i]])
+            for (auto& id : ids)
+                cast_to_session<sock_type>(session_pool[id])
                                             ->permissions.write = false;
         }
 
         last_created_session->permissions.write = true;
-        lclf_lifo.push(last_created_session->GetID());        
+        lclf_lifo.push(last_created_session->get_id());
         break;
       default:
         kserver.syslog.print(SysLog::ERROR, "BUG: Invalid permission policy\n");

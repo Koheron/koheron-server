@@ -9,38 +9,31 @@ import pprint
 def Generate(device, directory):
     filename = os.path.join(directory, device.class_name.lower() + '.cpp')
     f = open(filename, 'w')
-        
-    try:      
+
+    try:
         PrintFileHeader(f, os.path.basename(filename))
-        
         f.write('#include "' + device.class_name.lower() + '.hpp' + '"\n\n')
-        
         f.write('#include <core/commands.hpp>\n')
         f.write('#include <core/kserver.hpp>\n')
         f.write('#include <core/kserver_session.hpp>\n')
-        
         f.write('namespace kserver {\n\n')
-        
         f.write("#define THIS (static_cast<" + device.class_name + "*>(this))\n\n")
-        
+
         for operation in device.operations:
             f.write('/////////////////////////////////////\n')
             f.write('// ' + operation["name"] + '\n\n')
-            
             PrintParseArg(f, device, operation)
             PrintExecuteOp(f, device, operation)
-        
+
         PrintIsFailed(f, device)
         PrintExecute(f, device)
-           
         f.write('} // namespace kserver\n\n')
-        
         f.close()
     except:
         f.close()
         os.remove(filename)
         raise
-    
+
 def PrintFileHeader(file_id, filename):
     file_id.write('/// ' + filename + '\n')
     file_id.write('///\n')
@@ -48,53 +41,41 @@ def PrintFileHeader(file_id, filename):
     file_id.write('/// DO NOT EDIT. \n')
     file_id.write('///\n')
     file_id.write('/// (c) Koheron \n\n')
-    
+
 # -----------------------------------------------------------
 # PrintParseArg:
 # Autogenerate the parser
 # -----------------------------------------------------------
-    
+
 def PrintParseArg(file_id, device, operation):
     file_id.write('template<>\n')
     file_id.write('template<>\n')
-    
     file_id.write('int KDevice<' + device.class_name + ',' + device.name + '>::\n')
-    file_id.write('        parse_arg<' + device.class_name + '::' \
-                    + operation["name"] + '> (const Command& cmd,\n' )
-    file_id.write('                KDevice<' + device.class_name + ',' \
-                        + device.name + '>::\n')
-    file_id.write('                Argument<' + device.class_name \
-                    + '::' + operation["name"] + '>& args)\n' )
+    file_id.write('        parse_arg<' + device.class_name + '::' + operation["name"] + '> (const Command& cmd,\n' )
+    file_id.write('                KDevice<' + device.class_name + ',' + device.name + '>::\n')
+    file_id.write('                Argument<' + device.class_name + '::' + operation["name"] + '>& args)\n' )
     file_id.write('{\n')
-    
-    try:
-        PrintParserCore(file_id, device, operation)
-    except TypeError:
-        raise
-        
+    PrintParserCore(file_id, device, operation)
     file_id.write('    return 0;\n')
     file_id.write('}\n\n')
-    
+
 def PrintParserCore(file_id, device, operation):    
     if GetTotalArgNum(operation) == 0:
         return
 
     packs = build_args_packs(file_id, operation)
-
     print_req_buff_size(file_id, packs)
 
     file_id.write('    static_assert(req_buff_size <= cmd.buffer.size(), "Buffer size too small");\n\n');
-
     file_id.write('    if (req_buff_size != cmd.payload_size) {\n')
     file_id.write("        kserver->syslog.print(SysLog::ERROR, \"Invalid payload size. Expected %zu bytes. Received %zu bytes.\\n\", req_buff_size, cmd.payload_size);\n")
     file_id.write("        return -1;\n")
     file_id.write("    }\n\n")
-
     file_id.write('    constexpr size_t position0 = 0;\n')
     pos_cnt = 0
 
     for idx, pack in enumerate(packs):
-        if pack['familly'] == 'scalar':
+        if pack['family'] == 'scalar':
             file_id.write('    auto args_tuple' + str(idx) + ' = deserialize<position' + str(pos_cnt) + ', cmd.buffer.size(), ')
             print_type_list_pack(file_id, pack)
             file_id.write('>(cmd.buffer);\n')
@@ -108,7 +89,7 @@ def PrintParserCore(file_id, device, operation):
                 pos_cnt += 1
                 print_type_list_pack(file_id, pack)
                 file_id.write('>();\n')
-        elif pack['familly'] == 'array':
+        elif pack['family'] == 'array':
             array_params = get_std_array_params(pack['args']['type'])
             file_id.write('    args.' + pack['args']['name'] + ' = extract_array<position' + str(pos_cnt)
                           + ', ' + array_params['T'] + ', ' + array_params['N'] + '>(cmd.buffer.data);\n')
@@ -118,13 +99,12 @@ def PrintParserCore(file_id, device, operation):
                               + ' + size_of<' + array_params['T'] + ', ' + array_params['N'] + '>;\n')
                 pos_cnt += 1
         else:
-            raise ValueError('Unknown argument familly')
-
+            raise ValueError('Unknown argument family')
 def print_req_buff_size(file_id, packs):
     file_id.write('    constexpr size_t req_buff_size = ');
 
     for idx, pack in enumerate(packs):
-        if pack['familly'] == 'scalar':
+        if pack['family'] == 'scalar':
             if idx == 0:
                 file_id.write('required_buffer_size<')
             else:
@@ -134,7 +114,7 @@ def print_req_buff_size(file_id, packs):
                 file_id.write('>()\n')
             else:
                 file_id.write('>();\n')
-        elif pack['familly'] == 'array':
+        elif pack['family'] == 'array':
             array_params = get_std_array_params(pack['args']['type'])
             if idx == 0:
                 file_id.write('size_of<')
@@ -164,11 +144,11 @@ def build_args_packs(file_id, operation):
             args_list.append(arg)
         else: # std::array
             if len(args_list) > 0:
-                packs.append({'familly': 'scalar', 'args': args_list})
+                packs.append({'family': 'scalar', 'args': args_list})
                 args_list = []
-            packs.append({'familly': 'array', 'args': arg})
+            packs.append({'family': 'array', 'args': arg})
     if len(args_list) > 0:
-        packs.append({'familly': 'scalar', 'args': args_list})
+        packs.append({'family': 'scalar', 'args': args_list})
     # print pprint.pprint(packs)
     return packs
 
@@ -181,33 +161,28 @@ def get_std_array_params(arg_type):
       'T': templates[0].strip(),
       'N': templates[1].strip()
     }
-    
+
 def GetTotalArgNum(operation):
     if not dev_utils.IsArgs(operation):
         return 0
-            
-    return len(operation["arguments"])
+    return len(operation['arguments'])
+
 # -----------------------------------------------------------
 # ExecuteOp
 # -----------------------------------------------------------
-    
+
 def PrintExecuteOp(file_id, device, operation):
     file_id.write('template<>\n')
     file_id.write('template<>\n')
 
-    file_id.write('int KDevice<' + device.class_name + ',' \
-                                    + device.name + '>::\n')
-    file_id.write('        execute_op<' + device.class_name + '::' \
-                            + operation["name"] + '> \n' )
-
-    file_id.write('        (const Argument<' + device.class_name + '::' \
-                            + operation["name"] + '>& args, SessID sess_id)\n')
-
+    file_id.write('int KDevice<' + device.class_name + ',' + device.name + '>::\n')
+    file_id.write('        execute_op<' + device.class_name + '::' + operation['name'] + '> \n' )
+    file_id.write('        (const Argument<' + device.class_name + '::' + operation['name'] + '>& args, SessID sess_id)\n')
     file_id.write('{\n')
 
     # Load code fragments
     for frag in device.fragments:
-        if operation["name"] == frag['name']:        
+        if operation['name'] == frag['name']:
             for line in frag['fragment']:
                 file_id.write(line)
 
@@ -215,12 +190,11 @@ def PrintExecuteOp(file_id, device, operation):
 
 def PrintIsFailed(file_id, device):
     file_id.write('template<>\n')
-    file_id.write('bool KDevice<' + device.class_name + ',' \
-                    + device.name + '>::is_failed(void)\n')
+    file_id.write('bool KDevice<' + device.class_name + ',' + device.name + '>::is_failed(void)\n')
     file_id.write('{\n')
 
     for frag in device.fragments:
-        if frag['name'] == "IS_FAILED":        
+        if frag['name'] == "IS_FAILED":
             for line in frag['fragment']:
                 file_id.write(line)
 
@@ -228,8 +202,7 @@ def PrintIsFailed(file_id, device):
 
 def PrintExecute(file_id, device):
     file_id.write('template<>\n')
-    file_id.write('int KDevice<' + device.class_name \
-                                + ',' + device.name + '>::\n')
+    file_id.write('int KDevice<' + device.class_name + ',' + device.name + '>::\n')
     file_id.write('        execute(const Command& cmd)\n' )
     file_id.write('{\n')
 
@@ -240,22 +213,16 @@ def PrintExecute(file_id, device):
     file_id.write('    switch(cmd.operation) {\n')
 
     for operation in device.operations:
-        file_id.write('      case ' + device.class_name + '::' \
-                                + operation["name"] + ': {\n')
-        file_id.write('        Argument<' + device.class_name + '::' \
-                                + operation["name"] + '> args;\n\n')
-        file_id.write('        if (parse_arg<' + device.class_name + '::' \
-                                + operation["name"] + '>(cmd, args) < 0)\n')
+        file_id.write('      case ' + device.class_name + '::' + operation["name"] + ': {\n')
+        file_id.write('        Argument<' + device.class_name + '::' + operation["name"] + '> args;\n\n')
+        file_id.write('        if (parse_arg<' + device.class_name + '::' + operation["name"] + '>(cmd, args) < 0)\n')
         file_id.write('            return -1;\n\n')
-        file_id.write('        return execute_op<' + device.class_name + '::' \
-                                + operation["name"] + '>(args, cmd.sess_id);\n')                                             
+        file_id.write('        return execute_op<' + device.class_name + '::' + operation["name"] + '>(args, cmd.sess_id);\n')
         file_id.write('      }\n')
 
-    file_id.write('      case ' + device.class_name + '::' \
-                                + device.name.lower() + '_op_num:\n')
+    file_id.write('      case ' + device.class_name + '::' + device.name.lower() + '_op_num:\n')
     file_id.write('      default:\n')
-    file_id.write('          kserver->syslog.print(SysLog::ERROR, "' 
-                            + device.class_name + ': Unknown operation\\n");\n')
+    file_id.write('          kserver->syslog.print(SysLog::ERROR, "' + device.class_name + ': Unknown operation\\n");\n')
     file_id.write('          return -1;\n')
     file_id.write('    }\n')
     file_id.write('}\n\n')
