@@ -15,7 +15,7 @@ namespace kserver {
 
 #define KS_DEV_WRITE_STR_LEN 1024
 
-#define GET_SESSION kserver->session_manager.GetSession(sess_id)
+#define GET_SESSION kserver->session_manager.get_session(sess_id)
 #define GET_CMD_LOG GET_SESSION.GetCmdLog()
 
 #define KSERVER_STRUCT_ARGUMENTS(cmd_name)                          \
@@ -50,7 +50,7 @@ KSERVER_PARSE_ARG(GET_VERSION) {return 0;}
 
 KSERVER_EXECUTE_OP(GET_VERSION)
 {
-    return GET_SESSION.SendCstr(xstr(SHA));
+    return GET_SESSION.send_cstr(xstr(SHA));
 }
 
 /////////////////////////////////////
@@ -82,7 +82,7 @@ KSERVER_EXECUTE_OP(GET_CMDS)
         return -1;
     }
 
-    if ((bytes = GET_SESSION.SendCstr(cmds_str)) < 0)
+    if ((bytes = GET_SESSION.send_cstr(cmds_str)) < 0)
         return -1;
 
     bytes_send += bytes;
@@ -113,14 +113,14 @@ KSERVER_EXECUTE_OP(GET_CMDS)
 
         strcat(cmds_str, "\n");
 
-        if ((bytes = GET_SESSION.SendCstr(cmds_str)) < 0)
+        if ((bytes = GET_SESSION.send_cstr(cmds_str)) < 0)
             return -1;
 
         bytes_send += bytes;
     }
 
     // Send EOC (End Of Commands)
-    if ((bytes = GET_SESSION.SendCstr("EOC\n")) < 0)
+    if ((bytes = GET_SESSION.send_cstr("EOC\n")) < 0)
        return -1;
 
     kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send+bytes);
@@ -161,7 +161,7 @@ int send_listener_stats(SessID sess_id, KServer *kserver,
         return -1;
     }
 
-    if ((bytes_send = GET_SESSION.SendCstr(send_str)) < 0)
+    if ((bytes_send = GET_SESSION.send_cstr(send_str)) < 0)
         return -1;
 
     return bytes_send;
@@ -190,7 +190,7 @@ KSERVER_EXECUTE_OP(GET_STATS)
         return -1;
     }
 
-    if ((bytes = GET_SESSION.SendCstr(send_str)) < 0)
+    if ((bytes = GET_SESSION.send_cstr(send_str)) < 0)
         return -1;
 
     bytes_send += bytes;
@@ -218,7 +218,7 @@ KSERVER_EXECUTE_OP(GET_STATS)
 #endif
 
     // Send EORS (End Of KServer Stats)
-    if ((bytes = GET_SESSION.SendCstr("EOKS\n")) < 0)
+    if ((bytes = GET_SESSION.send_cstr("EOKS\n")) < 0)
         return -1;
 
     kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send+bytes);
@@ -259,14 +259,14 @@ KSERVER_EXECUTE_OP(GET_DEV_STATUS)
             return -1;
         }
 
-        if ((bytes = GET_SESSION.SendCstr(send_str)) < 0)
+        if ((bytes = GET_SESSION.send_cstr(send_str)) < 0)
             return -1;
 
         bytes_send += bytes;
     }
 
     // Send EODS (End Of Device Status)
-    if ((bytes = GET_SESSION.SendCstr("EODS\n")) < 0)
+    if ((bytes = GET_SESSION.send_cstr("EODS\n")) < 0)
         return -1;
 
     kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send + bytes);
@@ -283,12 +283,12 @@ KSERVER_PARSE_ARG(GET_RUNNING_SESSIONS) {return 0;}
 #define SET_SESSION_PARAMS(sock_type)                                             \
     case sock_type:                                                               \
       sock_type_name = #sock_type;                                                \
-      perms = static_cast<Session<sock_type>*>(&session)->GetPermissions();       \
-      ip = static_cast<Session<sock_type>*>(&session)->GetClientIP();             \
-      port = static_cast<Session<sock_type>*>(&session)->GetClientPort();         \
-      req_num = static_cast<Session<sock_type>*>(&session)->RequestNum();         \
-      err_num = static_cast<Session<sock_type>*>(&session)->ErrorNum();           \
-      start_time = static_cast<Session<sock_type>*>(&session)->GetStartTime();    \
+      perms = static_cast<Session<sock_type>*>(&session)->get_permissions();      \
+      ip = static_cast<Session<sock_type>*>(&session)->get_client_ip();           \
+      port = static_cast<Session<sock_type>*>(&session)->get_client_port();       \
+      req_num = static_cast<Session<sock_type>*>(&session)->request_num();        \
+      err_num = static_cast<Session<sock_type>*>(&session)->error_num();          \
+      start_time = static_cast<Session<sock_type>*>(&session)->get_start_time();  \
       break;
 
 KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
@@ -298,10 +298,10 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
     unsigned int bytes_send = 0;
     const SessionPermissions* perms;
 
-    std::vector<SessID> ids = kserver->session_manager.GetCurrentIDs();
+    const auto& ids = kserver->session_manager.get_current_ids();
 
-    for (unsigned int i=0; i<ids.size(); i++) {
-        SessionAbstract& session = kserver->session_manager.GetSession(ids[i]);
+    for (auto& id : ids) {
+        SessionAbstract& session = kserver->session_manager.get_session(id);
 
         const char *sock_type_name;
         const char *ip;
@@ -335,7 +335,7 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
 
         int ret = snprintf(send_str, KS_DEV_WRITE_STR_LEN,
                            "%u:%s:%s:%u:%u:%u:%li:%s\n",
-                           ids[i], sock_type_name,
+                           id, sock_type_name,
                            ip, port, req_num, err_num,
                            std::time(nullptr) - start_time,
                            perms_str);
@@ -352,14 +352,14 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
             return -1;
         }
 
-        if ((bytes = GET_SESSION.SendCstr(send_str)) < 0)
+        if ((bytes = GET_SESSION.send_cstr(send_str)) < 0)
             return -1;
 
         bytes_send += bytes;
     }
 
     // Send EORS (End Of Running Sessions)
-    if ((bytes = GET_SESSION.SendCstr("EORS\n")) < 0)
+    if ((bytes = GET_SESSION.send_cstr("EORS\n")) < 0)
         return -1;
 
     kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send + bytes);

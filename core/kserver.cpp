@@ -120,7 +120,7 @@ void KServer::join_listeners_workers()
 #endif
 }
 
-int KServer::Run()
+int KServer::run()
 {
     start_time = std::time(nullptr);
 
@@ -130,7 +130,7 @@ int KServer::Run()
     while (1) {
         if (sig_handler.Interrupt()) {
             syslog.print(SysLog::INFO, "Interrupt received, killing KServer ...\n");
-            session_manager.DeleteAll();
+            session_manager.delete_all();
             close_listeners();
             syslog.close();
             return 0;

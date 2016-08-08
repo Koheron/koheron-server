@@ -136,28 +136,28 @@ void session_thread_call(int comm_fd, PeerInfo peer_info,
     listener->stats.opened_sessions_num++;
     listener->stats.total_sessions_num++;
 
-    SessID sid = listener->kserver->session_manager. template CreateSession<sock_type>(
+    SessID sid = listener->kserver->session_manager. template create_session<sock_type>(
                             listener->kserver->config, comm_fd, peer_info);
 
     auto session = static_cast<Session<sock_type>*>(
-                        &listener->kserver->session_manager.GetSession(sid));
+                        &listener->kserver->session_manager.get_session(sid));
 
     listener->kserver->syslog.print(SysLog::INFO,
                 "Start session id = %u. "
                 "Client IP = %s, port = %u. Start time = %li\n",
-                sid, session->GetClientIP(), session->GetClientPort(),
-                session->GetStartTime());
+                sid, session->get_client_ip(), session->get_client_port(),
+                session->get_start_time());
 
-    if (session->Run() < 0)
+    if (session->run() < 0)
         listener->kserver->syslog.print(SysLog::ERROR,
                                         "An error occured during session\n");
 
     listener->kserver->syslog.print(SysLog::INFO,
                 "Close session id = %u with #req = %u. #err = %u\n",
-                sid, session->RequestNum(), session->ErrorNum());
+                sid, session->request_num(), session->error_num());
 
-    listener->stats.total_requests_num += session->RequestNum();
-    listener->kserver->session_manager.DeleteSession(sid);
+    listener->stats.total_requests_num += session->request_num();
+    listener->kserver->session_manager.delete_session(sid);
 
     listener->dec_thread_num();
     listener->stats.opened_sessions_num--;

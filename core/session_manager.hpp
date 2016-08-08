@@ -35,18 +35,18 @@ class SessionManager
 
     static unsigned int num_sess;
 
-    size_t GetNumSess() const {return session_pool.size();}
+    size_t get_num_sess() const {return session_pool.size();}
 
     template<int sock_type>
-    SessID CreateSession(const std::shared_ptr<KServerConfig>& config_,
-                         int comm_fd, PeerInfo peer_info);
+    SessID create_session(const std::shared_ptr<KServerConfig>& config_,
+                          int comm_fd, PeerInfo peer_info);
 
-    std::vector<SessID> GetCurrentIDs();
+    std::vector<SessID> get_current_ids();
 
-    SessionAbstract& GetSession(SessID id) const {return *session_pool.at(id);}
+    SessionAbstract& get_session(SessID id) const {return *session_pool.at(id);}
 
-    void DeleteSession(SessID id);
-    void DeleteAll();
+    void delete_session(SessID id);
+    void delete_all();
 
     KServer& kserver;
     DeviceManager& dev_manager;

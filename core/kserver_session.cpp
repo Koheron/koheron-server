@@ -109,9 +109,9 @@ int Session<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes)
 }
 
 template<>
-const uint32_t* Session<TCP>::RcvHandshake(uint32_t buff_size)
+const uint32_t* Session<TCP>::rcv_handshake(uint32_t buff_size)
 {
-    if (unlikely(Send<uint32_t>(htonl(buff_size)) < 0)) {
+    if (unlikely(send<uint32_t>(htonl(buff_size)) < 0)) {
         session_manager.kserver.syslog.print(SysLog::ERROR,
             "TCPSocket: Cannot send buffer size\n");
         return nullptr;
@@ -130,14 +130,13 @@ const uint32_t* Session<TCP>::RcvHandshake(uint32_t buff_size)
 }
 
 template<>
-int Session<TCP>::SendCstr(const char *string)
+int Session<TCP>::send_cstr(const char *string)
 {
     int bytes_send = strlen(string) + 1;
-    int err = write(comm_fd, string, bytes_send);
 
-    if (unlikely(err < 0)) {
+    if (unlikely(write(comm_fd, string, bytes_send) < 0)) {
         session_manager.kserver.syslog.print(SysLog::ERROR,
-                              "TCPSocket::SendCstr: Can't write to client\n");
+                              "TCPSocket::send_cstr: Can't write to client\n");
         return -1;
     }
 
@@ -219,9 +218,9 @@ int Session<WEBSOCK>::read_command(Command& cmd)
 }
 
 template<>
-const uint32_t* Session<WEBSOCK>::RcvHandshake(uint32_t buff_size)
+const uint32_t* Session<WEBSOCK>::rcv_handshake(uint32_t buff_size)
 {
-    if (unlikely(Send<uint32_t>(buff_size) < 0)) {
+    if (unlikely(send<uint32_t>(buff_size) < 0)) {
         session_manager.kserver.syslog.print(SysLog::ERROR,
             "WebSocket: Error sending the buffer size\n");
         return nullptr;
@@ -232,7 +231,7 @@ const uint32_t* Session<WEBSOCK>::RcvHandshake(uint32_t buff_size)
     if (unlikely(payload_size < 0))
         return nullptr;
 
-    if (static_cast<uint32_t>(payload_size) != sizeof(uint32_t) * buff_size) {
+    if (unlikely(static_cast<uint32_t>(payload_size) != sizeof(uint32_t) * buff_size)) {
         session_manager.kserver.syslog.print(SysLog::ERROR,
             "WebSocket: Invalid data size received\n");
         return nullptr;
