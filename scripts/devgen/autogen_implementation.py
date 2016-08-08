@@ -94,7 +94,7 @@ def PrintParserCore(file_id, device, operation):
     pos_cnt = 0
 
     for idx, pack in enumerate(packs):
-        if pack['familly'] == 'scalar':
+        if pack['family'] == 'scalar':
             file_id.write('    auto args_tuple' + str(idx) + ' = deserialize<position' + str(pos_cnt) + ', cmd.buffer.size(), ')
             print_type_list_pack(file_id, pack)
             file_id.write('>(cmd.buffer);\n')
@@ -108,7 +108,7 @@ def PrintParserCore(file_id, device, operation):
                 pos_cnt += 1
                 print_type_list_pack(file_id, pack)
                 file_id.write('>();\n')
-        elif pack['familly'] == 'array':
+        elif pack['family'] == 'array':
             array_params = get_std_array_params(pack['args']['type'])
             file_id.write('    args.' + pack['args']['name'] + ' = extract_array<position' + str(pos_cnt)
                           + ', ' + array_params['T'] + ', ' + array_params['N'] + '>(cmd.buffer.data);\n')
@@ -118,13 +118,13 @@ def PrintParserCore(file_id, device, operation):
                               + ' + size_of<' + array_params['T'] + ', ' + array_params['N'] + '>;\n')
                 pos_cnt += 1
         else:
-            raise ValueError('Unknown argument familly')
+            raise ValueError('Unknown argument family')
 
 def print_req_buff_size(file_id, packs):
     file_id.write('    constexpr size_t req_buff_size = ');
 
     for idx, pack in enumerate(packs):
-        if pack['familly'] == 'scalar':
+        if pack['family'] == 'scalar':
             if idx == 0:
                 file_id.write('required_buffer_size<')
             else:
@@ -134,7 +134,7 @@ def print_req_buff_size(file_id, packs):
                 file_id.write('>()\n')
             else:
                 file_id.write('>();\n')
-        elif pack['familly'] == 'array':
+        elif pack['family'] == 'array':
             array_params = get_std_array_params(pack['args']['type'])
             if idx == 0:
                 file_id.write('size_of<')
@@ -164,11 +164,11 @@ def build_args_packs(file_id, operation):
             args_list.append(arg)
         else: # std::array
             if len(args_list) > 0:
-                packs.append({'familly': 'scalar', 'args': args_list})
+                packs.append({'family': 'scalar', 'args': args_list})
                 args_list = []
-            packs.append({'familly': 'array', 'args': arg})
+            packs.append({'family': 'array', 'args': arg})
     if len(args_list) > 0:
-        packs.append({'familly': 'scalar', 'args': args_list})
+        packs.append({'family': 'scalar', 'args': args_list})
     # print pprint.pprint(packs)
     return packs
 

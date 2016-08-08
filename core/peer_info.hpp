@@ -20,7 +20,7 @@ struct PeerInfo
     PeerInfo(int comm_fd = -1);
     PeerInfo(const PeerInfo& peer_info);
 
-    unsigned short ip_family;       ///< Address familly, AF_XXX
+    unsigned short ip_family;       ///< Address family, AF_XXX
     char ip_str[INET6_ADDRSTRLEN];  ///< IP address
     int port;                       ///< Connection port
 };
