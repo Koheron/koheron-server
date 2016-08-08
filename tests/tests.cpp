@@ -185,11 +185,11 @@ std::array<uint32_t, 2> Tests::get_binary_tuple() {
     }};
 }
 
-uint64_t           Tests::read_uint64()    { return (1ULL << 63);       }
-int                Tests::read_int()       { return -214748364;         }
-unsigned int       Tests::read_uint()      { return 301062138;          }
-unsigned long      Tests::read_ulong()     { return 2048;               }
-unsigned long long Tests::read_ulonglong() { return (1ULL << 63);       }
-float              Tests::read_float()     { return 3.141592;           }
-double             Tests::read_double()    { return 2.2250738585072009; }
-bool               Tests::read_bool()      { return true;               }
+uint64_t      Tests::read_uint64()    { return (1ULL << 63);       }
+int           Tests::read_int()       { return -214748364;         }
+unsigned int  Tests::read_uint()      { return 301062138;          }
+uint32_t      Tests::read_ulong()     { return 2048;               }
+uint64_t      Tests::read_ulonglong() { return (1ULL << 63);       }
+float         Tests::read_float()     { return 3.141592;           }
+double        Tests::read_double()    { return 2.2250738585072009; }
+bool          Tests::read_bool()      { return true;               }

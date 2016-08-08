@@ -271,12 +271,6 @@ int Session<sock_type>::run()
     }                                                                                 \
                                                                                       \
     template<> template<>                                                             \
-    inline int session_kind::send<unsigned long long>(const unsigned long long& val)  \
-    {                                                                                 \
-        return send<uint64_t>(val);                                                   \
-    }                                                                                 \
-                                                                                      \
-    template<> template<>                                                             \
     inline int session_kind::send<float>(const float& val)                            \
     {                                                                                 \
         return send_array<float>(&val, 1);                                            \
