@@ -7,8 +7,7 @@ ENV work_dir /code
 # Install dependencies
 # ---------------------------------------
 
-RUN apt-get update
-RUN apt-get -y install gcc-5 g++-5             \
+RUN apt-get update && apt-get -y install gcc-5 g++-5             \
                        gcc-arm-linux-gnueabihf \
                        g++-arm-linux-gnueabihf \
                        gcc-arm-linux-gnueabi   \

@@ -20,7 +20,7 @@ namespace kserver {
 struct SysLog
 {
     SysLog(std::shared_ptr<KServerConfig> config_);
-    ~SysLog();
+
     void close();
 
     /// Severity of the message
@@ -33,16 +33,16 @@ struct SysLog
         DEBUG,
         syslog_severity_num
     };
-    
+
     void print(unsigned int severity, const char *message, ...);
-    
+
 private:
     std::shared_ptr<KServerConfig> config;
-    
+
     char fmt_buffer[FMT_BUFF_LEN];
-    
-    int print_stderr(const char *header, const char *message, ...);
-    
+
+    int print_stderr(const char *header, const char *message, va_list argptr);
+
 #if KSERVER_HAS_THREADS
     std::mutex mutex;
 #endif

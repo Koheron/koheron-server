@@ -206,7 +206,7 @@ static size_t append_float(char *buff, float value)
  * Add a double to a buffer
  * Return the size (in bytes) of the append number
  */
-static size_t append_double(char *buff, float value)
+static size_t append_double(char *buff, double value)
 {
     _Static_assert(sizeof(double) == 8, "Invalid double size");
     union { double d; uint64_t u; } __value = {value};
