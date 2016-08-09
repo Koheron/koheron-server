@@ -55,63 +55,30 @@ def write_buffer(device_name, type_str='', format_char='I', dtype=np.uint32):
 
 def make_command(*args):
     buff = bytearray()
-    _append_u32(buff, 0)        # RESERVED
-    _append_u16(buff, args[0])  # dev_id
-    _append_u16(buff, args[1])  # op_id
+    append(buff, 0, 4)        # RESERVED
+    append(buff, args[0], 2)  # dev_id
+    append(buff, args[1], 2)  # op_id
 
     # Payload
     if len(args[2:]) > 0:
         payload, payload_size = _build_payload(args[2], args[3:])
-        _append_u32(buff, payload_size)
+        append(buff, payload_size, 4)
         buff.extend(payload)
     else:
-        _append_u32(buff, 0)
+        append(buff, 0, 4)
 
     return buff
 
-def _append_i8(buff, value):
-    buff.append(value & 0xff)
-    return 1
+def append(buff, value, size):
+    if size <= 4:
+        for i in reversed(range(size)):
+            buff.append((value >> (8 * i)) & 0xff)
+    elif size == 8:
+        append(buff, value, 4)
+        append(buff, value >> 32, 4)
+    return size
 
-def _append_u8(buff, value):
-    buff.append(value & 0xff)
-    return 1
-
-def _append_i16(buff, value):
-    buff.append((value >> 8) & 0xff)
-    buff.append(value & 0xff)
-    return 2
-
-def _append_u16(buff, value):
-    buff.append((value >> 8) & 0xff)
-    buff.append(value & 0xff)
-    return 2
-
-def _append_i32(buff, value):
-    buff.append((value >> 24) & 0xff)
-    buff.append((value >> 16) & 0xff)
-    buff.append((value >> 8) & 0xff)
-    buff.append(value & 0xff)
-    return 4
-
-def _append_u32(buff, value):
-    buff.append((value >> 24) & 0xff)
-    buff.append((value >> 16) & 0xff)
-    buff.append((value >> 8) & 0xff)
-    buff.append(value & 0xff)
-    return 4
-
-def _append_i64(buff, value):
-    _append_u32(buff, value)
-    _append_u32(buff, (value >> 32))
-    return 8
-
-def _append_u64(buff, value):
-    _append_u32(buff, value)
-    _append_u32(buff, (value >> 32))
-    return 8
-
-def _append_np_array(buff, array):
+def append_np_array(buff, array):
     arr_bytes = bytearray(array)
     buff += arr_bytes
     return len(arr_bytes)
@@ -120,50 +87,33 @@ def _append_np_array(buff, array):
 def float_to_bits(f):
     return struct.unpack('>l', struct.pack('>f', f))[0]
 
-def _append_float(buff, value):
-    return _append_u32(buff, float_to_bits(value))
-
 def double_to_bits(d):
     return struct.unpack('>q', struct.pack('>d', d))[0]
-
-def _append_double(buff, value):
-    return _append_u64(buff, double_to_bits(value))
 
 def _build_payload(type_str, args):
     size = 0
     payload = bytearray()
-
     assert len(type_str) == len(args)
-
-    # http://stackoverflow.com/questions/402504/how-to-determine-the-variable-type-in-python
     for i, type_ in enumerate(type_str):
-        if type_ is 'B':
-            size += _append_u8(payload, args[i])
-        elif type_ is 'b':
-            size += _append_i8(payload, args[i])
-        elif type_ is 'H':
-            size += _append_u16(payload, args[i])
-        elif type_ is 'h':
-            size += _append_i16(payload, args[i])
-        elif type_ is 'I':
-            size += _append_u32(payload, args[i])
-        elif type_ is 'i':
-            size += _append_i32(payload, args[i])
-        elif type_ is 'Q':
-            size += _append_u64(payload, args[i])
-        elif type_ is 'q':
-            size += _append_i64(payload, args[i])
+        if type_ in ['B','b']:
+            size += append(payload, args[i], 1)
+        elif type_ in ['H','h']:
+            size += append(payload, args[i], 2)
+        elif type_ in ['I','i']:
+            size += append(payload, args[i], 4)
+        elif type_ in ['Q','q']:
+            size += append(payload, args[i], 8)
         elif type_ is 'f':
-            size += _append_float(payload, args[i])
+            size += append(payload, float_to_bits(args[i]), 4)
         elif type_ is 'd':
-            size += _append_double(payload, args[i])
+            size += append(payload, double_to_bits(args[i]), 8)
         elif type_ is '?':
             if args[i]:
-                size += _append_u8(payload, 1)
+                size += append(payload, 1, 1)
             else:
-                size += _append_u8(payload, 0)
+                size += append(payload, 0, 1)
         elif type_ is 'A':
-            size += _append_np_array(payload, args[i])
+            size += append_np_array(payload, args[i])
         else:
             raise ValueError('Unsupported type' + type(arg))
 
@@ -266,13 +216,13 @@ class KClient:
         self.cmds = Commands(self)
 
         if not self.cmds.success:
-            # Wait a bit and retry
+            print('get_commands(): Wait a bit and retry')
             time.sleep(0.1)
             self.cmds = Commands(self)
 
-            if not self.cmds.success:
-                self.is_connected = False
-                self.sock.close()
+        if not self.cmds.success:
+            self.is_connected = False
+            self.sock.close()
 
     # -------------------------------------------------------
     # Send/Receive
@@ -289,7 +239,7 @@ class KClient:
         if self.sock.send(make_command(device_id, operation_ref, type_str, *args)) == 0:
             raise RuntimeError("kclient-send_command: Socket connection broken")
 
-    def recv_int(self, buff_size, err_msg=None, fmt="I"):
+    def recv_int(self, buff_size, fmt="I"):
         """ Receive an integer
 
         Args:
@@ -300,24 +250,14 @@ class KClient:
 
         Raise RuntimeError on error.
         """
-        try:
-            ready = select.select([self.sock], [], [], self.timeout)
+        data_recv = self.sock.recv(buff_size)
+        if data_recv == '':
+            raise RuntimeError("kclient-recv_int: Socket connection broken")
 
-            if ready[0]:
-                data_recv = self.sock.recv(buff_size)
-                if data_recv == '':
-                    raise RuntimeError("kclient-recv_int: Socket connection broken")
+        if len(data_recv) != buff_size:
+            raise RuntimeError("kclient-recv_int: Invalid size received")
 
-                if len(data_recv) != buff_size:
-                    raise RuntimeError("kclient-recv_int: Invalid size received")
-
-                if err_msg is not None:
-                    if data_recv[:len(err_msg)] == err_msg:
-                        raise RuntimeError("kclient-recv_int: No data available")
-
-                return struct.unpack(fmt, data_recv)[0]
-        except:
-            raise RuntimeError("kclient-recv_int: Reception error")
+        return struct.unpack(fmt, data_recv)[0]
 
     def recv_uint32(self):
         return self.recv_int(4)
@@ -350,81 +290,40 @@ class KClient:
         n_rcv = 0
 
         while n_rcv < n_bytes:
-            try:
-                chunk = self.sock.recv(n_bytes - n_rcv)
+            chunk = self.sock.recv(n_bytes - n_rcv)
 
-                if chunk == '':
-                    break
+            if chunk == '':
+                break
 
-                n_rcv = n_rcv + len(chunk)
-                data.append(chunk)
-            except:
-                print("recv_n_bytes: sock.recv failed")
-                return ''
+            n_rcv += len(chunk)
+            data.append(chunk)
 
         return b''.join(data)
 
-    def recv_timeout(self, escape_seq, timeout=5):
-        """
-        Receive data until either an escape sequence
-        is found or a timeout is exceeded
+    def read_until(self, escape_seq):
+        """ Receive data until an escape sequence is found. """
 
-        Args:
-            socket: The socket used for communication
-            escape_seq: String containing the escape sequence. Ex. 'EOF'.
-            timeout: Reception timeout in seconds
-        """
-
-        # total data partwise in an array
-        total_data = [];
-        data = '';
-
-        begin = time.time()
+        total_data = []
 
         while 1:
-            if time.time()-begin > timeout:
-                print("Error in recv_timeout Timeout exceeded")
-                return "RECV_ERR_TIMEOUT"
-
-            try:
-                data = self.sock.recv(2048).decode('utf-8')
-
-                if data:
-                    total_data.append(data)
-                    begin = time.time()
-
-                    if data.find(escape_seq) > 0:
-                        break
-            except:
-                pass
-
-            # To avoid the program to freeze at connection sometimes
-            time.sleep(0.005)
+            data = self.sock.recv(2048).decode('utf-8')
+            if data:
+                total_data.append(data)
+                if data.find(escape_seq) > 0:
+                    break
 
         return ''.join(total_data)
 
     def recv_string(self):
-        return self.recv_timeout('\0')[:-1]
+        return self.read_until('\0')[:-1]
 
     def recv_json(self):
         return json.loads(self.recv_string())
 
     def recv_buffer(self, buff_size, data_type='uint32'):
-        """ Receive a buffer of uint32
-
-        Args:
-            buff_size Number of samples to receive
-
-        Return: A Numpy array with the data on success.
-
-        Raise a RuntimeError on reception failure
-        """
+        """ Receive a numpy array. """
         np_dtype = np.dtype(data_type)
         buff = self.recv_n_bytes(np_dtype.itemsize * buff_size)
-
-        if buff == '':
-            raise RuntimeError("recv_buffer: reception failed")
-
         np_dtype = np_dtype.newbyteorder('<')
         data = np.frombuffer(buff, dtype=np_dtype)
         return data
@@ -471,7 +370,7 @@ class KClient:
     def get_stats(self):
         """ Print server statistics """
         self.send_command(1, 2)
-        msg = self.recv_timeout('EOKS')
+        msg = self.read_until('EOKS')
         print msg
 
     def __del__(self):
@@ -486,8 +385,7 @@ class Commands:
     associated operations) available in KServer.
     """
     def __init__(self, client):
-        """ Receive and parse the commands description message sent by KServer
-        """
+        """ Receive and parse the commands description message sent by KServer.        """
         self.success = True
 
         try:
@@ -500,15 +398,8 @@ class Commands:
             self.success = False
             return
 
-        msg = client.recv_timeout('EOC')
-
-        if msg == "RECV_ERR_TIMEOUT":
-            print("Timeout at message reception")
-            self.success = False
-            return
-
+        msg = client.read_until('EOC')
         lines = msg.split('\n')
-
         self.devices = []
 
         for line in lines[1:-2]:
