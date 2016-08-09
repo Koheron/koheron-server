@@ -58,15 +58,18 @@ class WebSocketPool
                     console.assert(websocket.readyState == 1, "Websocket not ready")
                     @free_sockets.push(@socket_counter)
                     if @socket_counter == 0 then onopen_callback()
+                    websocket.ID = @socket_counter
+                    # console.log 'Socket ID = ' + websocket.ID.toString() + ' connected\n'
+
+                    websocket.onclose = (evt) =>
+                        # console.log 'Socket ID = ' + websocket.ID.toString() + ' disconnected\n'
+
+                    websocket.onerror = (evt) =>
+                        console.error "error: " + evt.data + "\n"
+                        websocket.close()
+
                     @socket_counter++
                 )
-
-            # websocket.onclose = (evt) =>
-            #     console.log "disconnected\n"
-
-            websocket.onerror = (evt) =>
-                console.error "error: " + evt.data + "\n"
-                websocket.close()
 
     waitForConnection: (websocket, interval, callback) ->
         if websocket.readyState == 1
@@ -532,10 +535,10 @@ class @KClient
 
                     for i in [2..tokens.length-1]
                         if tokens[i] != "" and tokens[i] != "\n"
-                            cmds.push(tokens[i])
+                            cmds.push(tokens[i].replace(/\r?\n|\r/, ''))
 
                     dev = new Device(devname, id, cmds)
-                    #dev.show()
+                    # dev.show()
                     @devices_list.push(dev)
 
                 if evt.data == "EOC\n"
