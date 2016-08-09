@@ -132,7 +132,9 @@ class Tests:
 unixsock = os.getenv('PYTEST_UNIXSOCK','/code/kserver.sock')
 print unixsock
 
-client = KClient('127.0.0.1', 36000, verbose=False)
+port = int(os.getenv('PYTEST_PORT', '36000'))
+
+client = KClient('127.0.0.1', port, verbose=False)
 tests = Tests(client)
 
 client_unix = KClient(unixsock=unixsock)
