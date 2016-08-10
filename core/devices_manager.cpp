@@ -10,10 +10,6 @@
 #  include <thread>
 #endif
 
-#if KSERVER_HAS_DEVMEM
-#include <drivers/lib/dev_mem.hpp>
-#endif
-
 namespace kserver {
 
 DeviceManager::DeviceManager(KServer *kserver_)
