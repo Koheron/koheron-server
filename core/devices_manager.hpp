@@ -18,6 +18,8 @@
 #include <mutex>
 #endif
 
+class DevMem;
+
 namespace kserver {
 
 /// Status of a device
@@ -38,7 +40,6 @@ KS_dev_status_desc = {{
 
 class KServer;
 struct Command;
-class DevMem;
 
 class DeviceManager
 {

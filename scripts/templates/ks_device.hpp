@@ -19,9 +19,9 @@
 #include <core/kdevice.hpp>
 #include <core/devices_manager.hpp>
 
-namespace kserver {
-
 class DevMem;
+
+namespace kserver {
 
 class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device.name }}>
 {
