@@ -4,7 +4,7 @@ zynq_sdk_path: &zynq_sdk tmp/zynq-sdk
 requirements:
   - type: git
     src: https://github.com/Koheron/zynq-sdk.git
-    branch: master
+    branch: update_spectrum
     dest: *zynq_sdk
 
   - type: folder
