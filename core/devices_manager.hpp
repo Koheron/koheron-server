@@ -18,10 +18,6 @@
 #include <mutex>
 #endif
 
-#if KSERVER_HAS_DEVMEM
-#include <drivers/lib/dev_mem.hpp>
-#endif
-
 namespace kserver {
 
 /// Status of a device
@@ -42,6 +38,7 @@ KS_dev_status_desc = {{
 
 class KServer;
 struct Command;
+class DevMem;
 
 class DeviceManager
 {
@@ -81,7 +78,7 @@ class DeviceManager
     KS_device_status GetStatus(device_t dev);
 
 #if KSERVER_HAS_DEVMEM
-    Klib::DevMem& GetDevMem() {return dev_mem;}
+    DevMem& GetDevMem() {return dev_mem;}
 #endif
 
   private:
@@ -89,7 +86,7 @@ class DeviceManager
     KServer *kserver;
 
 #if KSERVER_HAS_DEVMEM
-    Klib::DevMem dev_mem;
+    DevMem dev_mem;
 #endif
 
     /// True if a device is started
