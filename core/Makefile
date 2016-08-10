@@ -41,7 +41,7 @@ OBJS_KSERVER = core/kserver.o              \
 SRC_MIDWARE = $(shell find $(MIDWARE_INC_PATH) -name '*.cpp')
 OBJS_MIDWARE = $(subst .cpp,.o, $(SRC_MIDWARE))
 
-# All objects 		
+# All objects
 OBJS = $(OBJS_MIDWARE) $(OBJS_KSERVER) $(OBJS_KS_DEV) main.o	
 # List of raw source files (all object files, renamed from .o to .c)
 SRCS = $(subst .o,.c, $(OBJS), ))
