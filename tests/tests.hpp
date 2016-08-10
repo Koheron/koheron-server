@@ -15,7 +15,7 @@ class Tests
   public:
 #if KSERVER_HAS_DEVMEM
     Tests(
-        Klib::DevMem& dvm_unused_)
+        DevMem& dvm_unused_)
     : data(0)
     , buffer(0)
     {}
