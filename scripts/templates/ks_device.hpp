@@ -12,10 +12,6 @@
 #include "{{ include }}"
 {% endfor -%}
 
-#if KSERVER_HAS_DEVMEM
-#include <drivers/lib/dev_mem.hpp>
-#endif
-
 #if KSERVER_HAS_THREADS
 #include <mutex>
 #endif
@@ -25,6 +21,8 @@
 
 namespace kserver {
 
+class DevMem;
+
 class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device.name }}>
 {
   public:
@@ -33,7 +31,7 @@ class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device
 
   public:
 #if KSERVER_HAS_DEVMEM
-    {{ device.class_name }}(KServer* kserver, Klib::DevMem& dev_mem_)
+    {{ device.class_name }}(KServer* kserver, DevMem& dev_mem_)
 #else
     {{ device.class_name }}(KServer* kserver)
 #endif
@@ -64,7 +62,7 @@ class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device
 #endif
 
 #if KSERVER_HAS_DEVMEM
-    Klib::DevMem& dev_mem;
+    DevMem& dev_mem;
 #endif
     {% if device.objects|length -%}
     {% for object in device.objects -%}
