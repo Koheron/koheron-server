@@ -16,7 +16,7 @@ DeviceManager::DeviceManager(KServer *kserver_)
 : device_list(device_num)
 ,  kserver(kserver_)
 #if KSERVER_HAS_DEVMEM
-,  dev_mem(kserver_->config->addr_limit_down, kserver_->config->addr_limit_up)
+,  dev_mem(kserver_->config->addr_limit_down, kserver_->config->addr_limit_up, kserver_)
 #endif
 {
     device_list[KSERVER] = static_cast<KDeviceAbstract*>(kserver);
@@ -31,7 +31,7 @@ DeviceManager::~DeviceManager()
 int DeviceManager::Init()
 {
 #if KSERVER_HAS_DEVMEM
-    if (dev_mem.Open() < 0) {
+    if (dev_mem.open() < 0) {
         kserver->syslog.print(SysLog::CRITICAL,
                               "Can't start DevMem\n");
         return -1;
