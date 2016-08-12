@@ -195,19 +195,20 @@ class KClient:
                 self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
                 # Connect to Kserver
                 self.sock.connect((host, port))
+                self.is_connected = True
             except socket.error as e:
-                print('Failed to connect to {:s}:{:d} : {:s}'
-                      .format(host, port, e))
+                print('Failed to connect to {:s}:{:d} : {:s}'.format(host, port, e))
+                self.is_connected = False
         elif unixsock != "":
             try:
                 self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
                 self.sock.connect(unixsock)
+                self.is_connected = True
             except socket.error as e:
                 print('Failed to connect to unix socket address ' + unixsock)
+                self.is_connected = False
         else:
             raise ValueError("Unknown socket type")
-
-        self.is_connected = True
 
         if self.is_connected:
             self._get_commands()
@@ -306,10 +307,10 @@ class KClient:
         total_data = []
 
         while 1:
-            data = self.sock.recv(2048).decode('utf-8')
+            data = self.sock.recv(1024).decode('utf-8')
             if data:
                 total_data.append(data)
-                if data.find(escape_seq) > 0:
+                if ''.join(total_data).find(escape_seq) > 0:
                     break
 
         return ''.join(total_data)
@@ -385,7 +386,7 @@ class Commands:
     associated operations) available in KServer.
     """
     def __init__(self, client):
-        """ Receive and parse the commands description message sent by KServer.        """
+        """ Receive and parse the commands description message sent by KServer """
         self.success = True
 
         try:
@@ -394,12 +395,11 @@ class Commands:
             if client.verbose:
                 traceback.print_exc()
 
-            print("Socket connection broken")
+            print('Socket connection broken')
             self.success = False
             return
 
-        msg = client.read_until('EOC')
-        lines = msg.split('\n')
+        lines = client.read_until('EOC').split('\n')
         self.devices = []
 
         for line in lines[1:-2]:
