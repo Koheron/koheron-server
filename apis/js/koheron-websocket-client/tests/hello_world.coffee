@@ -4,9 +4,7 @@ Command = webclient.Command
 class HelloWorld
     constructor : (@kclient) ->
         @device = @kclient.getDevice("HELLO_WORLD")
-
-        @cmds =
-            add_42 : @device.getCmdRef( "ADD_42" )
+        @cmds = @device.getCmds()
 
     add42 : (num, cb) ->
         @kclient.readUint32(Command(@device.id, @cmds.add_42, 'I', num), cb)
