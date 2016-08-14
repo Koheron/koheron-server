@@ -72,13 +72,13 @@ class Session : public SessionAbstract
 
     int run();
 
-    inline unsigned int request_num() const {return requests_num;}
-    inline unsigned int error_num() const {return errors_num;}
-    inline SessID get_id() const {return id;}
-    inline const char* get_client_ip() const {return peer_info.ip_str;}
-    inline int get_client_port() const {return peer_info.port;}
-    inline std::time_t get_start_time() const {return start_time;}
-    inline const SessionPermissions* get_permissions() const {return &permissions;}
+    unsigned int request_num() const {return requests_num;}
+    unsigned int error_num() const {return errors_num;}
+    SessID get_id() const {return id;}
+    const char* get_client_ip() const {return peer_info.ip_str;}
+    int get_client_port() const {return peer_info.port;}
+    std::time_t get_start_time() const {return start_time;}
+    const SessionPermissions* get_permissions() const {return &permissions;}
 
     // Receive - Send
 
@@ -127,7 +127,7 @@ class Session : public SessionAbstract
 
 #if KSERVER_HAS_WEBSOCKET
     struct EmptyWebsock {
-        EmptyWebsock(std::shared_ptr<KServerConfig> config_, KServer *kserver_){}
+        EmptyWebsock(std::shared_ptr<KServerConfig> config_, KServer *kserver_) {}
     };
 
     std::conditional_t<sock_type == WEBSOCK, WebSocket, EmptyWebsock> websock;
