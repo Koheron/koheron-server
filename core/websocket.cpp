@@ -249,11 +249,16 @@ int WebSocket::read_stream()
 {
     reset_read_buff();
 
-    if (unlikely(read_header() < 0)) {
+    int read_head_err = read_header();
+
+    if (unlikely(read_head_err < 0)) {
         kserver->syslog.print(SysLog::CRITICAL,
                               "WebSocket: Cannot read header\n");
         return -1;
     }
+
+    if (read_head_err == 1) // Connection closed
+        return read_head_err;
 
     // Read payload
     int err = read_n_bytes(header.payload_size, header.payload_size);
@@ -327,7 +332,7 @@ int WebSocket::read_header()
         return -1;
     } else if (opcode_err == 1) {
         connection_closed = true;
-        return 0;
+        return opcode_err;
     }
 
     if (stream_size <= SMALL_STREAM) {
