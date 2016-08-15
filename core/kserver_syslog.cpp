@@ -13,11 +13,14 @@
 #endif
 
 #include "kserver_defs.hpp"
+#include "kserver.hpp"
+#include "pubsub.tpp"
 
 namespace kserver {
 
-SysLog::SysLog(std::shared_ptr<KServerConfig> config_)
+SysLog::SysLog(std::shared_ptr<KServerConfig> config_, KServer *kserver_)
 : config(config_)
+, kserver(kserver_)
 {
     memset(fmt_buffer, 0, FMT_BUFF_LEN);
 
@@ -58,14 +61,14 @@ int SysLog::print_stderr(const char *header, const char *message, va_list argptr
     return 0;
 }
 
+int SysLog::emit_error()
+{
+    kserver->pubsub.emit_cstr<PubSub::SERVER_CHANNEL, PubSub::ERROR>("Error");
+    return 0;
+}
+
 void SysLog::print(unsigned int severity, const char *message, ...)
 {
-    // Return immediatly when a debug message must be
-    // logged. Avoids the sinificant va_copy overhead.
-
-    // if (severity == DEBUG && !config->verbose)
-    //     return;
-
     va_list argptr, argptr2, argptr3;
     va_start(argptr, message);
 
@@ -76,6 +79,7 @@ void SysLog::print(unsigned int severity, const char *message, ...)
     switch (severity) {
       case PANIC:
         print_stderr("KSERVER PANIC", message, argptr3);
+        emit_error();
 
         if (config->syslog)
             vsyslog(LOG_ALERT, message, argptr2);
@@ -83,6 +87,7 @@ void SysLog::print(unsigned int severity, const char *message, ...)
         break;
       case CRITICAL:
         print_stderr("KSERVER CRITICAL", message, argptr3);
+        emit_error();
 
         if (config->syslog)
             vsyslog(LOG_CRIT, message, argptr2);
@@ -90,6 +95,7 @@ void SysLog::print(unsigned int severity, const char *message, ...)
         break;
       case ERROR:
         print_stderr("KSERVER ERROR", message, argptr3);
+        emit_error();
 
         if (config->syslog)
             vsyslog(LOG_ERR, message, argptr2);
@@ -97,6 +103,7 @@ void SysLog::print(unsigned int severity, const char *message, ...)
         break;
       case WARNING:
         print_stderr("KSERVER WARNING", message, argptr3);
+        emit_error();
 
         if (config->syslog)
             vsyslog(LOG_WARNING, message, argptr2);

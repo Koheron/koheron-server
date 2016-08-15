@@ -27,7 +27,7 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
 #endif
   dev_manager(this),
   session_manager(*this, dev_manager, SessionManager::DFLT_WRITE_PERM_POLICY),
-  syslog(config_),
+  syslog(config_, this),
   start_time(0),
   pubsub(session_manager)
 {
