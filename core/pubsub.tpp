@@ -31,13 +31,13 @@ void PubSub::emit_cstr(const char *str)
     memcpy(emit_buffer.data + array.size(), str, len);
 
     for (auto const& sid : subscribers.get(channel))
-        // session_manager.get_session(sid).send_array(emit_buffer.data, len + 4 * sizeof(uint32_t));
-        session_manager.get_session(sid).send(
-                std::make_tuple(0U,   // RESERVED
-                                channel,
-                                event,
-                                len)
-            );
+        session_manager.get_session(sid).send_array(emit_buffer.data, len + 4 * sizeof(uint32_t));
+        // session_manager.get_session(sid).send(
+        //         std::make_tuple(0U,   // RESERVED
+        //                         channel,
+        //                         event,
+        //                         len)
+        //     );
 }
 
 } // namespace kserver
