@@ -63,7 +63,7 @@ int SysLog::print_stderr(const char *header, const char *message, va_list argptr
 
 int SysLog::emit_error()
 {
-    kserver->pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::ERROR>();
+    // kserver->pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::ERROR>();
     kserver->pubsub.emit_cstr<PubSub::SERVER_CHANNEL, PubSub::ERROR>("Error");
     return 0;
 }
