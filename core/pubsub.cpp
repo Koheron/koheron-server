@@ -1,5 +1,5 @@
 /// Implementation and specializations of 
-/// the class Broadcast in kserver.hpp
+/// the class PubSub in kserver.hpp
 ///
 /// (c) Koheron
 
@@ -9,12 +9,12 @@
 
 namespace kserver {
 
-Broadcast::Broadcast(SessionManager& session_manager_)
+PubSub::PubSub(SessionManager& session_manager_)
 : session_manager(session_manager_)
 , subscribers(0)
 {}
 
-int Broadcast::subscribe(uint32_t channel, SessID sid)
+int PubSub::subscribe(uint32_t channel, SessID sid)
 {
     if (channel == SERVER_CHANNEL) {
         printf("Session %u subscribed to channel %u\n", sid, channel);
@@ -26,7 +26,7 @@ int Broadcast::subscribe(uint32_t channel, SessID sid)
     return 0;
 }
 
-void Broadcast::unsubscribe(SessID sid)
+void PubSub::unsubscribe(SessID sid)
 {
     // http://stackoverflow.com/questions/39912/how-do-i-remove-an-item-from-a-stl-vector-with-a-certain-value
     auto it = std::find(subscribers.begin(), subscribers.end(), sid);

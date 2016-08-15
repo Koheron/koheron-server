@@ -32,12 +32,18 @@ namespace kserver {
 template<int sock_type> class Session;
 
 ////////////////////////////////////////////////////////////////////////////
-/////// Broadcast
+/////// PubSub
 
-class Broadcast
+// template<int channel>
+// struct Subscribers
+// {
+//     std::vector<SessID> subscribers;
+// };
+
+class PubSub
 {
   public:
-    Broadcast(SessionManager& session_manager_);
+    PubSub(SessionManager& session_manager_);
 
     // Session sid subscribes to a channel 
     int subscribe(uint32_t channel, SessID sid);
@@ -162,8 +168,8 @@ class KServer : public KDevice<KServer, KSERVER>
         GET_STATS,              ///< Get KServer listeners statistics
         GET_DEV_STATUS,         ///< Send the devices status
         GET_RUNNING_SESSIONS,   ///< Send the running sessions
-        SUBSCRIBE_BROADCAST,    ///< Subscribe to a broadcast channel
-        BROADCAST_PING,         ///< Emit a ping to server broadcast subscribers
+        SUBSCRIBE_PUBSUB,       ///< Subscribe to a broadcast channel
+        PUBSUB_PING,            ///< Emit a ping to server broadcast subscribers
         kserver_op_num
     };
 
@@ -191,7 +197,7 @@ class KServer : public KDevice<KServer, KSERVER>
     SysLog syslog;
     std::time_t start_time;
 
-    Broadcast broadcast;
+    PubSub pubsub;
 
 #if KSERVER_HAS_THREADS
     std::mutex ks_mutex;

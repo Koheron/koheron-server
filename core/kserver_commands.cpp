@@ -9,7 +9,7 @@
 #include "commands.hpp"
 #include "kserver_session.hpp"
 #include "session_manager.hpp"
-#include "broadcast.tpp"
+#include "pubsub.tpp"
 
 namespace kserver {
 
@@ -368,15 +368,15 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
 }
 
 /////////////////////////////////////
-// SUBSCRIBE_BROADCAST
-// Subscribe to a broadcast channel
+// SUBSCRIBE_PÜBSUB
+// Subscribe to a pubsub channel
 
-KSERVER_STRUCT_ARGUMENTS(SUBSCRIBE_BROADCAST)
+KSERVER_STRUCT_ARGUMENTS(SUBSCRIBE_PUBSUB)
 {
     uint32_t channel;
 };
 
-KSERVER_PARSE_ARG(SUBSCRIBE_BROADCAST)
+KSERVER_PARSE_ARG(SUBSCRIBE_PUBSUB)
 {
     if (required_buffer_size<uint32_t>() != cmd.payload_size) {
         kserver->syslog.print(SysLog::ERROR, "Invalid payload size\n");
@@ -387,21 +387,21 @@ KSERVER_PARSE_ARG(SUBSCRIBE_BROADCAST)
     return 0;
 }
 
-KSERVER_EXECUTE_OP(SUBSCRIBE_BROADCAST)
+KSERVER_EXECUTE_OP(SUBSCRIBE_PUBSUB)
 {
-    return kserver->broadcast.subscribe(args.channel, sess_id);
+    return kserver->pubsub.subscribe(args.channel, sess_id);
 }
 
 /////////////////////////////////////
 // BROADCAST_PING
 // Trigger broadcast emission on a given channel
 
-KSERVER_STRUCT_ARGUMENTS(BROADCAST_PING) {};
-KSERVER_PARSE_ARG(BROADCAST_PING) {return 0;}
+KSERVER_STRUCT_ARGUMENTS(PUBSUB_PING) {};
+KSERVER_PARSE_ARG(PUBSUB_PING) {return 0;}
 
-KSERVER_EXECUTE_OP(BROADCAST_PING)
+KSERVER_EXECUTE_OP(PUBSUB_PING)
 {
-    kserver->broadcast.emit<Broadcast::SERVER_CHANNEL, Broadcast::PING>();
+    kserver->pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::PING>();
     return 0;
 }
 
@@ -438,10 +438,10 @@ int KDevice<KServer, KSERVER>::execute(const Command& cmd)
         KSERVER_EXECUTE_CMD(GET_DEV_STATUS)
       case KServer::GET_RUNNING_SESSIONS:
         KSERVER_EXECUTE_CMD(GET_RUNNING_SESSIONS)
-      case KServer::SUBSCRIBE_BROADCAST:
-        KSERVER_EXECUTE_CMD(SUBSCRIBE_BROADCAST)
-      case KServer::BROADCAST_PING:
-        KSERVER_EXECUTE_CMD(BROADCAST_PING)
+      case KServer::SUBSCRIBE_PUBSUB:
+        KSERVER_EXECUTE_CMD(SUBSCRIBE_PUBSUB)
+      case KServer::PUBSUB_PING:
+        KSERVER_EXECUTE_CMD(PUBSUB_PING)
       case KServer::kserver_op_num:
       default:
         kserver->syslog.print(SysLog::ERROR,

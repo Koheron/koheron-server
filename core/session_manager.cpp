@@ -5,7 +5,7 @@
 #include "session_manager.hpp"
 
 #include "kserver_session.hpp"
-#include "broadcast.tpp"
+#include "pubsub.tpp"
 
 #include <sys/socket.h>
 
@@ -138,7 +138,7 @@ void SessionManager::delete_session(SessID id)
     }
 
     // Unsubscribe from any broadcast channel
-    kserver.broadcast.unsubscribe(id);
+    kserver.pubsub.unsubscribe(id);
 
     if (session_pool[id] != nullptr) {
         switch (session_pool[id]->kind) {
@@ -171,7 +171,7 @@ void SessionManager::delete_session(SessID id)
     reusable_ids.push_back(id);
     num_sess--;
 
-    kserver.broadcast.emit<Broadcast::SERVER_CHANNEL, Broadcast::DEL_SESSION>();
+    kserver.pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::DEL_SESSION>();
 }
 
 void SessionManager::delete_all()

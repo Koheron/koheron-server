@@ -1,4 +1,4 @@
-/// Broadcasting
+/// PubSub
 ///
 /// (c) Koheron
 
@@ -7,7 +7,7 @@
 namespace kserver {
 
 template<uint32_t channel, uint32_t event, typename... Tp>
-void Broadcast::emit(Tp&&... args)
+void PubSub::emit(Tp&&... args)
 {
     for (auto const& sid: subscribers)
         session_manager.get_session(sid).send(
