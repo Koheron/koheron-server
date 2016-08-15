@@ -6,7 +6,7 @@
 
 #include "kserver.hpp"
 #include "kserver_session.hpp"
-#include "broadcast.tpp"
+#include "pubsub.tpp"
 
 namespace kserver {
 
@@ -38,8 +38,8 @@ SessID SessionManager::create_session(const std::shared_ptr<KServerConfig>& conf
                 static_cast<std::unique_ptr<SessionAbstract>>(std::move(session))));
     num_sess++;
 
-    // Broadcast new session creation
-    kserver.broadcast.emit<Broadcast::SERVER_CHANNEL, Broadcast::NEW_SESSION>(static_cast<uint32_t>(sock_type));
+    // Publish new session creation
+    kserver.pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::NEW_SESSION>(static_cast<uint32_t>(sock_type));
 
     return new_id;
 }
