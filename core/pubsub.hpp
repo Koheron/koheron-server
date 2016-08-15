@@ -21,14 +21,13 @@ class SessionManager;
 template<class channels>
 constexpr size_t chan_count() noexcept {
     static_assert(std::is_enum<channels>(), "Not an enum");
-    return static_cast<size_t>(channels::count);
+    return static_cast<size_t>(channels::channels_count);
 }
 
 template<class channels>
 struct Subscribers
 {
     const std::vector<SessID>& get(uint32_t channel) const {
-        assert(channel < chan_count<channels>());
         return _subscribers[channel];
     }
 
@@ -85,7 +84,7 @@ class PubSub
 #if KSERVER_HAS_DEVMEM
         DEVMEM_CHANNEL,        ///< Devmem events
 #endif
-        count
+        channels_count
     };
 
     enum ServerChanEvents {
