@@ -171,7 +171,7 @@ void SessionManager::delete_session(SessID id)
     reusable_ids.push_back(id);
     num_sess--;
 
-    kserver.pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::DEL_SESSION>(static_cast<uint32_t> id);
+    kserver.pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::DEL_SESSION>(static_cast<uint32_t>(id));
 }
 
 void SessionManager::delete_all()
