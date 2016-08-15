@@ -401,7 +401,7 @@ KSERVER_PARSE_ARG(PUBSUB_PING) {return 0;}
 
 KSERVER_EXECUTE_OP(PUBSUB_PING)
 {
-    kserver->pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::PING>();
+    kserver->pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::PING>(static_cast<uint32_t>(sess_id));
     return 0;
 }
 

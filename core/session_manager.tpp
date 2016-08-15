@@ -39,7 +39,8 @@ SessID SessionManager::create_session(const std::shared_ptr<KServerConfig>& conf
     num_sess++;
 
     // Publish new session creation
-    kserver.pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::NEW_SESSION>(static_cast<uint32_t>(sock_type));
+    kserver.pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::NEW_SESSION>(static_cast<uint32_t>(sock_type),
+                                                                     static_cast<uint32_t>(new_id));
 
     return new_id;
 }
