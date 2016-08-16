@@ -16,7 +16,7 @@ DeviceManager::DeviceManager(KServer *kserver_)
 : device_list(device_num)
 ,  kserver(kserver_)
 #if KSERVER_HAS_DEVMEM
-,  dev_mem(kserver_, kserver_->config->addr_limit_down, kserver_->config->addr_limit_up)
+,  dev_mem(kserver_)
 #endif
 {
     device_list[KSERVER] = static_cast<KDeviceAbstract*>(kserver);
