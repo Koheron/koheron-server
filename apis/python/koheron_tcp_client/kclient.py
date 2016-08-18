@@ -36,7 +36,7 @@ def write_buffer(device_name, type_str='', format_char='I', dtype=np.uint32):
             self.client.send_handshaking(args[0], format_char=format_char, dtype=dtype)
             return func(self, *args, **kwargs)
         return wrapper
-    return command_wrap
+    return real_command
 
 # --------------------------------------------
 # Helper functions
