@@ -130,7 +130,6 @@ class Tests:
 # Unit tests
 
 unixsock = os.getenv('PYTEST_UNIXSOCK','/code/kserver.sock')
-print unixsock
 
 port = int(os.getenv('PYTEST_PORT', '36000'))
 
