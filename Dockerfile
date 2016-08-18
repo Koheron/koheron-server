@@ -23,7 +23,8 @@ RUN apt-get update && apt-get -y install gcc-5 g++-5             \
                        build-essential         \
                        libyaml-dev             \
                        mingw-w64               \
-                       python-numpy
+                       python-numpy	       \
+                       python3-pip
 
 # NodeJS for javascript API
 RUN apt-get -y install nodejs-legacy           \
