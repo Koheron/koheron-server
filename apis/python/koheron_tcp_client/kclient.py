@@ -277,7 +277,6 @@ class KClient:
 
     def recv_bool(self):
         val = self.recv_int(4)
-        print val
         assert val == 0 or val == 1
         return val == 1
 
@@ -372,7 +371,7 @@ class KClient:
         """ Print server statistics """
         self.send_command(1, 2)
         msg = self.read_until('EOKS')
-        print msg
+        print(msg)
 
     def __del__(self):
         if hasattr(self, 'sock'):
