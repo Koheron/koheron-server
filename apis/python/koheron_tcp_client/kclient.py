@@ -290,7 +290,7 @@ class KClient:
         n_rcv = 0
 
         while n_rcv < n_bytes:
-            chunk = self.sock.recv(n_bytes - n_rcv)
+            chunk = self.sock.recv(int(n_bytes - n_rcv))
 
             if chunk == '':
                 break
