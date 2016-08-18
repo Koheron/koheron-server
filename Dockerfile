@@ -24,6 +24,7 @@ RUN apt-get update && apt-get -y install gcc-5 g++-5             \
                        libyaml-dev             \
                        mingw-w64               \
                        python-numpy	       \
+                       python3-numpy	       \
                        python3-pip
 
 # NodeJS for javascript API
