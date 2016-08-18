@@ -277,7 +277,6 @@ class KClient:
 
     def recv_bool(self):
         val = self.recv_int(4)
-        print val
         assert val == 0 or val == 1
         return val == 1
 
@@ -291,7 +290,7 @@ class KClient:
         n_rcv = 0
 
         while n_rcv < n_bytes:
-            chunk = self.sock.recv(n_bytes - n_rcv)
+            chunk = self.sock.recv(int(n_bytes - n_rcv))
 
             if chunk == '':
                 break
@@ -372,7 +371,7 @@ class KClient:
         """ Print server statistics """
         self.send_command(1, 2)
         msg = self.read_until('EOKS')
-        print msg
+        print(msg)
 
     def __del__(self):
         if hasattr(self, 'sock'):
