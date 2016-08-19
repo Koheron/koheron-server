@@ -238,7 +238,7 @@ class KClient:
                 total_data.append(data)
                 if ''.join(total_data).find(escape_seq) > 0:
                     break
-        return b''.join(total_data)
+        return ''.join(total_data)
 
     def recv_string(self):
         return self.recv_until('\0')[:-1]
