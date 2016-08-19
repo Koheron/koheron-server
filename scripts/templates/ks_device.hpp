@@ -19,7 +19,7 @@
 #include <core/kdevice.hpp>
 #include <core/devices_manager.hpp>
 
-class DevMem;
+// class DevMem;
 
 namespace kserver {
 
