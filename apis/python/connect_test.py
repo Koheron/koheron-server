@@ -124,13 +124,12 @@ class Tests:
 
     @command('TESTS')
     def get_binary_tuple(self):
-        buff = self.client.recv_array(2, data_type='uint32')
+        buff = self.client.recv_array(2, dtype='uint32')
         return tuple(struct.unpack('If', buff))
 
 # Unit tests
 
 unixsock = os.getenv('PYTEST_UNIXSOCK','/code/kserver.sock')
-
 port = int(os.getenv('PYTEST_PORT', '36000'))
 
 client = KClient('127.0.0.1', port)

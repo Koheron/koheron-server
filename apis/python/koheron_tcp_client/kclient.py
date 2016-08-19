@@ -196,7 +196,7 @@ class KClient:
     def recv(self, fmt="I"):
         buff_size = struct.calcsize(fmt)
         data_recv = self.sock.recv(buff_size)
-        return struct.unpack(fmt, data_recv)
+        return struct.unpack(fmt, data_recv)[0]
 
     def recv_uint32(self):
         return self.recv()
