@@ -60,19 +60,19 @@ class Tests:
 
     @command('TESTS')
     def send_std_array(self):
-        return self.client.recv_buffer(10, data_type='float32')
+        return self.client.recv_array(10, dtype='float32')
 
     @command('TESTS')
     def send_std_vector(self):
-        return self.client.recv_buffer(10, data_type='float32')
+        return self.client.recv_array(10, dtype='float32')
 
     @command('TESTS', 'I')
     def send_c_array1(self, len_):
-        return self.client.recv_buffer(2*len_, data_type='float32')
+        return self.client.recv_array(2*len_, dtype='float32')
 
     @command('TESTS')
     def send_c_array2(self):
-        return self.client.recv_buffer(10, data_type='float32')
+        return self.client.recv_array(10, dtype='float32')
 
     @write_buffer('TESTS')
     def set_buffer(self, data):
@@ -124,7 +124,7 @@ class Tests:
 
     @command('TESTS')
     def get_binary_tuple(self):
-        buff = self.client.recv_buffer(2, data_type='uint32')
+        buff = self.client.recv_array(2, data_type='uint32')
         return tuple(struct.unpack('If', buff))
 
 # Unit tests

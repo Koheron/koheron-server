@@ -14,26 +14,26 @@ import json
 # http://stackoverflow.com/questions/5929107/python-decorators-with-parameters
 # http://www.artima.com/weblogs/viewpost.jsp?thread=240845
 
-def command(device_name, type_str=''):
+def command(device_name, fmt=''):
     def real_command(func):
         def wrapper(self, *args, **kwargs):
             device = self.client.devices.get_device_from_name(device_name)
             device_id = int(device.id)
             cmd_id = device.get_operation_reference(func.__name__.upper())
-            self.client.send_command(device_id, cmd_id, type_str, *(args + tuple(kwargs.values())))
+            self.client.send_command(device_id, cmd_id, fmt, *(args + tuple(kwargs.values())))
             return func(self, *args, **kwargs)
         return wrapper
     return real_command
 
-def write_buffer(device_name, type_str='', format_char='I', dtype=np.uint32):
+def write_buffer(device_name, fmt='', fmt_handshake='I', dtype=np.uint32):
     def real_command(func):
         def wrapper(self, *args, **kwargs):
             device = self.client.devices.get_device_from_name(device_name)
             device_id = int(device.id)
             cmd_id = device.get_operation_reference(func.__name__.upper())
             args_ = args[1:] + tuple(kwargs.values()) + (len(args[0]),)
-            self.client.send_command(device_id, cmd_id, type_str + 'I', *args_)
-            self.client.send_handshaking(args[0], format_char=format_char, dtype=dtype)
+            self.client.send_command(device_id, cmd_id, fmt + 'I', *args_)
+            self.client.send_handshaking(args[0], fmt=fmt_handshake, dtype=dtype)
             return func(self, *args, **kwargs)
         return wrapper
     return real_command
@@ -65,7 +65,7 @@ def append(buff, value, size):
         append(buff, value >> 32, 4)
     return size
 
-def append_np_array(buff, array):
+def append_array(buff, array):
     arr_bytes = bytearray(array)
     buff += arr_bytes
     return len(arr_bytes)
@@ -77,11 +77,11 @@ def float_to_bits(f):
 def double_to_bits(d):
     return struct.unpack('>q', struct.pack('>d', d))[0]
 
-def build_payload(type_str, args):
+def build_payload(fmt, args):
     size = 0
     payload = bytearray()
-    assert len(type_str) == len(args)
-    for i, type_ in enumerate(type_str):
+    assert len(fmt) == len(args)
+    for i, type_ in enumerate(fmt):
         if type_ in ['B','b']:
             size += append(payload, args[i], 1)
         elif type_ in ['H','h']:
@@ -100,7 +100,7 @@ def build_payload(type_str, args):
             else:
                 size += append(payload, 0, 1)
         elif type_ is 'A':
-            size += append_np_array(payload, args[i])
+            size += append_array(payload, args[i])
         else:
             raise ValueError('Unsupported type' + type(arg))
 
@@ -191,37 +191,34 @@ class KClient:
     def send_command(self, device_id, operation_ref, type_str='', *args):
         cmd = make_command(device_id, operation_ref, type_str, *args)
         if self.sock.send(cmd) == 0:
-            raise RuntimeError("send_command(): Socket connection broken")
+            raise ConnectionError("send_command(): Socket connection broken")
 
-    def recv_int(self, buff_size, fmt="I"):
+    def recv(self, fmt="I"):
+        buff_size = struct.calcsize(fmt)
         data_recv = self.sock.recv(buff_size)
-        if data_recv == '':
-            raise ConnectionError("recv_int(): Socket connection broken")
-        if len(data_recv) != buff_size:
-            raise ConnectionError("recv_int(): Invalid size received")
-        return struct.unpack(fmt, data_recv)[0]
+        return struct.unpack(fmt, data_recv)
 
     def recv_uint32(self):
-        return self.recv_int(4)
+        return self.recv()
 
     def recv_uint64(self):
-        return self.recv_int(8, fmt='L')
+        return self.recv(fmt='Q')
 
     def recv_int32(self):
-        return self.recv_int(4, fmt='i')
+        return self.recv(fmt='i')
 
     def recv_float(self):
-        return self.recv_int(4, fmt='f')
+        return self.recv(fmt='f')
 
     def recv_double(self):
-        return self.recv_int(8, fmt='d')
+        return self.recv(fmt='d')
 
     def recv_bool(self):
-        val = self.recv_int(4)
+        val = self.recv()
         return val == 1
 
-    def recv_n_bytes(self, n_bytes):
-        """ Receive exactly n bytes. """
+    def recv_all(self, n_bytes):
+        """ Receive exactly n_bytes bytes. """
         data = []
         n_rcv = 0
         while n_rcv < n_bytes:
@@ -232,7 +229,7 @@ class KClient:
             data.append(chunk)
         return b''.join(data)
 
-    def read_until(self, escape_seq):
+    def recv_until(self, escape_seq):
         """ Receive data until an escape sequence is found. """
         total_data = []
         while 1:
@@ -241,27 +238,26 @@ class KClient:
                 total_data.append(data)
                 if ''.join(total_data).find(escape_seq) > 0:
                     break
-        return ''.join(total_data)
+        return b''.join(total_data)
 
     def recv_string(self):
-        return self.read_until('\0')[:-1]
+        return self.recv_until('\0')[:-1]
 
     def recv_json(self):
         return json.loads(self.recv_string())
 
-    def recv_buffer(self, buff_size, data_type='uint32'):
+    def recv_array(self, shape, dtype='uint32'):
         """ Receive a numpy array. """
-        np_dtype = np.dtype(data_type)
-        buff = self.recv_n_bytes(np_dtype.itemsize * int(buff_size))
-        np_dtype = np_dtype.newbyteorder('<')
-        data = np.frombuffer(buff, dtype=np_dtype)
-        return data
+        dtype = np.dtype(dtype)
+        buff = self.recv_all(dtype.itemsize * int(np.prod(shape)))
+        return np.frombuffer(buff, dtype=dtype.newbyteorder('<')).reshape(shape)
 
     def recv_tuple(self, fmt):
-        buff = self.recv_buffer(struct.calcsize('>' + fmt), data_type='uint8')
-        return tuple(struct.unpack('>' + fmt, buff))
+        fmt = '>' + fmt
+        buff = self.recv_array(struct.calcsize(fmt), dtype='uint8')
+        return tuple(struct.unpack(fmt, buff))
 
-    def send_handshaking(self, data, format_char='I', dtype=np.uint32):
+    def send_handshaking(self, data, fmt='I', dtype=np.uint32):
         """ Send data according to the following handshaking protocol
 
         1) The size of the buffer must have been sent as a
@@ -271,13 +267,12 @@ class KClient:
         3) The client sends the data buffer
         """
         data_recv = self.sock.recv(4)
-
         num = struct.unpack(">I", data_recv)[0]
         n_pts = len(data)
 
         if num == n_pts:
-            format_ = ('%s'+format_char) % n_pts
-            buff = struct.pack(format_, *data.astype(dtype))
+            fmt = ('%s'+fmt) % n_pts
+            buff = struct.pack(fmt, *data.astype(dtype))
             sent = self.sock.send(buff)
 
             if sent == 0:
@@ -292,7 +287,7 @@ class KClient:
     def get_stats(self):
         """ Print server statistics """
         self.send_command(1, 2)
-        msg = self.read_until('EOKS')
+        msg = self.recv_until('EOKS')
         return msg
 
     def __del__(self):
@@ -307,7 +302,7 @@ class Devices:
         except:
             raise ConnectionError('Failed to send initialization command')
 
-        lines = client.read_until('EOC').split('\n')
+        lines = client.recv_until('EOC').split('\n')
         self.devices = list(map(lambda line: Device(line), lines[1:-2]))
 
     def get_device_from_name(self, device_name):
