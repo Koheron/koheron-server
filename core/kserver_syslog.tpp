@@ -18,7 +18,7 @@ void SysLog::print(const char *message, ...)
 template<unsigned int severity>
 int SysLog::emit_error(const char *message, va_list argptr)
 {
-    kserver->pubsub.emit_cstr<PubSub::SERVER_CHANNEL, severity>("Error");
+    kserver->pubsub.emit_cstr<PubSub::SYSLOG_CHANNEL, severity>("Error");
     return 0;
 }
 
