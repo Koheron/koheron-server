@@ -13,7 +13,7 @@ void SysLog::print(const char *message, ...)
 
     // We don't emit if connections are closed
     if(! kserver->sig_handler.Interrupt())
-        emit_error<severity>(message, argptr);
+        emit_error<severity>(message, argptr1);
 
     va_end(argptr1);
     va_end(argptr);
