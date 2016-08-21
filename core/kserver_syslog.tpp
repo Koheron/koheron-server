@@ -34,7 +34,7 @@ int SysLog::emit_error(const char *message, va_list argptr)
         return -1;
     }
 
-    kserver->pubsub.emit_cstr<PubSub::SYSLOG_CHANNEL, severity>("fmt_buffer");
+    kserver->pubsub.emit_cstr<PubSub::SYSLOG_CHANNEL, severity>(fmt_buffer);
     return 0;
 }
 
