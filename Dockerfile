@@ -23,7 +23,9 @@ RUN apt-get update && apt-get -y install gcc-5 g++-5             \
                        build-essential         \
                        libyaml-dev             \
                        mingw-w64               \
-                       python-numpy
+                       python-numpy	       \
+                       python3-numpy	       \
+                       python3-pip
 
 # NodeJS for javascript API
 RUN apt-get -y install nodejs-legacy           \
@@ -51,4 +53,6 @@ WORKDIR $work_dir/
 COPY . $work_dir/
 
 RUN pip install -r $work_dir/requirements.txt
+RUN pip install wsgiref==0.1.2
+RUN pip3 install -r $work_dir/requirements.txt
 RUN bash $work_dir/scripts/install_eigen.sh
