@@ -205,7 +205,7 @@ template<int sock_type>
 void Session<sock_type>::exit_session()
 {
     if (exit_socket() < 0)
-        session_manager.kserver.syslog.print(SysLog::WARNING,
+        session_manager.kserver.syslog.print<SysLog::WARNING>(
         "An error occured during session exit\n");
 }
 
@@ -302,13 +302,13 @@ int Session<TCP>::send_array(const T *data, unsigned int len)
     int n_bytes_send = write(comm_fd, (void*)data, bytes_send);
 
     if (unlikely(n_bytes_send < 0)) {
-       session_manager.kserver.syslog.print(SysLog::ERROR,
+       session_manager.kserver.syslog.print<SysLog::ERROR>(
           "TCPSocket::SendArray: Can't write to client\n");
        return -1;
     }
 
     if (unlikely(n_bytes_send != bytes_send)) {
-        session_manager.kserver.syslog.print(SysLog::ERROR,
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
             "TCPSocket::SendArray: Some bytes have not been sent\n");
         return -1;
     }

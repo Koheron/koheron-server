@@ -76,7 +76,7 @@ void SessionManager::apply_permissions(
         lclf_lifo.push(last_created_session->get_id());
         break;
       default:
-        kserver.syslog.print(SysLog::ERROR, "BUG: Invalid permission policy\n");
+        kserver.syslog.print<SysLog::ERROR>("BUG: Invalid permission policy\n");
         last_created_session->permissions.write = DFLT_WRITE_PERM;
     }
 }

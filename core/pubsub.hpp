@@ -89,9 +89,7 @@ class PubSub
 
     enum Channels {
         SERVER_CHANNEL,        ///< Server events
-#if KSERVER_HAS_DEVMEM
-        DEVMEM_CHANNEL,        ///< Devmem events
-#endif
+        SYSLOG_CHANNEL,        ///< Syslog events
         channels_count
     };
 
@@ -99,7 +97,7 @@ class PubSub
         PING,                   ///< For tests
         NEW_SESSION,            ///< A new session has been started
         DEL_SESSION,            ///< A session has been closed
-        ERROR,
+        SYSLOG,
         server_chan_events_num
     };
 

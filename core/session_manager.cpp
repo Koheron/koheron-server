@@ -132,7 +132,7 @@ void SessionManager::delete_session(SessID id)
     int sess_fd;
 
     if (!is_current_id(id)) {
-        kserver.syslog.print(SysLog::INFO,
+        kserver.syslog.print<SysLog::INFO>(
                              "Not allocated session ID: %u\n", id);
         return;
     }
@@ -161,7 +161,7 @@ void SessionManager::delete_session(SessID id)
         }
 
         if (shutdown(sess_fd, SHUT_RDWR) < 0)
-            kserver.syslog.print(SysLog::WARNING,
+            kserver.syslog.print<SysLog::WARNING>(
                          "Cannot shutdown socket for session ID: %u\n", id);
         close(sess_fd);
     }
@@ -176,14 +176,14 @@ void SessionManager::delete_session(SessID id)
 
 void SessionManager::delete_all()
 {
-    kserver.syslog.print(SysLog::INFO, "Closing all active sessions ...\n");
+    kserver.syslog.print<SysLog::INFO>("Closing all active sessions ...\n");
     assert(num_sess == session_pool.size());
 
     if (!session_pool.empty()) {
         auto ids = get_current_ids();
         
         for (auto& id : ids) {
-            kserver.syslog.print(SysLog::INFO, "Delete session %u\n", id);
+            kserver.syslog.print<SysLog::INFO>("Delete session %u\n", id);
             delete_session(id);
         }
     }
