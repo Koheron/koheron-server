@@ -193,7 +193,7 @@ class FragmentsGenerator:
             template = self.parser._get_template(operation['prototype']['ret_type'])
 
             known_types = {'uint32_t', 'unsigned int', 'unsigned long', 'int', 'int32_t', 'bool',
-                           'uint64_t', 'unsigned long long', 'float', 'double', 'std::string', 'auto' , 'auto&'}
+                           'uint64_t', 'unsigned long long', 'float', 'double', 'std::string', 'auto', 'auto&', 'auto &'}
 
             known_template_types = {'std::vector', 'std::array', 'std::tuple'}
 
