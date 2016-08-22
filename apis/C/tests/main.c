@@ -44,25 +44,25 @@ void tests_init(struct tests_device *dev, struct kclient *kcl)
         exit(EXIT_FAILURE);
     }
 
-    dev->rcv_many_params_ref = get_op_id(kcl, dev->id, "RCV_MANY_PARAMS");
-    dev->read_uint64_ref = get_op_id(kcl, dev->id, "READ_UINT64");
-    dev->read_uint_ref = get_op_id(kcl, dev->id, "READ_UINT");
-    dev->read_int_ref = get_op_id(kcl, dev->id, "READ_INT");
-    dev->read_float_ref = get_op_id(kcl, dev->id, "READ_FLOAT");
-    dev->read_double_ref = get_op_id(kcl, dev->id, "READ_DOUBLE");
-    dev->set_float_ref = get_op_id(kcl, dev->id, "SET_FLOAT");
-    dev->set_double_ref = get_op_id(kcl, dev->id, "SET_DOUBLE");
-    dev->set_u64_ref = get_op_id(kcl, dev->id, "SET_U64");
-    dev->set_i64_ref = get_op_id(kcl, dev->id, "SET_I64");
-    dev->set_unsigned_ref = get_op_id(kcl, dev->id, "SET_UNSIGNED");
-    dev->set_signed_ref = get_op_id(kcl, dev->id, "SET_SIGNED");
-    dev->send_std_vector_ref = get_op_id(kcl, dev->id, "SEND_STD_VECTOR");
-    dev->send_std_array_ref = get_op_id(kcl, dev->id, "SEND_STD_ARRAY");
-    dev->send_c_array1_ref = get_op_id(kcl, dev->id, "SEND_C_ARRAY1");
-    dev->send_c_array2_ref = get_op_id(kcl, dev->id, "SEND_C_ARRAY2");
-    dev->set_buffer_ref = get_op_id(kcl, dev->id, "SET_BUFFER");
-    dev->get_cstr_ref = get_op_id(kcl, dev->id, "GET_CSTR");
-    dev->get_std_string_ref = get_op_id(kcl, dev->id, "GET_STD_STRING");
+    dev->rcv_many_params_ref = get_op_id(kcl, dev->id, "rcv_many_params");
+    dev->read_uint64_ref = get_op_id(kcl, dev->id, "read_uint64");
+    dev->read_uint_ref = get_op_id(kcl, dev->id, "read_uint");
+    dev->read_int_ref = get_op_id(kcl, dev->id, "read_int");
+    dev->read_float_ref = get_op_id(kcl, dev->id, "read_float");
+    dev->read_double_ref = get_op_id(kcl, dev->id, "read_double");
+    dev->set_float_ref = get_op_id(kcl, dev->id, "set_float");
+    dev->set_double_ref = get_op_id(kcl, dev->id, "set_double");
+    dev->set_u64_ref = get_op_id(kcl, dev->id, "set_u64");
+    dev->set_i64_ref = get_op_id(kcl, dev->id, "set_i64");
+    dev->set_unsigned_ref = get_op_id(kcl, dev->id, "set_unsigned");
+    dev->set_signed_ref = get_op_id(kcl, dev->id, "set_signed");
+    dev->send_std_vector_ref = get_op_id(kcl, dev->id, "send_std_vector");
+    dev->send_std_array_ref = get_op_id(kcl, dev->id, "send_std_array");
+    dev->send_c_array1_ref = get_op_id(kcl, dev->id, "send_c_array1");
+    dev->send_c_array2_ref = get_op_id(kcl, dev->id, "send_c_array2");
+    dev->set_buffer_ref = get_op_id(kcl, dev->id, "set_buffer");
+    dev->get_cstr_ref = get_op_id(kcl, dev->id, "get_cstr");
+    dev->get_std_string_ref = get_op_id(kcl, dev->id, "get_std_string");
 
     assert(dev->send_std_array_ref    >= 0 
            && dev->set_buffer_ref     >= 0

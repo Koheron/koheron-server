@@ -25,7 +25,7 @@ class Device
 
     getCmds : ->
         cmds_dict = {}
-        cmds_dict[cmd.toLowerCase()] = idx for cmd, idx in @cmds
+        cmds_dict[cmd] = idx for cmd, idx in @cmds
         return cmds_dict
 
 class WebSocketPool
