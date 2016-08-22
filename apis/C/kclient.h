@@ -37,7 +37,7 @@ extern "C" {
 #define MAX_OP_NUM      128
 #define MAX_NAME_LENGTH 512
 
-typedef uint16_t dev_id_t;   // Device ID type
+typedef int16_t dev_id_t;   // Device ID type
 typedef uint16_t op_id_t;    // Operation ID type
 
 typedef enum conn_type {

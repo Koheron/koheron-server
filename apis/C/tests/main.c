@@ -37,7 +37,13 @@ struct tests_device {
 void tests_init(struct tests_device *dev, struct kclient *kcl)
 {
     dev->kcl = kcl;
-    dev->id = get_device_id(kcl, "TESTS");
+    dev->id = get_device_id(kcl, "Tests");
+
+    if (dev->id < 0) {
+        fprintf(stderr, "Unknown device\n");
+        exit(EXIT_FAILURE);
+    }
+
     dev->rcv_many_params_ref = get_op_id(kcl, dev->id, "RCV_MANY_PARAMS");
     dev->read_uint64_ref = get_op_id(kcl, dev->id, "READ_UINT64");
     dev->read_uint_ref = get_op_id(kcl, dev->id, "READ_UINT");
