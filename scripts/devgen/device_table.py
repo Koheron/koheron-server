@@ -55,12 +55,12 @@ def PrintDeviceTableEntry(file_id, device, max_op_num):
     for idx, operation in enumerate(device.operations):
         if idx == op_num-1:
             break
-        file_id.write('"' + operation['name'] + '", ')
+        file_id.write('"' + operation['raw_name'] + '", ')
 
     if op_num == max_op_num:
-        file_id.write('"' + device.operations[op_num-1]['name'] + '")')
+        file_id.write('"' + device.operations[op_num-1]['raw_name'] + '")')
     else:
-        file_id.write('"' + device.operations[op_num-1]['name'] + '", ')
+        file_id.write('"' + device.operations[op_num-1]['raw_name'] + '", ')
         for i in range(op_num, max_op_num-1):
             file_id.write('"",')
         file_id.write('"")')
@@ -88,27 +88,27 @@ def PrintDevDescription(file_id, devices, max_op_num):
     file_id.write('""}},\n')
 
     if max_op_num == KSERVER_OP_NUM:
-        file_id.write('  {{"KSERVER", "GET_VERSION", "GET_CMDS",'
-                       + '"GET_STATS", "GET_DEV_STATUS", "GET_RUNNING_SESSIONS", "SUBSCRIBE_BROADCAST", "BROADCAST_PING"}},\n')
+        file_id.write('  {{"KServer", "get_version", "get_cmds",'
+                       + '"get_stats", "get_dev_status", "get_running_sessions", "subscribe_broadcast", "broadcast_ping"}},\n')
     else:
-        file_id.write('  {{"KSERVER", "GET_VERSION", "GET_CMDS",'
-                       + '"GET_STATS", "GET_DEV_STATUS", "GET_RUNNING_SESSIONS", "SUBSCRIBE_BROADCAST", "BROADCAST_PING", ')
+        file_id.write('  {{"KServer", "get_version", "get_cmds",'
+                       + '"get_stats", "get_dev_status", "get_running_sessions", "subscribe_broadcast", "broadcast_ping", ')
         for i in range(KSERVER_OP_NUM, max_op_num-1):
                 file_id.write('"", ')
         file_id.write('""}},\n')
 
     for device in devices:
         op_num = len(device.operations)
-        file_id.write('  {{"' +  device.name.upper() + '", ')
+        file_id.write('  {{"' +  device.raw_name + '", ')
         for idx, operation in enumerate(device.operations):
             if idx == op_num-1:
                 break
 
-            file_id.write('"' + operation["name"] + '", ')
+            file_id.write('"' + operation['raw_name'] + '", ')
         if op_num == max_op_num:
-            file_id.write('"' + device.operations[op_num-1]["name"] + '"}},\n')
+            file_id.write('"' + device.operations[op_num-1]['raw_name'] + '"}},\n')
         else:
-            file_id.write('"' + device.operations[op_num-1]["name"] + '", ')
+            file_id.write('"' + device.operations[op_num-1]['raw_name'] + '", ')
             for i in range(op_num, max_op_num-1):
                 file_id.write('"", ')
             file_id.write('""}},\n')

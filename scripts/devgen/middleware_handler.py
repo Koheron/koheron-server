@@ -58,6 +58,7 @@ class MiddlewareHppParser:
     def _get_device(self):
         device = {}
         device['operations'] = []
+        device['raw_name'] = self.raw_dev_data['name']
         device['name'] = self.get_device_name()
         device['includes'] = self.raw_dev_data['includes']
         device['objects'] = [{
@@ -88,6 +89,7 @@ class MiddlewareHppParser:
     def _format_operation(self, op):
         operation = {}
         operation['name'] = op['prototype']['name'].upper()
+        operation['raw_name'] = op['prototype']['name']
 
         if 'flags' in op and len(op['flags']) > 0:
             operation['flags'] = op['flags']
@@ -191,7 +193,7 @@ class FragmentsGenerator:
             template = self.parser._get_template(operation['prototype']['ret_type'])
 
             known_types = {'uint32_t', 'unsigned int', 'unsigned long', 'int', 'int32_t', 'bool',
-                           'uint64_t', 'unsigned long long', 'float', 'double', 'std::string'}
+                           'uint64_t', 'unsigned long long', 'float', 'double', 'std::string', 'auto'}
 
             known_template_types = {'std::vector', 'std::array', 'std::tuple'}
 

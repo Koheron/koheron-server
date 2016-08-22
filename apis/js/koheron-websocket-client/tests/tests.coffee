@@ -13,7 +13,7 @@ class Tests
     "use strict"
 
     constructor : (@kclient) ->
-        @device = @kclient.getDevice("TESTS")
+        @device = @kclient.getDevice("Tests")
         @id = @device.id
         @cmds = @device.getCmds()
 
@@ -93,7 +93,7 @@ class Tests
         @kclient.readJSON(Command(@id, @cmds.get_json2), cb)
 
     readTuple : (cb) ->
-        @kclient.readTuple(Command(@id, @cmds.get_tuple), 'Ifd?', cb)
+        @kclient.readTuple(Command(@id, @cmds.get_tuple), 'Idd?', cb)
 
     readTuple3 : (cb) ->
         @kclient.readTuple(Command(@id, @cmds.get_tuple3), '?ffBH', cb)

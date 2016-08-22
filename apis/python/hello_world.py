@@ -4,7 +4,7 @@ class HelloWorld(object):
     def __init__(self, client):
         self.client = client
 
-    @command('HELLO_WORLD','I')
+    @command('HelloWorld','I')
     def add_42(self, num):
         return self.client.recv_uint32()
 

@@ -38,6 +38,7 @@ class Device:
 
         self.operations = Operations(self._data['operations'])
         self.name = self._data['name']
+        self.raw_name = self._data['raw_name']
         self.class_name = GetClassName(self.name)
         self.objects = Objects(self._data['objects'])
         self.includes = Includes(self._data['includes'])
