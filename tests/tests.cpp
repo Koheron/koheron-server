@@ -153,11 +153,6 @@ std::string Tests::get_json2()
     return "{\"firstName\":\"John\",\"lastName\":\"Smith\",\"age\":25,\"phoneNumber\":[{\"type\":\"home\",\"number\":\"212 555-1234\"},{\"type\":\"fax\",\"number\":\"646 555-4567\"}]}";
 }
 
-std::tuple<uint32_t, float, double, bool> Tests::get_tuple()
-{
-    return std::make_tuple(501762438, 507.3858, 926547.6468507200, true);
-}
-
 std::tuple<uint32_t, float, uint64_t, double, int64_t> Tests::get_tuple2()
 {
     return std::make_tuple(2, 3.14159F, 742312418498347354,

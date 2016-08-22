@@ -13,18 +13,10 @@
 class Tests
 {
   public:
-#if KSERVER_HAS_DEVMEM
-    Tests(
-        DevMem& dvm_unused_)
-    : data(0)
-    , buffer(0)
-    {}
-#else
     Tests() 
     : data(0)
     , buffer(0)
     {}
-#endif
 
     bool rcv_many_params(uint32_t u1, uint32_t u2, float f, bool b);
     bool set_float(float f);
@@ -59,7 +51,10 @@ class Tests
     std::string get_json2();
 
     // Send tuple
-    std::tuple<uint32_t, float, double, bool> get_tuple();
+    auto get_tuple() {
+        return std::make_tuple(501762438, 507.3858, 926547.6468507200, true);
+    }
+
     std::tuple<uint32_t, float, uint64_t, double, int64_t> get_tuple2();
     std::tuple<bool, float, float, uint8_t, uint16_t> get_tuple3();
     std::tuple<int8_t, int8_t, int16_t, int16_t, int32_t, int32_t> get_tuple4();
