@@ -88,11 +88,11 @@ def PrintDevDescription(file_id, devices, max_op_num):
     file_id.write('""}},\n')
 
     if max_op_num == KSERVER_OP_NUM:
-        file_id.write('  {{"KServer", "GET_VERSION", "GET_CMDS",'
-                       + '"GET_STATS", "GET_DEV_STATUS", "GET_RUNNING_SESSIONS", "SUBSCRIBE_BROADCAST", "BROADCAST_PING"}},\n')
+        file_id.write('  {{"KServer", "get_version", "get_cmds",'
+                       + '"get_stats", "get_dev_status", "get_running_sessions", "subscribe_broadcast", "broadcast_ping"}},\n')
     else:
-        file_id.write('  {{"KServer", "GET_VERSION", "GET_CMDS",'
-                       + '"GET_STATS", "GET_DEV_STATUS", "GET_RUNNING_SESSIONS", "SUBSCRIBE_BROADCAST", "BROADCAST_PING", ')
+        file_id.write('  {{"KServer", "get_version", "get_cmds",'
+                       + '"get_stats", "get_dev_status", "get_running_sessions", "subscribe_broadcast", "broadcast_ping", ')
         for i in range(KSERVER_OP_NUM, max_op_num-1):
                 file_id.write('"", ')
         file_id.write('""}},\n')
