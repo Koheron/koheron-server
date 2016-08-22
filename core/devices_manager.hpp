@@ -19,7 +19,7 @@
 #endif
 
 #if KSERVER_HAS_DEVMEM
-#include <drivers/lib/dev_mem.hpp>
+#include <drivers/lib/memory_manager.hpp>
 #endif
 
 namespace kserver {
