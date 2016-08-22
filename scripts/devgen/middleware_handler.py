@@ -58,6 +58,7 @@ class MiddlewareHppParser:
     def _get_device(self):
         device = {}
         device['operations'] = []
+        device['raw_name'] = self.raw_dev_data['name']
         device['name'] = self.get_device_name()
         device['includes'] = self.raw_dev_data['includes']
         device['objects'] = [{

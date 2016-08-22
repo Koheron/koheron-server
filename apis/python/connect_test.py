@@ -10,124 +10,124 @@ class Tests:
     def __init__(self, client):
         self.client = client
 
-    @command('TESTS', 'IIf?')
+    @command('Tests', 'IIf?')
     def rcv_many_params(self, u1, u2, f, b):
         return self.client.recv_bool()
 
-    @command('TESTS', 'f')
+    @command('Tests', 'f')
     def set_float(self, f):
         return self.client.recv_bool()
 
-    @command('TESTS', 'd')
+    @command('Tests', 'd')
     def set_double(self, d):
         return self.client.recv_bool()
 
-    @command('TESTS', 'Q')
+    @command('Tests', 'Q')
     def set_u64(self, u):
         return self.client.recv_bool()
 
-    @command('TESTS', 'q')
+    @command('Tests', 'q')
     def set_i64(self, i):
         return self.client.recv_bool()
 
-    @command('TESTS', 'BHI')
+    @command('Tests', 'BHI')
     def set_unsigned(self, u8, u16, u32):
         return self.client.recv_bool()
 
-    @command('TESTS', 'bhi')
+    @command('Tests', 'bhi')
     def set_signed(self, i8, i16, i32):
         return self.client.recv_bool()
 
-    @command('TESTS')
+    @command('Tests')
     def read_uint64(self):
         return self.client.recv_uint64()
 
-    @command('TESTS')
+    @command('Tests')
     def read_uint(self):
         return self.client.recv_uint32()
 
-    @command('TESTS')
+    @command('Tests')
     def read_int(self):
         return self.client.recv_int32()
 
-    @command('TESTS')
+    @command('Tests')
     def read_float(self):
         return self.client.recv_float()
 
-    @command('TESTS')
+    @command('Tests')
     def read_double(self):
         return self.client.recv_double()
 
-    @command('TESTS')
+    @command('Tests')
     def send_std_array(self):
         return self.client.recv_array(10, dtype='float32')
 
-    @command('TESTS')
+    @command('Tests')
     def send_std_vector(self):
         return self.client.recv_array(10, dtype='float32')
 
-    @command('TESTS', 'I')
+    @command('Tests', 'I')
     def send_c_array1(self, len_):
         return self.client.recv_array(2*len_, dtype='float32')
 
-    @command('TESTS')
+    @command('Tests')
     def send_c_array2(self):
         return self.client.recv_array(10, dtype='float32')
 
-    @write_buffer('TESTS')
+    @write_buffer('Tests')
     def set_buffer(self, data):
         return self.client.recv_bool()
 
-    @command('TESTS', 'IfAdi')
+    @command('Tests', 'IfAdi')
     def rcv_std_array(self, u, f, arr, d, i):
         return self.client.recv_bool()
 
-    @command('TESTS', 'A')
+    @command('Tests', 'A')
     def rcv_std_array2(self, arr):
         return self.client.recv_bool()
 
-    @command('TESTS', 'A')
+    @command('Tests', 'A')
     def rcv_std_array3(self, arr):
         return self.client.recv_bool()
 
-    @command('TESTS')
+    @command('Tests')
     def get_cstr(self):
         return self.client.recv_string()
 
-    @command('TESTS')
+    @command('Tests')
     def get_std_string(self):
         return self.client.recv_string()
 
-    @command('TESTS')
+    @command('Tests')
     def get_json(self):
         return self.client.recv_json()
 
-    @command('TESTS')
+    @command('Tests')
     def get_json2(self):
         return self.client.recv_json()
 
-    @command('TESTS')
+    @command('Tests')
     def get_tuple(self):
         return self.client.recv_tuple('Ifd?')
 
-    @command('TESTS')
+    @command('Tests')
     def get_tuple2(self):
         return self.client.recv_tuple('IfQdq')
 
-    @command('TESTS')
+    @command('Tests')
     def get_tuple3(self):
         return self.client.recv_tuple('?ffBH')
 
-    @command('TESTS')
+    @command('Tests')
     def get_tuple4(self):
         return self.client.recv_tuple('bbhhii')
 
-    @command('TESTS')
+    @command('Tests')
     def get_binary_tuple(self):
         buff = self.client.recv_array(2, dtype='uint32')
         return tuple(struct.unpack('If', buff))
 
-# Unit tests
+# Unit Tests
 
 unixsock = os.getenv('PYTEST_UNIXSOCK','/code/kserver.sock')
 port = int(os.getenv('PYTEST_PORT', '36000'))
