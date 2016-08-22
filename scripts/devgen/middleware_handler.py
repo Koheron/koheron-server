@@ -89,6 +89,7 @@ class MiddlewareHppParser:
     def _format_operation(self, op):
         operation = {}
         operation['name'] = op['prototype']['name'].upper()
+        operation['raw_name'] = op['prototype']['name']
 
         if 'flags' in op and len(op['flags']) > 0:
             operation['flags'] = op['flags']

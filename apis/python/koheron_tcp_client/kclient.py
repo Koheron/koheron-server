@@ -19,7 +19,7 @@ def command(device_name, fmt=''):
         def wrapper(self, *args, **kwargs):
             device = self.client.devices.get_device_from_name(device_name)
             device_id = int(device.id)
-            cmd_id = device.get_operation_reference(func.__name__.upper())
+            cmd_id = device.get_operation_reference(func.__name__)
             self.client.send_command(device_id, cmd_id, fmt, *(args + tuple(kwargs.values())))
             return func(self, *args, **kwargs)
         return wrapper
@@ -30,7 +30,7 @@ def write_buffer(device_name, fmt='', fmt_handshake='I', dtype=np.uint32):
         def wrapper(self, *args, **kwargs):
             device = self.client.devices.get_device_from_name(device_name)
             device_id = int(device.id)
-            cmd_id = device.get_operation_reference(func.__name__.upper())
+            cmd_id = device.get_operation_reference(func.__name__)
             args_ = args[1:] + tuple(kwargs.values()) + (len(args[0]),)
             self.client.send_command(device_id, cmd_id, fmt + 'I', *args_)
             self.client.send_handshaking(args[0], fmt=fmt_handshake, dtype=dtype)

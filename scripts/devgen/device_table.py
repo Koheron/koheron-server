@@ -55,12 +55,12 @@ def PrintDeviceTableEntry(file_id, device, max_op_num):
     for idx, operation in enumerate(device.operations):
         if idx == op_num-1:
             break
-        file_id.write('"' + operation['name'] + '", ')
+        file_id.write('"' + operation['raw_name'] + '", ')
 
     if op_num == max_op_num:
-        file_id.write('"' + device.operations[op_num-1]['name'] + '")')
+        file_id.write('"' + device.operations[op_num-1]['raw_name'] + '")')
     else:
-        file_id.write('"' + device.operations[op_num-1]['name'] + '", ')
+        file_id.write('"' + device.operations[op_num-1]['raw_name'] + '", ')
         for i in range(op_num, max_op_num-1):
             file_id.write('"",')
         file_id.write('"")')
@@ -104,11 +104,11 @@ def PrintDevDescription(file_id, devices, max_op_num):
             if idx == op_num-1:
                 break
 
-            file_id.write('"' + operation["name"] + '", ')
+            file_id.write('"' + operation['raw_name'] + '", ')
         if op_num == max_op_num:
-            file_id.write('"' + device.operations[op_num-1]["name"] + '"}},\n')
+            file_id.write('"' + device.operations[op_num-1]['raw_name'] + '"}},\n')
         else:
-            file_id.write('"' + device.operations[op_num-1]["name"] + '", ')
+            file_id.write('"' + device.operations[op_num-1]['raw_name'] + '", ')
             for i in range(op_num, max_op_num-1):
                 file_id.write('"", ')
             file_id.write('""}},\n')
