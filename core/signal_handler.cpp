@@ -47,13 +47,13 @@ int SignalHandler::set_interrup_signals()
     sigemptyset(&sig_int_handler.sa_mask);
     sig_int_handler.sa_flags = 0;
 
-    if (sigaction(SIGINT, &sig_int_handler, NULL) < 0) {
-        kserver->syslog.print(SysLog::CRITICAL, "Cannot set SIGINT handler\n");
+    if (sigaction(SIGINT, &sig_int_handler, nullptr) < 0) {
+        kserver->syslog.print<SysLog::CRITICAL>("Cannot set SIGINT handler\n");
         return -1;
     }
 
-    if (sigaction(SIGTERM, &sig_int_handler, NULL) < 0) {
-        kserver->syslog.print(SysLog::CRITICAL, "Cannot set SIGTERM handler\n");
+    if (sigaction(SIGTERM, &sig_int_handler, nullptr) < 0) {
+        kserver->syslog.print<SysLog::CRITICAL>("Cannot set SIGTERM handler\n");
         return -1;
     }
 
@@ -74,7 +74,7 @@ int SignalHandler::set_ignore_signals()
     // when client closes its connection during writing.
     // Results in an unwanted server shutdown
     if (sigaction(SIGPIPE, &sig_ign_handler, 0) < 0) {
-        kserver->syslog.print(SysLog::CRITICAL, "Cannot disable SIGPIPE\n");
+        kserver->syslog.print<SysLog::CRITICAL>("Cannot disable SIGPIPE\n");
         return -1;
     }
 
@@ -86,7 +86,7 @@ int SignalHandler::set_ignore_signals()
     // It might thus be possible to stop the session emitting it.
 
     if (sigaction(SIGTSTP, &sig_ign_handler, 0) < 0) {
-        kserver->syslog.print(SysLog::CRITICAL, "Cannot disable SIGTSTP\n");
+        kserver->syslog.print<SysLog::CRITICAL>("Cannot disable SIGTSTP\n");
         return -1;
     }
 
@@ -124,20 +124,20 @@ void crash_signal_handler(int sig)
         sig_name = "(Unidentify signal)";
     }
 
-    SignalHandler::kserver->syslog.print(SysLog::PANIC,
+    SignalHandler::kserver->syslog.print<SysLog::PANIC>(
                               "CRASH: signal %d %s\n", sig, sig_name);
 
     void *buffer[BACKTRACE_BUFF_SIZE];
     size_t size = backtrace(buffer, BACKTRACE_BUFF_SIZE);
     char **messages = backtrace_symbols(buffer, size);
 
-    if (messages == NULL) {
-        SignalHandler::kserver->syslog.print(SysLog::ERROR,
+    if (messages == nullptr) {
+        SignalHandler::kserver->syslog.print<SysLog::ERROR>(
                                              "No backtrace_symbols");
         goto exit;
     }
 
-    for (unsigned int i = 0; i < size && messages != NULL; i++) {
+    for (unsigned int i = 0; i < size && messages != nullptr; i++) {
         char *mangled_name = 0, *offset_begin = 0, *offset_end = 0;
 
         // Find parantheses and +address offset surrounding mangled name
@@ -166,11 +166,11 @@ void crash_signal_handler(int sig)
 
             // If demangling is successful, output the demangled function name
             if (status == 0) {
-                SignalHandler::kserver->syslog.print(SysLog::INFO,
+                SignalHandler::kserver->syslog.print<SysLog::INFO>(
                         "[bt]: (%d) %s : %s+%s%s\n", 
                         i, messages[i], real_name, offset_begin, offset_end);
             } else { // Otherwise, output the mangled function name
-                SignalHandler::kserver->syslog.print(SysLog::INFO,
+                SignalHandler::kserver->syslog.print<SysLog::INFO>(
                         "[bt]: (%d) %s : %s+%s%s\n", 
                         i, messages[i], mangled_name, offset_begin, offset_end);
             }
@@ -193,18 +193,18 @@ int SignalHandler::set_crash_signals()
     sigemptyset(&sig_crash_handler.sa_mask);
     sig_crash_handler.sa_flags = SA_RESTART | SA_SIGINFO;
 
-    if (sigaction(SIGSEGV, &sig_crash_handler, NULL) < 0) {
-        kserver->syslog.print(SysLog::CRITICAL, "Cannot set SIGSEGV handler\n");
+    if (sigaction(SIGSEGV, &sig_crash_handler, nullptr) < 0) {
+        kserver->syslog.print<SysLog::CRITICAL>("Cannot set SIGSEGV handler\n");
         return -1;
     }
 
-    if (sigaction(SIGBUS, &sig_crash_handler, NULL) < 0) {
-        kserver->syslog.print(SysLog::CRITICAL, "Cannot set SIGBUS handler\n");
+    if (sigaction(SIGBUS, &sig_crash_handler, nullptr) < 0) {
+        kserver->syslog.print<SysLog::CRITICAL>("Cannot set SIGBUS handler\n");
         return -1;
     }
 
-    if (sigaction(SIGABRT, &sig_crash_handler, NULL) < 0) {
-        kserver->syslog.print(SysLog::CRITICAL, "Cannot set SIGABRT handler\n");
+    if (sigaction(SIGABRT, &sig_crash_handler, nullptr) < 0) {
+        kserver->syslog.print<SysLog::CRITICAL>("Cannot set SIGABRT handler\n");
         return -1;
     }
 

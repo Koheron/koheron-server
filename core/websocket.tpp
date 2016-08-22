@@ -13,7 +13,7 @@ int WebSocket::send(const T *data, unsigned int len)
     long unsigned int char_data_len = len * sizeof(T) / sizeof(char);
 
     if (char_data_len + 10 > WEBSOCK_SEND_BUF_LEN) {
-        kserver->syslog.print(SysLog::ERROR,
+        kserver->syslog.print<SysLog::ERROR>(
                               "WebSocket: send_buf too small\n");
         return -1;
     }

@@ -5,6 +5,7 @@
 #include "devices_manager.hpp"
 #include "kserver.hpp"
 #include "commands.hpp"
+#include "kserver_syslog.tpp"
 
 #if KSERVER_HAS_THREADS
 #  include <thread>
@@ -32,7 +33,7 @@ int DeviceManager::Init()
 {
 #if KSERVER_HAS_DEVMEM
     if (dev_mem.open() < 0) {
-        kserver->syslog.print(SysLog::CRITICAL,
+        kserver->syslog.print<SysLog::CRITICAL>(
                               "Can't start DevMem\n");
         return -1;
     }
@@ -75,7 +76,7 @@ int DeviceManager::StartDev(device_t dev)
 
     if (dev == KSERVER)
         if (!is_started[dev]) {
-            kserver->syslog.print(SysLog::CRITICAL,
+            kserver->syslog.print<SysLog::CRITICAL>(
                                   "KServer must always be started !\n");
             return -1;   
         }
@@ -85,14 +86,14 @@ int DeviceManager::StartDev(device_t dev)
         DEVICES_TABLE(EXPAND_AS_START_DEVICE)
 
       default:
-        kserver->syslog.print(SysLog::CRITICAL, "Unknown device\n");
+        kserver->syslog.print<SysLog::CRITICAL>("Unknown device\n");
         return -1;
     }
 
     assert(device_list.at(dev) != NULL);
 
     if (IsFailed(dev)) {
-        kserver->syslog.print(SysLog::CRITICAL, "Failed to start %s\n", 
+        kserver->syslog.print<SysLog::CRITICAL>("Failed to start %s\n",
                               GET_DEVICE_NAME(dev).c_str() );
         return -1;
     }
@@ -140,7 +141,7 @@ int DeviceManager::Execute(const Command& cmd)
 
       case device_num:
       default:
-        kserver->syslog.print(SysLog::CRITICAL, "Execute: Unknown device\n");
+        kserver->syslog.print<SysLog::CRITICAL>("Execute: Unknown device\n");
         return -1;
     }
 
@@ -201,7 +202,7 @@ void DeviceManager::StopDev(device_t dev)
       DEVICES_TABLE(EXPAND_AS_STOP_DEVICE)
 
       default:
-        kserver->syslog.print(SysLog::CRITICAL, "Unknown device\n");
+        kserver->syslog.print<SysLog::CRITICAL>("Unknown device\n");
     }
 }
 

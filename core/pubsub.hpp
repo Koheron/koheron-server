@@ -6,6 +6,7 @@
 #define __PUBSUB_HPP__
 
 #include "kserver_defs.hpp"
+#include "commands.hpp"
 
 #include <cstdint>
 #include <vector>
@@ -16,6 +17,8 @@
 namespace kserver {
 
 class SessionManager;
+
+#define EMIT_BUFF_SIZE 4096
 
 // http://stackoverflow.com/questions/12927951/array-indexing-converting-to-integer-with-scoped-enumeration
 template<class channels>
@@ -61,7 +64,9 @@ class PubSub
   public:
     PubSub(SessionManager& session_manager_)
     : session_manager(session_manager_)
-    {}
+    {
+        memset(emit_buffer.data, 0, EMIT_BUFF_SIZE);
+    }
 
     // Session sid subscribes to a channel
     int subscribe(uint32_t channel, SessID sid) {
@@ -79,24 +84,24 @@ class PubSub
     template<uint32_t channel, uint32_t event, typename... Tp>
     void emit(Tp&&... args);
 
+    template<uint32_t channel, uint32_t event>
+    void emit_cstr(const char *str);
+
     enum Channels {
         SERVER_CHANNEL,        ///< Server events
-#if KSERVER_HAS_DEVMEM
-        DEVMEM_CHANNEL,        ///< Devmem events
-#endif
+        SYSLOG_CHANNEL,        ///< Syslog events
         channels_count
     };
 
     enum ServerChanEvents {
         PING,                   ///< For tests
-        NEW_SESSION,            ///< A new session has been started
-        DEL_SESSION,            ///< A session has been closed
         server_chan_events_num
     };
 
   private:
     SessionManager& session_manager;
     Subscribers<Channels> subscribers;
+    Buffer<EMIT_BUFF_SIZE> emit_buffer;
 };
 
 } // namespace kserver

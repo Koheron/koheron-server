@@ -29,7 +29,7 @@ int Session<TCP>::read_command(Command& cmd)
         return header_bytes;
 
     if (unlikely(header_bytes < 0)) {
-        session_manager.kserver.syslog.print(SysLog::ERROR,
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
             "TCPSocket: Cannot read header\n");
         return header_bytes;
     }
@@ -44,7 +44,7 @@ int Session<TCP>::read_command(Command& cmd)
     cmd.payload_size = payload_size;
 
     if (payload_size > cmd.buffer.size()) {
-        session_manager.kserver.syslog.print(SysLog::ERROR,
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
                   "TCPSocket: Command payload buffer size too small\n"
                   "payload_size = %u cmd.buffer.size = %u\n",
                   payload_size, cmd.buffer.size());
@@ -60,7 +60,7 @@ int Session<TCP>::read_command(Command& cmd)
             return payload_bytes;
 
         if (unlikely(payload_bytes < 0)) {
-            session_manager.kserver.syslog.print(SysLog::ERROR,
+            session_manager.kserver.syslog.print<SysLog::ERROR>(
                 "TCPSocket: Cannot read payload for device %u, operation %u\n",
                 cmd.device, cmd.operation);
             return header_bytes;
@@ -85,13 +85,13 @@ int Session<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes)
         bytes_rcv = read(comm_fd, buffer + bytes_read, n_bytes - bytes_read);
 
         if (bytes_rcv == 0) {
-            session_manager.kserver.syslog.print(SysLog::INFO,
+            session_manager.kserver.syslog.print<SysLog::INFO>(
                 "TCPSocket: Connection closed by client\n");
             return 0;
         }
 
         if (unlikely(bytes_rcv < 0)) {
-            session_manager.kserver.syslog.print(SysLog::ERROR,
+            session_manager.kserver.syslog.print<SysLog::ERROR>(
                 "TCPSocket: Can't receive data\n");
             return -1;
         }
@@ -112,7 +112,7 @@ template<>
 const uint32_t* Session<TCP>::rcv_handshake(uint32_t buff_size)
 {
     if (unlikely(send<uint32_t>(htonl(buff_size)) < 0)) {
-        session_manager.kserver.syslog.print(SysLog::ERROR,
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
             "TCPSocket: Cannot send buffer size\n");
         return nullptr;
     }
@@ -135,7 +135,7 @@ int Session<TCP>::send_cstr(const char *string)
     int bytes_send = strlen(string) + 1;
 
     if (unlikely(write(comm_fd, string, bytes_send) < 0)) {
-        session_manager.kserver.syslog.print(SysLog::ERROR,
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
                               "TCPSocket::send_cstr: Can't write to client\n");
         return -1;
     }
@@ -157,7 +157,7 @@ int Session<WEBSOCK>::init_socket()
     websock.set_id(comm_fd);
 
     if (websock.authenticate() < 0) {
-        session_manager.kserver.syslog.print(SysLog::CRITICAL,
+        session_manager.kserver.syslog.print<SysLog::CRITICAL>(
                               "Cannot connect websocket to client\n");
         return -1;
     }
@@ -180,7 +180,7 @@ int Session<WEBSOCK>::read_command(Command& cmd)
         return 0;
 
     if (websock.payload_size() < HEADER_LENGTH) {
-        session_manager.kserver.syslog.print(SysLog::ERROR,
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
             "WebSocket: Command too small\n");
         return -1;
     }
@@ -196,7 +196,7 @@ int Session<WEBSOCK>::read_command(Command& cmd)
     }
 
     if (payload_size + HEADER_LENGTH > websock.payload_size()) {
-        session_manager.kserver.syslog.print(SysLog::ERROR,
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
             "WebSocket: Command payload reception incomplete. "
             "Expected %zu bytes. Received %zu bytes.\n",
             payload_size + HEADER_LENGTH, websock.payload_size());
@@ -204,7 +204,7 @@ int Session<WEBSOCK>::read_command(Command& cmd)
     }
 
     if (payload_size + HEADER_LENGTH < websock.payload_size())
-        session_manager.kserver.syslog.print(SysLog::WARNING,
+        session_manager.kserver.syslog.print<SysLog::WARNING>(
             "WebSocket: Received more data than expected. "
             "Expected %zu bytes. Received %zu bytes.\n",
             payload_size + HEADER_LENGTH, websock.payload_size());
@@ -221,7 +221,7 @@ template<>
 const uint32_t* Session<WEBSOCK>::rcv_handshake(uint32_t buff_size)
 {
     if (unlikely(send<uint32_t>(buff_size) < 0)) {
-        session_manager.kserver.syslog.print(SysLog::ERROR,
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
             "WebSocket: Error sending the buffer size\n");
         return nullptr;
     }
@@ -232,7 +232,7 @@ const uint32_t* Session<WEBSOCK>::rcv_handshake(uint32_t buff_size)
         return nullptr;
 
     if (unlikely(static_cast<uint32_t>(payload_size) != sizeof(uint32_t) * buff_size)) {
-        session_manager.kserver.syslog.print(SysLog::ERROR,
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
             "WebSocket: Invalid data size received\n");
         return nullptr;
     }

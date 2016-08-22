@@ -38,10 +38,6 @@ SessID SessionManager::create_session(const std::shared_ptr<KServerConfig>& conf
                 static_cast<std::unique_ptr<SessionAbstract>>(std::move(session))));
     num_sess++;
 
-    // Publish new session creation
-    kserver.pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::NEW_SESSION>(static_cast<uint32_t>(sock_type),
-                                                                     static_cast<uint32_t>(new_id));
-
     return new_id;
 }
 
@@ -76,7 +72,7 @@ void SessionManager::apply_permissions(
         lclf_lifo.push(last_created_session->get_id());
         break;
       default:
-        kserver.syslog.print(SysLog::ERROR, "BUG: Invalid permission policy\n");
+        kserver.syslog.print<SysLog::ERROR>("BUG: Invalid permission policy\n");
         last_created_session->permissions.write = DFLT_WRITE_PERM;
     }
 }
