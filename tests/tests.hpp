@@ -6,10 +6,6 @@
 #include <tuple>
 #include <string>
 
-#if KSERVER_HAS_DEVMEM
-#include <drivers/lib/dev_mem.hpp>
-#endif
-
 class Tests
 {
   public:
