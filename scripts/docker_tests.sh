@@ -61,8 +61,8 @@ ${CLI} host --tcp localhost 36000
 ${CLI} host --status
 ${CLI} status --sessions
 ${CLI} status --devices
-${CLI} status --devices KSERVER
-${CLI} status --devices TESTS
+${CLI} status --devices KServer
+${CLI} status --devices Tests
 
 echo "== Test version =="
 VERSION=$(${CLI} status --version)
