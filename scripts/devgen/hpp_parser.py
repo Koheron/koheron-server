@@ -23,15 +23,15 @@ def _get_pragmas(hpp_filename):
     pragmas = []
     for line in fd.readlines():
         line_cnt = line_cnt + 1
-        if '# pragma tcp-server' in line:
+        if '# pragma koheron-server' in line:
             pragmas.append({
               'line_number': line_cnt,
-              'data': line.split('# pragma tcp-server')[1].strip()
+              'data': line.split('# pragma koheron-server')[1].strip()
             })
-        elif '#pragma tcp-server' in line:
+        elif '#pragma koheron-server' in line:
             pragmas.append({
               'line_number': line_cnt,
-              'data': line.split('#pragma tcp-server')[1].strip()
+              'data': line.split('#pragma koheron-server')[1].strip()
             })
     fd.close()
     return pragmas
