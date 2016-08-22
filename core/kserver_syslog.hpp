@@ -12,11 +12,13 @@
 
 namespace kserver {
 
+class KServer;
+
 #define FMT_BUFF_LEN 512
 
 struct SysLog
 {
-    SysLog(std::shared_ptr<KServerConfig> config_);
+    SysLog(std::shared_ptr<KServerConfig> config_, KServer *kserver_);
 
     void close();
 
@@ -31,7 +33,8 @@ struct SysLog
         syslog_severity_num
     };
 
-    void print(unsigned int severity, const char *message, ...);
+    template<unsigned int severity>
+    void print(const char *message, ...);
 
     void print_dbg(const char *message, ...)
     {
@@ -45,8 +48,15 @@ struct SysLog
 private:
     std::shared_ptr<KServerConfig> config;
     char fmt_buffer[FMT_BUFF_LEN];
+    KServer *kserver;
+
+    template<unsigned int severity>
+    void notify(const char *message, va_list argptr);
 
     int print_stderr(const char *header, const char *message, va_list argptr);
+
+    template<unsigned int severity>
+    int emit_error(const char *message, va_list argptr);
 };
 
 } // namespace kserver

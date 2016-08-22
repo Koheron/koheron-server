@@ -71,13 +71,13 @@ KSERVER_EXECUTE_OP(GET_CMDS)
                         "%u\n", MAX_OP_NUM );
 
     if (ret < 0) {
-        kserver->syslog.print(SysLog::ERROR, 
+        kserver->syslog.print<SysLog::ERROR>(
                               "KServer::GET_CMDS Format error\n");
         return -1;
     }
 
     if (ret >= KS_DEV_WRITE_STR_LEN) {
-        kserver->syslog.print(SysLog::ERROR, 
+        kserver->syslog.print<SysLog::ERROR>(
                               "KServer::GET_CMDS Buffer overflow\n");
         return -1;
     }
@@ -95,13 +95,13 @@ KSERVER_EXECUTE_OP(GET_CMDS)
                         (device_desc[i][0]).c_str() );
 
         if (ret < 0) {
-            kserver->syslog.print(SysLog::ERROR,
+            kserver->syslog.print<SysLog::ERROR>(
                                   "KServer::GET_CMDS Format error\n");
             return -1;
         }
 
         if (ret >= KS_DEV_WRITE_STR_LEN) {
-            kserver->syslog.print(SysLog::ERROR,
+            kserver->syslog.print<SysLog::ERROR>(
                                   "KServer::GET_CMDS Buffer overflow\n");
             return -1;
         }
@@ -150,13 +150,13 @@ int send_listener_stats(SessID sess_id, KServer *kserver,
                     listener->stats.total_requests_num);
 
     if (ret < 0) {
-        kserver->syslog.print(SysLog::ERROR,
+        kserver->syslog.print<SysLog::ERROR>(
                               "KServer::GET_STATS Format error\n");
         return -1;
     }
 
     if (ret >= KS_DEV_WRITE_STR_LEN) {
-        kserver->syslog.print(SysLog::ERROR,
+        kserver->syslog.print<SysLog::ERROR>(
                               "KServer::GET_STATS Buffer overflow\n");
         return -1;
     }
@@ -179,13 +179,13 @@ KSERVER_EXECUTE_OP(GET_STATS)
                     std::time(nullptr) - kserver->start_time);
 
     if (ret < 0) {
-        kserver->syslog.print(SysLog::ERROR,
+        kserver->syslog.print<SysLog::ERROR>(
                               "KServer::GET_STATS Format error\n");
         return -1;
     }
 
     if (ret >= KS_DEV_WRITE_STR_LEN) {
-        kserver->syslog.print(SysLog::ERROR,
+        kserver->syslog.print<SysLog::ERROR>(
                               "KServer::GET_STATS Buffer overflow\n");
         return -1;
     }
@@ -248,13 +248,13 @@ KSERVER_EXECUTE_OP(GET_DEV_STATUS)
                     ].c_str());
 
         if (ret < 0) {
-            kserver->syslog.print(SysLog::ERROR,
+            kserver->syslog.print<SysLog::ERROR>(
                                   "KServer::GET_DEV_STATUS Format error\n");
             return -1;
         }
 
         if (ret >= KS_DEV_WRITE_STR_LEN) {
-            kserver->syslog.print(SysLog::ERROR,
+            kserver->syslog.print<SysLog::ERROR>(
                                   "KServer::GET_DEV_STATUS Buffer overflow\n");
             return -1;
         }
@@ -341,13 +341,13 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
                            perms_str);
 
         if (ret < 0) {
-            kserver->syslog.print(SysLog::ERROR,
+            kserver->syslog.print<SysLog::ERROR>(
                             "KServer::GET_RUNNING_SESSIONS Format error\n");
             return -1;
         }
 
         if (ret >= KS_DEV_WRITE_STR_LEN) {
-            kserver->syslog.print(SysLog::ERROR,
+            kserver->syslog.print<SysLog::ERROR>(
                           "KServer::GET_RUNNING_SESSIONS Buffer overflow\n");
             return -1;
         }
@@ -379,7 +379,7 @@ KSERVER_STRUCT_ARGUMENTS(SUBSCRIBE_PUBSUB)
 KSERVER_PARSE_ARG(SUBSCRIBE_PUBSUB)
 {
     if (required_buffer_size<uint32_t>() != cmd.payload_size) {
-        kserver->syslog.print(SysLog::ERROR, "Invalid payload size\n");
+        kserver->syslog.print<SysLog::ERROR>("Invalid payload size\n");
         return -1;
     }
 
@@ -444,7 +444,7 @@ int KDevice<KServer, KSERVER>::execute(const Command& cmd)
         KSERVER_EXECUTE_CMD(PUBSUB_PING)
       case KServer::kserver_op_num:
       default:
-        kserver->syslog.print(SysLog::ERROR,
+        kserver->syslog.print<SysLog::ERROR>(
                               "KServer::execute Unknown operation\n");
         return -1;
     }

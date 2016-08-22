@@ -71,7 +71,7 @@ def PrintParserCore(file_id, device, operation):
 
     file_id.write('    static_assert(req_buff_size <= cmd.buffer.size(), "Buffer size too small");\n\n');
     file_id.write('    if (req_buff_size != cmd.payload_size) {\n')
-    file_id.write('        kserver->syslog.print(SysLog::ERROR, \" [' + device.name + ' - ' + operation['name'] + '] Invalid payload size. Expected %zu bytes. Received %zu bytes.\\n\", req_buff_size, cmd.payload_size);\n')
+    file_id.write('        kserver->syslog.print<SysLog::ERROR>(\" [' + device.name + ' - ' + operation['name'] + '] Invalid payload size. Expected %zu bytes. Received %zu bytes.\\n\", req_buff_size, cmd.payload_size);\n')
     file_id.write('        return -1;\n')
     file_id.write('    }\n\n')
     file_id.write('    constexpr size_t position0 = 0;\n')
@@ -225,7 +225,7 @@ def PrintExecute(file_id, device):
 
     file_id.write('      case ' + device.class_name + '::' + device.name.lower() + '_op_num:\n')
     file_id.write('      default:\n')
-    file_id.write('          kserver->syslog.print(SysLog::ERROR, "' + device.class_name + ': Unknown operation\\n");\n')
+    file_id.write('          kserver->syslog.print<SysLog::ERROR>("' + device.class_name + ': Unknown operation\\n");\n')
     file_id.write('          return -1;\n')
     file_id.write('    }\n')
     file_id.write('}\n\n')

@@ -13,11 +13,13 @@
 #endif
 
 #include "kserver_defs.hpp"
+#include "kserver.hpp"
 
 namespace kserver {
 
-SysLog::SysLog(std::shared_ptr<KServerConfig> config_)
+SysLog::SysLog(std::shared_ptr<KServerConfig> config_, KServer *kserver_)
 : config(config_)
+, kserver(kserver_)
 {
     memset(fmt_buffer, 0, FMT_BUFF_LEN);
 
@@ -35,7 +37,7 @@ void SysLog::close()
     assert(config != nullptr);
 
     if (config->syslog) {
-        print(INFO, "Close syslog ...\n");
+        print<INFO>("Close syslog ...\n");
         closelog();
     }
 }
@@ -58,73 +60,83 @@ int SysLog::print_stderr(const char *header, const char *message, va_list argptr
     return 0;
 }
 
-void SysLog::print(unsigned int severity, const char *message, ...)
+template<>
+void SysLog::notify<SysLog::PANIC>(const char *message, va_list argptr)
 {
-    // Return immediatly when a debug message must be
-    // logged. Avoids the sinificant va_copy overhead.
-
-    // if (severity == DEBUG && !config->verbose)
-    //     return;
-
-    va_list argptr, argptr2, argptr3;
-    va_start(argptr, message);
-
-    // See http://comments.gmane.org/gmane.linux.suse.programming-e/1107
+    va_list argptr1, argptr2;
+    va_copy(argptr1, argptr);
     va_copy(argptr2, argptr);
-    va_copy(argptr3, argptr);
 
-    switch (severity) {
-      case PANIC:
-        print_stderr("KSERVER PANIC", message, argptr3);
+    print_stderr("KSERVER PANIC", message, argptr1);
 
-        if (config->syslog)
-            vsyslog(LOG_ALERT, message, argptr2);
+    if (config->syslog)
+        vsyslog(LOG_ALERT, message, argptr2);
 
-        break;
-      case CRITICAL:
-        print_stderr("KSERVER CRITICAL", message, argptr3);
-
-        if (config->syslog)
-            vsyslog(LOG_CRIT, message, argptr2);
-
-        break;
-      case ERROR:
-        print_stderr("KSERVER ERROR", message, argptr3);
-
-        if (config->syslog)
-            vsyslog(LOG_ERR, message, argptr2);
-
-        break;
-      case WARNING:
-        print_stderr("KSERVER WARNING", message, argptr3);
-
-        if (config->syslog)
-            vsyslog(LOG_WARNING, message, argptr2);
-
-        break;
-      case INFO:
-        if (config->verbose)
-            vprintf(message, argptr);
-
-        if (config->syslog)
-            vsyslog(LOG_NOTICE, message, argptr2);
-
-        break;
-      // case DEBUG:
-      //   if (config->verbose)
-      //       vprintf(message, argptr);
-
-      //   if (config->syslog)
-      //       vsyslog(LOG_DEBUG, message, argptr2);
-
-      //   break;
-      default:
-        fprintf(stderr, "Invalid severity level\n");
-    }
-
-    va_end(argptr3);
+    va_end(argptr1);
     va_end(argptr2);
-    va_end(argptr);
+}
+
+template<>
+void SysLog::notify<SysLog::CRITICAL>(const char *message, va_list argptr)
+{
+    va_list argptr1, argptr2;
+    va_copy(argptr1, argptr);
+    va_copy(argptr2, argptr);
+
+    print_stderr("KSERVER CRITICAL", message, argptr1);
+
+    if (config->syslog)
+        vsyslog(LOG_CRIT, message, argptr2);
+
+    va_end(argptr1);
+    va_end(argptr2);
+}
+
+template<>
+void SysLog::notify<SysLog::ERROR>(const char *message, va_list argptr)
+{
+    va_list argptr1, argptr2;
+    va_copy(argptr1, argptr);
+    va_copy(argptr2, argptr);
+
+    print_stderr("KSERVER ERROR", message, argptr1);
+
+    if (config->syslog)
+        vsyslog(LOG_ERR, message, argptr2);
+
+    va_end(argptr1);
+    va_end(argptr2);
+}
+
+template<>
+void SysLog::notify<SysLog::WARNING>(const char *message, va_list argptr)
+{
+    va_list argptr1, argptr2;
+    va_copy(argptr1, argptr);
+    va_copy(argptr2, argptr);
+
+    print_stderr("KSERVER WARNING", message, argptr1);
+
+    if (config->syslog)
+        vsyslog(LOG_WARNING, message, argptr2);
+
+    va_end(argptr1);
+    va_end(argptr2);
+}
+
+template<>
+void SysLog::notify<SysLog::INFO>(const char *message, va_list argptr)
+{
+    va_list argptr1;
+    va_copy(argptr1, argptr);
+
+    if (config->verbose)
+        vprintf(message, argptr);
+
+    if (config->syslog)
+        vsyslog(LOG_NOTICE, message, argptr1);
+
+    va_end(argptr1);
 }
 
 } // namespace kserver
