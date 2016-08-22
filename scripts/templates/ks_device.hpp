@@ -19,8 +19,6 @@
 #include <core/kdevice.hpp>
 #include <core/devices_manager.hpp>
 
-// class DevMem;
-
 namespace kserver {
 
 class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device.name }}>
@@ -31,7 +29,7 @@ class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device
 
   public:
 #if KSERVER_HAS_DEVMEM
-    {{ device.class_name }}(KServer* kserver, DevMem& dev_mem_)
+    {{ device.class_name }}(KServer* kserver, MemoryManager& dev_mem_)
 #else
     {{ device.class_name }}(KServer* kserver)
 #endif
@@ -62,7 +60,7 @@ class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device
 #endif
 
 #if KSERVER_HAS_DEVMEM
-    DevMem& dev_mem;
+    MemoryManager& dev_mem;
 #endif
     {% if device.objects|length -%}
     {% for object in device.objects -%}

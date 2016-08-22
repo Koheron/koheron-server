@@ -34,7 +34,7 @@ int DeviceManager::Init()
 #if KSERVER_HAS_DEVMEM
     if (dev_mem.open() < 0) {
         kserver->syslog.print<SysLog::CRITICAL>(
-                              "Can't start DevMem\n");
+                              "Can't start MemoryManager\n");
         return -1;
     }
 #endif
