@@ -1,4 +1,4 @@
-/// Main file for Server
+/// Main file for koheron-server
 ///
 /// (c) Koheron
 
@@ -79,14 +79,14 @@ void parse_options(int argc, char **argv,
 
 #if KSERVER_IS_DAEMON
 
-// Run tcp-server as a daemon process
+// Run koheron-server as a daemon process
 // From http://www.thegeekstuff.com/2012/02/c-daemon-process/
 void daemonize()
 {
     pid_t process_id = fork();
 
     if (process_id < 0) {
-        fprintf(stderr, "tcp-server: fork failed!\n");
+        fprintf(stderr, "koheron-server: fork failed!\n");
         exit(EXIT_FAILURE);
     }
 
@@ -101,7 +101,7 @@ void daemonize()
         exit(EXIT_FAILURE);
 
     if (chdir("/") < 0) {
-        fprintf(stderr, "tcp-server: Cannot change current directory to root\n");
+        fprintf(stderr, "koheron-server: Cannot change current directory to root\n");
         exit(EXIT_FAILURE);
     }
 

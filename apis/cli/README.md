@@ -9,16 +9,16 @@ $ kserver --help
 
 To start, restart and stop the server service use
 ```
-$ systemctl start tcp-server
-$ systemctl restart tcp-server
-$ systemctl stop tcp-server
+$ systemctl start koheron-server
+$ systemctl restart koheron-server
+$ systemctl stop koheron-server
 ```
 
 ## Host
 
 The command line is available in local via an Unix socket or remotely using TCP.
 
-The Unix socket listens to `unix:///var/run/kserver.sock`.
+The Unix socket listens to `unix:///var/run/koheron-server.sock`.
 
 The configuration is saved in the file `.kserver_cli` in the directory that contains the executable `kserver` of the CLI.
 

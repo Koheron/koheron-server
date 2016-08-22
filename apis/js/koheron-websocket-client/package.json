@@ -1,11 +1,11 @@
 {
-    "author": "T. Vanderbruggen <thomas.vanderbruggen@koheron.com> (http://www.koheron.com/)",
+    "author": "T. Vanderbruggen <thomas.vanderbruggen@koheron.com> (https://www.koheron.com)",
     "name": "koheron-websocket-client",
     "description": "Websocket client for Koheron server",
     "version": "0.1.0",
-    "repository": "https://github.com/Koheron/tcp-server/tree/master/apis/js/koheron-websocket-client",
+    "repository": "https://github.com/Koheron/koheron-server/tree/master/apis/js/koheron-websocket-client",
     "license": "MIT",
-    "homepage": "https://github.com/Koheron/tcp-server",
+    "homepage": "https://github.com/Koheron/koheron-server",
 
     "engines": {
         "node": ">= 0.8.0"
@@ -24,8 +24,8 @@
     },
 
     "bugs": {
-        "url": "https://github.com/Koheron/tcp-server/issues"
+        "url": "https://github.com/Koheron/koheron-server/issues"
     },
 
-    "keywords": ["websocket", "instrument"]
+    "keywords": ["websocket", "instrumentation"]
 }
