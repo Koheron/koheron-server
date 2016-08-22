@@ -16,9 +16,9 @@ def Generate(device, directory):
         f.write('#include <core/commands.hpp>\n')
         f.write('#include <core/kserver.hpp>\n')
         f.write('#include <core/kserver_session.hpp>\n')
-        # f.write('#if KSERVER_HAS_DEVMEM\n')
-        # f.write('#include <drivers/lib/dev_mem.hpp>\n')
-        # f.write('#endif\n')
+        f.write('#if KSERVER_HAS_DEVMEM\n')
+        f.write('#include <drivers/lib/memory_manager.hpp>\n')
+        f.write('#endif\n')
         f.write('namespace kserver {\n\n')
         f.write("#define THIS (static_cast<" + device.class_name + "*>(this))\n\n")
 
