@@ -55,14 +55,14 @@ apis/C/hello_world/hello_world
 node apis/js/koheron-websocket-client/tests/hello_world.js
 python apis/python/hello_world.py
 
-echo "== Test CLI =="
-CLI=apis/cli/kserver
-${CLI} host --tcp localhost 36000
-${CLI} host --status
-${CLI} status --sessions
-${CLI} status --devices
-${CLI} status --devices KServer
-${CLI} status --devices Tests
+# echo "== Test CLI =="
+# CLI=apis/cli/kserver
+# ${CLI} host --tcp localhost 36000
+# ${CLI} host --status
+# ${CLI} status --sessions
+# ${CLI} status --devices
+# ${CLI} status --devices KServer
+# ${CLI} status --devices Tests
 
 echo "== Test version =="
 VERSION=$(${CLI} status --version)
