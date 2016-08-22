@@ -89,7 +89,7 @@ def main(argv):
     for inc in config.get('includes', []):
         with open(os.path.join(argv[2], inc)) as include_file:
             for key, value in yaml.load(include_file).iteritems():
-                if key in drivers:
+                if key in config:
                     config[key].extend(value)
 
     if cmd == '--generate':
