@@ -26,14 +26,14 @@ class Tests
     std::vector<float>& send_std_vector();
     std::array<float, 10>& send_std_array();
 
-    #pragma tcp-server read_array 2*arg{n_pts}
+    #pragma koheron-server read_array 2*arg{n_pts}
     float* send_c_array1(uint32_t n_pts);
 
-    #pragma tcp-server read_array this{data.size()}
+    #pragma koheron-server read_array this{data.size()}
     float* send_c_array2();
 
     // Receive array
-    #pragma tcp-server write_array arg{data} arg{len}
+    #pragma koheron-server write_array arg{data} arg{len}
     bool set_buffer(const uint32_t *data, uint32_t len);
 
     bool rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 8192>& arr, double d, int32_t i);
