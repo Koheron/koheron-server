@@ -14,7 +14,7 @@
 #ifdef LOCAL
 #  define UNIX_SOCK_PATH "/home/kserver.sock"
 #else
-#  define UNIX_SOCK_PATH "/var/run/kserver.sock"
+#  define UNIX_SOCK_PATH "/var/run/koheron-server.sock"
 #endif
 
 /* Init tasks */

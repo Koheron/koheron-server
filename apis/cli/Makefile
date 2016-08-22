@@ -1,4 +1,4 @@
-# Makefile for tcp-server CLI
+# Makefile for koheron-server CLI
 #
 # (c) Koheron
 

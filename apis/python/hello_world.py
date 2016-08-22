@@ -1,4 +1,4 @@
-from koheron_tcp_client import KClient, command
+from koheron import KoheronClient, command
 
 class HelloWorld(object):
     def __init__(self, client):
@@ -9,6 +9,6 @@ class HelloWorld(object):
         return self.client.recv_uint32()
 
 if __name__ == "__main__":
-    client = KClient('127.0.0.1')
+    client = KoheronClient('127.0.0.1')
     hw = HelloWorld(client)
     print hw.add_42(58) # 100

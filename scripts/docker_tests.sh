@@ -2,6 +2,7 @@
 set -e
 
 VENV=$1
+UNIXSOCK=$2
 
 if [ "${VENV}" == "venv" ]; then
 	virtualenv ${VENV}
@@ -75,17 +76,18 @@ if [ "${VERSION}" != "${SHA}" ]; then
 fi
 
 echo "== Test C API =="
-apis/C/tests/tests --unit 127.0.0.1:36000 /code/kserver.sock
+apis/C/tests/tests --unit 127.0.0.1:36000 ${UNIXSOCK}
 
 echo "== Test Javascript API =="
 make -C apis/js/koheron-websocket-client tests
 
 echo "== Test Python API =="
-python  -m pytest -v apis/python/connect_test.py
-python3 -m pytest -v apis/python/connect_test.py
+git clone https://github.com/Koheron/koheron-python.git
+python  -m pytest -v koheron-python/test/test.py
+python3 -m pytest -v koheron-python/test/test.py
 
 echo "== Speed tests =="
-apis/C/tests/tests --speed 127.0.0.1:36000 /code/kserver.sock
+apis/C/tests/tests --speed 127.0.0.1:36000 ${UNIXSOCK}
 
 echo "== Server log =="
 cat server.log

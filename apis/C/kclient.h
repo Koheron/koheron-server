@@ -3,7 +3,7 @@
  *
  * (c) Koheron
  */
- 
+
 #ifndef __KCLIENT_H__
 #define __KCLIENT_H__
 
@@ -117,7 +117,7 @@ struct kclient {
 };
 
 /**
- * kclient_connect - Initialize a TCP connection with KServer
+ * kclient_connect - Initialize a TCP connection with koheron-server
  * @host A string containing the IP address of the host
  * @port Port of KServer on the host
  *
@@ -297,8 +297,8 @@ int kclient_read_bool(struct kclient *kcl, bool *rcv_bool);
 /**
  * kclient_send_array - Send an array using the handshaking protocol:
  *      1) The size of the buffer must have been send as a
- *         command argument to tcp-server before calling this function
- *      2) tcp-server acknowledges reception readiness by sending
+ *         command argument to koheron-server before calling this function
+ *      2) koheron-server acknowledges reception readiness by sending
  *         the number of points to receive to the client
  *      3) The client send the data buffer
  * The two last steps are implemented by the function.
