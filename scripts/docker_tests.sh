@@ -81,8 +81,9 @@ echo "== Test Javascript API =="
 make -C apis/js/koheron-websocket-client tests
 
 echo "== Test Python API =="
-python  -m pytest -v apis/python/connect_test.py
-python3 -m pytest -v apis/python/connect_test.py
+git clone https://github.com/Koheron/koheron-python.git
+python  -m pytest -v koheron-python/test/test.py
+python3 -m pytest -v koheron-python/test/test.py
 
 echo "== Speed tests =="
 apis/C/tests/tests --speed 127.0.0.1:36000 /code/kserver.sock
