@@ -81,7 +81,7 @@ class DeviceManager
     KS_device_status GetStatus(device_t dev);
 
 #if KSERVER_HAS_DEVMEM
-    DevMem& GetDevMem() {return dev_mem;}
+    MemoryManager& GetDevMem() {return dev_mem;}
 #endif
 
   private:
@@ -89,7 +89,7 @@ class DeviceManager
     KServer *kserver;
 
 #if KSERVER_HAS_DEVMEM
-    DevMem dev_mem;
+    MemoryManager dev_mem;
 #endif
 
     /// True if a device is started
