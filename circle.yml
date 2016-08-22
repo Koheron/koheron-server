@@ -10,7 +10,7 @@ dependencies:
 
 test:
   pre:
-    - docker run jeanminet/tcp-server bash scripts/docker_tests.sh
+    - docker run jeanminet/tcp-server bash scripts/docker_tests.sh "" /code/kserver.sock
 
 # deployment:
 #  hub:
