@@ -9,7 +9,7 @@ TARGET_OS=Linux
 BUILD=DEBUG_KOHERON_API
 #BUILD=RELEASE_KOHERON_API
 
-OBJS = kclient.o devmem.o
+OBJS = kclient.o
 
 SRCS = $(subst .o,.c, $(OBJS), ))
 

@@ -3,7 +3,7 @@ Command = webclient.Command
 
 class HelloWorld
     constructor : (@kclient) ->
-        @device = @kclient.getDevice("HELLO_WORLD")
+        @device = @kclient.getDevice("HelloWorld")
         @cmds = @device.getCmds()
 
     add42 : (num, cb) ->

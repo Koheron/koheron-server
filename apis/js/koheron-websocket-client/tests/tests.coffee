@@ -13,7 +13,7 @@ class Tests
     "use strict"
 
     constructor : (@kclient) ->
-        @device = @kclient.getDevice("TESTS")
+        @device = @kclient.getDevice("Tests")
         @id = @device.id
         @cmds = @device.getCmds()
 
