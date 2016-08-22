@@ -108,7 +108,7 @@ class Tests:
 
     @command('Tests')
     def get_tuple(self):
-        return self.client.recv_tuple('Ifd?')
+        return self.client.recv_tuple('Idd?')
 
     @command('Tests')
     def get_tuple2(self):
