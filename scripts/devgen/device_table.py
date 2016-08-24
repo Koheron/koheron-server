@@ -30,12 +30,10 @@ def PrintDeviceTable(devices, src_dir):
     f.close()
     
 def GetMaxOpNum(devices):
-    ''' Return the list of the compiled devices and the maximum number of operations '''
-    max_op_num = KSERVER_OP_NUM
-    for device in devices:
-        if len(device.operations) > max_op_num:
-            max_op_num = len(device.operations)
-    return max_op_num
+    ''' Return the maximum number of operations '''
+    def device_length(device):
+        return max(len(device.operations), KSERVER_OP_NUM)
+    return max(device_length(d) for d in devices)
 
 def PrintFileHeader(file_id, filename):
     file_id.write('/// @file ' + filename + '\n')

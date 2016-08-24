@@ -14,19 +14,19 @@ def GetClassName(dev_name):
 
 def IsFlags(operation):
     ''' Test whether flags are defined for a given operation '''
-    return ('flags' in operation) and (operation['flags'] != None)
+    return operation.get('flags') is not None
 
 def IsArgs(operation):
     ''' Test whether arguments are defined for a given operation '''
-    return ('arguments' in operation) and (operation['arguments'] != None)
+    return operation.get('arguments') is not None
 
 def IsDefaultVal(arg):
     ''' Test whether a default value is defined for an argument '''
-    return ('default' in arg) and (arg['default'] != None) and (len(arg['default']) != 0)
+    return len(operation.get('default')) > 0
 
 def IsReturn(operation):
     ''' Test whether a return description are defined for a given operation '''
-    return ('return' in operation) and (operation['return'] != None)
+    return operation.get('return') is not None
 
 class Device:
     def __init__(self, path, midware_path):
@@ -56,8 +56,7 @@ class Device:
 
         template = header_renderer.get_template(template_filename)
 
-        header_filename = os.path.join(directory, 
-                                       self.class_name.lower() + '.hpp')
+        header_filename = os.path.join(directory, self.class_name.lower() + '.hpp')
         output = file(header_filename, 'w')
         output.write(template.render(device=self))
         output.close()
@@ -74,25 +73,15 @@ class Operations:
             raise IndexError
         return self._operations[index]
 
-    def is_valid_op(self, op_name):
-        ''' Test whether an operation is valid
-        Args:
-            - op_name: Name of the operation to check
-        '''
-        for operation in self:
-            if operation['name'] == op_name:
-                return True
-
-        return False
+    def is_valid_op(self, operation_name):
+        ''' Test whether an operation is valid.'''
+        return any(operation_name in op for op in self)
 
 class Objects:
     ''' Objects from external API '''
 
     def __init__(self, objects):
-        if objects == None:
-            self._objects = []
-        else:
-            self._objects = objects
+        self._objects = [] if objects is None else objects
 
     def __len__(self):
         return len(self._objects)
@@ -105,10 +94,7 @@ class Objects:
 class Includes:
     ''' API files to include '''
     def __init__(self, includes):
-        if includes == None:
-            self._includes = []
-        else:
-            self._includes = includes
+        self._includes = [] if includes is None else includes
 
     def __len__(self):
         return len(self._includes)
