@@ -14,7 +14,7 @@ from shutil import copy
 from devgen import Device, device_table
 
 def render_device_table(devices):
-    print "Generate device table"
+    print('Generate device table')
     device_table.PrintDeviceTable(devices, 'tmp')
 
     template_filename = 'scripts/templates/devices.hpp'
@@ -34,7 +34,7 @@ def generate(devices_list, midware_path):
     for path in devices_list:
         if path.endswith('.hpp') or path.endswith('.h'):
             device = Device(path, midware_path)
-            print 'Generating ' + device.name + '...'
+            print('Generating ' + device.name + '...')
             device.generate(os.path.join(midware_path, os.path.dirname(path)))
             devices.append(device)
     return devices
