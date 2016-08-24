@@ -144,21 +144,21 @@ int WebSocket::set_send_header(unsigned char *bits, long long data_len,
         mask_offset = SMALL_OFFSET;
     }
     else if (data_len > SMALL_STREAM
-             && data_len <= 65535) {
+             && data_len <= 0xFFFF) {
         bits[1] = MEDIUM_STREAM;
-        bits[2] = (data_len >> 8) & 255;
-        bits[3] = data_len & 255;
+        bits[2] = (data_len >> 8) & 0xFF;
+        bits[3] = data_len & 0xFF;
         mask_offset = MEDIUM_OFFSET;
     } else {
         bits[1] = BIG_STREAM;
-        bits[2] = (data_len >> 56) & 255;
-        bits[3] = (data_len >> 48) & 255;
-        bits[4] = (data_len >> 40) & 255;
-        bits[5] = (data_len >> 32) & 255;
-        bits[6] = (data_len >> 24) & 255;
-        bits[7] = (data_len >> 16) & 255;
-        bits[8] = (data_len >>  8) & 255;
-        bits[9] = data_len & 255;
+        bits[2] = (data_len >> 56) & 0xFF;
+        bits[3] = (data_len >> 48) & 0xFF;
+        bits[4] = (data_len >> 40) & 0xFF;
+        bits[5] = (data_len >> 32) & 0xFF;
+        bits[6] = (data_len >> 24) & 0xFF;
+        bits[7] = (data_len >> 16) & 0xFF;
+        bits[8] = (data_len >>  8) & 0xFF;
+        bits[9] = data_len & 0xFF;
         mask_offset = BIG_OFFSET;
     }
 
