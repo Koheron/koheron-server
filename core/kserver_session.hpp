@@ -44,7 +44,7 @@ class SessionAbstract
     SessionAbstract(int sock_type_)
     : kind(sock_type_) {}
 
-    int send_cstr(const char *string);
+    template<typename... Tp> int send_cstr(const char *string, Tp&&... args);
     const uint32_t* rcv_handshake(uint32_t buff_size);
     template<typename... Tp> int send(const std::tuple<Tp...>& t);
     template<typename T, size_t N> int send(const std::array<T, N>& vect);
@@ -103,7 +103,7 @@ class Session : public SessionAbstract
     /// Send a C string
     /// @string The null-terminated string
     /// @return The number of bytes send if success, -1 if failure
-    int send_cstr(const char* string);
+    template<typename... Tp> int send_cstr(const char* string, Tp&&... args);
 
     template<typename T> int send_array(const T* data, unsigned int len);
     template<typename T> int send(const std::vector<T>& vect);
@@ -240,19 +240,20 @@ int Session<sock_type>::run()
 }
 
 template<int sock_type>
-int Session<sock_type>::send_cstr(const char *string)
+template<typename... Tp>
+int Session<sock_type>::send_cstr(const char *string, Tp&&... args)
 {
     Buffer<KSERVER_SEND_STR_LEN> buffer;
     uint32_t len = strlen(string) + 1; // Including '\0'
+    auto array = serialize(std::make_tuple(0U, args..., len));
 
-    if (len > KSERVER_SEND_STR_LEN) {
+    if (len + array.size() > KSERVER_SEND_STR_LEN) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
             "send_cstr: String too long. Length = %u. Maximum = %u\n",
             len, KSERVER_SEND_STR_LEN);
         return -1;
     }
 
-    auto array = serialize(std::make_tuple(0U, len));
     memcpy(buffer.data, array.data(), array.size());
     memcpy(buffer.data + array.size(), string, len);
 
@@ -458,9 +459,10 @@ inline const uint32_t* SessionAbstract::rcv_handshake(uint32_t buff_size)
     return nullptr;
 }
 
-inline int SessionAbstract::send_cstr(const char *string)
+template<typename... Tp>
+inline int SessionAbstract::send_cstr(const char *string, Tp&&... args)
 {
-    SWITCH_SOCK_TYPE(send_cstr(string))
+    SWITCH_SOCK_TYPE(send_cstr(string, args...))
     return -1;
 }
 
