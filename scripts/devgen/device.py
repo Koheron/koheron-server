@@ -14,7 +14,7 @@ def GetClassName(dev_name):
 
 def IsFlags(operation):
     ''' Test whether flags are defined for a given operation '''
-    return ('flags' in operation) and (operation['flags'] != None)
+    return operation.get('flags') is not None
 
 def IsArgs(operation):
     ''' Test whether arguments are defined for a given operation '''
