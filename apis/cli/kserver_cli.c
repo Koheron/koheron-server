@@ -453,13 +453,13 @@ void ks_cli_init(int argc, char **argv)
 
     assert(strcmp(argv[0], "init") == 0);
 
-    if ((dev_id = get_device_id(kcl, "COMMON")) < 0) {
-        fprintf(stderr, "Unknown device COMMON\n");
+    if ((dev_id = get_device_id(kcl, "Common")) < 0) {
+        fprintf(stderr, "Unknown device Common\n");
         exit(EXIT_FAILURE);
     }
 
-    if ((op_id = get_op_id(kcl, dev_id, "IP_ON_LEDS")) < 0) {
-        fprintf(stderr, "Unknown operation IP_ON_LEDS\n");
+    if ((op_id = get_op_id(kcl, dev_id, "ip_on_leds")) < 0) {
+        fprintf(stderr, "Unknown operation ip_on_leds\n");
         exit(EXIT_FAILURE);
     }
 
