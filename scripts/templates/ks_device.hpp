@@ -37,7 +37,6 @@ class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device
 #if KSERVER_HAS_DEVMEM
     , dev_mem(dev_mem_)
 #endif
-    {% if device.objects|length -%}
     {% for object in device.objects -%}
 #if KSERVER_HAS_DEVMEM
     , {{ object["name"] }}(dev_mem_)
@@ -45,7 +44,6 @@ class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device
     , {{ object["name"] }}()
 #endif
     {% endfor -%}
-    {% endif -%}
     {}
 
     enum Operation {
@@ -62,11 +60,9 @@ class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device
 #if KSERVER_HAS_DEVMEM
     MemoryManager& dev_mem;
 #endif
-    {% if device.objects|length -%}
     {% for object in device.objects -%}
     {{ object["type"] }} {{ object["name"] }};
     {% endfor -%}
-    {% endif %}
 }; // class KS_{{ device.name|capitalize }}
 
 {% for operation in device.operations -%}
