@@ -19,29 +19,24 @@ def parse_header(hpp_filename):
 
 def _get_pragmas(hpp_filename):
     fd = open(hpp_filename, 'r')
-    line_cnt = 0
     pragmas = []
-    for line in fd.readlines():
-        line_cnt = line_cnt + 1
+    for cnt, line in enumerate(fd.readlines()):
         if '# pragma koheron-server' in line:
             pragmas.append({
-              'line_number': line_cnt,
+              'line_number': cnt + 1,
               'data': line.split('# pragma koheron-server')[1].strip()
             })
         elif '#pragma koheron-server' in line:
             pragmas.append({
-              'line_number': line_cnt,
+              'line_number': cnt + 1,
               'data': line.split('#pragma koheron-server')[1].strip()
             })
     fd.close()
     return pragmas
 
 def _get_method_pragma(method, pragmas):
-    if pragmas != None and len(pragmas) > 0:
-        for pragma in pragmas:
-            if pragma['line_number'] == method['line_number'] - 1:
-                return pragma
-    return None
+    line_number = method['line_number'] - 1
+    return next((p for p in pragmas if p['line_number'] == line_number), None)
 
 def _set_iotype(operation, _type):
     operation['io_type'] = {}
@@ -56,7 +51,7 @@ def _get_operation(method, pragmas):
     pragma = _get_method_pragma(method, pragmas)
     operation = {}
 
-    if pragma != None:
+    if pragma is not None:
         if pragma['data'] == 'exclude':
             return None
         elif pragma['data'].find('read_array') >= 0:
@@ -111,18 +106,6 @@ def _get_operation_prototype(method):
         })
     return prototype
 
-def _get_is_failed(_class, pragmas):
-    for method in _class['methods']['public']:
-        pragma = _get_method_pragma(method, pragmas)
-        if pragma != None and pragma['data'] == 'is_failed':
-            prototype = _get_operation_prototype(method)
-            if prototype["ret_type"] != "bool":
-                ERROR(pragma['line_number'], 'Failure indicator function must return a bool')
-            if len(prototype['params']) > 0:
-                ERROR(pragma['line_number'], 'Failure indicator function must not have argument')
-            return prototype
-    return None
-
 def _get_device(_class, pragmas):
     device = {}
     device['objects'] = [{
@@ -131,19 +114,13 @@ def _get_device(_class, pragmas):
     }]
     device['name'] = _class['name']
 
-    is_failed_data = _get_is_failed(_class, pragmas)
-    if is_failed_data != None:
-        device['is_failed'] = is_failed_data
-
     device['operations'] = []
     for method in _class['methods']['public']:
         # We eliminate constructor and destructor
-        if method['name'] == _class['name'] or method['name'] == '~' + _class['name']:
-            continue
-        if 'is_failed' in device and method['name'] == device['is_failed']['name']:
+        if method['name'] in [s + _class['name'] for s in ['','~']]:
             continue
 
         operation = _get_operation(method, pragmas)
-        if operation != None:
+        if operation is not None:
             device['operations'].append(operation)
     return device
