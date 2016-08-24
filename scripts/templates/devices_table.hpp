@@ -17,9 +17,9 @@ ENTRY( {{device.name}}, {{device.class_name}}, \
     {% endif -%}
   {% endfor -%}
   {% if device.operations|length == max_op_num -%}
-        {{ device.operations[device.operations|length-1]["name"] }} ) \
+        {{ device.operations[-1]["name"] }} ) \
   {% else -%}
-        {{ device.operations[device.operations|length-1]["name"]}}, \
+        {{ device.operations[-1]["name"]}}, \
         {% for i in range(device.operations|length, max_op_num-1) -%} "",{% endfor -%} "") \
   {% endif -%}
 ) \
