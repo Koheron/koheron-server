@@ -19,18 +19,16 @@ def parse_header(hpp_filename):
 
 def _get_pragmas(hpp_filename):
     fd = open(hpp_filename, 'r')
-    line_cnt = 0
     pragmas = []
-    for line in fd.readlines():
-        line_cnt = line_cnt + 1
+    for cnt, line in enumerate(fd.readlines()):
         if '# pragma koheron-server' in line:
             pragmas.append({
-              'line_number': line_cnt,
+              'line_number': cnt + 1,
               'data': line.split('# pragma koheron-server')[1].strip()
             })
         elif '#pragma koheron-server' in line:
             pragmas.append({
-              'line_number': line_cnt,
+              'line_number': cnt + 1,
               'data': line.split('#pragma koheron-server')[1].strip()
             })
     fd.close()
@@ -115,10 +113,6 @@ def _get_device(_class, pragmas):
       'type': str(_class['name'])
     }]
     device['name'] = _class['name']
-
-    # is_failed_data = _get_is_failed(_class, pragmas)
-    # if is_failed_data != None:
-    #     device['is_failed'] = is_failed_data
 
     device['operations'] = []
     for method in _class['methods']['public']:
