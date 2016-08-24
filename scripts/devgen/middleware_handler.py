@@ -173,12 +173,6 @@ class FragmentsGenerator:
             frag['fragment'] = self.generate_fragment(op_name)
             fragments.append(frag)
 
-        # Add is_failed fragment 
-        frag = {}
-        frag['name'] = 'IS_FAILED'
-        frag['fragment'] = [self._gen_is_failed_fragment()]
-        fragments.append(frag)
-
         return fragments
 
     def generate_fragment(self, op_name):

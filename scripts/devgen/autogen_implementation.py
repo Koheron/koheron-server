@@ -28,7 +28,6 @@ def Generate(device, directory):
             PrintParseArg(f, device, operation)
             PrintExecuteOp(f, device, operation)
 
-        PrintIsFailed(f, device)
         PrintExecute(f, device)
         f.write('} // namespace kserver\n\n')
         f.close()
@@ -186,18 +185,6 @@ def PrintExecuteOp(file_id, device, operation):
     # Load code fragments
     for frag in device.fragments:
         if operation['name'] == frag['name']:
-            for line in frag['fragment']:
-                file_id.write(line)
-
-    file_id.write('}\n\n')
-
-def PrintIsFailed(file_id, device):
-    file_id.write('template<>\n')
-    file_id.write('bool KDevice<' + device.class_name + ',' + device.name + '>::is_failed(void)\n')
-    file_id.write('{\n')
-
-    for frag in device.fragments:
-        if frag['name'] == "IS_FAILED":
             for line in frag['fragment']:
                 file_id.write(line)
 

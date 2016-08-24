@@ -40,8 +40,6 @@ public:
         else
             return static_cast<KDevice<Dev, dev_kind>*>(this);
     }
-      
-    bool is_failed(void);
 };
 
 struct Command;
@@ -63,7 +61,6 @@ class KDevice : public KDeviceAbstract
     {}
 
     int execute(const Command& cmd);
-    bool is_failed(void);
 
   private:
     /// Each device knows the KServer class,
@@ -112,11 +109,6 @@ public:
 
 template<>
 int KDevice<MyDev>::execute(const Command & cmd) {
-
-}
-
-template<>
-bool KDevice<MyDev>::is_failed(void) {
 
 }
 

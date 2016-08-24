@@ -92,12 +92,6 @@ int DeviceManager::StartDev(device_t dev)
 
     assert(device_list.at(dev) != NULL);
 
-    if (IsFailed(dev)) {
-        kserver->syslog.print<SysLog::CRITICAL>("Failed to start %s\n",
-                              GET_DEVICE_NAME(dev).c_str() );
-        return -1;
-    }
-
     is_started[dev] = 1;
 
     return 0;
@@ -158,18 +152,6 @@ void DeviceManager::SetDevStarted(device_t dev)
 {
     assert(dev < device_num);
     is_started[(unsigned int) (dev)] = 1;
-}
-
-bool DeviceManager::IsFailed(device_t dev)
-{
-    // NO_DEVICE never fail
-    if (dev == NO_DEVICE)
-        return 0;
-
-    assert(dev < device_num);
-    assert(device_list.at(dev) != 0);
-
-    return device_list.at(dev)->is_failed();
 }
 
 // X Macro: Stop device
@@ -237,7 +219,6 @@ int DeviceManager::StartAll(void)
 KS_device_status DeviceManager::GetStatus(device_t dev)
 {
     // NO_DEVICE and KSERVER are always on
-    // and never fail
     if (dev==0 || dev==1)
         return DEV_ON;
 
@@ -245,9 +226,6 @@ KS_device_status DeviceManager::GetStatus(device_t dev)
 
     if (!is_started[dev])
         return DEV_OFF;
-
-    if (IsFailed(dev))
-        return DEV_FAIL;
     else
         return DEV_ON;
 }

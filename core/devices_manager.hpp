@@ -74,9 +74,6 @@ class DeviceManager
     /// Set a Device to started
     void SetDevStarted(device_t dev);
 
-    /// Return true if a device failed to open/initialize
-    bool IsFailed(device_t dev);
-
     /// Device status
     KS_device_status GetStatus(device_t dev);
 
