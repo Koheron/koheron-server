@@ -12,9 +12,7 @@
 {% for device in devices -%}
 ENTRY( {{device.name}}, {{device.class_name}}, \
   {% for operation in device.operations -%}
-    {% if loop.counter != device.operations|length - 1 -%}  
-        {{ operation["name"] }}, \
-    {% endif -%}
+    {{ operation["name"] }}, \
   {% endfor -%}
   {{ ','.join(['""'] * (max_op_num - len(device.operations))) }} ) \
 ) \

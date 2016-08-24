@@ -79,7 +79,7 @@ struct KDevice<{{ device.class_name }},{{ device.name }}>::
         {{ arg["type"] }} {{ arg["name"]}}; ///< {{ arg["description"] }}
 {%- endmacro -%}
 {% for arg in operation["arguments"] -%}
-{%   if not ("flag" in arg and arg["flag"] == 'CLIENT_ONLY') -%}
+{%   if arg.get("flag") != "CLIENT_ONLY" -%}
     {{ arg["type"] }} {{ arg["name"]}};
 {%   endif -%}
 {% endfor -%}
