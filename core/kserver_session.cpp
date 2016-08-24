@@ -129,20 +129,6 @@ const uint32_t* Session<TCP>::rcv_handshake(uint32_t buff_size)
     return reinterpret_cast<const uint32_t*>(recv_data_buff.data);
 }
 
-template<>
-int Session<TCP>::send_cstr(const char *string)
-{
-    int bytes_send = strlen(string) + 1;
-
-    if (unlikely(write(comm_fd, string, bytes_send) < 0)) {
-        session_manager.kserver.syslog.print<SysLog::ERROR>(
-                              "TCPSocket::send_cstr: Can't write to client\n");
-        return -1;
-    }
-
-    return bytes_send;
-}
-
 #endif
 
 // -----------------------------------------------

@@ -62,70 +62,7 @@ KSERVER_PARSE_ARG(GET_CMDS) {return 0;}
 
 KSERVER_EXECUTE_OP(GET_CMDS)
 {
-    char cmds_str[KS_DEV_WRITE_STR_LEN];
-    unsigned int bytes = 0;
-    unsigned int bytes_send = 0;
-
-    // Send MAX_OP_NUM
-    int ret = snprintf(cmds_str, KS_DEV_WRITE_STR_LEN,
-                        "%u\n", MAX_OP_NUM );
-
-    if (ret < 0) {
-        kserver->syslog.print<SysLog::ERROR>(
-                              "KServer::GET_CMDS Format error\n");
-        return -1;
-    }
-
-    if (ret >= KS_DEV_WRITE_STR_LEN) {
-        kserver->syslog.print<SysLog::ERROR>(
-                              "KServer::GET_CMDS Buffer overflow\n");
-        return -1;
-    }
-
-    if ((bytes = GET_SESSION.send_cstr(cmds_str)) < 0)
-        return -1;
-
-    bytes_send += bytes;
-
-    // Send devices and operations
-    // dev#:dev_name:op1:op2:op3:...:opn
-    for (unsigned int i=0; i<device_num; i++) {
-        ret = snprintf(cmds_str, KS_DEV_WRITE_STR_LEN,
-                        "%u:%s", i, 
-                        (device_desc[i][0]).c_str() );
-
-        if (ret < 0) {
-            kserver->syslog.print<SysLog::ERROR>(
-                                  "KServer::GET_CMDS Format error\n");
-            return -1;
-        }
-
-        if (ret >= KS_DEV_WRITE_STR_LEN) {
-            kserver->syslog.print<SysLog::ERROR>(
-                                  "KServer::GET_CMDS Buffer overflow\n");
-            return -1;
-        }
-
-        for (unsigned int j=0; j<MAX_OP_NUM; j++) {
-            strcat(cmds_str, ":");
-            strcat(cmds_str, (device_desc[i][j+1]).c_str());
-        }
-
-        strcat(cmds_str, "\n");
-
-        if ((bytes = GET_SESSION.send_cstr(cmds_str)) < 0)
-            return -1;
-
-        bytes_send += bytes;
-    }
-
-    // Send EOC (End Of Commands)
-    if ((bytes = GET_SESSION.send_cstr("EOC\n")) < 0)
-       return -1;
-
-    kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send+bytes);
-
-    return 0;
+    return GET_SESSION.send_cstr(DEVICES_JSON);
 }
 
 /////////////////////////////////////

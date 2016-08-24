@@ -5,6 +5,7 @@
 import os
 import yaml
 import jinja2
+import json
 
 #--------------------------------------------
 # Generate device_table.hpp
@@ -26,6 +27,7 @@ def PrintDeviceTable(devices, src_dir):
     f.write('#define MAX_OP_NUM ' + str(max_op_num) + '\n\n')
     PrintEnum(f, devices, max_op_num)
     PrintDevDescription(f, devices, max_op_num)
+    dump_json(f, devices)
     f.write('#endif // __DEVICES_TABLE_HPP__\n')
     f.close()
     
@@ -112,3 +114,27 @@ def PrintDevDescription(file_id, devices, max_op_num):
             file_id.write('""}},\n')
 
     file_id.write('}};\n\n' )
+
+def dump_json(file_id, devices):
+    data = []
+
+    data.append({
+        'name': 'NO_DEVICE',
+        'operations': []
+    })
+
+    data.append({
+        'name': 'KServer',
+        'operations': [
+            'get_version', 'get_cmds', 'get_stats', 'get_dev_status', 'get_running_sessions', 'subscribe_broadcast', 'broadcast_ping'
+        ]
+    })
+
+    for device in devices:
+        data.append({
+            'name': device.raw_name,
+            'operations': [op['raw_name'] for op in device.operations]
+        })
+
+    devices_json = json.dumps(data, separators=(',', ':')).replace('"', '\\"')
+    file_id.write('constexpr auto DEVICES_JSON = "' + devices_json + '";\n')

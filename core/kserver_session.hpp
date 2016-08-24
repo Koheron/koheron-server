@@ -239,6 +239,26 @@ int Session<sock_type>::run()
     return 0;
 }
 
+template<int sock_type>
+int Session<sock_type>::send_cstr(const char *string)
+{
+    Buffer<KSERVER_SEND_STR_LEN> buffer;
+    uint64_t len = strlen(string) + 1; // Including '\0'
+
+    if (len > KSERVER_SEND_STR_LEN) {
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
+            "send_cstr: String too long. Length = %lu. Maximum = %u\n",
+            len, KSERVER_SEND_STR_LEN);
+        return -1;
+    }
+
+    auto array = serialize(std::make_tuple(0U, len));
+    memcpy(buffer.data, array.data(), array.size());
+    memcpy(buffer.data + array.size(), string, len);
+
+    return send_array(buffer.data, len + array.size());
+}
+
 #define SEND_SPECIALIZE_IMPL(session_kind)                                            \
     template<> template<>                                                             \
     inline int session_kind::send<std::string>(const std::string& str)                \
@@ -292,7 +312,6 @@ template<>
 int Session<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes);
 
 template<> const uint32_t* Session<TCP>::rcv_handshake(uint32_t buff_size);
-template<> int Session<TCP>::send_cstr(const char *string);
 
 template<>
 template<class T>
@@ -353,12 +372,6 @@ template<class T>
 inline int Session<WEBSOCK>::send_array(const T *data, unsigned int len)
 {
     return websock.send(data, len);
-}
-
-template<>
-inline int Session<WEBSOCK>::send_cstr(const char *string)
-{
-    return websock.send_cstr(string);
 }
 
 SEND_SPECIALIZE_IMPL(Session<WEBSOCK>)
