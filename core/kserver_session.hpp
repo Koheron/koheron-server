@@ -243,11 +243,11 @@ template<int sock_type>
 int Session<sock_type>::send_cstr(const char *string)
 {
     Buffer<KSERVER_SEND_STR_LEN> buffer;
-    uint64_t len = strlen(string) + 1; // Including '\0'
+    uint32_t len = strlen(string) + 1; // Including '\0'
 
     if (len > KSERVER_SEND_STR_LEN) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
-            "send_cstr: String too long. Length = %lu. Maximum = %u\n",
+            "send_cstr: String too long. Length = %u. Maximum = %u\n",
             len, KSERVER_SEND_STR_LEN);
         return -1;
     }

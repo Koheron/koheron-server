@@ -26,7 +26,7 @@ def PrintDeviceTable(devices, src_dir):
     f.write('\n\n/// Maximum number of operations\n')
     f.write('#define MAX_OP_NUM ' + str(max_op_num) + '\n\n')
     PrintEnum(f, devices, max_op_num)
-    PrintDevDescription(f, devices, max_op_num)
+    # PrintDevDescription(f, devices, max_op_num)
     dump_json(f, devices)
     f.write('#endif // __DEVICES_TABLE_HPP__\n')
     f.close()
@@ -76,44 +76,6 @@ def PrintEnum(file_id, devices, max_op_num):
 
     file_id.write('    device_num\n' )
     file_id.write('} device_t;\n\n' )
-    
-def PrintDevDescription(file_id, devices, max_op_num):
-    file_id.write('/// String descriptions of the devices and their related operations\n' )
-    file_id.write('static const std::array< std::array< std::string, MAX_OP_NUM+1 >, device_num >\n' )
-    file_id.write('device_desc = {{\n' )
-
-    file_id.write('  {{"NO_DEVICE", ')
-    for i in range(0,max_op_num-1):
-            file_id.write('"", ')
-    file_id.write('""}},\n')
-
-    if max_op_num == KSERVER_OP_NUM:
-        file_id.write('  {{"KServer", "get_version", "get_cmds",'
-                       + '"get_stats", "get_dev_status", "get_running_sessions", "subscribe_broadcast", "broadcast_ping"}},\n')
-    else:
-        file_id.write('  {{"KServer", "get_version", "get_cmds",'
-                       + '"get_stats", "get_dev_status", "get_running_sessions", "subscribe_broadcast", "broadcast_ping", ')
-        for i in range(KSERVER_OP_NUM, max_op_num-1):
-                file_id.write('"", ')
-        file_id.write('""}},\n')
-
-    for device in devices:
-        op_num = len(device.operations)
-        file_id.write('  {{"' +  device.raw_name + '", ')
-        for idx, operation in enumerate(device.operations):
-            if idx == op_num-1:
-                break
-
-            file_id.write('"' + operation['raw_name'] + '", ')
-        if op_num == max_op_num:
-            file_id.write('"' + device.operations[op_num-1]['raw_name'] + '"}},\n')
-        else:
-            file_id.write('"' + device.operations[op_num-1]['raw_name'] + '", ')
-            for i in range(op_num, max_op_num-1):
-                file_id.write('"", ')
-            file_id.write('""}},\n')
-
-    file_id.write('}};\n\n' )
 
 def dump_json(file_id, devices):
     data = []
