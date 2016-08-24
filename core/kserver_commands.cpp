@@ -450,10 +450,4 @@ int KDevice<KServer, KSERVER>::execute(const Command& cmd)
     }
 }
 
-template<>
-bool KDevice<KServer, KSERVER>::is_failed(void)
-{
-    return 0; // Never fail
-}
-
 } // namespace kserver
