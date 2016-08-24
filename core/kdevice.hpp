@@ -40,8 +40,6 @@ public:
         else
             return static_cast<KDevice<Dev, dev_kind>*>(this);
     }
-      
-    bool is_failed(void);
 };
 
 struct Command;
