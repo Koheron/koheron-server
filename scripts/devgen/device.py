@@ -81,7 +81,7 @@ class Objects:
     ''' Objects from external API '''
 
     def __init__(self, objects):
-        self._objects = [] is objects is None else objects
+        self._objects = [] if objects is None else objects
 
     def __len__(self):
         return len(self._objects)
