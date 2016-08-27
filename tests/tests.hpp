@@ -54,7 +54,6 @@ class Tests
     std::tuple<uint32_t, float, uint64_t, double, int64_t> get_tuple2();
     std::tuple<bool, float, float, uint8_t, uint16_t> get_tuple3();
     std::tuple<int8_t, int8_t, int16_t, int16_t, int32_t, int32_t> get_tuple4();
-    std::array<uint32_t, 2> get_binary_tuple();
 
     // Send numbers
     uint64_t read_uint64();
