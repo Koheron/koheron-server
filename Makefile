@@ -31,7 +31,7 @@ __MIDWARE_PATH=$(BASE_DIR)/$(MIDWARE_PATH)
 
 EXECUTABLE=$(TMP)/$(SERVER)
 
-.PHONY: all requirements cli clean start_server stop_server
+.PHONY: all requirements cli clean start_server stop_server test_python
 
 all: $(EXECUTABLE)
 
