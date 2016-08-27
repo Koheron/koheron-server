@@ -3,18 +3,8 @@
 #include "tests.hpp"
 
 #include <cmath>
-#include <random>
-#include <thread>
 #include <cstring>
-
-// http://stackoverflow.com/questions/17789928/whats-a-proper-way-of-type-punning-a-float-to-an-int-and-vice-versa
-template <typename T, typename U>
-inline T pseudo_cast(const U &x)
-{
-    T to = T(0);
-    std::memcpy(&to, &x, (sizeof(T) < sizeof(U)) ? sizeof(T) : sizeof(U));
-    return to;
-}
+#include <limits>
 
 bool Tests::rcv_many_params(uint32_t u1, uint32_t u2, float f, bool b)
 {
@@ -28,7 +18,7 @@ bool Tests::set_float(float f)
 
 bool Tests::set_double(double d)
 {
-    return fabs(d - 1.428571428571428492127) < 1E-15;
+    return fabs(d - 1.428571428571428492127) <= std::numeric_limits<double>::epsilon();
 }
 
 bool Tests::set_u64(uint64_t u)
@@ -105,8 +95,8 @@ bool Tests::set_buffer(const uint32_t *data, uint32_t len)
 bool Tests::rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 8192>& arr, double d, int32_t i)
 {
     if (u != 4223453) return false;
-    if (fabs(f - 3.141592) > 1E-6) return false;
-    if (fabs(d - 2.654798454646) > 1E-15) return false;
+    if (fabs(f - 3.141592) > std::numeric_limits<float>::epsilon()) return false;
+    if (fabs(d - 2.654798454646) > std::numeric_limits<double>::epsilon()) return false;
     if (i != -56789) return false;
 
     for (unsigned int i=0; i<8192; i++)
@@ -118,7 +108,7 @@ bool Tests::rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 8192>&
 bool Tests::rcv_std_array2(const std::array<float, 8192>& arr)
 {
     for (unsigned int i=0; i<8192; i++)
-        if (fabs(arr[i] - log(static_cast<float>(i + 1))) > 1E-6)
+        if (fabs(arr[i] - log(static_cast<float>(i + 1))) > std::numeric_limits<float>::round_error())
             return false;
 
     return true;
@@ -127,7 +117,7 @@ bool Tests::rcv_std_array2(const std::array<float, 8192>& arr)
 bool Tests::rcv_std_array3(const std::array<double, 8192>& arr)
 {
     for (unsigned int i=0; i<8192; i++)
-        if (fabs(arr[i] - sin(static_cast<double>(i))) > 1E-15)
+        if (fabs(arr[i] - sin(static_cast<double>(i))) > std::numeric_limits<double>::epsilon())
             return false;
 
     return true;
@@ -168,16 +158,6 @@ std::tuple<bool, float, float, uint8_t, uint16_t> Tests::get_tuple3()
 std::tuple<int8_t, int8_t, int16_t, int16_t, int32_t, int32_t> Tests::get_tuple4()
 {
     return std::make_tuple(-127, 127, -32767, 32767, -2147483647, 2147483647);
-}
-
-std::array<uint32_t, 2> Tests::get_binary_tuple() {
-    uint32_t v1 = 2;
-    float v2 = 3.14159F;
-
-    return {{
-        v1,
-        pseudo_cast<uint32_t, const float>(v2)
-    }};
 }
 
 uint64_t      Tests::read_uint64()    { return (1ULL << 63);       }

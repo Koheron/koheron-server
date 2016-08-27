@@ -122,11 +122,6 @@ class Tests:
     def get_tuple4(self):
         return self.client.recv_tuple('bbhhii')
 
-    @command('Tests')
-    def get_binary_tuple(self):
-        buff = self.client.recv_array(2, dtype='uint32')
-        return tuple(struct.unpack('If', buff))
-
 # Unit Tests
 
 unixsock = os.getenv('PYTEST_UNIXSOCK','/code/kserver.sock')
@@ -313,9 +308,3 @@ def test_get_tuple4(tests):
     assert tup[3] == 32767
     assert tup[4] == -2147483647
     assert tup[5] == 2147483647
-
-@pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_get_binary_tuple(tests):
-    tup = tests.get_binary_tuple()
-    assert tup[0] == 2
-    assert abs(tup[1] - 3.14159) < 1E-6
