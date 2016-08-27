@@ -35,7 +35,7 @@ class HelloWorld(object):
     def __init__(self, client):
         self.client = client
 
-    @command('HELLO_WORLD','I')
+    @command('HelloWorld','I')
     def add_42(self, num):
         return self.client.recv_uint32()
 
@@ -55,7 +55,7 @@ Command = webclient.Command
 
 class HelloWorld
     constructor : (@kclient) ->
-        @device = @kclient.getDevice("HELLO_WORLD")
+        @device = @kclient.getDevice("HelloWorld")
         @cmds = @device.getCmds()
 
     add42 : (num, cb) ->
@@ -81,7 +81,7 @@ client.init( =>
 int main(void)
 {
     struct kclient *kcl = kclient_connect("127.0.0.1", 36000);
-    dev_id_t id = get_device_id(kcl, "HELLO_WORLD");
+    dev_id_t id = get_device_id(kcl, "HelloWorld");
     op_id_t add_42_ref = get_op_id(kcl, id, "ADD_42");
 
     uint32_t res;
