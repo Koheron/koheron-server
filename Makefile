@@ -85,5 +85,5 @@ cli:
 	make -C apis/cli CROSS_COMPILE=$(CROSS_COMPILE) DEFINES=$(DEFINES) ARCH_FLAGS=$(ARCH_FLAGS)
 
 clean:
-	rm -rf $(TMP)
+	rm -rf $(TMP) $(TESTS_VENV)
 	make -C apis/cli clean
