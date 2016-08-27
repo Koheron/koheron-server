@@ -69,11 +69,11 @@ stop_server:
 # Tests
 # ------------------------------------------------------------------------------------------------------------
 
-$(PY2_ENV): requirements.txt
+$(PY2_ENV): tests/requirements.txt
 	virtualenv $(PY2_ENV)
 	$(PY2_ENV)/bin/pip install -r tests/requirements.txt
 
-$(PY3_ENV): requirements.txt
+$(PY3_ENV): tests/requirements.txt
 	virtualenv -p python3 $(PY3_ENV)
 	$(PY3_ENV)/bin/pip3 install -r tests/requirements.txt
 
