@@ -54,7 +54,8 @@ ps -A | grep -w "kserverd"
 echo "== Test Hello World =="
 apis/C/hello_world/hello_world
 node apis/js/koheron-websocket-client/tests/hello_world.js
-python apis/python/hello_world.py
+python tests/hello_world.py
+python3 tests/hello_world.py
 
 echo "== Test CLI =="
 CLI=apis/cli/kserver
@@ -82,9 +83,8 @@ echo "== Test Javascript API =="
 make -C apis/js/koheron-websocket-client tests
 
 echo "== Test Python API =="
-git clone https://github.com/Koheron/koheron-python.git
-python  -m pytest -v koheron-python/test/test.py
-python3 -m pytest -v koheron-python/test/test.py
+python  -m pytest -v tests/tests.py
+python3 -m pytest -v tests/tests.py
 
 echo "== Speed tests =="
 apis/C/tests/tests --speed 127.0.0.1:36000 ${UNIXSOCK}

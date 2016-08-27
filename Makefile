@@ -11,6 +11,9 @@ __PYTHON = $(shell bash scripts/get_python.sh $(PYTHON) $(BASE_DIR))
 TMP = tmp
 CORE = core
 MAKE_PY = scripts/make.py
+TESTS_VENV = venv
+PY2_ENV = $(TESTS_VENV)/py2
+PY3_ENV = $(TESTS_VENV)/py3
 
 CORE_SRC=$(shell find $(CORE) -name '*.cpp' -o -name '*.c' -o -name '*.hpp' -o -name '*.h' -o -name '*.tpp')
 TMP_CORE_SRC=$(addprefix $(TMP)/, $(CORE_SRC))
@@ -28,7 +31,13 @@ __MIDWARE_PATH=$(BASE_DIR)/$(MIDWARE_PATH)
 
 EXECUTABLE=$(TMP)/$(SERVER)
 
+.PHONY: all requirements cli clean start_server stop_server test_python
+
 all: $(EXECUTABLE)
+
+# ------------------------------------------------------------------------------------------------------------
+# Build, start, stop
+# ------------------------------------------------------------------------------------------------------------
 
 $(TMP): requirements
 	mkdir -p $(TMP)
@@ -49,6 +58,28 @@ $(EXECUTABLE): $(TMP_CORE_SRC) $(TMP)/main.cpp $(TMP)/Makefile $(MAKE_PY) $(CONF
 	make -C $(TMP) CROSS_COMPILE=$(CROSS_COMPILE) DEFINES=$(DEFINES) SERVER=$(SERVER)             \
 	               ARCH_FLAGS=$(ARCH_FLAGS) OPTIM_FLAGS=$(OPTIM_FLAGS) DEBUG_FLAGS=$(DEBUG_FLAGS) \
 	               MIDWARE_PATH=$(__MIDWARE_PATH)
+
+start_server: $(EXECUTABLE) stop_server
+	nohup $(EXECUTABLE) -c config/kserver_local.conf > /dev/null 2> server.log &
+
+stop_server:
+	-pkill -SIGINT $(SERVER) # We ignore the error raised if the server is already stopped
+
+# ------------------------------------------------------------------------------------------------------------
+# Tests
+# ------------------------------------------------------------------------------------------------------------
+
+$(PY2_ENV): tests/requirements.txt
+	virtualenv $(PY2_ENV)
+	$(PY2_ENV)/bin/pip install -r tests/requirements.txt
+
+$(PY3_ENV): tests/requirements.txt
+	virtualenv -p python3 $(PY3_ENV)
+	$(PY3_ENV)/bin/pip3 install -r tests/requirements.txt
+
+test_python: $(PY2_ENV) $(PY3_ENV) start_server
+	PYTEST_UNIXSOCK=/tmp/kserver_local.sock $(PY2_ENV)/bin/python -m pytest -v tests/tests.py
+	PYTEST_UNIXSOCK=/tmp/kserver_local.sock $(PY3_ENV)/bin/python3 -m pytest -v tests/tests.py
 
 cli:
 	make -C apis/cli CROSS_COMPILE=$(CROSS_COMPILE) DEFINES=$(DEFINES) ARCH_FLAGS=$(ARCH_FLAGS)

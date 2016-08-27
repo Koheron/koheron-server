@@ -11,4 +11,4 @@ class HelloWorld(object):
 if __name__ == "__main__":
     client = KoheronClient('127.0.0.1')
     hw = HelloWorld(client)
-    print hw.add_42(58) # 100
+    print(hw.add_42(58)) # 100
