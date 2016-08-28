@@ -42,6 +42,7 @@ class Tests
 
     // Receive vector
     bool rcv_std_vector(const std::vector<uint32_t>& vec);
+    bool rcv_std_vector1(uint32_t u, float f, const std::vector<double>& vec);
 
     // Send string
     const char* get_cstr();
