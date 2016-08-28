@@ -125,7 +125,12 @@ bool Tests::rcv_std_array3(const std::array<double, 8192>& arr)
 
 bool Tests::rcv_std_vector(const std::vector<uint32_t>& vec)
 {
-    return false;
+    if (vec.size() != 8192) return false;
+
+    for (unsigned int i=0; i<8192; i++)
+        if (vec[i] != i) return false;
+
+    return true;
 }
 
 const char* Tests::get_cstr()
