@@ -102,6 +102,10 @@ class Tests:
     def rcv_std_vector2(self, u, f, vec, d, i):
         return self.client.recv_bool()
 
+    @command('Tests', 'AVdi')
+    def rcv_std_vector3(self, arr, vec, d, i):
+        return self.client.recv_bool()
+
     @command('Tests')
     def get_cstr(self):
         return self.client.recv_string()
@@ -258,6 +262,12 @@ def test_rcv_std_vector1(tests):
 def test_rcv_std_vector2(tests):
     vec = np.log(np.arange(8192, dtype='float32') + 1)
     assert tests.rcv_std_vector2(4223453, 3.141592, vec, 2.654798454646, -56789)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_rcv_std_vector3(tests):
+    arr = np.arange(8192, dtype='uint32')
+    vec = np.log(np.arange(8192, dtype='float32') + 1)
+    assert tests.rcv_std_vector3(arr, vec, 2.654798454646, -56789)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_get_cstring(tests):
