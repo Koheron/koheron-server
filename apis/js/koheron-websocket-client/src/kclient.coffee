@@ -507,7 +507,14 @@ class @KClient
         return tuple
 
     readString: (cmd, fn) ->
-        @_readBase(cmd, (data) => fn(data.toString()))
+        @_readBase(cmd, (data) =>
+            dv = new DataView(data)
+            reserved = dv.getUint32(0)
+            len = dv.getUint32(4)
+            chars = []
+            chars.push(String.fromCharCode(dv.getUint8(8 + i))) for i in [0..len-2]
+            fn(chars.join(''))
+        )
 
     readJSON: (cmd, fn) ->
         @readString(cmd, (str) => fn(JSON.parse(str)))
@@ -517,34 +524,13 @@ class @KClient
     # ------------------------
 
     loadCmds: (callback) ->
-        @websockpool.requestSocket( (sockid) =>
-            if sockid < 0 then return fn(null)
-            websocket = @websockpool.getSocket(sockid)
-            console.assert(websocket.readyState == 1, 'Websocket [ID = ' + sockid.toString() + '] not ready')
-            websocket.send(Command(1,1))
-            msg_num = 0
+        @readJSON(Command(1,1), (data) =>
+            for dev, id in data
+                dev = new Device(dev.name, id, dev.operations)
+                # dev.show()
+                @devices_list.push(dev)
 
-            websocket.onmessage = (evt) =>
-                msg_num++
-                cmds = []
-
-                if msg_num >= 2 and evt.data != "EOC\n"
-                    tokens = evt.data.split(":")
-                    devname = tokens[1]
-                    id = parseInt(tokens[0], 10)
-
-                    for i in [2..tokens.length-1]
-                        if tokens[i] != "" and tokens[i] != "\n"
-                            cmds.push(tokens[i].replace(/\r?\n|\r/, ''))
-
-                    dev = new Device(devname, id, cmds)
-                    # dev.show()
-                    @devices_list.push(dev)
-
-                if evt.data == "EOC\n"
-                    callback()
-                    if @websockpool?
-                        @websockpool.freeSocket(sockid)
+            callback()
         )
 
     getDeviceList: (fn) ->
@@ -553,28 +539,6 @@ class @KClient
     showDevices: ->
         console.log "Devices:\n"
         (device.show() for device in @devices_list)
-
-    getDevStatus: (callback) ->
-        @websockpool.requestSocket( (sockid) =>
-            if sockid < 0 then return fn(null)
-            websocket = @websockpool.getSocket(sockid)
-            websocket.send(Command(1,3))
-
-            @websocket.onmessage = (evt) =>
-                if evt.data != "EODS\n"
-                    tokens = evt.data.split(":")
-                    dev_id = tokens[0]
-
-                    for device in @devices_list
-                        if device.id == dev_id
-                            device.setStatus(tokens[2].trim())
-
-                else
-                    console.log "Devices status updated"
-                    callback()
-                    if @websockpool?
-                        @websockpool.freeSocket(sockid)
-        )
 
     getDevice: (devname) ->
         for device in @devices_list

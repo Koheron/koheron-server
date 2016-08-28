@@ -106,6 +106,9 @@ namespace kserver {
 /// Read string length
 #define KSERVER_READ_STR_LEN 16384
 
+/// Send string length
+#define KSERVER_SEND_STR_LEN 16384
+
 /// Receive data buffer length
 #define KSERVER_RECV_DATA_BUFF_LEN 16384 * 2 * 4
 

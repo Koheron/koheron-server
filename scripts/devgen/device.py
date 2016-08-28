@@ -36,7 +36,7 @@ class Device:
         self._data = mid_handler.get_device_data()
         self.fragments = mid_handler.get_fragments()
 
-        self.operations = Operations(self._data['operations'])
+        self.operations = self._data['operations']
         self.name = self._data['name']
         self.raw_name = self._data['raw_name']
         self.class_name = GetClassName(self.name)
@@ -61,21 +61,21 @@ class Device:
         output.write(template.render(device=self))
         output.close()
 
-class Operations:
-    def __init__(self, operations):
-        self._operations = operations
+# class Operations:
+#     def __init__(self, operations):
+#         self._operations = operations
 
-    def __len__(self):
-        return len(self._operations)
+#     def __len__(self):
+#         return len(self._operations)
 
-    def __getitem__(self, index):
-        if index >= len(self):
-            raise IndexError
-        return self._operations[index]
+#     def __getitem__(self, index):
+#         if index >= len(self):
+#             raise IndexError
+#         return self._operations[index]
 
-    def is_valid_op(self, operation_name):
-        ''' Test whether an operation is valid.'''
-        return any(operation_name in op for op in self)
+#     def is_valid_op(self, operation_name):
+#         ''' Test whether an operation is valid.'''
+#         return any(operation_name in op for op in self)
 
 class Objects:
     ''' Objects from external API '''
