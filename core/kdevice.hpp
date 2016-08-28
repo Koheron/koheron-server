@@ -72,7 +72,7 @@ class KDevice : public KDeviceAbstract
     /// @cmd The Command to be parsed
     /// @args The arguments resulting of the parsing
     template<int op>
-    int parse_arg(const Command& cmd, Argument<op>& args);
+    int parse_arg(const Command& cmd, Argument<op>& args, SessID sess_id);
 
     /// Execute an operation
     /// @args The arguments of the operation provided by @parse_arg
@@ -89,6 +89,7 @@ friend Dev;
 #define SEND_ARRAY kserver->session_manager.get_session(sess_id).send_array
 #define SEND_CSTR kserver->session_manager.get_session(sess_id).send_cstr
 #define RCV_HANDSHAKE kserver->session_manager.get_session(sess_id).rcv_handshake
+#define RCV_VECTOR kserver->session_manager.get_session(sess_id).rcv_vector
 
 // Example of Device implementation
 #ifdef NE_PAS_DEFINIR_CETTE_MACRO

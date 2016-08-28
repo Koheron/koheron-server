@@ -55,7 +55,7 @@ def PrintParseArg(file_id, device, operation):
     file_id.write('int KDevice<' + device.class_name + ',' + device.name + '>::\n')
     file_id.write('        parse_arg<' + device.class_name + '::' + operation['name'] + '> (const Command& cmd,\n' )
     file_id.write('                KDevice<' + device.class_name + ',' + device.name + '>::\n')
-    file_id.write('                Argument<' + device.class_name + '::' + operation['name'] + '>& args)\n' )
+    file_id.write('                Argument<' + device.class_name + '::' + operation['name'] + '>& args, SessID sess_id)\n' )
     file_id.write('{\n')
     PrintParserCore(file_id, device, operation)
     file_id.write('    return 0;\n')
@@ -65,14 +65,17 @@ def PrintParserCore(file_id, device, operation):
     if GetTotalArgNum(operation) == 0:
         return
 
-    packs = build_args_packs(file_id, operation)
-    print_req_buff_size(file_id, packs)
+    packs, has_vector = build_args_packs(file_id, operation)
 
-    file_id.write('    static_assert(req_buff_size <= cmd.buffer.size(), "Buffer size too small");\n\n');
-    file_id.write('    if (req_buff_size != cmd.payload_size) {\n')
-    file_id.write('        kserver->syslog.print<SysLog::ERROR>(\" [' + device.name + ' - ' + operation['name'] + '] Invalid payload size. Expected %zu bytes. Received %zu bytes.\\n\", req_buff_size, cmd.payload_size);\n')
-    file_id.write('        return -1;\n')
-    file_id.write('    }\n\n')
+    if not has_vector:
+        print_req_buff_size(file_id, packs)
+
+        file_id.write('    static_assert(req_buff_size <= cmd.buffer.size(), "Buffer size too small");\n\n');
+        file_id.write('    if (req_buff_size != cmd.payload_size) {\n')
+        file_id.write('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Invalid payload size. Expected %zu bytes. Received %zu bytes.\\n\", req_buff_size, cmd.payload_size);\n')
+        file_id.write('        return -1;\n')
+        file_id.write('    }\n\n')
+
     file_id.write('    constexpr size_t position0 = 0;\n')
     pos_cnt = 0
 
@@ -100,8 +103,15 @@ def PrintParserCore(file_id, device, operation):
                 file_id.write('\n    constexpr size_t position' + str(pos_cnt + 1) + ' = position' + str(pos_cnt)
                               + ' + size_of<' + array_params['T'] + ', ' + array_params['N'] + '>;\n')
                 pos_cnt += 1
+        elif pack['family'] == 'vector':
+            file_id.write('    uint64_t length' + str(idx) + ' = std::get<0>(deserialize<position' + str(pos_cnt) + ', cmd.buffer.size(), uint64_t>(cmd.buffer));\n\n')
+            file_id.write('    if (RCV_VECTOR(args.' + pack['args']['name'] + ', length' + str(idx) + ') < 0) {\n')
+            file_id.write('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive vector.\\n");\n')
+            file_id.write('        return -1;\n')
+            file_id.write('    }\n\n')
         else:
             raise ValueError('Unknown argument family')
+
 def print_req_buff_size(file_id, packs):
     file_id.write('    constexpr size_t req_buff_size = ');
 
@@ -141,21 +151,31 @@ def build_args_packs(file_id, operation):
         and separate them from the arrays '''
     packs = []
     args_list = []
+    has_vector = False
     for idx, arg in enumerate(operation["arguments"]):
-        if not is_std_array(arg['type']):
-            args_list.append(arg)
-        else: # std::array
+        if is_std_array(arg['type']):
             if len(args_list) > 0:
                 packs.append({'family': 'scalar', 'args': args_list})
                 args_list = []
             packs.append({'family': 'array', 'args': arg})
+        elif is_std_vector(arg['type']):
+            has_vector = True
+            if len(args_list) > 0:
+                packs.append({'family': 'scalar', 'args': args_list})
+                args_list = []
+            packs.append({'family': 'vector', 'args': arg})
+        else:
+            args_list.append(arg)
     if len(args_list) > 0:
         packs.append({'family': 'scalar', 'args': args_list})
     # print pprint.pprint(packs)
-    return packs
+    return packs, has_vector
 
 def is_std_array(arg_type):
     return arg_type.split('<')[0].strip() == 'std::array'
+
+def is_std_vector(arg_type):
+    return arg_type.split('<')[0].strip() == 'std::vector'
 
 def get_std_array_params(arg_type):
     templates = arg_type.split('<')[1].split('>')[0].split(',')
@@ -205,7 +225,7 @@ def PrintExecute(file_id, device):
     for operation in device.operations:
         file_id.write('      case ' + device.class_name + '::' + operation["name"] + ': {\n')
         file_id.write('        Argument<' + device.class_name + '::' + operation["name"] + '> args;\n\n')
-        file_id.write('        if (parse_arg<' + device.class_name + '::' + operation["name"] + '>(cmd, args) < 0)\n')
+        file_id.write('        if (parse_arg<' + device.class_name + '::' + operation["name"] + '>(cmd, args, cmd.sess_id) < 0)\n')
         file_id.write('            return -1;\n\n')
         file_id.write('        return execute_op<' + device.class_name + '::' + operation["name"] + '>(args, cmd.sess_id);\n')
         file_id.write('      }\n')

@@ -123,6 +123,30 @@ bool Tests::rcv_std_array3(const std::array<double, 8192>& arr)
     return true;
 }
 
+bool Tests::rcv_std_vector(const std::vector<uint32_t>& vec)
+{
+    if (vec.size() != 8192) return false;
+
+    for (unsigned int i=0; i<vec.size(); i++)
+        if (vec[i] != i) return false;
+
+    return true;
+}
+
+bool Tests::rcv_std_vector1(uint32_t u, float f, const std::vector<double>& vec)
+{
+    if (u != 4223453) return false;
+    if (fabs(f - 3.141592) > std::numeric_limits<float>::epsilon()) return false;
+
+    if (vec.size() != 8192) return false;
+
+    for (unsigned int i=0; i<vec.size(); i++)
+        if (fabs(vec[i] - sin(static_cast<double>(i))) > std::numeric_limits<double>::epsilon())
+            return false;
+
+    return true;
+}
+
 const char* Tests::get_cstr()
 {
     return "Hello !";

@@ -90,6 +90,14 @@ class Tests:
     def rcv_std_array3(self, arr):
         return self.client.recv_bool()
 
+    @command('Tests', 'V')
+    def rcv_std_vector(self, vec):
+        return self.client.recv_bool()
+
+    @command('Tests', 'IfV')
+    def rcv_std_vector1(self, u, f, vec):
+        return self.client.recv_bool()
+
     @command('Tests')
     def get_cstr(self):
         return self.client.recv_string()
@@ -230,6 +238,16 @@ def test_rcv_std_array2(tests):
 def test_rcv_std_array3(tests):
     arr = np.sin(np.arange(8192, dtype='float64'))
     assert tests.rcv_std_array3(arr)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_rcv_std_vector(tests):
+    vec = np.arange(8192, dtype='uint32')
+    assert tests.rcv_std_vector(vec)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_rcv_std_vector1(tests):
+    vec = np.sin(np.arange(8192, dtype='float64'))
+    assert tests.rcv_std_vector1(4223453, 3.141592, vec)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_get_cstring(tests):
