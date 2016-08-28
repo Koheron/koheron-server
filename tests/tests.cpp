@@ -147,6 +147,11 @@ bool Tests::rcv_std_vector1(uint32_t u, float f, const std::vector<double>& vec)
     return true;
 }
 
+bool Tests::rcv_std_vector2(uint32_t u, float f, const std::vector<float>& vec, double d, int32_t i)
+{
+    return false;
+}
+
 const char* Tests::get_cstr()
 {
     return "Hello !";
