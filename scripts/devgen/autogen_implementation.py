@@ -86,37 +86,49 @@ def PrintParserCore(file_id, device, operation):
                 file_id.write('    auto args_tuple' + str(idx) + ' = deserialize<position' + str(pos_cnt) + ', cmd.buffer.size(), ')
                 print_type_list_pack(file_id, pack)
                 file_id.write('>(cmd.buffer);\n')
+
+                if idx < len(packs) - 1:
+                    file_id.write('\n    constexpr size_t position' + str(pos_cnt + 1) + ' = position' + str(pos_cnt)
+                                  + ' + required_buffer_size<')
+                    pos_cnt += 1
+                    print_type_list_pack(file_id, pack)
+                    file_id.write('>();\n')
             else: # After vector need to reload a buffer
                 file_id.write('    Buffer<required_buffer_size<')
                 print_type_list_pack(file_id, pack)
-                file_id.write('>()> buff;\n')
-                file_id.write('    if (LOAD_BUFFER(buff) < 0) {\n')
+                file_id.write('>()> buff' + str(idx) + ';\n')
+                file_id.write('    if (LOAD_BUFFER(buff' + str(idx) + ') < 0) {\n')
                 file_id.write('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Load buffer failed.\\n");\n')
                 file_id.write('        return -1;\n')
-                file_id.write('    }\n\n')
+                file_id.write('    }\n')
 
-                file_id.write('    auto args_tuple' + str(idx) + ' = deserialize<0, buff.size(), ')
+                file_id.write('\n    auto args_tuple' + str(idx) + ' = deserialize<0, buff' + str(idx) + '.size(), ')
                 print_type_list_pack(file_id, pack)
-                file_id.write('>(buff);\n')
+                file_id.write('>(buff' + str(idx) + ');\n')
 
             for i, arg in enumerate(pack['args']):
                 file_id.write('    args.' + arg["name"] + ' = ' + 'std::get<' + str(i) + '>(args_tuple' + str(idx) + ');\n');
-
-            if idx < len(packs) - 1:
-                file_id.write('\n    constexpr size_t position' + str(pos_cnt + 1) + ' = position' + str(pos_cnt)
-                              + ' + required_buffer_size<')
-                pos_cnt += 1
-                print_type_list_pack(file_id, pack)
-                file_id.write('>();\n')
         elif pack['family'] == 'array':
             array_params = get_std_array_params(pack['args']['type'])
-            file_id.write('    args.' + pack['args']['name'] + ' = extract_array<position' + str(pos_cnt)
-                          + ', ' + array_params['T'] + ', ' + array_params['N'] + '>(cmd.buffer.data);\n')
 
-            if idx < len(packs) - 1:
-                file_id.write('\n    constexpr size_t position' + str(pos_cnt + 1) + ' = position' + str(pos_cnt)
-                              + ' + size_of<' + array_params['T'] + ', ' + array_params['N'] + '>;\n')
-                pos_cnt += 1
+            if before_vector:
+                file_id.write('    args.' + pack['args']['name'] + ' = extract_array<position' + str(pos_cnt)
+                              + ', ' + array_params['T'] + ', ' + array_params['N'] + '>(cmd.buffer.data);\n')
+
+                if idx < len(packs) - 1:
+                    file_id.write('\n    constexpr size_t position' + str(pos_cnt + 1) + ' = position' + str(pos_cnt)
+                                  + ' + size_of<' + array_params['T'] + ', ' + array_params['N'] + '>;\n')
+                    pos_cnt += 1
+            else: # After vector need to reload a buffer
+                file_id.write('\n    Buffer<size_of<' + array_params['T'] + ', ' + array_params['N'] + '>> buff' + str(idx) + ';\n')
+
+                file_id.write('    if (LOAD_BUFFER(buff' + str(idx) + ') < 0) {\n')
+                file_id.write('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Load buffer failed.\\n");\n')
+                file_id.write('        return -1;\n')
+                file_id.write('    }\n')
+
+                file_id.write('\n    args.' + pack['args']['name'] + ' = extract_array<0, '
+                                + array_params['T'] + ', ' + array_params['N'] + '>(buff' + str(idx) + '.data);\n')
         elif pack['family'] == 'vector':
             before_vector = False
 

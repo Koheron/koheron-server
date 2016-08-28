@@ -106,6 +106,10 @@ class Tests:
     def rcv_std_vector3(self, arr, vec, d, i):
         return self.client.recv_bool()
 
+    @command('Tests', 'VdiA')
+    def rcv_std_vector4(self, vec, d, i, arr):
+        return self.client.recv_bool()
+
     @command('Tests')
     def get_cstr(self):
         return self.client.recv_string()
@@ -268,6 +272,12 @@ def test_rcv_std_vector3(tests):
     arr = np.arange(8192, dtype='uint32')
     vec = np.log(np.arange(8192, dtype='float32') + 1)
     assert tests.rcv_std_vector3(arr, vec, 2.654798454646, -56789)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_rcv_std_vector4(tests):
+    arr = np.arange(8192, dtype='uint32') ** 2
+    vec = np.cos(np.arange(8192, dtype='float32'))
+    assert tests.rcv_std_vector4(vec, 2.654798454646, -56789, arr)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_get_cstring(tests):

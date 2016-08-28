@@ -181,6 +181,23 @@ bool Tests::rcv_std_vector3(const std::array<uint32_t, 8192>& arr,
     return true;
 }
 
+bool Tests::rcv_std_vector4(const std::vector<float>& vec, double d, int32_t i,
+                            const std::array<uint32_t, 8192>& arr)
+{
+    if (fabs(d - 2.654798454646) > std::numeric_limits<double>::epsilon()) return false;
+    if (i != -56789) return false;
+    if (vec.size() != 8192) return false;
+
+    for (unsigned int i=0; i<vec.size(); i++)
+        if (fabs(vec[i] - cos(static_cast<float>(i))) > std::numeric_limits<float>::epsilon())
+            return false;
+
+    for (unsigned int i=0; i<8192; i++)
+        if (arr[i] != i * i) return false;
+
+    return true;
+}
+
 const char* Tests::get_cstr()
 {
     return "Hello !";
