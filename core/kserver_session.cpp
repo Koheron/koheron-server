@@ -75,8 +75,9 @@ int Session<TCP>::read_command(Command& cmd)
     return header_bytes + payload_bytes;
 }
 
+// TODO Replace by function load_buffer
 template<>
-int Session<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes)
+int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes)
 {
     int bytes_rcv = 0;
     uint32_t bytes_read = 0;

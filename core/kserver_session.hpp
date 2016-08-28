@@ -45,7 +45,9 @@ class SessionAbstract
     : kind(sock_type_) {}
 
     int send_cstr(const char *string);
+    template<size_t len> int load_buffer(Buffer<len>& buff);
     const uint32_t* rcv_handshake(uint32_t buff_size);
+    template<typename T> int rcv_vector(std::vector<T>& vec, uint64_t length);
     template<typename... Tp> int send(const std::tuple<Tp...>& t);
     template<typename T, size_t N> int send(const std::array<T, N>& vect);
     template<typename T> int send(const std::vector<T>& vect);
@@ -83,7 +85,7 @@ class Session : public SessionAbstract
     // Receive - Send
 
     // TODO Move in Session<TCP> specialization
-    int rcv_n_bytes(char *buffer, uint32_t n_bytes);
+    int rcv_n_bytes(char *buffer, uint64_t n_bytes);
 
     /// Receive data from client with handshaking
     /// @buff_size Size of the buffer to receive
@@ -96,6 +98,10 @@ class Session : public SessionAbstract
     ///    the number of points to receive to the client
     /// 3) The client send the data buffer
     const uint32_t* rcv_handshake(uint32_t buff_size);
+
+    template<size_t len> int load_buffer(Buffer<len>& buff);
+
+    template<typename T> int rcv_vector(std::vector<T>& vec, uint64_t length);
 
     /// Send scalar data
     template<class T> int send(const T& data);
@@ -289,10 +295,25 @@ int Session<sock_type>::run()
 #if KSERVER_HAS_TCP || KSERVER_HAS_UNIX_SOCKET
 
 template<>
-int Session<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes);
+int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes);
 
 template<> const uint32_t* Session<TCP>::rcv_handshake(uint32_t buff_size);
 template<> int Session<TCP>::send_cstr(const char *string);
+
+template<>
+template<typename T>
+int Session<TCP>::rcv_vector(std::vector<T>& vec, uint64_t length)
+{
+    vec.resize(length);
+    return rcv_n_bytes(reinterpret_cast<char *>(vec.data()), length * sizeof(T));
+}
+
+template<>
+template<size_t len>
+int Session<TCP>::load_buffer(Buffer<len>& buff)
+{
+    return rcv_n_bytes(buff.data, len);
+}
 
 template<>
 template<class T>
@@ -347,6 +368,22 @@ class Session<UNIX> : public Session<TCP>
 #if KSERVER_HAS_WEBSOCKET
 
 template<> const uint32_t* Session<WEBSOCK>::rcv_handshake(uint32_t buff_size);
+
+template<>
+template<typename T>
+int Session<WEBSOCK>::rcv_vector(std::vector<T>& vec, uint64_t length)
+{
+    // TODO
+    return -1;
+}
+
+template<>
+template<size_t len>
+int Session<WEBSOCK>::load_buffer(Buffer<len>& buff)
+{
+    // TODO
+    return -1;
+}
 
 template<>
 template<class T>
@@ -436,6 +473,20 @@ template<typename... Tp>
 int SessionAbstract::send(const std::tuple<Tp...>& t)
 {
     SWITCH_SOCK_TYPE(template send<Tp...>(t))
+    return -1;
+}
+
+template<size_t len>
+inline int SessionAbstract::load_buffer(Buffer<len>& buff)
+{
+    SWITCH_SOCK_TYPE(load_buffer(buff))
+    return -1;
+}
+
+template<typename T>
+inline int SessionAbstract::rcv_vector(std::vector<T>& vec, uint64_t length)
+{
+    SWITCH_SOCK_TYPE(rcv_vector(vec, length))
     return -1;
 }
 
