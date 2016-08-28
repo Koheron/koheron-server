@@ -46,6 +46,7 @@ class SessionAbstract
 
     int send_cstr(const char *string);
     const uint32_t* rcv_handshake(uint32_t buff_size);
+    template<typename T> int rcv_vector(std::vector<T>& vec, uint64_t length);
     template<typename... Tp> int send(const std::tuple<Tp...>& t);
     template<typename T, size_t N> int send(const std::array<T, N>& vect);
     template<typename T> int send(const std::vector<T>& vect);
@@ -83,7 +84,7 @@ class Session : public SessionAbstract
     // Receive - Send
 
     // TODO Move in Session<TCP> specialization
-    int rcv_n_bytes(char *buffer, uint32_t n_bytes);
+    int rcv_n_bytes(char *buffer, uint64_t n_bytes);
 
     /// Receive data from client with handshaking
     /// @buff_size Size of the buffer to receive
@@ -96,6 +97,8 @@ class Session : public SessionAbstract
     ///    the number of points to receive to the client
     /// 3) The client send the data buffer
     const uint32_t* rcv_handshake(uint32_t buff_size);
+
+    template<typename T> int rcv_vector(std::vector<T>& vec, uint64_t length);
 
     /// Send scalar data
     template<class T> int send(const T& data);
@@ -289,10 +292,18 @@ int Session<sock_type>::run()
 #if KSERVER_HAS_TCP || KSERVER_HAS_UNIX_SOCKET
 
 template<>
-int Session<TCP>::rcv_n_bytes(char *buffer, uint32_t n_bytes);
+int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes);
 
 template<> const uint32_t* Session<TCP>::rcv_handshake(uint32_t buff_size);
 template<> int Session<TCP>::send_cstr(const char *string);
+
+template<>
+template<typename T>
+int Session<TCP>::rcv_vector(std::vector<T>& vec, uint64_t length)
+{
+    vec.resize(length);
+    return rcv_n_bytes(vec.data(), length * sizeof(T));
+}
 
 template<>
 template<class T>

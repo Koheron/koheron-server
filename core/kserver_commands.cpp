@@ -29,7 +29,8 @@ namespace kserver {
   int KDevice<KServer, KSERVER>::                                   \
           parse_arg<KServer::cmd_name>(const Command& cmd,          \
                         KDevice<KServer, KSERVER>::                 \
-                            Argument<KServer::cmd_name>& args)      
+                            Argument<KServer::cmd_name>& args,      \
+                            SessID sess_id)
 
 #define KSERVER_EXECUTE_OP(cmd_name)                                \
   template<>                                                        \
@@ -411,7 +412,7 @@ KSERVER_EXECUTE_OP(PUBSUB_PING)
   {                                                                 \
       Argument<KServer::cmd_name> args;                             \
                                                                     \
-      if (parse_arg<KServer::cmd_name>(cmd, args) < 0)              \
+      if (parse_arg<KServer::cmd_name>(cmd, args, cmd.sess_id) < 0) \
           return -1;                                                \
                                                                     \
       err = execute_op<KServer::cmd_name>(args, cmd.sess_id);       \

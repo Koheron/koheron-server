@@ -40,6 +40,9 @@ class Tests
     bool rcv_std_array2(const std::array<float, 8192>& arr);
     bool rcv_std_array3(const std::array<double, 8192>& arr);
 
+    // Receive vector
+    bool rcv_std_vector(const std::vector<uint32_t>& vec);
+
     // Send string
     const char* get_cstr();
     std::string get_std_string();

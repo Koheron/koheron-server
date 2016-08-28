@@ -84,6 +84,9 @@ test_python: $(PY2_ENV) $(PY3_ENV) start_server
 cli:
 	make -C apis/cli CROSS_COMPILE=$(CROSS_COMPILE) DEFINES=$(DEFINES) ARCH_FLAGS=$(ARCH_FLAGS)
 
+clean_venv:
+	rm -rf $(TESTS_VENV)
+
 clean:
-	rm -rf $(TMP) $(TESTS_VENV)
+	rm -rf $(TMP)
 	make -C apis/cli clean
