@@ -123,7 +123,7 @@ bool Tests::rcv_std_array3(const std::array<double, 8192>& arr)
     return true;
 }
 
-bool rcv_std_vector(const std::vector<uint32_t>& vec)
+bool Tests::rcv_std_vector(const std::vector<uint32_t>& vec)
 {
     return false;
 }

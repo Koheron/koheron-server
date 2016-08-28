@@ -302,7 +302,7 @@ template<typename T>
 int Session<TCP>::rcv_vector(std::vector<T>& vec, uint64_t length)
 {
     vec.resize(length);
-    return rcv_n_bytes(vec.data(), length * sizeof(T));
+    return rcv_n_bytes(reinterpret_cast<char *>(vec.data()), length * sizeof(T));
 }
 
 template<>
@@ -358,6 +358,14 @@ class Session<UNIX> : public Session<TCP>
 #if KSERVER_HAS_WEBSOCKET
 
 template<> const uint32_t* Session<WEBSOCK>::rcv_handshake(uint32_t buff_size);
+
+template<>
+template<typename T>
+int Session<WEBSOCK>::rcv_vector(std::vector<T>& vec, uint64_t length)
+{
+    // TODO
+    return -1;
+}
 
 template<>
 template<class T>
@@ -447,6 +455,13 @@ template<typename... Tp>
 int SessionAbstract::send(const std::tuple<Tp...>& t)
 {
     SWITCH_SOCK_TYPE(template send<Tp...>(t))
+    return -1;
+}
+
+template<typename T>
+inline int SessionAbstract::rcv_vector(std::vector<T>& vec, uint64_t length)
+{
+    SWITCH_SOCK_TYPE(rcv_vector(vec, length))
     return -1;
 }
 
