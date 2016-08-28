@@ -2,8 +2,6 @@
 #
 # (c) Koheron
 
-# includes: [config/zynq_sdk.yaml]
-
 # Executable name
 server-name: kserverd
 
