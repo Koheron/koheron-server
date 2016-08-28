@@ -28,18 +28,13 @@ make -C apis/js/koheron-websocket-client build
 # ---------------------------------------
 
 # Compile executables in local for tests
-make clean
-make CONFIG=config/config_local.yaml PYTHON=${PYTHON} all
-make CONFIG=config/config_local.yaml PYTHON=${PYTHON} cli
-make -C apis/C/tests TARGET_HOST=local clean all
+make CONFIG=config/config_local.yaml PYTHON=${PYTHON} clean all
 
 echo "== Start server =="
 nohup tmp/kserverd -c config/kserver_docker.conf > /dev/null 2> server.log &
-# nohup tmp/kserverd -c config/kserver_docker.conf 0<&- &> server.log &
 ps -A | grep -w "kserverd"
 
 echo "== Test Hello World =="
-apis/C/hello_world/hello_world
 node apis/js/koheron-websocket-client/tests/hello_world.js
 python tests/hello_world.py
 python3 tests/hello_world.py
