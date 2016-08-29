@@ -25,13 +25,8 @@ class WebSocket
     int receive();                  // General purpose data reception
     int receive_cmd(Command& cmd);  // Specialization to receive a command
 
-    /// Send null-terminated string
-    int send_cstr(const char *string);
-
     /// Send binary blob
     template<class T> int send(const T *data, unsigned int len);
-
-    int send(const std::string& string) {return send_cstr(string.c_str());}
 
     char* get_payload_no_copy() {return payload;}
     unsigned int payload_size() const {return header.payload_size;}

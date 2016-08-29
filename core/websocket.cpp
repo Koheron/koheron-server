@@ -165,21 +165,6 @@ int WebSocket::set_send_header(unsigned char *bits, long long data_len,
     return mask_offset;
 }
 
-int WebSocket::send_cstr(const char *string)
-{
-    long unsigned int char_data_len = strlen(string);
-
-    if (char_data_len + 10 > WEBSOCK_SEND_BUF_LEN) {
-        kserver->syslog.print<SysLog::ERROR>(
-                              "WebSocket: send_buf too small\n");
-        return -1;
-    }
-
-    int mask_offset = set_send_header(send_buf, char_data_len, (1 << 7) + TEXT_FRAME);
-    memcpy(&send_buf[mask_offset], string, char_data_len);
-    return send_request(send_buf, mask_offset + char_data_len);
-}
-
 int WebSocket::exit()
 {
     return send_request(send_buf, set_send_header(send_buf, 0, (1 << 7) + CONNECTION_CLOSE));
