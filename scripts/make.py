@@ -60,7 +60,20 @@ def get_renderer():
         empty_ops = ['""'] * (max_op_num - len(list_))
         return ','.join(list_ + empty_ops)
 
+    def get_fragment(operation, device):
+        string = ""
+        for frag in device.fragments:
+            if operation['name'] == frag['name']:
+                for line in frag['fragment']:
+                    string += line
+        return string
+
+    def get_parser(operation, device):
+        return ""
+
     renderer.filters['list_operations'] = list_operations
+    renderer.filters['get_fragment'] = get_fragment
+    renderer.filters['get_parser'] = get_parser
 
     return renderer
 
@@ -88,7 +101,12 @@ def generate(devices_list, midware_path):
         if path.endswith('.hpp') or path.endswith('.h'):
             device = Device(path, midware_path)
             print('Generating ' + device.name + '...')
-            device.generate(os.path.join(midware_path, os.path.dirname(path)))
+            #device.generate(os.path.join(midware_path, os.path.dirname(path)))
+
+            template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device.cpp'))
+            with open(os.path.join(midware_path, os.path.dirname(path), 'ks_'+device.name+'.cpp'), 'w') as output:
+                output.write(template.render(device=device))
+
             devices.append(device)
     return devices
 
