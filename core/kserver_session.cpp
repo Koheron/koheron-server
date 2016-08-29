@@ -34,6 +34,7 @@ int Session<TCP>::read_command(Command& cmd)
         return header_bytes;
     }
 
+    cmd.header.position = HEADER_START;
     auto header_tuple
         = deserialize<HEADER_START, cmd.header.size(), HEADER_TYPE_LIST>(cmd.header);
     uint32_t payload_size = std::get<2>(header_tuple);
@@ -172,6 +173,7 @@ int Session<WEBSOCK>::read_command(Command& cmd)
         return -1;
     }
 
+    cmd.header.position = HEADER_START;
     auto header_tuple
         = deserialize<HEADER_START, HEADER_TYPE_LIST>(cmd.header.data);
 

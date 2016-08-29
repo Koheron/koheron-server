@@ -60,7 +60,7 @@ class KDevice : public KDeviceAbstract
       kserver(kserver_)
     {}
 
-    int execute(const Command& cmd);
+    int execute(Command& cmd);
 
   private:
     /// Each device knows the KServer class,
@@ -72,7 +72,7 @@ class KDevice : public KDeviceAbstract
     /// @cmd The Command to be parsed
     /// @args The arguments resulting of the parsing
     template<int op>
-    int parse_arg(const Command& cmd, Argument<op>& args, SessID sess_id);
+    int parse_arg(Command& cmd, Argument<op>& args, SessID sess_id);
 
     /// Execute an operation
     /// @args The arguments of the operation provided by @parse_arg
