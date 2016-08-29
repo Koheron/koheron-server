@@ -8,10 +8,43 @@ import yaml
 import jinja2
 import time
 import subprocess
+import json
 from distutils.dir_util import copy_tree
 from shutil import copy
 
 from devgen import Device, device_table
+
+# Number of operation in the KServer device
+KSERVER_OP_NUM = 7
+
+def get_max_op_num(devices):
+    ''' Return the maximum number of operations '''
+    def device_length(device):
+        return max(len(device.operations), KSERVER_OP_NUM)
+    return max(device_length(d) for d in devices)
+
+def get_json(devices):
+    data = []
+
+    data.append({
+        'name': 'NO_DEVICE',
+        'operations': []
+    })
+
+    data.append({
+        'name': 'KServer',
+        'operations': [
+            'get_version', 'get_cmds', 'get_stats', 'get_dev_status', 'get_running_sessions', 'subscribe_broadcast', 'broadcast_ping'
+        ]
+    })
+
+    for device in devices:
+        data.append({
+            'name': device.raw_name,
+            'operations': [op['raw_name'] for op in device.operations]
+        })
+    return json.dumps(data, separators=(',', ':')).replace('"', '\\"')
+
 
 def get_renderer():
     renderer = jinja2.Environment(
@@ -21,10 +54,9 @@ def get_renderer():
       variable_end_string = '}}',
       loader = jinja2.FileSystemLoader(os.path.abspath('.'))
     )
-    def list_operations(operations):
-        list_ = map(lambda x: x['raw_name'], operations)
+    def list_operations(device, max_op_num):
+        list_ = map(lambda x: x['raw_name'], device.operations)
         list_ = ['"%s"' % element for element in list_]
-        max_op_num = 50
         empty_ops = ['""'] * (max_op_num - len(list_))
         return ','.join(list_ + empty_ops)
 
@@ -41,8 +73,11 @@ def fill_template(devices, template_filename, output_filename):
 def render_device_table(devices):
     print('Generate device table')
     #device_table.PrintDeviceTable(devices, 'tmp')
-
-    fill_template(devices, 'devices_table.hpp', 'tmp/devices_table.hpp')
+    template = get_renderer().get_template(os.path.join('scripts/templates', 'devices_table.hpp'))
+    with open('tmp/devices_table.hpp', 'w') as output:
+        output.write(template.render(devices=devices,
+                                     max_op_num=get_max_op_num(devices),
+                                     json=get_json(devices)))
 
     output_filename = os.path.join('tmp', 'devices.hpp')
     fill_template(devices, 'devices.hpp', output_filename)
