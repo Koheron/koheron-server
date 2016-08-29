@@ -64,9 +64,7 @@ class PubSub
   public:
     PubSub(SessionManager& session_manager_)
     : session_manager(session_manager_)
-    {
-        memset(emit_buffer.data, 0, EMIT_BUFF_SIZE);
-    }
+    {}
 
     // Session sid subscribes to a channel
     int subscribe(uint32_t channel, SessID sid) {
@@ -101,7 +99,6 @@ class PubSub
   private:
     SessionManager& session_manager;
     Subscribers<Channels> subscribers;
-    Buffer<EMIT_BUFF_SIZE> emit_buffer;
 };
 
 } // namespace kserver
