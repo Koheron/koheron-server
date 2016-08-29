@@ -4,7 +4,7 @@ machine:
 
 dependencies:
   pre:
-    - curl -v -X POST https://circleci.com/api/v1.1/project/github/Koheron/koheron-python/tree/master
+    - curl -v -X POST https://circleci.com/api/v1.1/project/github/Koheron/koheron-python/tree/master?circle-token=$CIRCLE_TOKEN
   override:
     - docker info
     - docker pull jeanminet/tcp-server
