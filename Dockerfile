@@ -56,6 +56,4 @@ RUN pip install -r $work_dir/requirements.txt
 RUN pip install wsgiref==0.1.2
 RUN pip install -r $work_dir/tests/requirements.txt
 RUN pip3 install -r $work_dir/tests/requirements.txt
-RUN curl https://raw.githubusercontent.com/Koheron/koheron-python/master/install.sh | /bin/bash /dev/stdin python cli
-RUN curl https://raw.githubusercontent.com/Koheron/koheron-python/master/install.sh | /bin/bash /dev/stdin python3 cli
 RUN bash $work_dir/scripts/install_eigen.sh
