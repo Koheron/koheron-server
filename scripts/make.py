@@ -13,20 +13,39 @@ from shutil import copy
 
 from devgen import Device, device_table
 
-def render_device_table(devices):
-    print('Generate device table')
-    device_table.PrintDeviceTable(devices, 'tmp')
-
-    template_filename = 'scripts/templates/devices.hpp'
-
-    header_renderer = jinja2.Environment(
+def get_renderer():
+    renderer = jinja2.Environment(
+      block_start_string = '{%',
+      block_end_string = '%}',
+      variable_start_string = '{{',
+      variable_end_string = '}}',
       loader = jinja2.FileSystemLoader(os.path.abspath('.'))
     )
+    def list_operations(operations):
+        list_ = map(lambda x: x['raw_name'], operations)
+        list_ = ['"%s"' % element for element in list_]
+        max_op_num = 50
+        empty_ops = ['""'] * (max_op_num - len(list_))
+        return ','.join(list_ + empty_ops)
 
-    template = header_renderer.get_template(template_filename)
-    header_filename = os.path.join('tmp', 'devices.hpp')
-    with open(header_filename, 'w') as f:
-        f.write(template.render(devices=devices))
+    renderer.filters['list_operations'] = list_operations
+
+    return renderer
+
+def fill_template(devices, template_filename, output_filename):
+    template = get_renderer().get_template(os.path.join('scripts/templates', template_filename))
+    with open(output_filename, 'w') as output:
+        output.write(template.render(devices=devices))
+
+
+def render_device_table(devices):
+    print('Generate device table')
+    #device_table.PrintDeviceTable(devices, 'tmp')
+
+    fill_template(devices, 'devices_table.hpp', 'tmp/devices_table.hpp')
+
+    output_filename = os.path.join('tmp', 'devices.hpp')
+    fill_template(devices, 'devices.hpp', output_filename)
 
 def generate(devices_list, midware_path):
     devices = [] # List of generated devices
