@@ -5,7 +5,7 @@
 ///
 /// (c) Koheron 
 
-#include {{ device.class_name|lower }}.cpp
+#include "{{ device.class_name|lower }}.hpp"
 
 #include <core/commands.hpp>
 #include <core/kserver.hpp>
@@ -15,7 +15,7 @@
 #endif
 namespace kserver {
 
-#define THIS (static_cast<KS_Tests*>(this))
+#define THIS (static_cast<{{ device.class_name }}*>(this))
 
 {% for operation in device.operations -%}
 /////////////////////////////////////
@@ -28,7 +28,7 @@ int KDevice<{{ device.class_name }}, {{ device.name }}>::
                 KDevice<{{ device.class_name}}, {{ device.name }}>::
                 Argument<{{ device.class_name }}::{{ operation['name'] }}>& args, SessID sess_id)
 {
-    {{ operation | get_parser(device) }}   // TODO jinja filter
+    {{ operation | get_parser(device) }}
     return 0;
 }
 
@@ -38,7 +38,7 @@ int KDevice<{{ device.class_name }}, {{ device.name }}>::
         execute_op<{{ device.class_name }}::{{ operation['name'] }}> 
         (const Argument<{{ device.class_name }}::{{ operation['name'] }}>& args, SessID sess_id)
 {
-    {{ operation | get_fragment(device) }}   // TODO jinja filter
+    {{ operation | get_fragment(device) }}
 }
 
 {% endfor %}
