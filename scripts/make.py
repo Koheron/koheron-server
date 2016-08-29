@@ -12,7 +12,7 @@ import json
 from distutils.dir_util import copy_tree
 from shutil import copy
 
-from devgen import Device, device_table
+from devgen import Device
 
 # Number of operation in the KServer device
 KSERVER_OP_NUM = 7
