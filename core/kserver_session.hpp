@@ -45,6 +45,7 @@ class SessionAbstract
     : kind(sock_type_) {}
 
     template<typename... Tp> int send_cstr(const char *string, Tp&&... args);
+    template<size_t len> int load_buffer(Buffer<len>& buff);
     const uint32_t* rcv_handshake(uint32_t buff_size);
     template<typename T> int rcv_vector(std::vector<T>& vec, uint64_t length);
     template<typename... Tp> int send(const std::tuple<Tp...>& t);
@@ -97,6 +98,8 @@ class Session : public SessionAbstract
     ///    the number of points to receive to the client
     /// 3) The client send the data buffer
     const uint32_t* rcv_handshake(uint32_t buff_size);
+
+    template<size_t len> int load_buffer(Buffer<len>& buff);
 
     template<typename T> int rcv_vector(std::vector<T>& vec, uint64_t length);
 
@@ -326,6 +329,13 @@ int Session<TCP>::rcv_vector(std::vector<T>& vec, uint64_t length)
 }
 
 template<>
+template<size_t len>
+int Session<TCP>::load_buffer(Buffer<len>& buff)
+{
+    return rcv_n_bytes(buff.data, len);
+}
+
+template<>
 template<class T>
 int Session<TCP>::send_array(const T *data, unsigned int len)
 {
@@ -382,6 +392,14 @@ template<> const uint32_t* Session<WEBSOCK>::rcv_handshake(uint32_t buff_size);
 template<>
 template<typename T>
 int Session<WEBSOCK>::rcv_vector(std::vector<T>& vec, uint64_t length)
+{
+    // TODO
+    return -1;
+}
+
+template<>
+template<size_t len>
+int Session<WEBSOCK>::load_buffer(Buffer<len>& buff)
 {
     // TODO
     return -1;
@@ -469,6 +487,13 @@ template<typename... Tp>
 int SessionAbstract::send(const std::tuple<Tp...>& t)
 {
     SWITCH_SOCK_TYPE(template send<Tp...>(t))
+    return -1;
+}
+
+template<size_t len>
+inline int SessionAbstract::load_buffer(Buffer<len>& buff)
+{
+    SWITCH_SOCK_TYPE(load_buffer(buff))
     return -1;
 }
 

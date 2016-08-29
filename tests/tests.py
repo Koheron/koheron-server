@@ -98,6 +98,18 @@ class Tests:
     def rcv_std_vector1(self, u, f, vec):
         return self.client.recv_bool()
 
+    @command('Tests', 'IfVdi')
+    def rcv_std_vector2(self, u, f, vec, d, i):
+        return self.client.recv_bool()
+
+    @command('Tests', 'AVdi')
+    def rcv_std_vector3(self, arr, vec, d, i):
+        return self.client.recv_bool()
+
+    @command('Tests', 'VdiA')
+    def rcv_std_vector4(self, vec, d, i, arr):
+        return self.client.recv_bool()
+
     @command('Tests')
     def get_cstr(self):
         return self.client.recv_string()
@@ -141,7 +153,8 @@ tests = Tests(client)
 client_unix = KoheronClient(unixsock=unixsock)
 tests_unix = Tests(client_unix)
 
-tests.set_double(1.428571428571428492127)
+vec = np.log(np.arange(8192, dtype='float32') + 1)
+tests.rcv_std_vector2(4223453, 3.141592, vec, 2.654798454646, -56789)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_send_many_params(tests):
@@ -248,6 +261,23 @@ def test_rcv_std_vector(tests):
 def test_rcv_std_vector1(tests):
     vec = np.sin(np.arange(8192, dtype='float64'))
     assert tests.rcv_std_vector1(4223453, 3.141592, vec)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_rcv_std_vector2(tests):
+    vec = np.log(np.arange(8192, dtype='float32') + 1)
+    assert tests.rcv_std_vector2(4223453, 3.141592, vec, 2.654798454646, -56789)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_rcv_std_vector3(tests):
+    arr = np.arange(8192, dtype='uint32')
+    vec = np.log(np.arange(8192, dtype='float32') + 1)
+    assert tests.rcv_std_vector3(arr, vec, 2.654798454646, -56789)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_rcv_std_vector4(tests):
+    arr = np.arange(8192, dtype='uint32') ** 2
+    vec = np.cos(np.arange(8192, dtype='float32'))
+    assert tests.rcv_std_vector4(vec, 2.654798454646, -56789, arr)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_get_cstring(tests):
