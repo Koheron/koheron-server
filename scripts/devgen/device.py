@@ -10,23 +10,7 @@ import autogen_implementation
 from middleware_handler import MiddlewareHandler
 
 def GetClassName(dev_name):
-    return 'KS_' + dev_name[0].upper() + dev_name[1:].lower()
-
-def IsFlags(operation):
-    ''' Test whether flags are defined for a given operation '''
-    return operation.get('flags') is not None
-
-def IsArgs(operation):
-    ''' Test whether arguments are defined for a given operation '''
-    return operation.get('arguments') is not None
-
-def IsDefaultVal(arg):
-    ''' Test whether a default value is defined for an argument '''
-    return len(operation.get('default')) > 0
-
-def IsReturn(operation):
-    ''' Test whether a return description are defined for a given operation '''
-    return operation.get('return') is not None
+    return 'KS_' + dev_name.capitalize()
 
 class Device:
     def __init__(self, path, midware_path):
@@ -57,6 +41,5 @@ class Device:
         template = header_renderer.get_template(template_filename)
 
         header_filename = os.path.join(directory, self.class_name.lower() + '.hpp')
-        output = file(header_filename, 'w')
-        output.write(template.render(device=self))
-        output.close()
+        with open(header_filename, 'w') as output:
+            output.write(template.render(device=self))

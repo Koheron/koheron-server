@@ -213,7 +213,7 @@ def get_std_array_params(arg_type):
     }
 
 def GetTotalArgNum(operation):
-    if not dev_utils.IsArgs(operation):
+    if operation.get('arguments') is None:
         return 0
     return len(operation['arguments'])
 

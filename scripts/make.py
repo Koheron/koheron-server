@@ -72,7 +72,6 @@ def fill_template(devices, template_filename, output_filename):
 
 def render_device_table(devices):
     print('Generate device table')
-    #device_table.PrintDeviceTable(devices, 'tmp')
     template = get_renderer().get_template(os.path.join('scripts/templates', 'devices_table.hpp'))
     with open('tmp/devices_table.hpp', 'w') as output:
         output.write(template.render(devices=devices,
@@ -126,10 +125,7 @@ def install_requirements(config, base_dir):
                 copy(cpp_filename, dest_dir)
 
 def get_devices(config):
-    if 'devices' in config:
-        return config['devices']
-    elif 'drivers' in config:
-        return config['drivers']
+    return config.get('devices')
 
 def main(argv):
     cmd = argv[0]
