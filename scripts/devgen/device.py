@@ -40,8 +40,8 @@ class Device:
         self.name = self._data['name']
         self.raw_name = self._data['raw_name']
         self.class_name = GetClassName(self.name)
-        self.objects = Objects(self._data['objects'])
-        self.includes = Includes(self._data['includes'])
+        self.objects = self._data['objects']
+        self.includes = self._data['includes']
 
     def generate(self, directory):
         self._render_ks_device_header(directory)          # Generate KServer header file (hpp)
@@ -60,46 +60,3 @@ class Device:
         output = file(header_filename, 'w')
         output.write(template.render(device=self))
         output.close()
-
-# class Operations:
-#     def __init__(self, operations):
-#         self._operations = operations
-
-#     def __len__(self):
-#         return len(self._operations)
-
-#     def __getitem__(self, index):
-#         if index >= len(self):
-#             raise IndexError
-#         return self._operations[index]
-
-#     def is_valid_op(self, operation_name):
-#         ''' Test whether an operation is valid.'''
-#         return any(operation_name in op for op in self)
-
-class Objects:
-    ''' Objects from external API '''
-
-    def __init__(self, objects):
-        self._objects = [] if objects is None else objects
-
-    def __len__(self):
-        return len(self._objects)
-
-    def __getitem__(self, index):
-        if index >= len(self):
-            raise IndexError
-        return self._objects[index]
-
-class Includes:
-    ''' API files to include '''
-    def __init__(self, includes):
-        self._includes = [] if includes is None else includes
-
-    def __len__(self):
-        return len(self._includes)
-
-    def __getitem__(self, index):
-        if index >= len(self):
-            raise IndexError
-        return self._includes[index]
