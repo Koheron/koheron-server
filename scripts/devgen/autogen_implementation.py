@@ -4,10 +4,21 @@
 
 import os
 import device as dev_utils
-import pprint
+
+def is_std_array(arg_type):
+    return arg_type.split('<')[0].strip() == 'std::array'
+
+def is_std_vector(arg_type):
+    return arg_type.split('<')[0].strip() == 'std::vector'
+
+def get_std_array_params(arg_type):
+    templates = arg_type.split('<')[1].split('>')[0].split(',')
+    return {
+      'T': templates[0].strip(),
+      'N': templates[1].strip()
+    }
 
 # -----------------------------------------------------------
-# PrintParseArg:
 # Autogenerate the parser
 # -----------------------------------------------------------
 
@@ -148,18 +159,4 @@ def build_args_packs(lines, operation):
             args_list.append(arg)
     if len(args_list) > 0:
         packs.append({'family': 'scalar', 'args': args_list})
-    # print pprint.pprint(packs)
     return packs, has_vector
-
-def is_std_array(arg_type):
-    return arg_type.split('<')[0].strip() == 'std::array'
-
-def is_std_vector(arg_type):
-    return arg_type.split('<')[0].strip() == 'std::vector'
-
-def get_std_array_params(arg_type):
-    templates = arg_type.split('<')[1].split('>')[0].split(',')
-    return {
-      'T': templates[0].strip(),
-      'N': templates[1].strip()
-    }
