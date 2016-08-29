@@ -29,7 +29,7 @@ class Device:
 
     def generate(self, directory):
         self._render_ks_device_header(directory)          # Generate KServer header file (hpp)
-        autogen_implementation.Generate(self, directory)  # Generate KServer implementation (cpp)
+        #autogen_implementation.Generate(self, directory)  # Generate KServer implementation (cpp)
 
     def _render_ks_device_header(self, directory):
         template_filename = 'scripts/templates/ks_device.hpp'
