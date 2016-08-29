@@ -24,7 +24,7 @@ namespace kserver {
 template<>
 template<>
 int KDevice<{{ device.class_name }}, {{ device.name }}>::
-        parse_args<{{ device.class_name }}::{{ operation['name'] }}> (const Command& cmd,
+        parse_arg<{{ device.class_name }}::{{ operation['name'] }}> (const Command& cmd,
                 KDevice<{{ device.class_name}}, {{ device.name }}>::
                 Argument<{{ device.class_name }}::{{ operation['name'] }}>& args, SessID sess_id)
 {

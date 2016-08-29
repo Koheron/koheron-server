@@ -13,8 +13,8 @@ import pprint
 
 def parser_generator(device, operation): 
     lines = []   
-    if GetTotalArgNum(operation) == 0:
-        return
+    if operation.get('arguments') is None:
+        return ''
 
     packs, has_vector = build_args_packs(lines, operation)
 
@@ -163,8 +163,3 @@ def get_std_array_params(arg_type):
       'T': templates[0].strip(),
       'N': templates[1].strip()
     }
-
-def GetTotalArgNum(operation):
-    if operation.get('arguments') is None:
-        return 0
-    return len(operation['arguments'])
