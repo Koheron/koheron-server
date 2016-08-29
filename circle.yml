@@ -3,6 +3,8 @@ machine:
     - docker
 
 dependencies:
+  pre:
+    - curl -v -X POST https://circleci.com/api/v1.1/project/github/Koheron/koheron-python/tree/master
   override:
     - docker info
     - docker pull jeanminet/tcp-server
