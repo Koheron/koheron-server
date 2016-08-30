@@ -38,7 +38,6 @@ def parser_generator(device, operation):
         lines.append('        return -1;\n')
         lines.append('    }\n\n')
 
-    pos_cnt = 0
     before_vector = True
 
     for idx, pack in enumerate(packs):
@@ -67,9 +66,6 @@ def parser_generator(device, operation):
 
             if before_vector:
                 lines.append('    args.' + pack['args']['name'] + ' = extract_array<' + array_params['T'] + ', ' + array_params['N'] + '>(cmd.payload);\n')
-
-                if idx < len(packs) - 1:
-                    pos_cnt += 1
             else: # After vector need to reload a buffer
                 lines.append('\n    Buffer<size_of<' + array_params['T'] + ', ' + array_params['N'] + '>> buff' + str(idx) + ';\n')
 
