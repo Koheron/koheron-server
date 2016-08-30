@@ -43,9 +43,9 @@ def parser_generator(device, operation):
     for idx, pack in enumerate(packs):
         if pack['family'] == 'scalar':
             if before_vector:
-                lines.append('    auto args_tuple' + str(idx) + ' = deserialize<cmd.payload.size(), ')
+                lines.append('    auto args_tuple' + str(idx) + ' = cmd.payload.deserialize<')
                 print_type_list_pack(lines, pack)
-                lines.append('>(cmd.payload);\n')
+                lines.append('>();\n')
             else: # After vector need to reload a buffer
                 lines.append('    Buffer<required_buffer_size<')
                 print_type_list_pack(lines, pack)
@@ -55,9 +55,9 @@ def parser_generator(device, operation):
                 lines.append('        return -1;\n')
                 lines.append('    }\n')
 
-                lines.append('\n    auto args_tuple' + str(idx) + ' = deserialize<buff' + str(idx) + '.size(), ')
+                lines.append('\n    auto args_tuple' + str(idx) + ' = buff' + str(idx) + '.deserialize<')
                 print_type_list_pack(lines, pack)
-                lines.append('>(buff' + str(idx) + ');\n')
+                lines.append('>();\n')
 
             for i, arg in enumerate(pack['args']):
                 lines.append('    args.' + arg["name"] + ' = ' + 'std::get<' + str(i) + '>(args_tuple' + str(idx) + ');\n');
@@ -65,7 +65,7 @@ def parser_generator(device, operation):
             array_params = get_std_array_params(pack['args']['type'])
 
             if before_vector:
-                lines.append('    args.' + pack['args']['name'] + ' = extract_array<' + array_params['T'] + ', ' + array_params['N'] + '>(cmd.payload);\n')
+                lines.append('    args.' + pack['args']['name'] + ' = cmd.payload.extract_array<' + array_params['T'] + ', ' + array_params['N'] + '>();\n')
             else: # After vector need to reload a buffer
                 lines.append('\n    Buffer<size_of<' + array_params['T'] + ', ' + array_params['N'] + '>> buff' + str(idx) + ';\n')
 
@@ -74,13 +74,13 @@ def parser_generator(device, operation):
                 lines.append('        return -1;\n')
                 lines.append('    }\n')
 
-                lines.append('\n    args.' + pack['args']['name'] + ' = extract_array<'
-                                + array_params['T'] + ', ' + array_params['N'] + '>(buff' + str(idx) + ');\n')
+                lines.append('\n    args.' + pack['args']['name'] + ' = buff' + str(idx) + '.extract_array<'
+                                + array_params['T'] + ', ' + array_params['N'] + '>();\n')
 
         elif pack['family'] == 'vector':
             before_vector = False
 
-            lines.append('    uint64_t length' + str(idx) + ' = std::get<0>(deserialize<cmd.payload.size(), uint64_t>(cmd.payload));\n\n')
+            lines.append('    uint64_t length' + str(idx) + ' = std::get<0>(cmd.payload.deserialize<uint64_t>());\n\n')
             lines.append('    if (RCV_VECTOR(args.' + pack['args']['name'] + ', length' + str(idx) + ', cmd) < 0) {\n')
             lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.raw_name + ' - ' + operation['raw_name'] + '] Failed to receive vector.\\n");\n')
             lines.append('        return -1;\n')

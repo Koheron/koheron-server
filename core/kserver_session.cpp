@@ -32,7 +32,7 @@ int Session<TCP>::read_command(Command& cmd)
         return header_bytes;
     }
 
-    auto header_tuple = deserialize<cmd.header.size(), HEADER_TYPE_LIST>(cmd.header);
+    auto header_tuple = cmd.header.deserialize<HEADER_TYPE_LIST>();
     uint32_t payload_size = std::get<2>(header_tuple);
 
     cmd.sess_id = id;
@@ -169,7 +169,7 @@ int Session<WEBSOCK>::read_command(Command& cmd)
         return -1;
     }
 
-    auto header_tuple = deserialize<cmd.header.size(), HEADER_TYPE_LIST>(cmd.header);
+    auto header_tuple = cmd.header.deserialize<HEADER_TYPE_LIST>();
     uint32_t payload_size = std::get<2>(header_tuple);
 
     if (unlikely(payload_size > CMD_PAYLOAD_BUFFER_LEN)) {

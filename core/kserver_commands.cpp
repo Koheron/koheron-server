@@ -286,7 +286,7 @@ KSERVER_PARSE_ARG(SUBSCRIBE_PUBSUB)
         return -1;
     }
 
-    args.channel = std::get<0>(deserialize<cmd.payload.size(), uint32_t>(cmd.payload));
+    args.channel = std::get<0>(cmd.payload.deserialize<uint32_t>());
     return 0;
 }
 

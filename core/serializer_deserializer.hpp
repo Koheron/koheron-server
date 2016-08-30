@@ -9,8 +9,6 @@
 #include <tuple>
 #include <array>
 
-#include "commands.hpp"
-
 namespace kserver {
 
 // http://stackoverflow.com/questions/17789928/whats-a-proper-way-of-type-punning-a-float-to-an-int-and-vice-versa
@@ -221,18 +219,6 @@ inline void append<bool>(unsigned char *buff, bool value)
     value ? buff[0] = 1 : buff[0] = 0;
 }
 
-// std::array
-
-template<typename T, size_t N, size_t len>
-inline const std::array<T, N>& extract_array(Buffer<len>& buff)
-{
-    // http://stackoverflow.com/questions/11205186/treat-c-cstyle-array-as-stdarray
-    auto p = reinterpret_cast<const std::array<T, N>*>(buff.begin());
-    assert(p->data() == (const T*)buff.begin());
-    buff.position += size_of<T, N>;
-    return *p;
-}
-
 // ------------------------
 // Deserializer
 // ------------------------
@@ -273,16 +259,6 @@ template<typename... Tp>
 constexpr size_t required_buffer_size()
 {
     return detail::required_buffer_size<Tp...>();
-}
-
-template<size_t len, typename... Tp>
-inline std::tuple<Tp...> deserialize(Buffer<len>& buff)
-{
-    static_assert(required_buffer_size<Tp...>() <= len, "Buffer size too small");
-
-    auto tup = detail::deserialize<0, Tp...>(buff.begin());
-    buff.position += required_buffer_size<Tp...>();
-    return tup;
 }
 
 template<size_t position, typename... Tp>

@@ -9,37 +9,63 @@
 
 #include "session_manager.hpp"
 #include "dev_definitions.hpp"
+#include "serializer_deserializer.hpp"
 
 namespace kserver {
 
 template<size_t len>
 struct Buffer
 {
-    constexpr Buffer() {};
-    constexpr size_t size() const {return len;}
+    constexpr Buffer(size_t position_ = 0):
+    position(position_)
+    {};
 
-    size_t position = 0; // Current position in the buffer
+    constexpr size_t size() const {return len;}
 
     void set() {bzero(_data.data(), len);}
     char* data() {return _data.data();}
     char* begin() {return &(_data.data())[position];}
 
+    template<typename... Tp>
+    std::tuple<Tp...> deserialize() {
+        static_assert(required_buffer_size<Tp...>() <= len, "Buffer size too small");
+
+        auto tup = kserver::deserialize<0, Tp...>(begin());
+        position += required_buffer_size<Tp...>();
+        return tup;
+    }
+
+    template<typename T, size_t N>
+    const std::array<T, N>& extract_array() {
+        // http://stackoverflow.com/questions/11205186/treat-c-cstyle-array-as-stdarray
+        auto p = reinterpret_cast<const std::array<T, N>*>(begin());
+        assert(p->data() == (const T*)begin());
+        position += size_of<T, N>;
+        return *p;
+    }
+
     template<typename T>
     void copy_to_vector(std::vector<T>& vec, uint64_t length) {
         vec.resize(length);
         memcpy(vec.data(), begin(), length * sizeof(T));
+        position += length * sizeof(T);
+    }
+
+    template<size_t buff_len>
+    Buffer<buff_len>& slice() {
+        // TODO
     }
 
   private:
     std::array<char, len> _data;
+    size_t position; // Current position in the buffer
 };
 
 struct Command
 {
     Command()
-    {
-        header.position = HEADER_START;
-    }
+    : header(HEADER_START)
+    {}
 
     enum Header : uint32_t {
         HEADER_SIZE = 12,
