@@ -86,7 +86,7 @@ class Tests
         d = 2.654798454646
         i = -56789
         vec = new Float32Array(8192)
-        vec[i] = Math.log(i + 1) for i in [0..vec.length - 1]
+        vec[_i] = Math.log(_i + 1) for _i in [0..vec.length - 1]
         @kclient.readBool(Command(@id, @cmds.rcv_std_vector2, 'IfVdi', u, f, vec, d, i), cb)
 
     readUint : (cb) ->

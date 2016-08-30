@@ -50,9 +50,6 @@ def parser_generator(device, operation):
                 for i, arg in enumerate(pack['args']):
                     lines.append('    args.' + arg["name"] + ' = ' + 'std::get<' + str(i) + '>(args_tuple' + str(idx) + ');\n');
             else: # After vector need to reload a buffer
-                # lines.append('    Buffer<required_buffer_size<')
-                # print_type_list_pack(lines, pack)
-                # lines.append('>()> buff' + str(idx) + ';\n')
                 lines.append('\n    auto args_tuple' + str(idx)  + ' = DESERIALIZE<')
                 print_type_list_pack(lines, pack)
                 lines.append('>(cmd);\n')
