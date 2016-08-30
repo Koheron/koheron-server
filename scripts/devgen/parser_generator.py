@@ -81,7 +81,7 @@ def parser_generator(device, operation):
             before_vector = False
 
             lines.append('    uint64_t length' + str(idx) + ' = std::get<0>(deserialize<cmd.payload.size(), uint64_t>(cmd.payload));\n\n')
-            lines.append('    if (RCV_VECTOR(args.' + pack['args']['name'] + ', length' + str(idx) + ') < 0) {\n')
+            lines.append('    if (RCV_VECTOR(args.' + pack['args']['name'] + ', length' + str(idx) + ', cmd) < 0) {\n')
             lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.raw_name + ' - ' + operation['raw_name'] + '] Failed to receive vector.\\n");\n')
             lines.append('        return -1;\n')
             lines.append('    }\n\n')

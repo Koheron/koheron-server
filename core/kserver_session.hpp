@@ -47,7 +47,7 @@ class SessionAbstract
     template<typename... Tp> int send_cstr(const char *string, Tp&&... args);
     template<size_t len> int load_buffer(Buffer<len>& buff);
     const uint32_t* rcv_handshake(uint32_t buff_size);
-    template<typename T> int rcv_vector(std::vector<T>& vec, uint64_t length);
+    template<typename T> int rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd);
     template<typename... Tp> int send(const std::tuple<Tp...>& t);
     template<typename T, size_t N> int send(const std::array<T, N>& vect);
     template<typename T> int send(const std::vector<T>& vect);
@@ -101,7 +101,12 @@ class Session : public SessionAbstract
 
     template<size_t len> int load_buffer(Buffer<len>& buff);
 
-    template<typename T> int rcv_vector(std::vector<T>& vec, uint64_t length);
+    // The command is passed in argument since for the WebSocket the vector data
+    // are stored into it. This implies that the whole vector is already stored on
+    // the stack which might not be a good thing.
+    //
+    //The TCP won't use it as it reads directly the TCP buffer.
+    template<typename T> int rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd);
 
     /// Send scalar data
     template<class T> int send(const T& data);
@@ -316,7 +321,7 @@ template<> const uint32_t* Session<TCP>::rcv_handshake(uint32_t buff_size);
 
 template<>
 template<typename T>
-int Session<TCP>::rcv_vector(std::vector<T>& vec, uint64_t length)
+int Session<TCP>::rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd)
 {
     vec.resize(length);
     return rcv_n_bytes(reinterpret_cast<char *>(vec.data()), length * sizeof(T));
@@ -326,7 +331,7 @@ template<>
 template<size_t len>
 int Session<TCP>::load_buffer(Buffer<len>& buff)
 {
-    return rcv_n_bytes(buff.data, len);
+    return rcv_n_bytes(buff.data(), len);
 }
 
 template<>
@@ -385,9 +390,10 @@ template<> const uint32_t* Session<WEBSOCK>::rcv_handshake(uint32_t buff_size);
 
 template<>
 template<typename T>
-int Session<WEBSOCK>::rcv_vector(std::vector<T>& vec, uint64_t length)
+int Session<WEBSOCK>::rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd)
 {
-    // TODO
+    vec.resize(length);
+
     return -1;
 }
 
@@ -492,9 +498,9 @@ inline int SessionAbstract::load_buffer(Buffer<len>& buff)
 }
 
 template<typename T>
-inline int SessionAbstract::rcv_vector(std::vector<T>& vec, uint64_t length)
+inline int SessionAbstract::rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd)
 {
-    SWITCH_SOCK_TYPE(rcv_vector(vec, length))
+    SWITCH_SOCK_TYPE(rcv_vector(vec, length, cmd))
     return -1;
 }
 

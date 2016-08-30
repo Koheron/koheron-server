@@ -208,10 +208,10 @@ int WebSocket::decode_raw_stream_cmd(Command& cmd)
     char *payload_ptr = read_str + header.mask_offset + 4;
 
     for (unsigned long long i = 0; i < Command::HEADER_SIZE; ++i)
-        cmd.header.data[i] = (payload_ptr[i] ^ mask[i % 4]);
+        cmd.header.data()[i] = (payload_ptr[i] ^ mask[i % 4]);
 
     for (unsigned long long i = Command::HEADER_SIZE; i < header.payload_size; ++i)
-        cmd.payload.data[i - Command::HEADER_SIZE] = (payload_ptr[i] ^ mask[i % 4]);
+        cmd.payload.data()[i - Command::HEADER_SIZE] = (payload_ptr[i] ^ mask[i % 4]);
 
     return 0;
 }

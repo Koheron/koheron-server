@@ -5,6 +5,8 @@
 #ifndef __COMMANDS_HPP__
 #define __COMMANDS_HPP__
 
+#include <array>
+
 #include "session_manager.hpp"
 #include "dev_definitions.hpp"
 
@@ -13,11 +15,17 @@ namespace kserver {
 template<size_t len>
 struct Buffer
 {
-    char data[len];
+    constexpr Buffer() {};
+    constexpr size_t size() const {return len;}
+
     size_t position = 0; // Current position in the buffer
 
-    constexpr size_t size() const {return len;}
-    void set() {bzero(data, len);}
+    void set() {bzero(_data.data(), len);}
+    char* data() {return _data.data();}
+
+  private:
+    std::array<char, len> _data;
+    // char _data[len];
 };
 
 struct Command
@@ -44,7 +52,6 @@ struct Command
         printf("SessID = %u\n", (uint32_t)sess_id);
         printf("Device = %u\n", (uint32_t)device);
         printf("Operation = %u\n", operation);
-        printf("Payload = %s\n", payload.data);
     }
 };
 

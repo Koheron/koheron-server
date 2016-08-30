@@ -21,7 +21,7 @@ int Session<TCP>::read_command(Command& cmd)
     // Read and decode header
     // |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
     // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
-    int header_bytes = rcv_n_bytes(cmd.header.data, Command::HEADER_SIZE);
+    int header_bytes = rcv_n_bytes(cmd.header.data(), Command::HEADER_SIZE);
 
     if (header_bytes == 0)
         return header_bytes;
@@ -51,7 +51,7 @@ int Session<TCP>::read_command(Command& cmd)
     int payload_bytes = 0;
 
     if (payload_size > 0) {
-        payload_bytes = rcv_n_bytes(cmd.payload.data, payload_size);
+        payload_bytes = rcv_n_bytes(cmd.payload.data(), payload_size);
 
         if (payload_bytes == 0)
             return payload_bytes;
@@ -115,7 +115,7 @@ const uint32_t* Session<TCP>::rcv_handshake(uint32_t buff_size)
         return nullptr;
     }
 
-    int n_bytes_received = rcv_n_bytes(recv_data_buff.data, sizeof(uint32_t) * buff_size);
+    int n_bytes_received = rcv_n_bytes(recv_data_buff.data(), sizeof(uint32_t) * buff_size);
 
     if (unlikely(n_bytes_received < 0))
         return nullptr;
@@ -124,7 +124,7 @@ const uint32_t* Session<TCP>::rcv_handshake(uint32_t buff_size)
         session_manager.kserver.syslog.print_dbg("[R@%u] [%u bytes]\n",
                                                  id, n_bytes_received);
 
-    return reinterpret_cast<const uint32_t*>(recv_data_buff.data);
+    return reinterpret_cast<const uint32_t*>(recv_data_buff.data());
 }
 
 #endif
