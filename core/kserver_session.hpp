@@ -178,29 +178,6 @@ Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
 {}
 
 template<int sock_type>
-template<typename T>
-int Session<sock_type>::send(const std::vector<T>& vect)
-{
-    return send_array<T>(vect.data(), vect.size());
-}
-
-template<int sock_type>
-template<typename T, size_t N>
-int Session<sock_type>::send(const std::array<T, N>& vect)
-{
-    return send_array<T>(vect.data(), N);
-}
-
-// http://stackoverflow.com/questions/1374468/stringstream-string-and-char-conversion-confusion
-template<int sock_type>
-template<typename... Tp>
-int Session<sock_type>::send(const std::tuple<Tp...>& t)
-{
-    const auto& arr = serialize(t);
-    return send_array<unsigned char>(arr.data(), arr.size());
-}
-
-template<int sock_type>
 int Session<sock_type>::init_session()
 {
     errors_num = 0;
@@ -246,6 +223,29 @@ int Session<sock_type>::run()
 
     exit_session();
     return 0;
+}
+
+template<int sock_type>
+template<typename T>
+int Session<sock_type>::send(const std::vector<T>& vect)
+{
+    return send_array<T>(vect.data(), vect.size());
+}
+
+template<int sock_type>
+template<typename T, size_t N>
+int Session<sock_type>::send(const std::array<T, N>& vect)
+{
+    return send_array<T>(vect.data(), N);
+}
+
+// http://stackoverflow.com/questions/1374468/stringstream-string-and-char-conversion-confusion
+template<int sock_type>
+template<typename... Tp>
+int Session<sock_type>::send(const std::tuple<Tp...>& t)
+{
+    const auto& arr = serialize(t);
+    return send_array<unsigned char>(arr.data(), arr.size());
 }
 
 template<int sock_type>
