@@ -90,7 +90,8 @@ friend Dev;
 #define SEND_CSTR kserver->session_manager.get_session(sess_id).send_cstr
 #define RCV_HANDSHAKE kserver->session_manager.get_session(sess_id).rcv_handshake
 #define RCV_VECTOR kserver->session_manager.get_session(sess_id).rcv_vector
-#define LOAD_BUFFER kserver->session_manager.get_session(sess_id).load_buffer
+#define DESERIALIZE kserver->session_manager.get_session(sess_id).deserialize
+#define EXTRACT_ARRAY kserver->session_manager.get_session(sess_id).extract_array
 
 // Example of Device implementation
 #ifdef NE_PAS_DEFINIR_CETTE_MACRO

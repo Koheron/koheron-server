@@ -22,9 +22,9 @@ struct Buffer
 
     constexpr size_t size() const {return len;}
 
-    void set() {bzero(_data.data(), len);}
-    char* data() {return _data.data();}
-    char* begin() {return &(_data.data())[position];}
+    void set()     {bzero(_data.data(), len);}
+    char* data()   {return _data.data();}
+    char* begin()  {return &(_data.data())[position];}
 
     template<typename... Tp>
     std::tuple<Tp...> deserialize() {
@@ -49,11 +49,6 @@ struct Buffer
         vec.resize(length);
         memcpy(vec.data(), begin(), length * sizeof(T));
         position += length * sizeof(T);
-    }
-
-    template<size_t buff_len>
-    Buffer<buff_len>& slice() {
-        // TODO
     }
 
   private:

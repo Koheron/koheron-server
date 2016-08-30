@@ -45,7 +45,8 @@ class SessionAbstract
     : kind(sock_type_) {}
 
     template<typename... Tp> int send_cstr(const char *string, Tp&&... args);
-    template<size_t len> int load_buffer(Buffer<len>& buff);
+    template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd);
+    template<typename T, size_t N> std::tuple<int, const std::array<T, N>&> extract_array(Command& cmd);
     const uint32_t* rcv_handshake(uint32_t buff_size);
     template<typename T> int rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd);
     template<typename... Tp> int send(const std::tuple<Tp...>& t);
@@ -99,7 +100,8 @@ class Session : public SessionAbstract
     /// 3) The client send the data buffer
     const uint32_t* rcv_handshake(uint32_t buff_size);
 
-    template<size_t len> int load_buffer(Buffer<len>& buff);
+    template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd);
+    template<typename T, size_t N> std::tuple<int, const std::array<T, N>&> extract_array(Command& cmd);
 
     // The command is passed in argument since for the WebSocket the vector data
     // are stored into it. This implies that the whole vector is already stored on
@@ -328,10 +330,21 @@ int Session<TCP>::rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd)
 }
 
 template<>
-template<size_t len>
-int Session<TCP>::load_buffer(Buffer<len>& buff)
+template<typename... Tp>
+std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd)
 {
-    return rcv_n_bytes(buff.data(), len);
+    Buffer<required_buffer_size<Tp...>()> buff;
+    int err = rcv_n_bytes(buff.data(), required_buffer_size<Tp...>());
+    return std::tuple_cat(std::make_tuple(err), buff.deserialize<Tp...>());
+}
+
+template<>
+template<typename T, size_t N>
+std::tuple<int, const std::array<T, N>&> Session<TCP>::extract_array(Command& cmd)
+{
+    Buffer<size_of<T, N>> buff;
+    int err = rcv_n_bytes(buff.data(), size_of<T, N>);
+    return std::tuple_cat(std::make_tuple(err), std::forward_as_tuple(buff.extract_array<T, N>()));
 }
 
 template<>
@@ -403,11 +416,17 @@ int Session<WEBSOCK>::rcv_vector(std::vector<T>& vec, uint64_t length, Command& 
 }
 
 template<>
-template<size_t len>
-int Session<WEBSOCK>::load_buffer(Buffer<len>& buff)
+template<typename... Tp>
+std::tuple<int, Tp...> Session<WEBSOCK>::deserialize(Command& cmd)
 {
-    // TODO
-    return -1;
+    return std::tuple_cat(std::make_tuple(0), cmd.payload.deserialize<Tp...>());
+}
+
+template<>
+template<typename T, size_t N>
+std::tuple<int, const std::array<T, N>&> Session<WEBSOCK>::extract_array(Command& cmd)
+{
+    return std::tuple_cat(std::make_tuple(0), std::forward_as_tuple(cmd.payload.extract_array<T, N>()));
 }
 
 template<>
@@ -495,11 +514,18 @@ int SessionAbstract::send(const std::tuple<Tp...>& t)
     return -1;
 }
 
-template<size_t len>
-inline int SessionAbstract::load_buffer(Buffer<len>& buff)
+template<typename... Tp>
+inline std::tuple<int, Tp...> SessionAbstract::deserialize(Command& cmd)
 {
-    SWITCH_SOCK_TYPE(load_buffer(buff))
-    return -1;
+    SWITCH_SOCK_TYPE(template deserialize<Tp...>(cmd))
+    return std::tuple_cat(std::make_tuple(-1), std::tuple<Tp...>());
+}
+
+template<typename T, size_t N>
+inline std::tuple<int, const std::array<T, N>&> SessionAbstract::extract_array(Command& cmd)
+{
+    SWITCH_SOCK_TYPE(template extract_array<T, N>(cmd))
+    return std::tuple_cat(std::make_tuple(-1), std::forward_as_tuple(std::array<T, N>()));
 }
 
 template<typename T>

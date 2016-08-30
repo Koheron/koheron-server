@@ -46,36 +46,37 @@ def parser_generator(device, operation):
                 lines.append('    auto args_tuple' + str(idx) + ' = cmd.payload.deserialize<')
                 print_type_list_pack(lines, pack)
                 lines.append('>();\n')
+
+                for i, arg in enumerate(pack['args']):
+                    lines.append('    args.' + arg["name"] + ' = ' + 'std::get<' + str(i) + '>(args_tuple' + str(idx) + ');\n');
             else: # After vector need to reload a buffer
-                lines.append('    Buffer<required_buffer_size<')
+                # lines.append('    Buffer<required_buffer_size<')
+                # print_type_list_pack(lines, pack)
+                # lines.append('>()> buff' + str(idx) + ';\n')
+                lines.append('\n    auto args_tuple' + str(idx)  + ' = DESERIALIZE<')
                 print_type_list_pack(lines, pack)
-                lines.append('>()> buff' + str(idx) + ';\n')
-                lines.append('    if (LOAD_BUFFER(buff' + str(idx) + ') < 0) {\n')
-                lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.raw_name + ' - ' + operation['raw_name'] + '] Load buffer failed.\\n");\n')
+                lines.append('>(cmd);\n')
+                lines.append('    if (std::get<0>(args_tuple' + str(idx)  + ') < 0) {\n')
+                lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.raw_name + ' - ' + operation['raw_name'] + '] Failed to deserialize buffer.\\n");\n')
                 lines.append('        return -1;\n')
                 lines.append('    }\n')
 
-                lines.append('\n    auto args_tuple' + str(idx) + ' = buff' + str(idx) + '.deserialize<')
-                print_type_list_pack(lines, pack)
-                lines.append('>();\n')
+                for i, arg in enumerate(pack['args']):
+                    lines.append('    args.' + arg["name"] + ' = ' + 'std::get<' + str(i + 1) + '>(args_tuple' + str(idx) + ');\n');
 
-            for i, arg in enumerate(pack['args']):
-                lines.append('    args.' + arg["name"] + ' = ' + 'std::get<' + str(i) + '>(args_tuple' + str(idx) + ');\n');
         elif pack['family'] == 'array':
             array_params = get_std_array_params(pack['args']['type'])
 
             if before_vector:
                 lines.append('    args.' + pack['args']['name'] + ' = cmd.payload.extract_array<' + array_params['T'] + ', ' + array_params['N'] + '>();\n')
             else: # After vector need to reload a buffer
-                lines.append('\n    Buffer<size_of<' + array_params['T'] + ', ' + array_params['N'] + '>> buff' + str(idx) + ';\n')
-
-                lines.append('    if (LOAD_BUFFER(buff' + str(idx) + ') < 0) {\n')
-                lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.raw_name + ' - ' + operation['raw_name'] + '] Load buffer failed.\\n");\n')
+                lines.append('\n    auto tup' + str(idx)  + ' = EXTRACT_ARRAY<' + array_params['T'] + ', ' + array_params['N'] + '>(cmd);\n')
+                lines.append('    if (std::get<0>(tup' + str(idx)  + ') < 0) {\n')
+                lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.raw_name + ' - ' + operation['raw_name'] + '] Failed to extract array.\\n");\n')
                 lines.append('        return -1;\n')
                 lines.append('    }\n')
 
-                lines.append('\n    args.' + pack['args']['name'] + ' = buff' + str(idx) + '.extract_array<'
-                                + array_params['T'] + ', ' + array_params['N'] + '>();\n')
+                lines.append('\n    args.' + pack['args']['name'] + ' = std::get<1>(tup' + str(idx)  + ');\n')
 
         elif pack['family'] == 'vector':
             before_vector = False

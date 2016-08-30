@@ -302,7 +302,8 @@ class CommandBase
                         payload_size += appendUint32(payload, 0)
                         appendArray(payload, params[i])
                         if fmt[i+1..].length > 0
-                            Array.prototype.push.apply(payload, buildPayload(fmt[i+1..], params[i+1..]))
+                            # Array.prototype.push.apply(payload, buildPayload(fmt[i+1..], params[i+1..]))
+                            payload.concat(buildPayload(fmt[i+1..], params[i+1..])[0])
                         break
                     else
                         throw new TypeError('Unknown type ' + fmt[i])
