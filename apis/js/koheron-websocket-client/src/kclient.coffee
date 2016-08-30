@@ -313,7 +313,6 @@ class CommandBase
         appendUint32(buffer, res[1])
         return new Uint8Array(buffer.concat(res[0]))
 
-
 ###* @param {...*} var_args ###
 Command = (var_args) ->
     CommandBase.apply(Object.create(Command.prototype), arguments)

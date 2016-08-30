@@ -127,10 +127,6 @@ bool Tests::rcv_std_vector(const std::vector<uint32_t>& vec)
 {
     if (vec.size() != 8192) return false;
 
-    printf("0 -> %u\n", vec[0]);
-    printf("4096 -> %u\n", vec[4096]);
-    printf("8191 -> %u\n", vec[8191]);
-
     for (unsigned int i=0; i<vec.size(); i++)
         if (vec[i] != i) return false;
 

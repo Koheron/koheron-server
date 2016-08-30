@@ -343,13 +343,13 @@ int Session<TCP>::send_array(const T *data, unsigned int len)
 
     if (unlikely(n_bytes_send < 0)) {
        session_manager.kserver.syslog.print<SysLog::ERROR>(
-          "TCPSocket::SendArray: Can't write to client\n");
+          "TCPSocket::send_array: Can't write to client\n");
        return -1;
     }
 
     if (unlikely(n_bytes_send != bytes_send)) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
-            "TCPSocket::SendArray: Some bytes have not been sent\n");
+            "TCPSocket::send_array: Some bytes have not been sent\n");
         return -1;
     }
 
@@ -392,12 +392,13 @@ template<>
 template<typename T>
 int Session<WEBSOCK>::rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd)
 {
-    // TODO Check dimensions
-    printf("length = %lu\n", length);
+    if (length * sizeof(T) > CMD_PAYLOAD_BUFFER_LEN) {
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
+            "WebSocket::rcv_vector: Payload size overflow\n");
+        return -1;
+    }
 
-    vec.resize(length);
-    memcpy(vec.data(), cmd.payload.begin(), length * sizeof(T));
-    // std::copy(cmd.payload.begin(), cmd.payload.begin() + length, vec.begin());
+    cmd.payload.copy_to_vector(vec, length);
     return 0;
 }
 

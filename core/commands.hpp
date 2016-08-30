@@ -24,9 +24,14 @@ struct Buffer
     char* data() {return _data.data();}
     char* begin() {return &(_data.data())[position];}
 
+    template<typename T>
+    void copy_to_vector(std::vector<T>& vec, uint64_t length) {
+        vec.resize(length);
+        memcpy(vec.data(), begin(), length * sizeof(T));
+    }
+
   private:
     std::array<char, len> _data;
-    // char _data[len];
 };
 
 struct Command
