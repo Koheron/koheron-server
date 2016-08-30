@@ -14,6 +14,9 @@ from shutil import copy
 
 from devgen import Device, parser_generator
 
+# -----------------------------------------------------------------------------------------
+# Code generation
+# -----------------------------------------------------------------------------------------
 
 # Number of operation in the KServer device
 KSERVER_OP_NUM = 7
@@ -83,7 +86,6 @@ def fill_template(devices, template_filename, output_filename):
     with open(output_filename, 'w') as output:
         output.write(template.render(devices=devices))
 
-
 def render_device_table(devices):
     print('Generate device table')
     template = get_renderer().get_template(os.path.join('scripts/templates', 'devices_table.hpp'))
@@ -102,14 +104,19 @@ def generate(devices_list, midware_path):
         if path.endswith('.hpp') or path.endswith('.h'):
             device = Device(path, midware_path)
             print('Generating ' + device.name + '...')
-            device.generate(os.path.join(midware_path, os.path.dirname(path)))
+
+            template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device.hpp'))
+            with open(os.path.join(midware_path, os.path.dirname(path), 'ks_' + device.name.lower() + '.hpp'), 'w') as output:
+                output.write(template.render(device=device))
 
             template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device.cpp'))
-            with open(os.path.join(midware_path, os.path.dirname(path), 'ks_'+device.name.lower()+'.cpp'), 'w') as output:
+            with open(os.path.join(midware_path, os.path.dirname(path), 'ks_' + device.name.lower() + '.cpp'), 'w') as output:
                 output.write(template.render(device=device))
 
             devices.append(device)
     return devices
+
+# -----------------------------------------------------------------------------------------
 
 def install_requirements(config, base_dir):
     if 'requirements' in config:
