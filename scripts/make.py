@@ -45,7 +45,7 @@ def get_json(devices):
     for device in devices:
         data.append({
             'name': device.name,
-            'operations': [op['raw_name'] for op in device.operations]
+            'operations': [op['name'] for op in device.operations]
         })
     return json.dumps(data, separators=(',', ':')).replace('"', '\\"')
 
@@ -59,7 +59,7 @@ def get_renderer():
       loader = jinja2.FileSystemLoader(os.path.abspath('.'))
     )
     def list_operations(device, max_op_num):
-        list_ = map(lambda x: x['raw_name'], device.operations)
+        list_ = map(lambda x: x['name'], device.operations)
         list_ = ['"%s"' % element for element in list_]
         empty_ops = ['""'] * (max_op_num - len(list_))
         return ','.join(list_ + empty_ops)
@@ -67,7 +67,7 @@ def get_renderer():
     def get_fragment(operation, device):
         string = ""
         for frag in device.fragments:
-            if operation['name'] == frag['name']:
+            if operation['tag'] == frag['name']:
                 for line in frag['fragment']:
                     string += line
         return string

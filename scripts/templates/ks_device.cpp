@@ -19,14 +19,14 @@ namespace kserver {
 
 {% for operation in device.operations -%}
 /////////////////////////////////////
-// {{ operation['name'] }}
+// {{ operation['raw_name'] }}
 
 template<>
 template<>
 int KDevice<{{ device.class_name }}, {{ device.tag }}>::
-        parse_arg<{{ device.class_name }}::{{ operation['name'] }}> (Command& cmd,
+        parse_arg<{{ device.class_name }}::{{ operation['tag'] }}> (Command& cmd,
                 KDevice<{{ device.class_name}}, {{ device.tag }}>::
-                Argument<{{ device.class_name }}::{{ operation['name'] }}>& args, SessID sess_id)
+                Argument<{{ device.class_name }}::{{ operation['tag'] }}>& args, SessID sess_id)
 {
     {{ operation | get_parser(device) }}
     return 0;
@@ -35,8 +35,8 @@ int KDevice<{{ device.class_name }}, {{ device.tag }}>::
 template<>
 template<>
 int KDevice<{{ device.class_name }}, {{ device.tag }}>::
-        execute_op<{{ device.class_name }}::{{ operation['name'] }}> 
-        (const Argument<{{ device.class_name }}::{{ operation['name'] }}>& args, SessID sess_id)
+        execute_op<{{ device.class_name }}::{{ operation['tag'] }}>
+        (const Argument<{{ device.class_name }}::{{ operation['tag'] }}>& args, SessID sess_id)
 {
     {{ operation | get_fragment(device) }}
 }
@@ -54,13 +54,13 @@ int KDevice<{{ device.class_name }}, {{ device.tag }}>::
 
     switch(cmd.operation) {
 {% for operation in device.operations -%}
-      case {{ device.class_name }}::{{ operation['name'] }}: {
-        Argument<{{ device.class_name }}::{{ operation['name'] }}> args;
+      case {{ device.class_name }}::{{ operation['tag'] }}: {
+        Argument<{{ device.class_name }}::{{ operation['tag'] }}> args;
 
-        if (parse_arg<{{ device.class_name }}::{{ operation['name'] }}>(cmd, args, cmd.sess_id) < 0)
+        if (parse_arg<{{ device.class_name }}::{{ operation['tag'] }}>(cmd, args, cmd.sess_id) < 0)
             return -1;
 
-        return execute_op<{{ device.class_name }}::{{ operation['name'] }}>(args, cmd.sess_id);
+        return execute_op<{{ device.class_name }}::{{ operation['tag'] }}>(args, cmd.sess_id);
       }
 {% endfor %}
       case {{ device.class_name }}::{{ device.tag | lower }}_op_num:
