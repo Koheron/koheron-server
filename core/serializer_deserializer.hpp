@@ -223,13 +223,12 @@ inline void append<bool>(unsigned char *buff, bool value)
 
 // std::array
 
-template<size_t position, typename T, size_t N, size_t len>
+template<typename T, size_t N, size_t len>
 inline const std::array<T, N>& extract_array(Buffer<len>& buff)
 {
     // http://stackoverflow.com/questions/11205186/treat-c-cstyle-array-as-stdarray
-    auto p = reinterpret_cast<const std::array<T, N>*>(&buff.data[position]);
-    assert(p->data() == (const T*)&buff.data[position]);
-    assert(position == buff.position);
+    auto p = reinterpret_cast<const std::array<T, N>*>(&buff.data[buff.position]);
+    assert(p->data() == (const T*)&buff.data[buff.position]);
     buff.position += size_of<T, N>;
     return *p;
 }
@@ -239,38 +238,36 @@ inline const std::array<T, N>& extract_array(Buffer<len>& buff)
 // ------------------------
 
 namespace detail {
+    template<size_t position, typename Tp0, typename... Tp>
+    inline std::enable_if_t<0 == sizeof...(Tp), std::tuple<Tp0, Tp...>>
+    deserialize(const char *buff)
+    {
+        return std::make_tuple(extract<Tp0>(&buff[position]));
+    }
 
-template<size_t position, typename Tp0, typename... Tp>
-inline std::enable_if_t<0 == sizeof...(Tp), std::tuple<Tp0, Tp...>>
-deserialize(const char *buff)
-{
-    return std::make_tuple(extract<Tp0>(&buff[position]));
+    template<size_t position, typename Tp0, typename... Tp>
+    inline std::enable_if_t<0 < sizeof...(Tp), std::tuple<Tp0, Tp...>>
+    deserialize(const char *buff)
+    {
+        return std::tuple_cat(std::make_tuple(extract<Tp0>(&buff[position])),
+                              deserialize<position + size_of<Tp0>, Tp...>(buff));
+    }
+
+    // Required buffer size
+    template<typename Tp0, typename... Tp>
+    constexpr std::enable_if_t<0 == sizeof...(Tp), size_t>
+    required_buffer_size()
+    {
+        return size_of<Tp0>;
+    }
+
+    template<typename Tp0, typename... Tp>
+    constexpr std::enable_if_t<0 < sizeof...(Tp), size_t>
+    required_buffer_size()
+    {
+        return size_of<Tp0> + required_buffer_size<Tp...>();
+    }
 }
-
-template<size_t position, typename Tp0, typename... Tp>
-inline std::enable_if_t<0 < sizeof...(Tp), std::tuple<Tp0, Tp...>>
-deserialize(const char *buff)
-{
-    return std::tuple_cat(std::make_tuple(extract<Tp0>(&buff[position])),
-                          deserialize<position + size_of<Tp0>, Tp...>(buff));
-}
-
-// Required buffer size
-template<typename Tp0, typename... Tp>
-constexpr std::enable_if_t<0 == sizeof...(Tp), size_t>
-required_buffer_size()
-{
-    return size_of<Tp0>;
-}
-
-template<typename Tp0, typename... Tp>
-constexpr std::enable_if_t<0 < sizeof...(Tp), size_t>
-required_buffer_size()
-{
-    return size_of<Tp0> + required_buffer_size<Tp...>();
-}
-
-} // namespace detail
 
 template<typename... Tp>
 constexpr size_t required_buffer_size()
@@ -278,14 +275,14 @@ constexpr size_t required_buffer_size()
     return detail::required_buffer_size<Tp...>();
 }
 
-template<size_t position, size_t len, typename... Tp>
+template<size_t len, typename... Tp>
 inline std::tuple<Tp...> deserialize(Buffer<len>& buff)
 {
-    static_assert(required_buffer_size<Tp...>() <= len - position, 
-                  "Buffer size too small");
-    assert(position == buff.position);
+    static_assert(required_buffer_size<Tp...>() <= len, "Buffer size too small");
+
+    auto tup = detail::deserialize<0, Tp...>(&buff.data[buff.position]);
     buff.position += required_buffer_size<Tp...>();
-    return detail::deserialize<position, Tp...>(buff.data);
+    return tup;
 }
 
 template<size_t position, typename... Tp>
@@ -299,21 +296,19 @@ inline std::tuple<Tp...> deserialize(const char *buff)
 // ------------------------
 
 namespace detail {
+    template<size_t buff_pos, size_t I, typename... Tp>
+    inline std::enable_if_t<I == sizeof...(Tp), void>
+    serialize(const std::tuple<Tp...>& t, unsigned char *buff)
+    {}
 
-template<size_t buff_pos, size_t I, typename... Tp>
-inline std::enable_if_t<I == sizeof...(Tp), void>
-serialize(const std::tuple<Tp...>& t, unsigned char *buff)
-{}
-
-template<size_t buff_pos, size_t I, typename... Tp>
-inline std::enable_if_t<I < sizeof...(Tp), void>
-serialize(const std::tuple<Tp...>& t, unsigned char *buff)
-{
-    using type = typename std::tuple_element<I, std::tuple<Tp...>>::type;
-    append<type>(&buff[buff_pos], std::get<I>(t));
-    serialize<buff_pos + size_of<type>, I + 1, Tp...>(t, &buff[0]);
-}
-
+    template<size_t buff_pos, size_t I, typename... Tp>
+    inline std::enable_if_t<I < sizeof...(Tp), void>
+    serialize(const std::tuple<Tp...>& t, unsigned char *buff)
+    {
+        using type = typename std::tuple_element<I, std::tuple<Tp...>>::type;
+        append<type>(&buff[buff_pos], std::get<I>(t));
+        serialize<buff_pos + size_of<type>, I + 1, Tp...>(t, &buff[0]);
+    }
 }
 
 template<typename... Tp>

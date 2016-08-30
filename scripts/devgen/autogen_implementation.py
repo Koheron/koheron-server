@@ -76,23 +76,16 @@ def PrintParserCore(file_id, device, operation):
         file_id.write('        return -1;\n')
         file_id.write('    }\n\n')
 
-    file_id.write('    constexpr size_t position0 = 0;\n')
+    # file_id.write('    constexpr size_t position0 = 0;\n')
     pos_cnt = 0
     before_vector = True
 
     for idx, pack in enumerate(packs):
         if pack['family'] == 'scalar':
             if before_vector:
-                file_id.write('    auto args_tuple' + str(idx) + ' = deserialize<position' + str(pos_cnt) + ', cmd.payload.size(), ')
+                file_id.write('    auto args_tuple' + str(idx) + ' = deserialize<cmd.payload.size(), ')
                 print_type_list_pack(file_id, pack)
                 file_id.write('>(cmd.payload);\n')
-
-                if idx < len(packs) - 1:
-                    file_id.write('\n    constexpr size_t position' + str(pos_cnt + 1) + ' = position' + str(pos_cnt)
-                                  + ' + required_buffer_size<')
-                    pos_cnt += 1
-                    print_type_list_pack(file_id, pack)
-                    file_id.write('>();\n')
             else: # After vector need to reload a buffer
                 file_id.write('    Buffer<required_buffer_size<')
                 print_type_list_pack(file_id, pack)
@@ -102,7 +95,7 @@ def PrintParserCore(file_id, device, operation):
                 file_id.write('        return -1;\n')
                 file_id.write('    }\n')
 
-                file_id.write('\n    auto args_tuple' + str(idx) + ' = deserialize<0, buff' + str(idx) + '.size(), ')
+                file_id.write('\n    auto args_tuple' + str(idx) + ' = deserialize<buff' + str(idx) + '.size(), ')
                 print_type_list_pack(file_id, pack)
                 file_id.write('>(buff' + str(idx) + ');\n')
 
@@ -112,12 +105,9 @@ def PrintParserCore(file_id, device, operation):
             array_params = get_std_array_params(pack['args']['type'])
 
             if before_vector:
-                file_id.write('    args.' + pack['args']['name'] + ' = extract_array<position' + str(pos_cnt)
-                              + ', ' + array_params['T'] + ', ' + array_params['N'] + '>(cmd.payload);\n')
+                file_id.write('    args.' + pack['args']['name'] + ' = extract_array<' + array_params['T'] + ', ' + array_params['N'] + '>(cmd.payload);\n')
 
                 if idx < len(packs) - 1:
-                    file_id.write('\n    constexpr size_t position' + str(pos_cnt + 1) + ' = position' + str(pos_cnt)
-                                  + ' + size_of<' + array_params['T'] + ', ' + array_params['N'] + '>;\n')
                     pos_cnt += 1
             else: # After vector need to reload a buffer
                 file_id.write('\n    Buffer<size_of<' + array_params['T'] + ', ' + array_params['N'] + '>> buff' + str(idx) + ';\n')
@@ -127,12 +117,12 @@ def PrintParserCore(file_id, device, operation):
                 file_id.write('        return -1;\n')
                 file_id.write('    }\n')
 
-                file_id.write('\n    args.' + pack['args']['name'] + ' = extract_array<0, '
+                file_id.write('\n    args.' + pack['args']['name'] + ' = extract_array<'
                                 + array_params['T'] + ', ' + array_params['N'] + '>(buff' + str(idx) + ');\n')
         elif pack['family'] == 'vector':
             before_vector = False
 
-            file_id.write('    uint64_t length' + str(idx) + ' = std::get<0>(deserialize<position' + str(pos_cnt) + ', cmd.payload.size(), uint64_t>(cmd.payload));\n\n')
+            file_id.write('    uint64_t length' + str(idx) + ' = std::get<0>(deserialize<cmd.payload.size(), uint64_t>(cmd.payload));\n\n')
             file_id.write('    if (RCV_VECTOR(args.' + pack['args']['name'] + ', length' + str(idx) + ') < 0) {\n')
             file_id.write('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive vector.\\n");\n')
             file_id.write('        return -1;\n')
