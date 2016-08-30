@@ -27,7 +27,7 @@ namespace kserver {
   template<>                                                        \
   template<>                                                        \
   int KDevice<KServer, KSERVER>::                                   \
-          parse_arg<KServer::cmd_name>(const Command& cmd,          \
+          parse_arg<KServer::cmd_name>(Command& cmd,                \
                         KDevice<KServer, KSERVER>::                 \
                             Argument<KServer::cmd_name>& args,      \
                             SessID sess_id)
@@ -322,7 +322,7 @@ KSERVER_EXECUTE_OP(PUBSUB_PING)
   }
 
 template<>
-int KDevice<KServer, KSERVER>::execute(const Command& cmd)
+int KDevice<KServer, KSERVER>::execute(Command& cmd)
 {
 #if KSERVER_HAS_THREADS
     std::lock_guard<std::mutex> lock(static_cast<KServer*>(this)->ks_mutex);

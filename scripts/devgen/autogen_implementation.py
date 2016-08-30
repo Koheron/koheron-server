@@ -53,7 +53,7 @@ def PrintParseArg(file_id, device, operation):
     file_id.write('template<>\n')
     file_id.write('template<>\n')
     file_id.write('int KDevice<' + device.class_name + ',' + device.name + '>::\n')
-    file_id.write('        parse_arg<' + device.class_name + '::' + operation['name'] + '> (const Command& cmd,\n' )
+    file_id.write('        parse_arg<' + device.class_name + '::' + operation['name'] + '> (Command& cmd,\n' )
     file_id.write('                KDevice<' + device.class_name + ',' + device.name + '>::\n')
     file_id.write('                Argument<' + device.class_name + '::' + operation['name'] + '>& args, SessID sess_id)\n' )
     file_id.write('{\n')
@@ -113,7 +113,7 @@ def PrintParserCore(file_id, device, operation):
 
             if before_vector:
                 file_id.write('    args.' + pack['args']['name'] + ' = extract_array<position' + str(pos_cnt)
-                              + ', ' + array_params['T'] + ', ' + array_params['N'] + '>(cmd.buffer.data);\n')
+                              + ', ' + array_params['T'] + ', ' + array_params['N'] + '>(cmd.buffer);\n')
 
                 if idx < len(packs) - 1:
                     file_id.write('\n    constexpr size_t position' + str(pos_cnt + 1) + ' = position' + str(pos_cnt)
@@ -128,7 +128,7 @@ def PrintParserCore(file_id, device, operation):
                 file_id.write('    }\n')
 
                 file_id.write('\n    args.' + pack['args']['name'] + ' = extract_array<0, '
-                                + array_params['T'] + ', ' + array_params['N'] + '>(buff' + str(idx) + '.data);\n')
+                                + array_params['T'] + ', ' + array_params['N'] + '>(buff' + str(idx) + ');\n')
         elif pack['family'] == 'vector':
             before_vector = False
 
@@ -241,7 +241,7 @@ def PrintExecuteOp(file_id, device, operation):
 def PrintExecute(file_id, device):
     file_id.write('template<>\n')
     file_id.write('int KDevice<' + device.class_name + ',' + device.name + '>::\n')
-    file_id.write('        execute(const Command& cmd)\n' )
+    file_id.write('        execute(Command& cmd)\n' )
     file_id.write('{\n')
 
     file_id.write('#if KSERVER_HAS_THREADS\n')

@@ -123,8 +123,6 @@ class Session : public SessionAbstract
     SessionManager& session_manager;
     SessionPermissions permissions;
 
-    Command cmd;
-
     struct EmptyBuffer {};
     std::conditional_t<sock_type == TCP || sock_type == UNIX,
             Buffer<KSERVER_RECV_DATA_BUFF_LEN>, EmptyBuffer> recv_data_buff;
@@ -164,7 +162,6 @@ Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
 , peer_info(peer_info_)
 , session_manager(session_manager_)
 , permissions()
-, cmd()
 #if KSERVER_HAS_WEBSOCKET
 , websock(config_, &session_manager_.kserver)
 #endif
@@ -220,6 +217,7 @@ int Session<sock_type>::run()
         return -1;
 
     while (!session_manager.kserver.exit_comm.load()) {
+        Command cmd;
         int nb_bytes_rcvd = read_command(cmd);
 
         if (session_manager.kserver.exit_comm.load())

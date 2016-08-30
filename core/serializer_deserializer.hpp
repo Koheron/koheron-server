@@ -223,12 +223,14 @@ inline void append<bool>(unsigned char *buff, bool value)
 
 // std::array
 
-template<size_t position, typename T, size_t N>
-inline const std::array<T, N>& extract_array(const char *buff)
+template<size_t position, typename T, size_t N, size_t len>
+inline const std::array<T, N>& extract_array(Buffer<len>& buff)
 {
     // http://stackoverflow.com/questions/11205186/treat-c-cstyle-array-as-stdarray
-    auto p = reinterpret_cast<const std::array<T, N>*>(&buff[position]);
-    assert(p->data() == (const T*)&buff[position]);
+    auto p = reinterpret_cast<const std::array<T, N>*>(&buff.data[position]);
+    assert(p->data() == (const T*)&buff.data[position]);
+    assert(position == buff.position);
+    buff.position += size_of<T, N>;
     return *p;
 }
 
@@ -277,11 +279,13 @@ constexpr size_t required_buffer_size()
 }
 
 template<size_t position, size_t len, typename... Tp>
-inline std::tuple<Tp...> deserialize(const Buffer<len>& buff)
+inline std::tuple<Tp...> deserialize(Buffer<len>& buff)
 {
     static_assert(required_buffer_size<Tp...>() <= len - position, 
                   "Buffer size too small");
-
+    printf("position = %lu buff.position = %lu\n", position, buff.position);
+    assert(position == buff.position);
+    buff.position += required_buffer_size<Tp...>();
     return detail::deserialize<position, Tp...>(buff.data);
 }
 
