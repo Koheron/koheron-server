@@ -6,7 +6,6 @@ import yaml
 import os
 import jinja2
 
-import autogen_implementation
 from middleware_handler import MiddlewareHandler
 
 def GetClassName(dev_name):
@@ -29,7 +28,6 @@ class Device:
 
     def generate(self, directory):
         self._render_ks_device_header(directory)          # Generate KServer header file (hpp)
-        #autogen_implementation.Generate(self, directory)  # Generate KServer implementation (cpp)
 
     def _render_ks_device_header(self, directory):
         template_filename = 'scripts/templates/ks_device.hpp'
