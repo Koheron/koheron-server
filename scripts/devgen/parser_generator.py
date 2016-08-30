@@ -125,7 +125,7 @@ def print_type_list_pack(lines, pack):
 
 def build_args_packs(lines, operation):
     ''' Packs the adjacent scalars together for deserialization
-        and separate them from the arrays '''
+        and separate them from the arrays and vectors'''
     packs = []
     args_list = []
     has_vector = False

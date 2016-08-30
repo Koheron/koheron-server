@@ -16,7 +16,7 @@ __license__ = "AGPL"
 __copyright__ = 'Copyright 2015 Koheron SAS'
 
 from device import Device
-from autogen_implementation import parser_generator
+from parser_generator import parser_generator
 
 __all__ = [ 'Generator',
             'Device']
