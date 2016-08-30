@@ -13,8 +13,6 @@ namespace kserver {
 template<> int Session<TCP>::init_socket() {return 0;}
 template<> int Session<TCP>::exit_socket() {return 0;}
 
-#define HEADER_LENGTH    12
-#define HEADER_START     4  // First 4 bytes are reserved
 #define HEADER_TYPE_LIST uint16_t, uint16_t, uint32_t
 
 template<>
@@ -23,7 +21,7 @@ int Session<TCP>::read_command(Command& cmd)
     // Read and decode header
     // |      RESERVED     | dev_id  |  op_id  |   payload_size    |   payload
     // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
-    int header_bytes = rcv_n_bytes(cmd.header.data, HEADER_LENGTH);
+    int header_bytes = rcv_n_bytes(cmd.header.data, Command::HEADER_SIZE);
 
     if (header_bytes == 0)
         return header_bytes;
@@ -34,9 +32,8 @@ int Session<TCP>::read_command(Command& cmd)
         return header_bytes;
     }
 
-    cmd.header.position = HEADER_START;
     auto header_tuple
-        = deserialize<HEADER_START, cmd.header.size(), HEADER_TYPE_LIST>(cmd.header);
+        = deserialize<Command::HEADER_START, cmd.header.size(), HEADER_TYPE_LIST>(cmd.header);
     uint32_t payload_size = std::get<2>(header_tuple);
 
     cmd.sess_id = id;
@@ -44,18 +41,18 @@ int Session<TCP>::read_command(Command& cmd)
     cmd.operation = std::get<1>(header_tuple);
     cmd.payload_size = payload_size;
 
-    if (payload_size > cmd.buffer.size()) {
+    if (payload_size > cmd.payload.size()) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
                   "TCPSocket: Command payload buffer size too small\n"
-                  "payload_size = %u cmd.buffer.size = %u\n",
-                  payload_size, cmd.buffer.size());
+                  "payload_size = %u cmd.payload.size = %u\n",
+                  payload_size, cmd.payload.size());
         return -1;
     }
 
     int payload_bytes = 0;
 
     if (payload_size > 0) {
-        payload_bytes = rcv_n_bytes(cmd.buffer.data, payload_size);
+        payload_bytes = rcv_n_bytes(cmd.payload.data, payload_size);
 
         if (payload_bytes == 0)
             return payload_bytes;
@@ -167,15 +164,14 @@ int Session<WEBSOCK>::read_command(Command& cmd)
     if (websock.is_closed())
         return 0;
 
-    if (websock.payload_size() < HEADER_LENGTH) {
+    if (websock.payload_size() < Command::HEADER_SIZE) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
             "WebSocket: Command too small\n");
         return -1;
     }
 
-    cmd.header.position = HEADER_START;
     auto header_tuple
-        = deserialize<HEADER_START, HEADER_TYPE_LIST>(cmd.header.data);
+        = deserialize<Command::HEADER_START, HEADER_TYPE_LIST>(cmd.header.data);
 
     uint32_t payload_size = std::get<2>(header_tuple);
 
@@ -184,26 +180,26 @@ int Session<WEBSOCK>::read_command(Command& cmd)
         return -1;
     }
 
-    if (payload_size + HEADER_LENGTH > websock.payload_size()) {
+    if (payload_size + Command::HEADER_SIZE > websock.payload_size()) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
             "WebSocket: Command payload reception incomplete. "
             "Expected %zu bytes. Received %zu bytes.\n",
-            payload_size + HEADER_LENGTH, websock.payload_size());
+            payload_size + Command::HEADER_SIZE, websock.payload_size());
         return -1;
     }
 
-    if (payload_size + HEADER_LENGTH < websock.payload_size())
+    if (payload_size + Command::HEADER_SIZE < websock.payload_size())
         session_manager.kserver.syslog.print<SysLog::WARNING>(
             "WebSocket: Received more data than expected. "
             "Expected %zu bytes. Received %zu bytes.\n",
-            payload_size + HEADER_LENGTH, websock.payload_size());
+            payload_size + Command::HEADER_SIZE, websock.payload_size());
 
     cmd.sess_id = id;
     cmd.device = static_cast<device_t>(std::get<0>(header_tuple));
     cmd.operation = std::get<1>(header_tuple);
     cmd.payload_size = payload_size;
 
-    return HEADER_LENGTH + payload_size;
+    return Command::HEADER_SIZE + payload_size;
 }
 
 template<>

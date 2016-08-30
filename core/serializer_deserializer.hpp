@@ -283,7 +283,6 @@ inline std::tuple<Tp...> deserialize(Buffer<len>& buff)
 {
     static_assert(required_buffer_size<Tp...>() <= len - position, 
                   "Buffer size too small");
-    printf("position = %lu buff.position = %lu\n", position, buff.position);
     assert(position == buff.position);
     buff.position += required_buffer_size<Tp...>();
     return detail::deserialize<position, Tp...>(buff.data);

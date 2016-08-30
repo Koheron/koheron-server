@@ -70,7 +70,7 @@ def PrintParserCore(file_id, device, operation):
     if not has_vector:
         print_req_buff_size(file_id, packs)
 
-        file_id.write('    static_assert(req_buff_size <= cmd.buffer.size(), "Buffer size too small");\n\n');
+        file_id.write('    static_assert(req_buff_size <= cmd.payload.size(), "Buffer size too small");\n\n');
         file_id.write('    if (req_buff_size != cmd.payload_size) {\n')
         file_id.write('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Invalid payload size. Expected %zu bytes. Received %zu bytes.\\n\", req_buff_size, cmd.payload_size);\n')
         file_id.write('        return -1;\n')
@@ -83,9 +83,9 @@ def PrintParserCore(file_id, device, operation):
     for idx, pack in enumerate(packs):
         if pack['family'] == 'scalar':
             if before_vector:
-                file_id.write('    auto args_tuple' + str(idx) + ' = deserialize<position' + str(pos_cnt) + ', cmd.buffer.size(), ')
+                file_id.write('    auto args_tuple' + str(idx) + ' = deserialize<position' + str(pos_cnt) + ', cmd.payload.size(), ')
                 print_type_list_pack(file_id, pack)
-                file_id.write('>(cmd.buffer);\n')
+                file_id.write('>(cmd.payload);\n')
 
                 if idx < len(packs) - 1:
                     file_id.write('\n    constexpr size_t position' + str(pos_cnt + 1) + ' = position' + str(pos_cnt)
@@ -113,7 +113,7 @@ def PrintParserCore(file_id, device, operation):
 
             if before_vector:
                 file_id.write('    args.' + pack['args']['name'] + ' = extract_array<position' + str(pos_cnt)
-                              + ', ' + array_params['T'] + ', ' + array_params['N'] + '>(cmd.buffer);\n')
+                              + ', ' + array_params['T'] + ', ' + array_params['N'] + '>(cmd.payload);\n')
 
                 if idx < len(packs) - 1:
                     file_id.write('\n    constexpr size_t position' + str(pos_cnt + 1) + ' = position' + str(pos_cnt)
@@ -132,7 +132,7 @@ def PrintParserCore(file_id, device, operation):
         elif pack['family'] == 'vector':
             before_vector = False
 
-            file_id.write('    uint64_t length' + str(idx) + ' = std::get<0>(deserialize<position' + str(pos_cnt) + ', cmd.buffer.size(), uint64_t>(cmd.buffer));\n\n')
+            file_id.write('    uint64_t length' + str(idx) + ' = std::get<0>(deserialize<position' + str(pos_cnt) + ', cmd.payload.size(), uint64_t>(cmd.payload));\n\n')
             file_id.write('    if (RCV_VECTOR(args.' + pack['args']['name'] + ', length' + str(idx) + ') < 0) {\n')
             file_id.write('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive vector.\\n");\n')
             file_id.write('        return -1;\n')
