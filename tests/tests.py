@@ -66,14 +66,6 @@ class Tests:
     def send_std_vector(self):
         return self.client.recv_array(10, dtype='float32')
 
-    @command('Tests', 'I')
-    def send_c_array1(self, len_):
-        return self.client.recv_array(2*len_, dtype='float32')
-
-    @command('Tests')
-    def send_c_array2(self):
-        return self.client.recv_array(10, dtype='float32')
-
     @command('Tests', 'IfAdi')
     def rcv_std_array(self, u, f, arr, d, i):
         return self.client.recv_bool()
@@ -211,22 +203,6 @@ def test_send_std_array(tests):
     array = tests.send_std_array()
     for i in range(len(array)):
         assert array[i] == i*i
-
-@pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_send_c_array1(tests):
-    len_ = 10
-    array = tests.send_c_array1(len_)
-    assert len(array) == 2*len_
-
-    for i in range(len(array)):
-        assert array[i] == 0.5 * i
-
-@pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_send_c_array2(tests):
-    array = tests.send_c_array2()
-
-    for i in range(len(array)):
-        assert array[i] == 0.25 * i
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_rcv_std_array(tests):

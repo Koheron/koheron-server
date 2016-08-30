@@ -119,45 +119,7 @@ class FragmentsGenerator:
             frag.append('    return SEND_CSTR('
                         + self._build_func_call(operation) + ');\n')
 
-        elif operation['io_type']['value'] == 'READ_ARRAY':
-            ptr_type = self._get_ptr_type(operation['prototype']['ret_type'])
-            remaining = operation['io_type']['remaining']
-
-            if remaining.find('this') >= 0:
-                obj_name = self.parser.device['objects'][0]['name']
-                member_name = remaining.split('{')[1].split('}')[0].strip()
-                member_call = 'THIS->' + obj_name + '.' + member_name
-                length = remaining.replace('this{' + member_name + '}', member_call)
-            elif remaining.find('arg') >= 0:
-                length = ''
-                for param in operation['prototype']['params']:
-                    if remaining.find(param['name']) >= 0:
-                        length = remaining.replace('arg{' + param['name'] + '}', 'args.' + param['name'])
-                if length == '': # Length is a constant independent of a parameter
-                    length = remaining
-            else: # Length is a constant independent of a parameter
-                length = remaining
-
-            frag.append('    auto ptr = ' + self._build_func_call(operation) + ';\n')
-            frag.append('    return SEND_ARRAY<' + ptr_type + '>(ptr, ' + length + ');\n')
-
         return frag
-
-    def _get_ptr_type(self, ret_type):
-        '''Get the pointer type
-        Ex. if ret_type is char* it returns char.
-        Raise an error if ret_type is not a pointer.
-        '''
-        tokens = ret_type.split('*')
-
-        # T*
-        if len(tokens) == 2:
-            return tokens[0].strip()
-        # const T*
-        elif tokens[0].split(' ')[0].strip() == 'const' and len(tokens) == 2:
-            return tokens[0].split(' ')[1].strip()
-        else:
-            raise ValueError('Return type ' + ret_type + ' is not a pointer')
 
     def _get_operation_data(self, op_name):
         for op in self.parser.raw_dev_data["operations"]:

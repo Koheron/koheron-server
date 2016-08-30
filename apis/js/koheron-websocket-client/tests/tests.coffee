@@ -38,12 +38,6 @@ class Tests
     rcvStdArray : (cb) ->
         @kclient.readFloat32Array(Command(@id, @cmds.send_std_array), cb)
 
-    rcvCArray1 : (len, cb) ->
-        @kclient.readFloat32Array(Command(@id, @cmds.send_c_array1, 'I', len), cb)
-
-    rcvCArray2 : (cb) ->
-        @kclient.readFloat32Array(Command(@id, @cmds.send_c_array2), cb)
-
     sendStdArray : (cb) ->
         u = 4223453
         f = 3.141592
@@ -320,51 +314,6 @@ exports.rcvStdArray = (assert) ->
                 is_ok = true
                 for i in [0..array.length-1]
                     if array[i] != i*i
-                        is_ok = false
-                        break
-
-                assert.ok(is_ok)
-                client.exit()
-                assert.done()
-            )
-        )
-    )
-
-exports.rcvCArray1 = (assert) ->
-    client = new websock_client.KClient('127.0.0.1', 1)
-    assert.expect(3)
-
-    assert.doesNotThrow( =>
-        client.init( =>
-            tests = new Tests(client)
-            len = 10
-            tests.rcvCArray1(len, (array) =>
-                assert.equal(array.length, 2*len)
-                is_ok = true
-                for i in [0..2*len-1]
-                    if array[i] != i/2
-                        is_ok = false
-                        break
-
-                assert.ok(is_ok)
-                client.exit()
-                assert.done()
-            )
-        )
-    )
-
-exports.rcvCArray2 = (assert) ->
-    client = new websock_client.KClient('127.0.0.1', 1)
-    assert.expect(3)
-
-    assert.doesNotThrow( =>
-        client.init( =>
-            tests = new Tests(client)
-            tests.rcvCArray2((array) =>
-                assert.equal(array.length, 10)
-                is_ok = true
-                for i in [0..10-1]
-                    if array[i] != i/4
                         is_ok = false
                         break
 

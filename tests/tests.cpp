@@ -60,27 +60,6 @@ std::array<float, 10>& Tests::send_std_array()
     return data_std_array;
 }
 
-float* Tests::send_c_array1(uint32_t n_pts)
-{
-    if (data.size() < 2*n_pts)
-        data.resize(2*n_pts);
-
-    for (unsigned int i=0; i<2*n_pts; i++)
-        data[i] = static_cast<float>(i)/2;
-
-    return data.data();
-}
-
-float* Tests::send_c_array2()
-{
-    data.resize(10);
-
-    for (unsigned int i=0; i<data.size(); i++)
-       data[i] = static_cast<float>(i)/4;
-
-    return data.data();
-}
-
 bool Tests::rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 8192>& arr, double d, int32_t i)
 {
     if (u != 4223453) return false;
