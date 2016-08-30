@@ -15,7 +15,7 @@
     {% else -%}
         ENTRY( {{device.name}}, {{device.class_name}}, {{ device | list_operations(max_op_num) }} )
     {% endif -%}
-{% endfor -%}
+{% endfor %}
 
 /// Maximum number of operations
 #define MAX_OP_NUM {{max_op_num}}
