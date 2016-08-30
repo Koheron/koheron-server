@@ -89,6 +89,15 @@ class Tests
         vec[_i] = Math.log(_i + 1) for _i in [0..vec.length - 1]
         @kclient.readBool(Command(@id, @cmds.rcv_std_vector2, 'IfVdi', u, f, vec, d, i), cb)
 
+    sendStdVector3 : (cb) ->
+        d = 2.654798454646
+        i = -56789
+        array = new Uint32Array(8192)
+        array[_i] = _i for _i in [0..array.length - 1]
+        vec = new Float32Array(8192)
+        vec[_i] = Math.log(_i + 1) for _i in [0..vec.length - 1]
+        @kclient.readBool(Command(@id, @cmds.rcv_std_vector3, 'AVdi', array, vec, d, i), cb)
+
     readUint : (cb) ->
         @kclient.readUint32(Command(@id, @cmds.read_uint), cb)
 
@@ -461,6 +470,21 @@ exports.sendStdVector2 = (assert) ->
         client.init( =>
             tests = new Tests(client)
             tests.sendStdVector2( (is_ok) =>
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.sendStdVector3 = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.sendStdVector3( (is_ok) =>
                 assert.ok(is_ok)
                 client.exit()
                 assert.done()

@@ -149,8 +149,6 @@ bool Tests::rcv_std_vector1(uint32_t u, float f, const std::vector<double>& vec)
 
 bool Tests::rcv_std_vector2(uint32_t u, float f, const std::vector<float>& vec, double d, int32_t i)
 {
-    printf("u = %u, i = %d\n", u, i);
-
     if (u != 4223453) return false;
     if (fabs(f - 3.141592) > std::numeric_limits<float>::epsilon()) return false;
 
@@ -159,8 +157,6 @@ bool Tests::rcv_std_vector2(uint32_t u, float f, const std::vector<float>& vec, 
     for (unsigned int i=0; i<vec.size(); i++)
         if (fabs(vec[i] - log(static_cast<float>(i + 1))) > std::numeric_limits<float>::round_error())
             return false;
-
-    printf("u = %u, i = %d\n", u, i);
 
     if (fabs(d - 2.654798454646) > std::numeric_limits<double>::epsilon()) return false;
     if (i != -56789) return false;
