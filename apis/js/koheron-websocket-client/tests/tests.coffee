@@ -46,7 +46,7 @@ class Tests
 
     sendBuffer : (len, cb) ->
         buffer = new Uint32Array(len)
-        buffer[i] = i*i for i in [0..len]
+        buffer[i] = i*i for i in [0..len - 1]
         @kclient.sendArray(Command(@id, @cmds.set_buffer, 'I', buffer.length), buffer, (ok) -> cb(ok==1))
 
     sendStdArray : (cb) ->
@@ -55,18 +55,23 @@ class Tests
         d = 2.654798454646
         i = -56789
         array = new Uint32Array(8192)
-        array[_i] = _i for _i in [0..array.length]
+        array[_i] = _i for _i in [0..array.length - 1]
         @kclient.readBool(Command(@id, @cmds.rcv_std_array, 'IfAdi', u, f, array, d, i), cb)
 
     sendStdArray2 : (cb) ->
         array = new Float32Array(8192)
-        array[i] = Math.log(i + 1) for i in [0..array.length]
+        array[i] = Math.log(i + 1) for i in [0..array.length - 1]
         @kclient.readBool(Command(@id, @cmds.rcv_std_array2, 'A', array), cb)
 
     sendStdArray3 : (cb) ->
         array = new Float64Array(8192)
-        array[i] = Math.sin(i) for i in [0..array.length]
+        array[i] = Math.sin(i) for i in [0..array.length - 1]
         @kclient.readBool(Command(@id, @cmds.rcv_std_array3, 'A', array), cb)
+
+    sendStdVector : (cb) ->
+        vec = new Uint32Array(8192)
+        vec[i] = i for i in [0..vec.length - 1]
+        @kclient.readBool(Command(@id, @cmds.rcv_std_vector, 'V', vec), cb)
 
     readUint : (cb) ->
         @kclient.readUint32(Command(@id, @cmds.read_uint), cb)
@@ -395,6 +400,21 @@ exports.sendStdArray3 = (assert) ->
         client.init( =>
             tests = new Tests(client)
             tests.sendStdArray3( (is_ok) =>
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.sendStdVector = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.sendStdVector( (is_ok) =>
                 assert.ok(is_ok)
                 client.exit()
                 assert.done()

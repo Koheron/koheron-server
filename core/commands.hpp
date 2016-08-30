@@ -22,6 +22,7 @@ struct Buffer
 
     void set() {bzero(_data.data(), len);}
     char* data() {return _data.data();}
+    char* begin() {return &(_data.data())[position];}
 
   private:
     std::array<char, len> _data;

@@ -255,51 +255,64 @@ class CommandBase
     # Build the binary buffer of a command
     # @type {function(number, string=, ...(number|boolean)):Uint8Array}
     ###
-    constructor: (dev_id, cmd_ref, types_str='', params...) ->
+    constructor: (dev_id, cmd_ref, fmt='', params...) ->
         buffer = []
         appendUint32(buffer, 0) # RESERVED
         appendUint16(buffer, dev_id)
         appendUint16(buffer, cmd_ref)
 
-        if types_str.length == 0
+        if fmt.length == 0
             appendUint32(buffer, 0) # Payload size
             return new Uint8Array(buffer)
 
-        if types_str.length != params.length
+        if fmt.length != params.length
             throw new Error('Invalid types string length')
 
-        payload_size = 0
-        payload = []
-        for i in [0..(types_str.length-1)]
-            switch types_str[i]
-                when 'B'
-                    payload_size += appendUint8(payload, params[i])
-                when 'b'
-                    payload_size += appendInt8(payload, params[i])
-                when 'H'
-                    payload_size += appendUint16(payload, params[i])
-                when 'h'
-                    payload_size += appendInt16(payload, params[i])
-                when 'I'
-                    payload_size += appendUint32(payload, params[i])
-                when 'i'
-                    payload_size += appendInt32(payload, params[i])
-                when 'f'
-                    payload_size += appendFloat32(payload, params[i])
-                when 'd'
-                    payload_size += appendFloat64(payload, params[i])
-                when '?'
-                    if params[i]
-                        payload_size += appendUint8(payload, 1)
+        buildPayload = (fmt='', params) ->
+            payload_size = 0
+            payload = []
+            for i in [0..(fmt.length-1)]
+                switch fmt[i]
+                    when 'B'
+                        payload_size += appendUint8(payload, params[i])
+                    when 'b'
+                        payload_size += appendInt8(payload, params[i])
+                    when 'H'
+                        payload_size += appendUint16(payload, params[i])
+                    when 'h'
+                        payload_size += appendInt16(payload, params[i])
+                    when 'I'
+                        payload_size += appendUint32(payload, params[i])
+                    when 'i'
+                        payload_size += appendInt32(payload, params[i])
+                    when 'f'
+                        payload_size += appendFloat32(payload, params[i])
+                    when 'd'
+                        payload_size += appendFloat64(payload, params[i])
+                    when '?'
+                        if params[i]
+                            payload_size += appendUint8(payload, 1)
+                        else
+                            payload_size += appendUint8(payload, 0)
+                    when 'A'
+                        payload_size += appendArray(payload, params[i])
+                    when 'V'
+                        vec_len = params[i].length
+                        payload_size += appendUint32(payload, vec_len)
+                        payload_size += appendUint32(payload, 0)
+                        appendArray(payload, params[i])
+                        if fmt[i+1..].length > 0
+                            Array.prototype.push.apply(payload, buildPayload(fmt[i+1..], params[i+1..]))
+                        break
                     else
-                        payload_size += appendUint8(payload, 0)
-                when 'A'
-                    payload_size += appendArray(payload, params[i])
-                else
-                    throw new TypeError('Unknown type ' + types_str[i])
+                        throw new TypeError('Unknown type ' + fmt[i])
 
-        appendUint32(buffer, payload_size)
-        return new Uint8Array(buffer.concat(payload))
+            return [payload, payload_size]
+
+        res = buildPayload(fmt, params)
+        appendUint32(buffer, res[1])
+        return new Uint8Array(buffer.concat(res[0]))
+
 
 ###* @param {...*} var_args ###
 Command = (var_args) ->

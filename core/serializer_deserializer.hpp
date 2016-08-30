@@ -227,8 +227,8 @@ template<typename T, size_t N, size_t len>
 inline const std::array<T, N>& extract_array(Buffer<len>& buff)
 {
     // http://stackoverflow.com/questions/11205186/treat-c-cstyle-array-as-stdarray
-    auto p = reinterpret_cast<const std::array<T, N>*>(&(buff.data())[buff.position]);
-    assert(p->data() == (const T*)&(buff.data())[buff.position]);
+    auto p = reinterpret_cast<const std::array<T, N>*>(buff.begin());
+    assert(p->data() == (const T*)buff.begin());
     buff.position += size_of<T, N>;
     return *p;
 }
@@ -280,7 +280,7 @@ inline std::tuple<Tp...> deserialize(Buffer<len>& buff)
 {
     static_assert(required_buffer_size<Tp...>() <= len, "Buffer size too small");
 
-    auto tup = detail::deserialize<0, Tp...>(&(buff.data())[buff.position]);
+    auto tup = detail::deserialize<0, Tp...>(buff.begin());
     buff.position += required_buffer_size<Tp...>();
     return tup;
 }

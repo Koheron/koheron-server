@@ -185,11 +185,11 @@ int Session<WEBSOCK>::read_command(Command& cmd)
         return -1;
     }
 
-    if (payload_size + Command::HEADER_SIZE < websock.payload_size())
-        session_manager.kserver.syslog.print<SysLog::WARNING>(
-            "WebSocket: Received more data than expected. "
-            "Expected %zu bytes. Received %zu bytes.\n",
-            payload_size + Command::HEADER_SIZE, websock.payload_size());
+    // if (payload_size + Command::HEADER_SIZE < websock.payload_size())
+    //     session_manager.kserver.syslog.print<SysLog::WARNING>(
+    //         "WebSocket: Received more data than expected. "
+    //         "Expected %zu bytes. Received %zu bytes.\n",
+    //         payload_size + Command::HEADER_SIZE, websock.payload_size());
 
     cmd.sess_id = id;
     cmd.device = static_cast<device_t>(std::get<0>(header_tuple));

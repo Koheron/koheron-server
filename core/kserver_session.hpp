@@ -392,9 +392,13 @@ template<>
 template<typename T>
 int Session<WEBSOCK>::rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd)
 {
-    vec.resize(length);
+    // TODO Check dimensions
+    printf("length = %lu\n", length);
 
-    return -1;
+    vec.resize(length);
+    memcpy(vec.data(), cmd.payload.begin(), length * sizeof(T));
+    // std::copy(cmd.payload.begin(), cmd.payload.begin() + length, vec.begin());
+    return 0;
 }
 
 template<>
