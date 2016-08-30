@@ -7,8 +7,68 @@ import os
 import time
 import yaml
 import string
+import CppHeaderParser
 
-from hpp_parser import parse_header, CSTR_TYPES
+CSTR_TYPES = ["char *", "char*", "const char *", "const char*"]
+
+def parse_header(hpp_filename):
+    try:
+        cpp_header = CppHeaderParser.CppHeader(hpp_filename)
+    except CppHeaderParser.CppParseError as e:
+        print(e)
+
+    devices = []
+    for classname in cpp_header.classes:
+        devices.append(_get_device(cpp_header.classes[classname]))
+    return devices
+
+def _set_iotype(operation, _type):
+    operation['io_type'] = {}
+    if _type == 'void':
+        operation['io_type'] = {'value': 'WRITE', 'remaining': ''}
+    elif _type in CSTR_TYPES:
+        operation["io_type"] = {'value': 'READ_CSTR', 'remaining': ''}
+    else:
+        operation["io_type"] = {'value': 'READ', 'remaining': ''}
+
+def _get_operation(method):
+    operation = {}
+    _set_iotype(operation, method['rtnType'])
+    operation['prototype'] = _get_operation_prototype(method)
+    operation['flags'] = ''
+    return operation
+
+def _get_operation_prototype(method):
+    prototype = {}
+    prototype['ret_type'] = method['rtnType']
+    prototype['name'] = method['name']
+    prototype['params'] = []
+
+    for param in method['parameters']:
+        prototype['params'].append({
+          'name': str(param['name']),
+          'type': param['type']
+        })
+    return prototype
+
+def _get_device(_class):
+    device = {}
+    device['objects'] = [{
+      'name': _class['name'].lower(),
+      'type': str(_class['name'])
+    }]
+    device['name'] = _class['name']
+
+    device['operations'] = []
+    for method in _class['methods']['public']:
+        # We eliminate constructor and destructor
+        if method['name'] in [s + _class['name'] for s in ['','~']]:
+            continue
+
+        operation = _get_operation(method)
+        if operation is not None:
+            device['operations'].append(operation)
+    return device
 
 class MiddlewareHppParser:
     def __init__(self, hppfile):
@@ -17,23 +77,14 @@ class MiddlewareHppParser:
         self.raw_dev_data["includes"] = [os.path.basename(hppfile)];
         self.device = self._get_device()
 
-    def _get_template(self, ret_type):
-        tokens = ret_type.split('<')
-
-        if len(tokens) == 2:
-            return tokens[1].split('>')[0].strip()
-        else:
-            return None
-
     def _get_device(self):
         device = {}
         device['operations'] = []
-        device['raw_name'] = self.raw_dev_data['name']
-        device['name'] = self.get_device_name()
+        device['name'] = self.raw_dev_data['name']
         device['includes'] = self.raw_dev_data['includes']
         device['objects'] = [{
           'type': self.raw_dev_data['objects'][0]['type'],
-          'name': '__' + self.get_device_name().lower()
+          'name': '__' + self.raw_dev_data['name']
         }]
 
         for op in self.raw_dev_data['operations']:
@@ -41,14 +92,12 @@ class MiddlewareHppParser:
 
         return device
 
-    def get_device_name(self):
-        ''' Build the device name from the class name '''
-        raw_name = self.raw_dev_data['name']
+    def get_device_tag(self, name):
         dev_name = []
 
         # Check whether there are capital letters within the class name
         # and insert an underscore before them
-        for idx, letter in enumerate(raw_name):
+        for idx, letter in enumerate(name):
             if idx > 0 and letter in list(string.ascii_uppercase):
                 dev_name.append('_')
 

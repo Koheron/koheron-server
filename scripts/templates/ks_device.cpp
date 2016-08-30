@@ -23,9 +23,9 @@ namespace kserver {
 
 template<>
 template<>
-int KDevice<{{ device.class_name }}, {{ device.name }}>::
+int KDevice<{{ device.class_name }}, {{ device.tag }}>::
         parse_arg<{{ device.class_name }}::{{ operation['name'] }}> (Command& cmd,
-                KDevice<{{ device.class_name}}, {{ device.name }}>::
+                KDevice<{{ device.class_name}}, {{ device.tag }}>::
                 Argument<{{ device.class_name }}::{{ operation['name'] }}>& args, SessID sess_id)
 {
     {{ operation | get_parser(device) }}
@@ -34,7 +34,7 @@ int KDevice<{{ device.class_name }}, {{ device.name }}>::
 
 template<>
 template<>
-int KDevice<{{ device.class_name }}, {{ device.name }}>::
+int KDevice<{{ device.class_name }}, {{ device.tag }}>::
         execute_op<{{ device.class_name }}::{{ operation['name'] }}> 
         (const Argument<{{ device.class_name }}::{{ operation['name'] }}>& args, SessID sess_id)
 {
@@ -45,7 +45,7 @@ int KDevice<{{ device.class_name }}, {{ device.name }}>::
 
 
 template<>
-int KDevice<{{ device.class_name }}, {{ device.name }}>::
+int KDevice<{{ device.class_name }}, {{ device.tag }}>::
         execute(Command& cmd)
 {
 #if KSERVER_HAS_THREADS
@@ -63,7 +63,7 @@ int KDevice<{{ device.class_name }}, {{ device.name }}>::
         return execute_op<{{ device.class_name }}::{{ operation['name'] }}>(args, cmd.sess_id);
       }
 {% endfor %}
-      case {{ device.class_name }}::{{ device.name | lower }}_op_num:
+      case {{ device.class_name }}::{{ device.tag | lower }}_op_num:
       default:
           kserver->syslog.print<SysLog::ERROR>("{{ device.class_name }}: Unknown operation\n");
           return -1;

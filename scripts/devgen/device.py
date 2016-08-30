@@ -11,8 +11,8 @@ class Device:
         self.fragments = FragmentsGenerator(parser).get_fragments()
 
         self.operations = parser.device['operations']
+        self.tag = parser.get_device_tag(parser.device['name'])
         self.name = parser.device['name']
-        self.raw_name = parser.device['raw_name']
-        self.class_name = 'KS_' + self.name.capitalize()
+        self.class_name = 'KS_' + self.tag.capitalize()
         self.objects = parser.device['objects']
         self.includes = parser.device['includes']

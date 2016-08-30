@@ -11,9 +11,9 @@
 #define DEVICES_TABLE(ENTRY) \
 {% for device in devices -%}
     {% if not loop.last -%}
-        ENTRY( {{device.name}}, {{device.class_name}}, {{ device | list_operations(max_op_num) }} ) \
+        ENTRY( {{device.tag}}, {{device.class_name}}, {{ device | list_operations(max_op_num) }} ) \
     {% else -%}
-        ENTRY( {{device.name}}, {{device.class_name}}, {{ device | list_operations(max_op_num) }} )
+        ENTRY( {{device.tag}}, {{device.class_name}}, {{ device | list_operations(max_op_num) }} )
     {% endif -%}
 {% endfor %}
 
@@ -25,7 +25,7 @@ typedef enum {
     NO_DEVICE,
     KSERVER,
     {% for device in devices -%}
-    {{ device.name | upper }},
+    {{ device.tag | upper }},
     {% endfor -%}
     device_num
 } device_t;

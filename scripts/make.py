@@ -44,7 +44,7 @@ def get_json(devices):
 
     for device in devices:
         data.append({
-            'name': device.raw_name,
+            'name': device.name,
             'operations': [op['raw_name'] for op in device.operations]
         })
     return json.dumps(data, separators=(',', ':')).replace('"', '\\"')
@@ -106,11 +106,11 @@ def generate(devices_list, midware_path):
             print('Generating ' + device.name + '...')
 
             template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device.hpp'))
-            with open(os.path.join(midware_path, os.path.dirname(path), 'ks_' + device.name.lower() + '.hpp'), 'w') as output:
+            with open(os.path.join(midware_path, os.path.dirname(path), 'ks_' + device.tag.lower() + '.hpp'), 'w') as output:
                 output.write(template.render(device=device))
 
             template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device.cpp'))
-            with open(os.path.join(midware_path, os.path.dirname(path), 'ks_' + device.name.lower() + '.cpp'), 'w') as output:
+            with open(os.path.join(midware_path, os.path.dirname(path), 'ks_' + device.tag.lower() + '.cpp'), 'w') as output:
                 output.write(template.render(device=device))
 
             devices.append(device)

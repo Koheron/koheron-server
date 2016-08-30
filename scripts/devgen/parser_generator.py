@@ -34,7 +34,7 @@ def parser_generator(device, operation):
 
         lines.append('    static_assert(req_buff_size <= cmd.payload.size(), "Buffer size too small");\n\n');
         lines.append('    if (req_buff_size != cmd.payload_size) {\n')
-        lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.raw_name + ' - ' + operation['raw_name'] + '] Invalid payload size. Expected %zu bytes. Received %zu bytes.\\n\", req_buff_size, cmd.payload_size);\n')
+        lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['raw_name'] + '] Invalid payload size. Expected %zu bytes. Received %zu bytes.\\n\", req_buff_size, cmd.payload_size);\n')
         lines.append('        return -1;\n')
         lines.append('    }\n\n')
 
@@ -54,7 +54,7 @@ def parser_generator(device, operation):
                 print_type_list_pack(lines, pack)
                 lines.append('>(cmd);\n')
                 lines.append('    if (std::get<0>(args_tuple' + str(idx)  + ') < 0) {\n')
-                lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.raw_name + ' - ' + operation['raw_name'] + '] Failed to deserialize buffer.\\n");\n')
+                lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['raw_name'] + '] Failed to deserialize buffer.\\n");\n')
                 lines.append('        return -1;\n')
                 lines.append('    }\n')
 
@@ -69,7 +69,7 @@ def parser_generator(device, operation):
             else: # After vector need to reload a buffer
                 lines.append('\n    auto tup' + str(idx)  + ' = EXTRACT_ARRAY<' + array_params['T'] + ', ' + array_params['N'] + '>(cmd);\n')
                 lines.append('    if (std::get<0>(tup' + str(idx)  + ') < 0) {\n')
-                lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.raw_name + ' - ' + operation['raw_name'] + '] Failed to extract array.\\n");\n')
+                lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['raw_name'] + '] Failed to extract array.\\n");\n')
                 lines.append('        return -1;\n')
                 lines.append('    }\n')
 
@@ -80,7 +80,7 @@ def parser_generator(device, operation):
 
             lines.append('    uint64_t length' + str(idx) + ' = std::get<0>(cmd.payload.deserialize<uint64_t>());\n\n')
             lines.append('    if (RCV_VECTOR(args.' + pack['args']['name'] + ', length' + str(idx) + ', cmd) < 0) {\n')
-            lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.raw_name + ' - ' + operation['raw_name'] + '] Failed to receive vector.\\n");\n')
+            lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['raw_name'] + '] Failed to receive vector.\\n");\n')
             lines.append('        return -1;\n')
             lines.append('    }\n\n')
         else:
