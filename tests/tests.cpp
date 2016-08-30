@@ -81,17 +81,6 @@ float* Tests::send_c_array2()
     return data.data();
 }
 
-bool Tests::set_buffer(const uint32_t *data, uint32_t len)
-{
-    if (len != 10) return false;
-
-    for (unsigned int i=0; i<len; i++)
-        if (data[i] != i*i)
-            return false;
-
-    return true;
-}
-
 bool Tests::rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 8192>& arr, double d, int32_t i)
 {
     if (u != 4223453) return false;

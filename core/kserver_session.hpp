@@ -47,7 +47,6 @@ class SessionAbstract
     template<typename... Tp> int send_cstr(const char *string, Tp&&... args);
     template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd);
     template<typename T, size_t N> std::tuple<int, const std::array<T, N>&> extract_array(Command& cmd);
-    const uint32_t* rcv_handshake(uint32_t buff_size);
     template<typename T> int rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd);
     template<typename... Tp> int send(const std::tuple<Tp...>& t);
     template<typename T, size_t N> int send(const std::array<T, N>& vect);
@@ -87,18 +86,6 @@ class Session : public SessionAbstract
 
     // TODO Move in Session<TCP> specialization
     int rcv_n_bytes(char *buffer, uint64_t n_bytes);
-
-    /// Receive data from client with handshaking
-    /// @buff_size Size of the buffer to receive
-    /// @return Pointer to the data if success, NULL else
-    ///
-    /// Handshaking protocol:
-    /// 1) The size of the buffer must have been send as a 
-    ///    command argument by the client
-    /// 2) KServer acknowledges reception readiness by sending
-    ///    the number of points to receive to the client
-    /// 3) The client send the data buffer
-    const uint32_t* rcv_handshake(uint32_t buff_size);
 
     template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd);
     template<typename T, size_t N> std::tuple<int, const std::array<T, N>&> extract_array(Command& cmd);
@@ -319,8 +306,6 @@ int Session<sock_type>::send_string(const std::string& str, Tp&&... args)
 template<>
 int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes);
 
-template<> const uint32_t* Session<TCP>::rcv_handshake(uint32_t buff_size);
-
 template<>
 template<typename T>
 int Session<TCP>::rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd)
@@ -398,8 +383,6 @@ class Session<UNIX> : public Session<TCP>
 // -----------------------------------------------
 
 #if KSERVER_HAS_WEBSOCKET
-
-template<> const uint32_t* Session<WEBSOCK>::rcv_handshake(uint32_t buff_size);
 
 template<>
 template<typename T>
@@ -533,12 +516,6 @@ inline int SessionAbstract::rcv_vector(std::vector<T>& vec, uint64_t length, Com
 {
     SWITCH_SOCK_TYPE(rcv_vector(vec, length, cmd))
     return -1;
-}
-
-inline const uint32_t* SessionAbstract::rcv_handshake(uint32_t buff_size)
-{
-    SWITCH_SOCK_TYPE(rcv_handshake(buff_size))
-    return nullptr;
 }
 
 template<typename... Tp>

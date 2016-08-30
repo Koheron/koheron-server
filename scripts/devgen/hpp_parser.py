@@ -57,10 +57,6 @@ def _get_operation(method, pragmas):
         elif pragma['data'].find('read_array') >= 0:
             remaining = pragma['data'].split('read_array')[1].strip()
             operation['io_type'] = {'value': 'READ_ARRAY', 'remaining': remaining}
-        elif pragma['data'].find('write_array') >= 0:
-            remaining = pragma['data'].split('write_array')[1].strip()
-            operation['io_type'] = {'value': 'WRITE_ARRAY', 'remaining': remaining}
-            operation['array_params'] = _get_write_array_params(remaining)
         else:
             _set_iotype(operation, method['rtnType'])
     else:

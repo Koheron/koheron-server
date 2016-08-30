@@ -44,11 +44,6 @@ class Tests
     rcvCArray2 : (cb) ->
         @kclient.readFloat32Array(Command(@id, @cmds.send_c_array2), cb)
 
-    sendBuffer : (len, cb) ->
-        buffer = new Uint32Array(len)
-        buffer[i] = i*i for i in [0..len - 1]
-        @kclient.sendArray(Command(@id, @cmds.set_buffer, 'I', buffer.length), buffer, (ok) -> cb(ok==1))
-
     sendStdArray : (cb) ->
         u = 4223453
         f = 3.141592
@@ -373,22 +368,6 @@ exports.rcvCArray2 = (assert) ->
                         is_ok = false
                         break
 
-                assert.ok(is_ok)
-                client.exit()
-                assert.done()
-            )
-        )
-    )
-
-exports.sendBuffer = (assert) ->
-    client = new websock_client.KClient('127.0.0.1', 1)
-    assert.expect(2)
-
-    assert.doesNotThrow( =>
-        client.init( =>
-            tests = new Tests(client)
-            len = 10
-            tests.sendBuffer(len, (is_ok) =>
                 assert.ok(is_ok)
                 client.exit()
                 assert.done()

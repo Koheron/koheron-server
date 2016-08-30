@@ -74,10 +74,6 @@ class Tests:
     def send_c_array2(self):
         return self.client.recv_array(10, dtype='float32')
 
-    @write_buffer('Tests')
-    def set_buffer(self, data):
-        return self.client.recv_bool()
-
     @command('Tests', 'IfAdi')
     def rcv_std_array(self, u, f, arr, d, i):
         return self.client.recv_bool()
@@ -231,11 +227,6 @@ def test_send_c_array2(tests):
 
     for i in range(len(array)):
         assert array[i] == 0.25 * i
-
-@pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_set_buffer(tests):
-    data = np.arange(10)**2
-    assert tests.set_buffer(data)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_rcv_std_array(tests):

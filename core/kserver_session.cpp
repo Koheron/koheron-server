@@ -106,27 +106,6 @@ int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes)
     return bytes_read;
 }
 
-template<>
-const uint32_t* Session<TCP>::rcv_handshake(uint32_t buff_size)
-{
-    if (unlikely(send<uint32_t>(htonl(buff_size)) < 0)) {
-        session_manager.kserver.syslog.print<SysLog::ERROR>(
-            "TCPSocket: Cannot send buffer size\n");
-        return nullptr;
-    }
-
-    int n_bytes_received = rcv_n_bytes(recv_data_buff.data(), sizeof(uint32_t) * buff_size);
-
-    if (unlikely(n_bytes_received < 0))
-        return nullptr;
-
-    if (config->verbose)
-        session_manager.kserver.syslog.print_dbg("[R@%u] [%u bytes]\n",
-                                                 id, n_bytes_received);
-
-    return reinterpret_cast<const uint32_t*>(recv_data_buff.data());
-}
-
 #endif
 
 // -----------------------------------------------
@@ -193,28 +172,6 @@ int Session<WEBSOCK>::read_command(Command& cmd)
     return Command::HEADER_SIZE + payload_size;
 }
 
-template<>
-const uint32_t* Session<WEBSOCK>::rcv_handshake(uint32_t buff_size)
-{
-    if (unlikely(send<uint32_t>(buff_size) < 0)) {
-        session_manager.kserver.syslog.print<SysLog::ERROR>(
-            "WebSocket: Error sending the buffer size\n");
-        return nullptr;
-    }
-
-    int payload_size = websock.receive();
-
-    if (unlikely(payload_size < 0))
-        return nullptr;
-
-    if (unlikely(static_cast<uint32_t>(payload_size) != sizeof(uint32_t) * buff_size)) {
-        session_manager.kserver.syslog.print<SysLog::ERROR>(
-            "WebSocket: Invalid data size received\n");
-        return nullptr;
-    }
-
-    return reinterpret_cast<const uint32_t*>(websock.get_payload_no_copy());
-}
 #endif
 
 } // namespace kserver

@@ -64,59 +64,15 @@ class MiddlewareHppParser:
         if 'flags' in op and len(op['flags']) > 0:
             operation['flags'] = op['flags']
 
-        if op['io_type']['value'] == 'WRITE_ARRAY':
-            send_buffer_flag = {
-              'name': 'SEND_BUFFER',
-              'buffer_name': [op['array_params']['name']['name']]
-            }
-
-            if len(op['flags']) > 0:
-                operation['flags'].append(send_buffer_flag)
-            else:
-                operation['flags'] = [send_buffer_flag]
-
         if len(op['prototype']['params']) > 0:
-            if op['io_type']['value'] == 'WRITE_ARRAY':
-                array_name_ok = False
-                array_length_ok = False
+            operation['arguments'] = []
 
-                for param in op['prototype']['params']:
-                    param_ptr_toks = param['name'].split('*')
-
-                    if (op['array_params']['name']['src'] == 'param' and
-                        len(param_ptr_toks) == 2 and
-                        param_ptr_toks[1].strip() == op['array_params']['name']['name']):
-                        array_name_ok = True
-                    elif (op['array_params']['name']['src'] == 'param' and
-                        len(param_ptr_toks) == 1 and
-                        param_ptr_toks[0].strip() == op['array_params']['name']['name']):
-                        array_name_ok = True
-                    else:
-                        if (op['array_params']['length']['src'] == 'param' and
-                            param['name'] == op['array_params']['length']['length']):
-                            array_length_ok = True
-
-                        arg = {}
-                        arg['name'] = param['name']
-                        arg['type'] = param['type'].strip()
-                        self._format_argument(arg)
-
-                        if 'arguments' in operation:
-                            operation['arguments'].append(arg)
-                        else:
-                            operation['arguments'] = [arg]
-
-                if not array_name_ok or not array_length_ok:
-                    raise ValueError('write_array arguments not found in function prototype')
-            else:
-                operation['arguments'] = []
-
-                for param in op['prototype']['params']:
-                    arg = {}
-                    arg['name'] = param['name']
-                    arg['type'] = param['type'].strip()
-                    self._format_argument(arg)
-                    operation['arguments'].append(arg)
+            for param in op['prototype']['params']:
+                arg = {}
+                arg['name'] = param['name']
+                arg['type'] = param['type'].strip()
+                self._format_argument(arg)
+                operation['arguments'].append(arg)
 
         return operation
 
@@ -185,23 +141,6 @@ class FragmentsGenerator:
             frag.append('    auto ptr = ' + self._build_func_call(operation) + ';\n')
             frag.append('    return SEND_ARRAY<' + ptr_type + '>(ptr, ' + length + ');\n')
 
-        elif operation['io_type']['value'] == 'WRITE_ARRAY':
-            len_name = operation['array_params']['length']['length']
-
-            frag.append('    const uint32_t *data_ptr = RCV_HANDSHAKE(args.' + len_name + ');\n\n')
-            frag.append('    if (data_ptr == nullptr)\n')
-            frag.append('       return -1;\n\n')
-            if (operation['prototype']['ret_type'] == 'uint32_t'
-                or operation['prototype']['ret_type'] == 'unsigned int'
-                or operation['prototype']['ret_type'] == 'unsigned long'
-                or operation['prototype']['ret_type'] == 'int'
-                or operation['prototype']['ret_type'] == 'int32_t'
-                or operation['prototype']['ret_type'] == 'bool'):
-                frag.append('    return SEND<uint32_t>(' + self._build_write_array_func_call(operation) + ');\n')
-            else:
-                frag.append('    ' + self._build_write_array_func_call(operation) + ';\n\n')
-                frag.append('    return 0;\n')
-
         return frag
 
     def _get_ptr_type(self, ret_type):
@@ -236,42 +175,6 @@ class FragmentsGenerator:
                 call += "args." + param["name"]
             else:
                 call += ", args." + param["name"]
-
-        call += ")"
-        return call
-
-    def _build_write_array_func_call(self, operation):
-        assert operation["io_type"]["value"] == "WRITE_ARRAY"
-        len_name = operation["array_params"]['length']['length']
-        obj_name = self.parser.device["objects"][0]["name"]
-        func_name = operation["prototype"]["name"]
-        call = "THIS->" + obj_name + "." + func_name + "("
-
-        for count, param in enumerate(operation["prototype"]["params"]):
-            param_ptr_toks = param["name"].split('*')
-
-            if ((operation["array_params"]["name"]["src"] == "param" and
-                len(param_ptr_toks) == 2 and
-                param_ptr_toks[1].strip() == operation["array_params"]["name"]["name"]) or
-                (operation["array_params"]["name"]["src"] == "param" and
-                len(param_ptr_toks) == 1 and
-                param_ptr_toks[0].strip() == operation["array_params"]["name"]["name"])):
-
-                if count == 0:
-                    call += "data_ptr"
-                else:
-                    call += ", data_ptr"
-            elif (operation["array_params"]["length"]["src"] == "param" and
-                  param["name"] == operation["array_params"]["length"]["length"]):
-                if count == 0:
-                    call += "args." + len_name
-                else:
-                    call += ", args." + len_name
-            else:
-                if count == 0:
-                    call += "args." + param["name"]
-                else:
-                    call += ", args." + param["name"]
 
         call += ")"
         return call
