@@ -18,19 +18,19 @@ class Tests
         @cmds = @device.getCmds()
 
     sendManyParams : (u1, u2, f, b, cb) ->
-        @kclient.readBool(Command(@id, @cmds.rcv_many_params, 'IIf?', u1, u2, f, b), cb)
+        @kclient.readBool(Command(@id, @cmds.rcv_many_params, u1, u2, f, b), cb)
 
     setFloat : (f, cb) ->
-        @kclient.readBool(Command(@id, @cmds.set_float, 'f', f), cb)
+        @kclient.readBool(Command(@id, @cmds.set_float, f), cb)
 
     setDouble : (d, cb) ->
-        @kclient.readBool(Command(@id, @cmds.set_double, 'd', d), cb)
+        @kclient.readBool(Command(@id, @cmds.set_double, d), cb)
 
     setUnsigned : (u8, u16, u32, cb) ->
-        @kclient.readBool(Command(@id, @cmds.set_unsigned, 'BHI', u8, u16, u32), cb)
+        @kclient.readBool(Command(@id, @cmds.set_unsigned, u8, u16, u32), cb)
 
     setSigned : (i8, i16, i32, cb) ->
-        @kclient.readBool(Command(@id, @cmds.set_signed, 'bhi', i8, i16, i32), cb)
+        @kclient.readBool(Command(@id, @cmds.set_signed, i8, i16, i32), cb)
 
     rcvStdVector : (cb) ->
         @kclient.readFloat32Array(Command(@id, @cmds.send_std_vector), cb)
@@ -45,29 +45,29 @@ class Tests
         i = -56789
         array = new Uint32Array(8192)
         array[_i] = _i for _i in [0..array.length - 1]
-        @kclient.readBool(Command(@id, @cmds.rcv_std_array, 'IfAdi', u, f, array, d, i), cb)
+        @kclient.readBool(Command(@id, @cmds.rcv_std_array, u, f, array, d, i), cb)
 
     sendStdArray2 : (cb) ->
         array = new Float32Array(8192)
         array[i] = Math.log(i + 1) for i in [0..array.length - 1]
-        @kclient.readBool(Command(@id, @cmds.rcv_std_array2, 'A', array), cb)
+        @kclient.readBool(Command(@id, @cmds.rcv_std_array2, array), cb)
 
     sendStdArray3 : (cb) ->
         array = new Float64Array(8192)
         array[i] = Math.sin(i) for i in [0..array.length - 1]
-        @kclient.readBool(Command(@id, @cmds.rcv_std_array3, 'A', array), cb)
+        @kclient.readBool(Command(@id, @cmds.rcv_std_array3, array), cb)
 
     sendStdVector : (cb) ->
         vec = new Uint32Array(8192)
         vec[i] = i for i in [0..vec.length - 1]
-        @kclient.readBool(Command(@id, @cmds.rcv_std_vector, 'V', vec), cb)
+        @kclient.readBool(Command(@id, @cmds.rcv_std_vector, vec), cb)
 
     sendStdVector1 : (cb) ->
         u = 4223453
         f = 3.141592
         vec = new Float64Array(8192)
         vec[i] = Math.sin(i) for i in [0..vec.length - 1]
-        @kclient.readBool(Command(@id, @cmds.rcv_std_vector1, 'IfV', u, f, vec), cb)
+        @kclient.readBool(Command(@id, @cmds.rcv_std_vector1, u, f, vec), cb)
 
     sendStdVector2 : (cb) ->
         u = 4223453
@@ -76,7 +76,7 @@ class Tests
         i = -56789
         vec = new Float32Array(8192)
         vec[_i] = Math.log(_i + 1) for _i in [0..vec.length - 1]
-        @kclient.readBool(Command(@id, @cmds.rcv_std_vector2, 'IfVdi', u, f, vec, d, i), cb)
+        @kclient.readBool(Command(@id, @cmds.rcv_std_vector2, u, f, vec, d, i), cb)
 
     sendStdVector3 : (cb) ->
         d = 2.654798454646
@@ -85,7 +85,7 @@ class Tests
         array[_i] = _i for _i in [0..array.length - 1]
         vec = new Float32Array(8192)
         vec[_i] = Math.log(_i + 1) for _i in [0..vec.length - 1]
-        @kclient.readBool(Command(@id, @cmds.rcv_std_vector3, 'AVdi', array, vec, d, i), cb)
+        @kclient.readBool(Command(@id, @cmds.rcv_std_vector3, array, vec, d, i), cb)
 
     sendStdVector4 : (cb) ->
         d = 2.654798454646
@@ -94,7 +94,7 @@ class Tests
         array[_i] = _i * _i for _i in [0..array.length - 1]
         vec = new Float32Array(8192)
         vec[_i] = Math.cos(_i) for _i in [0..vec.length - 1]
-        @kclient.readBool(Command(@id, @cmds.rcv_std_vector4, 'VdiA', vec, d, i, array), cb)
+        @kclient.readBool(Command(@id, @cmds.rcv_std_vector4, vec, d, i, array), cb)
 
     readUint : (cb) ->
         @kclient.readUint32(Command(@id, @cmds.read_uint), cb)

@@ -4,9 +4,7 @@
 class Device
     "use strict"
 
-    constructor: (@devname, @id, cmds_) ->
-        @status = ""
-        @cmds = (cmd.name for cmd in cmds_)
+    constructor: (@devname, @id, @cmds) ->
 
     show: ->
         console.log @devname + ":\n"
@@ -15,18 +13,15 @@ class Device
         console.log "  Commands:\n"
         (console.log "  - " + cmd + "\n" for cmd in @cmds)
 
-    setStatus: (status) ->
-        @status = status
-
     getCmdRef: (cmd_name) ->
         for cmd, idx in @cmds
-            if cmd == cmd_name then return idx
+            if cmd == cmd.name then return idx
 
         throw new ReferenceError(cmd_name + ': command not found')
 
     getCmds : ->
         cmds_dict = {}
-        cmds_dict[cmd] = idx for cmd, idx in @cmds
+        cmds_dict[cmd.name] = {'idx': idx, 'fmt': cmd.fmt} for cmd, idx in @cmds
         return cmds_dict
 
 class WebSocketPool
@@ -256,17 +251,17 @@ class CommandBase
     # Build the binary buffer of a command
     # @type {function(number, string=, ...(number|boolean)):Uint8Array}
     ###
-    constructor: (dev_id, cmd_ref, fmt='', params...) ->
+    constructor: (dev_id, cmd, params...) ->
         buffer = []
         appendUint32(buffer, 0) # RESERVED
         appendUint16(buffer, dev_id)
-        appendUint16(buffer, cmd_ref)
+        appendUint16(buffer, cmd.idx)
 
-        if fmt.length == 0
+        if cmd.fmt.length == 0
             appendUint32(buffer, 0) # Payload size
             return new Uint8Array(buffer)
 
-        if fmt.length != params.length
+        if cmd.fmt.length != params.length
             throw new Error('Invalid types string length')
 
         buildPayload = (fmt='', params) ->
@@ -310,7 +305,7 @@ class CommandBase
 
             return [payload, payload_size]
 
-        res = buildPayload(fmt, params)
+        res = buildPayload(cmd.fmt, params)
         appendUint32(buffer, res[1])
         return new Uint8Array(buffer.concat(res[0]))
 
@@ -341,7 +336,7 @@ class @KClient
             if sockid < 0 then return callback(null, null)
             @broadcast_socketid = sockid
             broadcast_socket = @websockpool.getSocket(sockid)
-            broadcast_socket.send(Command(1, 5, 'I', 0)) # Server broadcasts on channel 0
+            broadcast_socket.send(Command(1, {'idx': 5, 'fmt': 'I'}, 0)) # Server broadcasts on channel 0
 
             broadcast_socket.onmessage = (evt) =>
                 tup = @deserialize('III', evt.data)
@@ -358,7 +353,7 @@ class @KClient
         @websockpool.requestSocket( (sockid) =>
             if sockid < 0 then return
             websocket = @websockpool.getSocket(sockid)
-            websocket.send(Command(1, 6))
+            websocket.send(Command(1, {'idx': 6, 'fmt': ''}))
             if @websockpool?
                 @websockpool.freeSocket(sockid)
         )
@@ -537,7 +532,7 @@ class @KClient
     # ------------------------
 
     loadCmds: (callback) ->
-        @readJSON(Command(1,1), (data) =>
+        @readJSON(Command(1, {'idx': 1, 'fmt': ''}), (data) =>
             for dev, id in data
                 dev = new Device(dev.name, id, dev.operations)
                 # dev.show()
