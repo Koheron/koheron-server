@@ -9,7 +9,7 @@ class Device:
         print 'Parsing and analysing ' + path + '...'
         dev = parse_header(os.path.join(midware_path, path))[0]
         self.header_path = os.path.dirname(path)
-        self.fragments = cmd_calls(dev)
+        self.calls = cmd_calls(dev)
 
         self.operations = dev['operations']
         self.tag = dev['tag']
@@ -21,8 +21,6 @@ class Device:
 # -----------------------------------------------------------------------------
 # Parse device C++ header
 # -----------------------------------------------------------------------------
-
-CSTR_TYPES = ["char *", "char*", "const char *", "const char*"]
 
 def parse_header(hppfile):
     try:
@@ -62,7 +60,7 @@ def parse_header_operation(method):
     operation['io_type'] = {}
     if operation['ret_type'] == 'void':
         operation['io_type'] = 'WRITE'
-    elif operation['ret_type'] in CSTR_TYPES:
+    elif operation['ret_type'] in ["char *", "char*", "const char *", "const char*"]:
         operation["io_type"] = 'READ_CSTR'
     else:
         operation["io_type"] = 'READ'
@@ -92,21 +90,20 @@ def cmd_calls(device):
     for op in device['operations']:
         call = {}
         call['name'] = op['tag']
-        call['fragment'] = generate_call(device, op)
+        call['lines'] = generate_call(device, op)
         calls.append(call)
     return calls
 
 def generate_call(device, operation):
-    frag = []
-
+    lines = []
     if operation['io_type'] == 'WRITE':
-        frag.append('    ' + build_func_call(device, operation) + ';\n')
-        frag.append('    return 0;\n')
+        lines.append('    ' + build_func_call(device, operation) + ';\n')
+        lines.append('    return 0;\n')
     elif operation['io_type'] == 'READ':
-        frag.append('    return SEND('+ build_func_call(device, operation) + ');\n')
+        lines.append('    return SEND(' + build_func_call(device, operation) + ');\n')
     elif operation['io_type'] == 'READ_CSTR':
-        frag.append('    return SEND_CSTR(' + build_func_call(device, operation) + ');\n')
-    return frag
+        lines.append('    return SEND_CSTR(' + build_func_call(device, operation) + ');\n')
+    return ''.join(lines)
 
 def build_func_call(device, operation):
     call = 'THIS->' + device['objects'][0]['name'] + '.' + operation['name'] + '('

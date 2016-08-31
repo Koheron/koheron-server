@@ -65,12 +65,9 @@ def get_renderer():
         return ','.join(list_ + empty_ops)
 
     def get_fragment(operation, device):
-        string = ""
-        for frag in device.fragments:
-            if operation['tag'] == frag['name']:
-                for line in frag['fragment']:
-                    string += line
-        return string
+        for call in device.calls:
+            if operation['tag'] == call['name']:
+                return call['lines']
 
     def get_parser(operation, device):
         return parser_generator(device, operation)
