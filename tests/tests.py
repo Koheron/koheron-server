@@ -4,7 +4,7 @@ import pytest
 import struct
 import numpy as np
 
-from koheron import KoheronClient, command, write_buffer
+from koheron import KoheronClient, command
 
 class Tests:
     def __init__(self, client):
