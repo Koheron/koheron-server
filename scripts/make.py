@@ -5,108 +5,12 @@
 import os
 import sys
 import yaml
-import jinja2
 import time
 import subprocess
-import json
 from distutils.dir_util import copy_tree
 from shutil import copy
 
-from devgen import Device, parser_generator
-
-# -----------------------------------------------------------------------------------------
-# Code generation
-# -----------------------------------------------------------------------------------------
-
-# Number of operation in the KServer device
-KSERVER_OP_NUM = 7
-
-def get_max_op_num(devices):
-    ''' Return the maximum number of operations '''
-    def device_length(device):
-        return max(len(device.operations), KSERVER_OP_NUM)
-    return max(device_length(d) for d in devices)
-
-def get_json(devices):
-    data = [{
-        'name': 'NO_DEVICE',
-        'operations': []
-      }, {
-        'name': 'KServer',
-        'operations': [
-            'get_version', 'get_cmds', 'get_stats', 'get_dev_status', 'get_running_sessions', 'subscribe_broadcast', 'broadcast_ping'
-        ]
-      }]
-
-    for device in devices:
-        data.append({
-            'name': device.name,
-            'operations': [op['name'] for op in device.operations]
-        })
-    return json.dumps(data, separators=(',', ':')).replace('"', '\\"')
-
-def get_renderer():
-    renderer = jinja2.Environment(
-      block_start_string = '{%',
-      block_end_string = '%}',
-      variable_start_string = '{{',
-      variable_end_string = '}}',
-      loader = jinja2.FileSystemLoader(os.path.abspath('.'))
-    )
-
-    def list_operations(device, max_op_num):
-        list_ = map(lambda x: x['name'], device.operations)
-        list_ = ['"%s"' % element for element in list_]
-        empty_ops = ['""'] * (max_op_num - len(list_))
-        return ','.join(list_ + empty_ops)
-
-    def get_fragment(operation, device):
-        return device.calls[operation['tag']]
-
-    def get_parser(operation, device):
-        return parser_generator(device, operation)
-
-    renderer.filters['list_operations'] = list_operations
-    renderer.filters['get_fragment'] = get_fragment
-    renderer.filters['get_parser'] = get_parser
-    return renderer
-
-def fill_template(devices, template_filename, output_filename):
-    template = get_renderer().get_template(os.path.join('scripts/templates', template_filename))
-    with open(output_filename, 'w') as output:
-        output.write(template.render(devices=devices))
-
-def render_device_table(devices):
-    print('Generate device table')
-    template = get_renderer().get_template(os.path.join('scripts/templates', 'devices_table.hpp'))
-    with open('tmp/devices_table.hpp', 'w') as output:
-        output.write(template.render(devices=devices,
-                                     max_op_num=get_max_op_num(devices),
-                                     json=get_json(devices)))
-
-    output_filename = os.path.join('tmp', 'devices.hpp')
-    fill_template(devices, 'devices.hpp', output_filename)
-
-def generate(devices_list, midware_path):
-    devices = [] # List of generated devices
-    obj_files = []  # Object file names
-    for path in devices_list:
-        if path.endswith('.hpp') or path.endswith('.h'):
-            device = Device(path, midware_path)
-            print('Generating ' + device.name + '...')
-
-            template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device.hpp'))
-            with open(os.path.join(midware_path, os.path.dirname(path), 'ks_' + device.tag.lower() + '.hpp'), 'w') as output:
-                output.write(template.render(device=device))
-
-            template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device.cpp'))
-            with open(os.path.join(midware_path, os.path.dirname(path), 'ks_' + device.tag.lower() + '.cpp'), 'w') as output:
-                output.write(template.render(device=device))
-
-            devices.append(device)
-    return devices
-
-# -----------------------------------------------------------------------------------------
+from devgen import generate
 
 def install_requirements(config, base_dir):
     if 'requirements' in config:
@@ -158,8 +62,7 @@ def main(argv):
                     config[key] = value
 
     if cmd == '--generate':
-        devices = generate(config.get('devices'), argv[3])
-        render_device_table(devices)
+        generate(config.get('devices'), argv[3])
 
     elif cmd == '--devices':
         hpp_files = []
