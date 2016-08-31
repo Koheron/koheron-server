@@ -205,7 +205,7 @@ std::tuple<int8_t, int8_t, int16_t, int16_t, int32_t, int32_t> Tests::get_tuple4
 }
 
 uint64_t      Tests::read_uint64()    { return (1ULL << 63);       }
-int           Tests::read_int()       { return -214748364;         }
+int32_t       Tests::read_int()       { return -214748364;         }
 unsigned int  Tests::read_uint()      { return 301062138;          }
 uint32_t      Tests::read_ulong()     { return 2048;               }
 uint64_t      Tests::read_ulonglong() { return (1ULL << 63);       }

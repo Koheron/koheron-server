@@ -117,12 +117,7 @@ def render_device_table(devices):
 # -----------------------------------------------------------------------------
 
 def parse_header(hppfile):
-    try:
-        cpp_header = CppHeaderParser.CppHeader(hppfile)
-    except CppHeaderParser.CppParseError as e:
-        print(e)
-        raise RuntimeError('Error parsing header file ' + hppfile)
-
+    cpp_header = CppHeaderParser.CppHeader(hppfile)
     devices = []
     for classname in cpp_header.classes:
         devices.append(parse_header_device(cpp_header.classes[classname], hppfile))
@@ -142,14 +137,15 @@ def parse_header_device(_class, hppfile):
     for method in _class['methods']['public']:
         # We eliminate constructor and destructor
         if not (method['name'] in [s + _class['name'] for s in ['','~']]):
-            device['operations'].append(parse_header_operation(method))
+            device['operations'].append(parse_header_operation(device['name'], method))
     return device
 
-def parse_header_operation(method):
+def parse_header_operation(devname, method):
     operation = {}
     operation['tag'] = method['name'].upper()
     operation['name'] = method['name']
     operation['ret_type'] = method['rtnType']
+    check_type(operation['ret_type'], devname, operation['name'])
 
     operation['io_type'] = {}
     if operation['ret_type'] == 'void':
@@ -165,6 +161,7 @@ def parse_header_operation(method):
             arg = {}
             arg['name'] = str(param['name'])
             arg['type'] = param['type'].strip()
+            check_type(arg['type'], devname, operation['name'])
             if arg['type'][-1:] == '&': # Argument passed by reference
                 arg['by_reference'] = True
                 arg['type'] = arg['type'][:-2].strip()
@@ -174,6 +171,18 @@ def parse_header_operation(method):
                 arg['type'] = arg['type'][5:].strip()
             operation['arguments'].append(arg)
     return operation
+
+# The following intergers are forbiden since they are plateform
+# dependent and thus not compatible for network usage.
+FORBIDEN_INTS = ['short', 'int', 'unsigned', 'long', 'unsigned short', 'short unsigned',
+                 'unsigned long', 'long unsigned', 'long long']
+
+def check_type(_type, devname, opname):
+    if _type in FORBIDEN_INTS:
+        raise ValueError('[' + devname + '::' + opname + '] Invalid type: Only integers with exact width are supported (http://en.cppreference.com/w/cpp/header/cstdint).')
+
+def get_arg_fmt(_type):
+    pass
 
 # -----------------------------------------------------------------------------
 # Generate command call and send
