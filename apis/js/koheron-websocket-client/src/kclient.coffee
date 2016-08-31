@@ -4,8 +4,9 @@
 class Device
     "use strict"
 
-    constructor: (@devname, @id, @cmds) ->
+    constructor: (@devname, @id, cmds_) ->
         @status = ""
+        @cmds = (cmd.name for cmd in cmds_)
 
     show: ->
         console.log @devname + ":\n"

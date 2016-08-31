@@ -59,14 +59,15 @@ def get_json(devices):
       }, {
         'name': 'KServer',
         'operations': [
-            'get_version', 'get_cmds', 'get_stats', 'get_dev_status', 'get_running_sessions', 'subscribe_broadcast', 'broadcast_ping'
+            {'name': 'get_version', 'fmt': ''}, {'name': 'get_cmds', 'fmt': ''}, {'name': 'get_stats', 'fmt': ''}, {'name': 'get_dev_status', 'fmt': ''},
+            {'name': 'get_running_sessions', 'fmt': ''}, {'name': 'subscribe_broadcast', 'fmt': 'I'}, {'name': 'broadcast_ping', 'fmt': ''}
         ]
-      }]
+    }]
 
     for device in devices:
         data.append({
             'name': device.name,
-            'operations': [op['name'] for op in device.operations]
+            'operations': [{'name': op['name'], 'fmt': op['fmt']} for op in device.operations]
         })
     return json.dumps(data, separators=(',', ':')).replace('"', '\\"')
 
@@ -155,34 +156,59 @@ def parse_header_operation(devname, method):
     else:
         operation["io_type"] = 'READ'
 
+    operation['fmt'] = ''
     if len(method['parameters']) > 0:
         operation['arguments'] = []
         for param in method['parameters']:
             arg = {}
             arg['name'] = str(param['name'])
             arg['type'] = param['type'].strip()
-            check_type(arg['type'], devname, operation['name'])
+
             if arg['type'][-1:] == '&': # Argument passed by reference
                 arg['by_reference'] = True
                 arg['type'] = arg['type'][:-2].strip()
-
             if arg['type'][:5] == 'const':# Argument is const
                 arg['is_const'] = True
                 arg['type'] = arg['type'][5:].strip()
+
+            check_type(arg['type'], devname, operation['name'])
+            operation['fmt'] += get_arg_fmt(arg['type'], devname, operation['name'])
             operation['arguments'].append(arg)
     return operation
 
-# The following intergers are forbiden since they are plateform
-# dependent and thus not compatible for network usage.
-FORBIDEN_INTS = ['short', 'int', 'unsigned', 'long', 'unsigned short', 'short unsigned',
-                 'unsigned long', 'long unsigned', 'long long']
+# The following integers are forbiden since they are plateform
+# dependent and thus not compatible with network use.
+FORBIDDEN_INTS = ['short', 'int', 'unsigned', 'long', 'unsigned short', 'short unsigned',
+                  'unsigned int', 'int unsigned', 'unsigned long', 'long unsigned',
+                  'long long', 'unsigned long long', 'long long unsigned']
 
 def check_type(_type, devname, opname):
-    if _type in FORBIDEN_INTS:
-        raise ValueError('[' + devname + '::' + opname + '] Invalid type: Only integers with exact width are supported (http://en.cppreference.com/w/cpp/header/cstdint).')
+    if _type in FORBIDDEN_INTS:
+        raise ValueError('[' + devname + '::' + opname + '] Invalid type "' + _type + '": Only integers with exact width (e.g. uint32_t) are supported (http://en.cppreference.com/w/cpp/header/cstdint).')
 
-def get_arg_fmt(_type):
-    pass
+TYPE_FMT = {
+    'uint8_t': 'B',
+    'int8_t': 'b',
+    'uint16_t': 'H',
+    'int16_t': 'h',
+    'uint32_t': 'I',
+    'int32_t': 'i',
+    'uint64_t': 'Q',
+    'int64_t': 'q',
+    'bool': '?',
+    'float': 'f',
+    'double': 'd'
+}
+
+def get_arg_fmt(_type, devname, opname):
+    if _type in TYPE_FMT:
+        return TYPE_FMT[_type]
+    elif is_std_array(_type):
+        return 'A'
+    elif is_std_vector(_type):
+        return 'V'
+    else:
+        raise ValueError('[' + devname + '::' + opname + '] Invalid type "' + _type + '"')
 
 # -----------------------------------------------------------------------------
 # Generate command call and send

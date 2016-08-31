@@ -55,7 +55,7 @@ class Tests
     // Send numbers
     uint64_t read_uint64();
     int32_t read_int();
-    unsigned int read_uint();
+    uint32_t read_uint();
     uint32_t read_ulong();
     uint64_t read_ulonglong();
     float read_float();
