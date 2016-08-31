@@ -31,7 +31,7 @@ __MIDWARE_PATH=$(BASE_DIR)/$(MIDWARE_PATH)
 
 EXECUTABLE=$(TMP)/$(SERVER)
 
-.PHONY: all requirements cli clean start_server stop_server test_python
+.PHONY: all requirements clean start_server stop_server test_python
 
 all: $(EXECUTABLE)
 
@@ -81,12 +81,8 @@ test_python: $(PY2_ENV) $(PY3_ENV) start_server
 	PYTEST_UNIXSOCK=/tmp/kserver_local.sock $(PY2_ENV)/bin/python -m pytest -v tests/tests.py
 	PYTEST_UNIXSOCK=/tmp/kserver_local.sock $(PY3_ENV)/bin/python3 -m pytest -v tests/tests.py
 
-cli:
-	make -C apis/cli CROSS_COMPILE=$(CROSS_COMPILE) DEFINES=$(DEFINES) ARCH_FLAGS=$(ARCH_FLAGS)
-
 clean_venv:
 	rm -rf $(TESTS_VENV)
 
 clean:
 	rm -rf $(TMP)
-	make -C apis/cli clean
