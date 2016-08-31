@@ -28,19 +28,15 @@ def get_max_op_num(devices):
     return max(device_length(d) for d in devices)
 
 def get_json(devices):
-    data = []
-
-    data.append({
+    data = [{
         'name': 'NO_DEVICE',
         'operations': []
-    })
-
-    data.append({
+      }, {
         'name': 'KServer',
         'operations': [
             'get_version', 'get_cmds', 'get_stats', 'get_dev_status', 'get_running_sessions', 'subscribe_broadcast', 'broadcast_ping'
         ]
-    })
+      }]
 
     for device in devices:
         data.append({
