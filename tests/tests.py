@@ -10,123 +10,123 @@ class Tests:
     def __init__(self, client):
         self.client = client
 
-    @command('Tests')
+    @command()
     def rcv_many_params(self, u1, u2, f, b):
         return self.client.recv_bool()
 
-    @command('Tests')
+    @command()
     def set_float(self, f):
         return self.client.recv_bool()
 
-    @command('Tests')
+    @command()
     def set_double(self, d):
         return self.client.recv_bool()
 
-    @command('Tests')
+    @command()
     def set_u64(self, u):
         return self.client.recv_bool()
 
-    @command('Tests')
+    @command()
     def set_i64(self, i):
         return self.client.recv_bool()
 
-    @command('Tests')
+    @command()
     def set_unsigned(self, u8, u16, u32):
         return self.client.recv_bool()
 
-    @command('Tests')
+    @command()
     def set_signed(self, i8, i16, i32):
         return self.client.recv_bool()
 
-    @command('Tests')
+    @command()
     def read_uint64(self):
         return self.client.recv_uint64()
 
-    @command('Tests')
+    @command()
     def read_uint(self):
         return self.client.recv_uint32()
 
-    @command('Tests')
+    @command()
     def read_int(self):
         return self.client.recv_int32()
 
-    @command('Tests')
+    @command()
     def read_float(self):
         return self.client.recv_float()
 
-    @command('Tests')
+    @command()
     def read_double(self):
         return self.client.recv_double()
 
-    @command('Tests')
+    @command()
     def send_std_array(self):
         return self.client.recv_array(10, dtype='float32')
 
-    @command('Tests')
+    @command()
     def send_std_vector(self):
         return self.client.recv_array(10, dtype='float32')
 
-    @command('Tests')
+    @command()
     def rcv_std_array(self, u, f, arr, d, i):
         return self.client.recv_bool()
 
-    @command('Tests')
+    @command()
     def rcv_std_array2(self, arr):
         return self.client.recv_bool()
 
-    @command('Tests')
+    @command()
     def rcv_std_array3(self, arr):
         return self.client.recv_bool()
 
-    @command('Tests')
+    @command()
     def rcv_std_vector(self, vec):
         return self.client.recv_bool()
 
-    @command('Tests')
+    @command()
     def rcv_std_vector1(self, u, f, vec):
         return self.client.recv_bool()
 
-    @command('Tests')
+    @command()
     def rcv_std_vector2(self, u, f, vec, d, i):
         return self.client.recv_bool()
 
-    @command('Tests')
+    @command()
     def rcv_std_vector3(self, arr, vec, d, i):
         return self.client.recv_bool()
 
-    @command('Tests')
+    @command()
     def rcv_std_vector4(self, vec, d, i, arr):
         return self.client.recv_bool()
 
-    @command('Tests')
+    @command()
     def get_cstr(self):
         return self.client.recv_string()
 
-    @command('Tests')
+    @command()
     def get_std_string(self):
         return self.client.recv_string()
 
-    @command('Tests')
+    @command()
     def get_json(self):
         return self.client.recv_json()
 
-    @command('Tests')
+    @command()
     def get_json2(self):
         return self.client.recv_json()
 
-    @command('Tests')
+    @command()
     def get_tuple(self):
         return self.client.recv_tuple('Idd?')
 
-    @command('Tests')
+    @command()
     def get_tuple2(self):
         return self.client.recv_tuple('IfQdq')
 
-    @command('Tests')
+    @command()
     def get_tuple3(self):
         return self.client.recv_tuple('?ffBH')
 
-    @command('Tests')
+    @command()
     def get_tuple4(self):
         return self.client.recv_tuple('bbhhii')
 
@@ -140,9 +140,6 @@ tests = Tests(client)
 
 client_unix = KoheronClient(unixsock=unixsock)
 tests_unix = Tests(client_unix)
-
-vec = np.log(np.arange(8192, dtype='float32') + 1)
-tests.rcv_std_vector2(4223453, 3.141592, vec, 2.654798454646, -56789)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_send_many_params(tests):
