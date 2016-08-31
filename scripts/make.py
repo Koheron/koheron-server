@@ -138,7 +138,7 @@ def install_requirements(config, base_dir):
                 raise ValueError('Unknown requirement type: ' + requirement['type'])
 
     if 'copy_devices_to_middleware' in config and config['copy_devices_to_middleware']:
-        for dev in get_devices(config):
+        for dev in config.get('devices'):
             dev_path = os.path.join(base_dir, dev)
             dest_dir = os.path.join('tmp/middleware', os.path.dirname(dev))
             if not os.path.isdir(dest_dir):
@@ -149,9 +149,6 @@ def install_requirements(config, base_dir):
                                         os.path.basename(dev_path).split('.')[0] + '.cpp')
             if os.path.exists(cpp_filename):
                 copy(cpp_filename, dest_dir)
-
-def get_devices(config):
-    return config.get('devices')
 
 def main(argv):
     cmd = argv[0]
@@ -171,13 +168,13 @@ def main(argv):
                     config[key] = value
 
     if cmd == '--generate':
-        devices = generate(get_devices(config), argv[3])
+        devices = generate(config.get('devices'), argv[3])
         render_device_table(devices)
 
     elif cmd == '--devices':
         hpp_files = []
         cpp_files = []
-        for dev in get_devices(config):
+        for dev in config.get('devices'):
             dev_path = os.path.join(argv[2], dev)
             hpp_files.append(dev_path)
             cpp_filename = os.path.join(os.path.dirname(dev_path), 

@@ -10,18 +10,40 @@ import string
 import re
 import CppHeaderParser
 
+# ----------------------------------------------------------------------------------------
+# Parse device C++ header
+# ----------------------------------------------------------------------------------------
+
 CSTR_TYPES = ["char *", "char*", "const char *", "const char*"]
 
-def parse_header(hpp_filename):
+def parse_header(hppfile):
     try:
-        cpp_header = CppHeaderParser.CppHeader(hpp_filename)
+        cpp_header = CppHeaderParser.CppHeader(hppfile)
     except CppHeaderParser.CppParseError as e:
         print(e)
+        raise RuntimeError('Error parsing header file ' + hppfile)
 
     devices = []
     for classname in cpp_header.classes:
-        devices.append(_get_device(cpp_header.classes[classname]))
+        devices.append(get_device(cpp_header.classes[classname], hppfile))
     return devices
+
+def get_device(_class, hppfile):
+    device = {}
+    device['name'] = _class['name']
+    device['tag'] = '_'.join(re.findall('[A-Z][^A-Z]*', device['name'])).upper()
+    device['includes'] = [os.path.basename(hppfile)]
+    device['objects'] = [{
+      'type': str(_class['name']),
+      'name': '__' + _class['name']
+    }]
+
+    device['operations'] = []
+    for method in _class['methods']['public']:
+        # We eliminate constructor and destructor
+        if not (method['name'] in [s + _class['name'] for s in ['','~']]):
+            device['operations'].append(get_operation(method))
+    return device
 
 def get_operation(method):
     operation = {}
@@ -31,11 +53,11 @@ def get_operation(method):
 
     operation['io_type'] = {}
     if operation['ret_type'] == 'void':
-        operation['io_type'] = {'value': 'WRITE', 'remaining': ''}
+        operation['io_type'] = 'WRITE'
     elif operation['ret_type'] in CSTR_TYPES:
-        operation["io_type"] = {'value': 'READ_CSTR', 'remaining': ''}
+        operation["io_type"] = 'READ_CSTR'
     else:
-        operation["io_type"] = {'value': 'READ', 'remaining': ''}
+        operation["io_type"] = 'READ'
 
     if len(method['parameters']) > 0:
         operation['arguments'] = []
@@ -53,50 +75,18 @@ def get_operation(method):
             operation['arguments'].append(arg)
     return operation
 
-def _get_device(_class):
-    device = {}
-    device['objects'] = [{
-      'name': _class['name'].lower(),
-      'type': str(_class['name'])
-    }]
-    device['name'] = _class['name']
-
-    device['operations'] = []
-    for method in _class['methods']['public']:
-        # We eliminate constructor and destructor
-        if not (method['name'] in [s + _class['name'] for s in ['','~']]):
-            device['operations'].append(get_operation(method))
-    return device
-
-class MiddlewareHppParser:
-    def __init__(self, hppfile):
-        devices = parse_header(hppfile)
-        self.raw_dev_data = devices[0]
-        self.raw_dev_data["includes"] = [os.path.basename(hppfile)];
-        self.device = self._get_device()
-
-    def _get_device(self):
-        device = {}
-        device['operations'] = self.raw_dev_data['operations']
-        device['name'] = self.raw_dev_data['name']
-        device['includes'] = self.raw_dev_data['includes']
-        device['objects'] = [{
-          'type': self.raw_dev_data['objects'][0]['type'],
-          'name': '__' + self.raw_dev_data['name']
-        }]
-        return device
-
-    def get_device_tag(self, name):
-        return '_'.join(re.findall('[A-Z][^A-Z]*', name)).upper()
+# ----------------------------------------------------------------------------------------
+# Generate command call and send
+# ----------------------------------------------------------------------------------------
 
 class FragmentsGenerator:
-    def __init__(self, parser):
-        self.parser = parser
+    def __init__(self, device):
+        self.device = device
 
     def get_fragments(self):
         fragments = []
 
-        for op in self.parser.raw_dev_data['operations']:
+        for op in self.device['operations']:
             frag = {}
             frag['name'] = op['tag']
             frag['fragment'] = self.generate_fragment(op['tag'])
@@ -109,22 +99,22 @@ class FragmentsGenerator:
         operation = self._get_operation_data(op_name)
         frag = []
 
-        if operation['io_type']['value'] == 'WRITE':
+        if operation['io_type'] == 'WRITE':
             frag.append('    ' + self._build_func_call(operation) + ';\n')
             frag.append('    return 0;\n')
-        elif operation['io_type']['value'] == 'READ':
+        elif operation['io_type'] == 'READ':
             frag.append('    return SEND('+ self._build_func_call(operation) + ');\n')
-        elif operation['io_type']['value'] == 'READ_CSTR':
+        elif operation['io_type'] == 'READ_CSTR':
             frag.append('    return SEND_CSTR(' + self._build_func_call(operation) + ');\n')
         return frag
 
     def _get_operation_data(self, op_name):
-        for op in self.parser.device['operations']:
+        for op in self.device['operations']:
             if op['tag'] == op_name:
                 return op
         raise ValueError("Unknown operation " + op_name)
 
     def _build_func_call(self, operation):
-        call = 'THIS->' + self.parser.device['objects'][0]['name'] + '.' + operation['name'] + '('
+        call = 'THIS->' + self.device['objects'][0]['name'] + '.' + operation['name'] + '('
         call += ', '.join('args.' + arg['name'] for arg in operation.get('arguments', []))
         return call + ')'
