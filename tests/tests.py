@@ -10,31 +10,31 @@ class Tests:
     def __init__(self, client):
         self.client = client
 
-    @command('Tests', 'IIf?')
+    @command('Tests')
     def rcv_many_params(self, u1, u2, f, b):
         return self.client.recv_bool()
 
-    @command('Tests', 'f')
+    @command('Tests')
     def set_float(self, f):
         return self.client.recv_bool()
 
-    @command('Tests', 'd')
+    @command('Tests')
     def set_double(self, d):
         return self.client.recv_bool()
 
-    @command('Tests', 'Q')
+    @command('Tests')
     def set_u64(self, u):
         return self.client.recv_bool()
 
-    @command('Tests', 'q')
+    @command('Tests')
     def set_i64(self, i):
         return self.client.recv_bool()
 
-    @command('Tests', 'BHI')
+    @command('Tests')
     def set_unsigned(self, u8, u16, u32):
         return self.client.recv_bool()
 
-    @command('Tests', 'bhi')
+    @command('Tests')
     def set_signed(self, i8, i16, i32):
         return self.client.recv_bool()
 
@@ -66,35 +66,35 @@ class Tests:
     def send_std_vector(self):
         return self.client.recv_array(10, dtype='float32')
 
-    @command('Tests', 'IfAdi')
+    @command('Tests')
     def rcv_std_array(self, u, f, arr, d, i):
         return self.client.recv_bool()
 
-    @command('Tests', 'A')
+    @command('Tests')
     def rcv_std_array2(self, arr):
         return self.client.recv_bool()
 
-    @command('Tests', 'A')
+    @command('Tests')
     def rcv_std_array3(self, arr):
         return self.client.recv_bool()
 
-    @command('Tests', 'V')
+    @command('Tests')
     def rcv_std_vector(self, vec):
         return self.client.recv_bool()
 
-    @command('Tests', 'IfV')
+    @command('Tests')
     def rcv_std_vector1(self, u, f, vec):
         return self.client.recv_bool()
 
-    @command('Tests', 'IfVdi')
+    @command('Tests')
     def rcv_std_vector2(self, u, f, vec, d, i):
         return self.client.recv_bool()
 
-    @command('Tests', 'AVdi')
+    @command('Tests')
     def rcv_std_vector3(self, arr, vec, d, i):
         return self.client.recv_bool()
 
-    @command('Tests', 'VdiA')
+    @command('Tests')
     def rcv_std_vector4(self, vec, d, i, arr):
         return self.client.recv_bool()
 
