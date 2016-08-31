@@ -49,7 +49,6 @@ def get_json(devices):
         })
     return json.dumps(data, separators=(',', ':')).replace('"', '\\"')
 
-
 def get_renderer():
     renderer = jinja2.Environment(
       block_start_string = '{%',
@@ -58,6 +57,7 @@ def get_renderer():
       variable_end_string = '}}',
       loader = jinja2.FileSystemLoader(os.path.abspath('.'))
     )
+
     def list_operations(device, max_op_num):
         list_ = map(lambda x: x['name'], device.operations)
         list_ = ['"%s"' % element for element in list_]
@@ -65,9 +65,7 @@ def get_renderer():
         return ','.join(list_ + empty_ops)
 
     def get_fragment(operation, device):
-        for call in device.calls:
-            if operation['tag'] == call['name']:
-                return call['lines']
+        return device.calls[operation['tag']]
 
     def get_parser(operation, device):
         return parser_generator(device, operation)
@@ -75,7 +73,6 @@ def get_renderer():
     renderer.filters['list_operations'] = list_operations
     renderer.filters['get_fragment'] = get_fragment
     renderer.filters['get_parser'] = get_parser
-
     return renderer
 
 def fill_template(devices, template_filename, output_filename):

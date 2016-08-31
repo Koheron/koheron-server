@@ -86,12 +86,9 @@ def parse_header_operation(method):
 # -----------------------------------------------------------------------------
 
 def cmd_calls(device):
-    calls = []
+    calls = {}
     for op in device['operations']:
-        call = {}
-        call['name'] = op['tag']
-        call['lines'] = generate_call(device, op)
-        calls.append(call)
+        calls[op['tag']] = generate_call(device, op)
     return calls
 
 def generate_call(device, operation):

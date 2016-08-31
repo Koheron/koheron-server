@@ -19,7 +19,7 @@ namespace kserver {
 
 {% for operation in device.operations -%}
 /////////////////////////////////////
-// {{ operation['raw_name'] }}
+// {{ operation['name'] }}
 
 template<>
 template<>
