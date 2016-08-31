@@ -7,7 +7,7 @@ class HelloWorld
         @cmds = @device.getCmds()
 
     add42 : (num, cb) ->
-        @kclient.readUint32(Command(@device.id, @cmds.add_42, 'I', num), cb)
+        @kclient.readUint32(Command(@device.id, @cmds.add_42, num), cb)
 
 client = new webclient.KClient('127.0.0.1', 2)
 
