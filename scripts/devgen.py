@@ -27,7 +27,7 @@ class Device:
 def generate(devices_list, midware_path):
     devices = [] # List of generated devices
     obj_files = []  # Object file names
-    for path in devices_list:
+    for path in devices_list or []:
         if path.endswith('.hpp') or path.endswith('.h'):
             device = Device(path, midware_path)
             print('Generating ' + device.name + '...')
