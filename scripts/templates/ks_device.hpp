@@ -21,11 +21,11 @@
 
 namespace kserver {
 
-class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device.name }}>
+class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device.tag }}>
 {
   public:
-    const device_t kind = {{ device.name }};
-    enum { __kind = {{ device.name }} };
+    const device_t kind = {{ device.tag }};
+    enum { __kind = {{ device.tag }} };
 
   public:
 #if KSERVER_HAS_DEVMEM
@@ -33,7 +33,7 @@ class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device
 #else
     {{ device.class_name }}(KServer* kserver)
 #endif
-    : KDevice<{{ device.class_name }},{{ device.name }}>(kserver)
+    : KDevice<{{ device.class_name }},{{ device.tag }}>(kserver)
 #if KSERVER_HAS_DEVMEM
     , dev_mem(dev_mem_)
 #endif
@@ -48,9 +48,9 @@ class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device
 
     enum Operation {
         {% for operation in device.operations -%}
-        {{ operation["name"] }},
+        {{ operation['tag'] }},
         {% endfor -%}        
-        {{ device.name|lower }}_op_num
+        {{ device.tag|lower }}_op_num
     };
 
 #if KSERVER_HAS_THREADS
@@ -63,13 +63,13 @@ class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device
     {% for object in device.objects -%}
     {{ object["type"] }} {{ object["name"] }};
     {% endfor -%}
-}; // class KS_{{ device.name|capitalize }}
+}; // class KS_{{ device.tag|capitalize }}
 
 {% for operation in device.operations -%}
 template<>
 template<>
-struct KDevice<{{ device.class_name }},{{ device.name }}>::
-            Argument<{{ device.class_name }}::{{ operation["name"] }}>
+struct KDevice<{{ device.class_name }},{{ device.tag }}>::
+            Argument<{{ device.class_name }}::{{ operation['tag'] }}>
 {
 {%- macro print_param_line(arg) %}
         {{ arg["type"] }} {{ arg["name"]}}; ///< {{ arg["description"] }}

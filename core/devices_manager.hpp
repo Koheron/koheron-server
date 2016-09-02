@@ -66,7 +66,7 @@ class DeviceManager
     void Reset(void);
 
     /// Execute a command
-    int Execute(const Command &cmd);
+    int Execute(Command &cmd);
 
     /// Return true if the device is already started
     bool IsStarted(device_t dev) const;

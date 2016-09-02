@@ -5,39 +5,12 @@
 import os
 import sys
 import yaml
-import jinja2
 import time
 import subprocess
 from distutils.dir_util import copy_tree
 from shutil import copy
 
-from devgen import Device, device_table
-
-def render_device_table(devices):
-    print('Generate device table')
-    device_table.PrintDeviceTable(devices, 'tmp')
-
-    template_filename = 'scripts/templates/devices.hpp'
-
-    header_renderer = jinja2.Environment(
-      loader = jinja2.FileSystemLoader(os.path.abspath('.'))
-    )
-
-    template = header_renderer.get_template(template_filename)
-    header_filename = os.path.join('tmp', 'devices.hpp')
-    with open(header_filename, 'w') as f:
-        f.write(template.render(devices=devices))
-
-def generate(devices_list, midware_path):
-    devices = [] # List of generated devices
-    obj_files = []  # Object file names
-    for path in devices_list:
-        if path.endswith('.hpp') or path.endswith('.h'):
-            device = Device(path, midware_path)
-            print('Generating ' + device.name + '...')
-            device.generate(os.path.join(midware_path, os.path.dirname(path)))
-            devices.append(device)
-    return devices
+from devgen import generate
 
 def install_requirements(config, base_dir):
     if 'requirements' in config:
@@ -59,9 +32,9 @@ def install_requirements(config, base_dir):
                 raise ValueError('Unknown requirement type: ' + requirement['type'])
 
     if 'copy_devices_to_middleware' in config and config['copy_devices_to_middleware']:
-        for dev in get_devices(config):
-            dev_path = os.path.join(base_dir, dev)
-            dest_dir = os.path.join('tmp/middleware', os.path.dirname(dev))
+        for device in get_devices(config):
+            dev_path = os.path.join(base_dir, device)
+            dest_dir = os.path.join('tmp/middleware', os.path.dirname(device))
             if not os.path.isdir(dest_dir):
                     os.makedirs(dest_dir)
 
@@ -70,7 +43,7 @@ def install_requirements(config, base_dir):
                                         os.path.basename(dev_path).split('.')[0] + '.cpp')
             if os.path.exists(cpp_filename):
                 copy(cpp_filename, dest_dir)
-
+                
 def get_devices(config):
     if 'devices' in config:
         return config['devices']
@@ -95,14 +68,13 @@ def main(argv):
                     config[key] = value
 
     if cmd == '--generate':
-        devices = generate(get_devices(config), argv[3])
-        render_device_table(devices)
+        generate(get_devices(config), argv[3])
 
     elif cmd == '--devices':
         hpp_files = []
         cpp_files = []
-        for dev in get_devices(config):
-            dev_path = os.path.join(argv[2], dev)
+        for device in get_devices(config):
+            dev_path = os.path.join(argv[2], device)
             hpp_files.append(dev_path)
             cpp_filename = os.path.join(os.path.dirname(dev_path), 
                                         os.path.basename(dev_path).split('.')[0] + '.cpp')

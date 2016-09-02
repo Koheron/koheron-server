@@ -60,7 +60,7 @@ class KDevice : public KDeviceAbstract
       kserver(kserver_)
     {}
 
-    int execute(const Command& cmd);
+    int execute(Command& cmd);
 
   private:
     /// Each device knows the KServer class,
@@ -72,7 +72,7 @@ class KDevice : public KDeviceAbstract
     /// @cmd The Command to be parsed
     /// @args The arguments resulting of the parsing
     template<int op>
-    int parse_arg(const Command& cmd, Argument<op>& args);
+    int parse_arg(Command& cmd, Argument<op>& args, SessID sess_id);
 
     /// Execute an operation
     /// @args The arguments of the operation provided by @parse_arg
@@ -86,53 +86,10 @@ friend Dev;
 
 /// Macros to simplify edition of operations 
 #define SEND kserver->session_manager.get_session(sess_id).send
-#define SEND_ARRAY kserver->session_manager.get_session(sess_id).send_array
 #define SEND_CSTR kserver->session_manager.get_session(sess_id).send_cstr
-#define RCV_HANDSHAKE kserver->session_manager.get_session(sess_id).rcv_handshake
-
-// Example of Device implementation
-#ifdef NE_PAS_DEFINIR_CETTE_MACRO
-
-// CRTP: Curiously Recurring Template Pattern
-// http://en.wikipedia.org/wiki/Curiously_recurring_template_pattern 
-class MyDev :public KDevice<MyDev> 
-{
-public:
-    enum { __kind = MY_TAG };
-
-public:
-    enum Operation {
-        OP1,
-        ops_num 
-    };
-};
-
-template<>
-int KDevice<MyDev>::execute(const Command & cmd) {
-
-}
-
-template<>
-template<>
-struct KDevice<MyDev>::Argument<MyDev::OP1>
-{
-    int N;
-    uint32_t data;
-};
-
-template<>
-template<>
-int KDevice<MyDev>::parse_arg<MyDev::OP1>(const Command& cmd, KDevice<MyDev>::Argument<MyDev::OP1>& args) {
-
-}
-
-template<>
-template<>
-int KDevice<MyDev>::execute<MyDev::OP1>(const KDevice<MyDev>::Argument<MyDev::OP1>& args) {
-
-}
-
-#endif
+#define RCV_VECTOR kserver->session_manager.get_session(sess_id).rcv_vector
+#define DESERIALIZE kserver->session_manager.get_session(sess_id).deserialize
+#define EXTRACT_ARRAY kserver->session_manager.get_session(sess_id).extract_array
 
 } // namespace kserver
 

@@ -4,121 +4,129 @@ import pytest
 import struct
 import numpy as np
 
-from koheron import KoheronClient, command, write_buffer
+from koheron import KoheronClient, command
 
 class Tests:
     def __init__(self, client):
         self.client = client
 
-    @command('Tests', 'IIf?')
+    @command()
     def rcv_many_params(self, u1, u2, f, b):
         return self.client.recv_bool()
 
-    @command('Tests', 'f')
+    @command()
     def set_float(self, f):
         return self.client.recv_bool()
 
-    @command('Tests', 'd')
+    @command()
     def set_double(self, d):
         return self.client.recv_bool()
 
-    @command('Tests', 'Q')
+    @command()
     def set_u64(self, u):
         return self.client.recv_bool()
 
-    @command('Tests', 'q')
+    @command()
     def set_i64(self, i):
         return self.client.recv_bool()
 
-    @command('Tests', 'BHI')
+    @command()
     def set_unsigned(self, u8, u16, u32):
         return self.client.recv_bool()
 
-    @command('Tests', 'bhi')
+    @command()
     def set_signed(self, i8, i16, i32):
         return self.client.recv_bool()
 
-    @command('Tests')
+    @command()
     def read_uint64(self):
         return self.client.recv_uint64()
 
-    @command('Tests')
+    @command()
     def read_uint(self):
         return self.client.recv_uint32()
 
-    @command('Tests')
+    @command()
     def read_int(self):
         return self.client.recv_int32()
 
-    @command('Tests')
+    @command()
     def read_float(self):
         return self.client.recv_float()
 
-    @command('Tests')
+    @command()
     def read_double(self):
         return self.client.recv_double()
 
-    @command('Tests')
+    @command()
     def send_std_array(self):
         return self.client.recv_array(10, dtype='float32')
 
-    @command('Tests')
+    @command()
     def send_std_vector(self):
         return self.client.recv_array(10, dtype='float32')
 
-    @command('Tests', 'I')
-    def send_c_array1(self, len_):
-        return self.client.recv_array(2*len_, dtype='float32')
-
-    @command('Tests')
-    def send_c_array2(self):
-        return self.client.recv_array(10, dtype='float32')
-
-    @write_buffer('Tests')
-    def set_buffer(self, data):
-        return self.client.recv_bool()
-
-    @command('Tests', 'IfAdi')
+    @command()
     def rcv_std_array(self, u, f, arr, d, i):
         return self.client.recv_bool()
 
-    @command('Tests', 'A')
+    @command()
     def rcv_std_array2(self, arr):
         return self.client.recv_bool()
 
-    @command('Tests', 'A')
+    @command()
     def rcv_std_array3(self, arr):
         return self.client.recv_bool()
 
-    @command('Tests')
+    @command()
+    def rcv_std_vector(self, vec):
+        return self.client.recv_bool()
+
+    @command()
+    def rcv_std_vector1(self, u, f, vec):
+        return self.client.recv_bool()
+
+    @command()
+    def rcv_std_vector2(self, u, f, vec, d, i):
+        return self.client.recv_bool()
+
+    @command()
+    def rcv_std_vector3(self, arr, vec, d, i):
+        return self.client.recv_bool()
+
+    @command()
+    def rcv_std_vector4(self, vec, d, i, arr):
+        return self.client.recv_bool()
+
+    @command()
     def get_cstr(self):
         return self.client.recv_string()
 
-    @command('Tests')
+    @command()
     def get_std_string(self):
         return self.client.recv_string()
 
-    @command('Tests')
+    @command()
     def get_json(self):
         return self.client.recv_json()
 
-    @command('Tests')
+    @command()
     def get_json2(self):
         return self.client.recv_json()
 
-    @command('Tests')
+    @command()
     def get_tuple(self):
         return self.client.recv_tuple('Idd?')
 
-    @command('Tests')
+    @command()
     def get_tuple2(self):
         return self.client.recv_tuple('IfQdq')
 
-    @command('Tests')
+    @command()
     def get_tuple3(self):
         return self.client.recv_tuple('?ffBH')
 
-    @command('Tests')
+    @command()
     def get_tuple4(self):
         return self.client.recv_tuple('bbhhii')
 
@@ -132,8 +140,6 @@ tests = Tests(client)
 
 client_unix = KoheronClient(unixsock=unixsock)
 tests_unix = Tests(client_unix)
-
-tests.set_double(1.428571428571428492127)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_send_many_params(tests):
@@ -196,27 +202,6 @@ def test_send_std_array(tests):
         assert array[i] == i*i
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_send_c_array1(tests):
-    len_ = 10
-    array = tests.send_c_array1(len_)
-    assert len(array) == 2*len_
-
-    for i in range(len(array)):
-        assert array[i] == 0.5 * i
-
-@pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_send_c_array2(tests):
-    array = tests.send_c_array2()
-
-    for i in range(len(array)):
-        assert array[i] == 0.25 * i
-
-@pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_set_buffer(tests):
-    data = np.arange(10)**2
-    assert tests.set_buffer(data)
-
-@pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_rcv_std_array(tests):
     arr = np.arange(8192, dtype='uint32')
     assert tests.rcv_std_array(4223453, 3.141592, arr, 2.654798454646, -56789)
@@ -230,6 +215,33 @@ def test_rcv_std_array2(tests):
 def test_rcv_std_array3(tests):
     arr = np.sin(np.arange(8192, dtype='float64'))
     assert tests.rcv_std_array3(arr)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_rcv_std_vector(tests):
+    vec = np.arange(8192, dtype='uint32')
+    assert tests.rcv_std_vector(vec)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_rcv_std_vector1(tests):
+    vec = np.sin(np.arange(8192, dtype='float64'))
+    assert tests.rcv_std_vector1(4223453, 3.141592, vec)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_rcv_std_vector2(tests):
+    vec = np.log(np.arange(8192, dtype='float32') + 1)
+    assert tests.rcv_std_vector2(4223453, 3.141592, vec, 2.654798454646, -56789)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_rcv_std_vector3(tests):
+    arr = np.arange(8192, dtype='uint32')
+    vec = np.log(np.arange(8192, dtype='float32') + 1)
+    assert tests.rcv_std_vector3(arr, vec, 2.654798454646, -56789)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_rcv_std_vector4(tests):
+    arr = np.arange(8192, dtype='uint32') ** 2
+    vec = np.cos(np.arange(8192, dtype='float32'))
+    assert tests.rcv_std_vector4(vec, 2.654798454646, -56789, arr)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_get_cstring(tests):

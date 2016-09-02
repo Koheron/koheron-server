@@ -101,10 +101,13 @@ namespace kserver {
 #define KSERVER_SIG_LEN 16384
 
 /// Command payload buffer length 
-#define CMD_PAYLOAD_BUFFER_LEN 16384 * 4
+#define CMD_PAYLOAD_BUFFER_LEN 16384 * 8
 
 /// Read string length
 #define KSERVER_READ_STR_LEN 16384
+
+/// Send string length
+#define KSERVER_SEND_STR_LEN 16384
 
 /// Receive data buffer length
 #define KSERVER_RECV_DATA_BUFF_LEN 16384 * 2 * 4

@@ -165,21 +165,6 @@ int WebSocket::set_send_header(unsigned char *bits, long long data_len,
     return mask_offset;
 }
 
-int WebSocket::send_cstr(const char *string)
-{
-    long unsigned int char_data_len = strlen(string);
-
-    if (char_data_len + 10 > WEBSOCK_SEND_BUF_LEN) {
-        kserver->syslog.print<SysLog::ERROR>(
-                              "WebSocket: send_buf too small\n");
-        return -1;
-    }
-
-    int mask_offset = set_send_header(send_buf, char_data_len, (1 << 7) + TEXT_FRAME);
-    memcpy(&send_buf[mask_offset], string, char_data_len);
-    return send_request(send_buf, mask_offset + char_data_len);
-}
-
 int WebSocket::exit()
 {
     return send_request(send_buf, set_send_header(send_buf, 0, (1 << 7) + CONNECTION_CLOSE));
@@ -222,11 +207,11 @@ int WebSocket::decode_raw_stream_cmd(Command& cmd)
     char *mask = read_str + header.mask_offset;
     char *payload_ptr = read_str + header.mask_offset + 4;
 
-    for (unsigned long long i = 0; i < HEADER_SIZE; ++i)
-        cmd.header.data[i] = (payload_ptr[i] ^ mask[i % 4]);
+    for (unsigned long long i = 0; i < Command::HEADER_SIZE; ++i)
+        cmd.header.data()[i] = (payload_ptr[i] ^ mask[i % 4]);
 
-    for (unsigned long long i = HEADER_SIZE; i < header.payload_size; ++i)
-        cmd.buffer.data[i - HEADER_SIZE] = (payload_ptr[i] ^ mask[i % 4]);
+    for (unsigned long long i = Command::HEADER_SIZE; i < header.payload_size; ++i)
+        cmd.payload.data()[i - Command::HEADER_SIZE] = (payload_ptr[i] ^ mask[i % 4]);
 
     return 0;
 }

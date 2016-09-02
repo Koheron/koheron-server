@@ -60,38 +60,6 @@ std::array<float, 10>& Tests::send_std_array()
     return data_std_array;
 }
 
-float* Tests::send_c_array1(uint32_t n_pts)
-{
-    if (data.size() < 2*n_pts)
-        data.resize(2*n_pts);
-
-    for (unsigned int i=0; i<2*n_pts; i++)
-        data[i] = static_cast<float>(i)/2;
-
-    return data.data();
-}
-
-float* Tests::send_c_array2()
-{
-    data.resize(10);
-
-    for (unsigned int i=0; i<data.size(); i++)
-       data[i] = static_cast<float>(i)/4;
-
-    return data.data();
-}
-
-bool Tests::set_buffer(const uint32_t *data, uint32_t len)
-{
-    if (len != 10) return false;
-
-    for (unsigned int i=0; i<len; i++)
-        if (data[i] != i*i)
-            return false;
-
-    return true;
-}
-
 bool Tests::rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 8192>& arr, double d, int32_t i)
 {
     if (u != 4223453) return false;
@@ -119,6 +87,82 @@ bool Tests::rcv_std_array3(const std::array<double, 8192>& arr)
     for (unsigned int i=0; i<8192; i++)
         if (fabs(arr[i] - sin(static_cast<double>(i))) > std::numeric_limits<double>::epsilon())
             return false;
+
+    return true;
+}
+
+bool Tests::rcv_std_vector(const std::vector<uint32_t>& vec)
+{
+    if (vec.size() != 8192) return false;
+
+    for (unsigned int i=0; i<vec.size(); i++)
+        if (vec[i] != i) return false;
+
+    return true;
+}
+
+bool Tests::rcv_std_vector1(uint32_t u, float f, const std::vector<double>& vec)
+{
+    if (u != 4223453) return false;
+    if (fabs(f - 3.141592) > std::numeric_limits<float>::epsilon()) return false;
+
+    if (vec.size() != 8192) return false;
+
+    for (unsigned int i=0; i<vec.size(); i++)
+        if (fabs(vec[i] - sin(static_cast<double>(i))) > std::numeric_limits<double>::epsilon())
+            return false;
+
+    return true;
+}
+
+bool Tests::rcv_std_vector2(uint32_t u, float f, const std::vector<float>& vec, double d, int32_t i)
+{
+    if (u != 4223453) return false;
+    if (fabs(f - 3.141592) > std::numeric_limits<float>::epsilon()) return false;
+
+    if (vec.size() != 8192) return false;
+
+    for (unsigned int i=0; i<vec.size(); i++)
+        if (fabs(vec[i] - log(static_cast<float>(i + 1))) > std::numeric_limits<float>::round_error())
+            return false;
+
+    if (fabs(d - 2.654798454646) > std::numeric_limits<double>::epsilon()) return false;
+    if (i != -56789) return false;
+
+    return true;
+}
+
+bool Tests::rcv_std_vector3(const std::array<uint32_t, 8192>& arr,
+                            const std::vector<float>& vec, double d, int32_t i)
+{
+    if (fabs(d - 2.654798454646) > std::numeric_limits<double>::epsilon()) return false;
+    if (i != -56789) return false;
+
+    for (unsigned int i=0; i<8192; i++)
+        if (arr[i] != i) return false;
+
+    if (vec.size() != 8192) return false;
+
+    for (unsigned int i=0; i<vec.size(); i++)
+        if (fabs(vec[i] - log(static_cast<float>(i + 1))) > std::numeric_limits<float>::round_error())
+            return false;
+
+    return true;
+}
+
+bool Tests::rcv_std_vector4(const std::vector<float>& vec, double d, int32_t i,
+                            const std::array<uint32_t, 8192>& arr)
+{
+    if (fabs(d - 2.654798454646) > std::numeric_limits<double>::epsilon()) return false;
+    if (i != -56789) return false;
+    if (vec.size() != 8192) return false;
+
+    for (unsigned int i=0; i<vec.size(); i++)
+        if (fabs(vec[i] - cos(static_cast<float>(i))) > std::numeric_limits<float>::epsilon())
+            return false;
+
+    for (unsigned int i=0; i<8192; i++)
+        if (arr[i] != i * i) return false;
 
     return true;
 }
@@ -161,8 +205,8 @@ std::tuple<int8_t, int8_t, int16_t, int16_t, int32_t, int32_t> Tests::get_tuple4
 }
 
 uint64_t      Tests::read_uint64()    { return (1ULL << 63);       }
-int           Tests::read_int()       { return -214748364;         }
-unsigned int  Tests::read_uint()      { return 301062138;          }
+int32_t       Tests::read_int()       { return -214748364;         }
+uint32_t      Tests::read_uint()      { return 301062138;          }
 uint32_t      Tests::read_ulong()     { return 2048;               }
 uint64_t      Tests::read_ulonglong() { return (1ULL << 63);       }
 float         Tests::read_float()     { return 3.141592;           }
