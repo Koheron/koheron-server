@@ -26,7 +26,6 @@ OBJS_KSERVER = core/kserver.o              \
                core/session_manager.o      \
                core/devices_manager.o      \
                core/peer_info.o            \
-               core/commands.o             \
                core/websocket.o            \
                core/gason.o                \
                core/config.o               \

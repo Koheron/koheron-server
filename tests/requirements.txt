@@ -1,4 +1,4 @@
 wheel
 pytest
 numpy==1.11.0
-koheron
+https://github.com/Koheron/koheron-python/zipball/master

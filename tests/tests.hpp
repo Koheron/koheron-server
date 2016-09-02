@@ -26,19 +26,16 @@ class Tests
     std::vector<float>& send_std_vector();
     std::array<float, 10>& send_std_array();
 
-    #pragma koheron-server read_array 2*arg{n_pts}
-    float* send_c_array1(uint32_t n_pts);
-
-    #pragma koheron-server read_array this{data.size()}
-    float* send_c_array2();
-
-    // Receive array
-    #pragma koheron-server write_array arg{data} arg{len}
-    bool set_buffer(const uint32_t *data, uint32_t len);
-
     bool rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 8192>& arr, double d, int32_t i);
     bool rcv_std_array2(const std::array<float, 8192>& arr);
     bool rcv_std_array3(const std::array<double, 8192>& arr);
+
+    // Receive vector
+    bool rcv_std_vector(const std::vector<uint32_t>& vec);
+    bool rcv_std_vector1(uint32_t u, float f, const std::vector<double>& vec);
+    bool rcv_std_vector2(uint32_t u, float f, const std::vector<float>& vec, double d, int32_t i);
+    bool rcv_std_vector3(const std::array<uint32_t, 8192>& arr, const std::vector<float>& vec, double d, int32_t i);
+    bool rcv_std_vector4(const std::vector<float>& vec, double d, int32_t i, const std::array<uint32_t, 8192>& arr);
 
     // Send string
     const char* get_cstr();
@@ -57,8 +54,8 @@ class Tests
 
     // Send numbers
     uint64_t read_uint64();
-    int read_int();
-    unsigned int read_uint();
+    int32_t read_int();
+    uint32_t read_uint();
     uint32_t read_ulong();
     uint64_t read_ulonglong();
     float read_float();

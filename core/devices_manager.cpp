@@ -106,7 +106,7 @@ int DeviceManager::StartDev(device_t dev)
             break;                                                  \
         }
 
-int DeviceManager::Execute(const Command& cmd)
+int DeviceManager::Execute(Command& cmd)
 {
     if (!is_started[cmd.device])
         if (StartDev(cmd.device) < 0)

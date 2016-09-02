@@ -18,19 +18,19 @@ class Tests
         @cmds = @device.getCmds()
 
     sendManyParams : (u1, u2, f, b, cb) ->
-        @kclient.readBool(Command(@id, @cmds.rcv_many_params, 'IIf?', u1, u2, f, b), cb)
+        @kclient.readBool(Command(@id, @cmds.rcv_many_params, u1, u2, f, b), cb)
 
     setFloat : (f, cb) ->
-        @kclient.readBool(Command(@id, @cmds.set_float, 'f', f), cb)
+        @kclient.readBool(Command(@id, @cmds.set_float, f), cb)
 
     setDouble : (d, cb) ->
-        @kclient.readBool(Command(@id, @cmds.set_double, 'd', d), cb)
+        @kclient.readBool(Command(@id, @cmds.set_double, d), cb)
 
     setUnsigned : (u8, u16, u32, cb) ->
-        @kclient.readBool(Command(@id, @cmds.set_unsigned, 'BHI', u8, u16, u32), cb)
+        @kclient.readBool(Command(@id, @cmds.set_unsigned, u8, u16, u32), cb)
 
     setSigned : (i8, i16, i32, cb) ->
-        @kclient.readBool(Command(@id, @cmds.set_signed, 'bhi', i8, i16, i32), cb)
+        @kclient.readBool(Command(@id, @cmds.set_signed, i8, i16, i32), cb)
 
     rcvStdVector : (cb) ->
         @kclient.readFloat32Array(Command(@id, @cmds.send_std_vector), cb)
@@ -38,35 +38,63 @@ class Tests
     rcvStdArray : (cb) ->
         @kclient.readFloat32Array(Command(@id, @cmds.send_std_array), cb)
 
-    rcvCArray1 : (len, cb) ->
-        @kclient.readFloat32Array(Command(@id, @cmds.send_c_array1, 'I', len), cb)
-
-    rcvCArray2 : (cb) ->
-        @kclient.readFloat32Array(Command(@id, @cmds.send_c_array2), cb)
-
-    sendBuffer : (len, cb) ->
-        buffer = new Uint32Array(len)
-        buffer[i] = i*i for i in [0..len]
-        @kclient.sendArray(Command(@id, @cmds.set_buffer, 'I', buffer.length), buffer, (ok) -> cb(ok==1))
-
     sendStdArray : (cb) ->
         u = 4223453
         f = 3.141592
         d = 2.654798454646
         i = -56789
         array = new Uint32Array(8192)
-        array[_i] = _i for _i in [0..array.length]
-        @kclient.readBool(Command(@id, @cmds.rcv_std_array, 'IfAdi', u, f, array, d, i), cb)
+        array[_i] = _i for _i in [0..array.length - 1]
+        @kclient.readBool(Command(@id, @cmds.rcv_std_array, u, f, array, d, i), cb)
 
     sendStdArray2 : (cb) ->
         array = new Float32Array(8192)
-        array[i] = Math.log(i + 1) for i in [0..array.length]
-        @kclient.readBool(Command(@id, @cmds.rcv_std_array2, 'A', array), cb)
+        array[i] = Math.log(i + 1) for i in [0..array.length - 1]
+        @kclient.readBool(Command(@id, @cmds.rcv_std_array2, array), cb)
 
     sendStdArray3 : (cb) ->
         array = new Float64Array(8192)
-        array[i] = Math.sin(i) for i in [0..array.length]
-        @kclient.readBool(Command(@id, @cmds.rcv_std_array3, 'A', array), cb)
+        array[i] = Math.sin(i) for i in [0..array.length - 1]
+        @kclient.readBool(Command(@id, @cmds.rcv_std_array3, array), cb)
+
+    sendStdVector : (cb) ->
+        vec = new Uint32Array(8192)
+        vec[i] = i for i in [0..vec.length - 1]
+        @kclient.readBool(Command(@id, @cmds.rcv_std_vector, vec), cb)
+
+    sendStdVector1 : (cb) ->
+        u = 4223453
+        f = 3.141592
+        vec = new Float64Array(8192)
+        vec[i] = Math.sin(i) for i in [0..vec.length - 1]
+        @kclient.readBool(Command(@id, @cmds.rcv_std_vector1, u, f, vec), cb)
+
+    sendStdVector2 : (cb) ->
+        u = 4223453
+        f = 3.141592
+        d = 2.654798454646
+        i = -56789
+        vec = new Float32Array(8192)
+        vec[_i] = Math.log(_i + 1) for _i in [0..vec.length - 1]
+        @kclient.readBool(Command(@id, @cmds.rcv_std_vector2, u, f, vec, d, i), cb)
+
+    sendStdVector3 : (cb) ->
+        d = 2.654798454646
+        i = -56789
+        array = new Uint32Array(8192)
+        array[_i] = _i for _i in [0..array.length - 1]
+        vec = new Float32Array(8192)
+        vec[_i] = Math.log(_i + 1) for _i in [0..vec.length - 1]
+        @kclient.readBool(Command(@id, @cmds.rcv_std_vector3, array, vec, d, i), cb)
+
+    sendStdVector4 : (cb) ->
+        d = 2.654798454646
+        i = -56789
+        array = new Uint32Array(8192)
+        array[_i] = _i * _i for _i in [0..array.length - 1]
+        vec = new Float32Array(8192)
+        vec[_i] = Math.cos(_i) for _i in [0..vec.length - 1]
+        @kclient.readBool(Command(@id, @cmds.rcv_std_vector4, vec, d, i, array), cb)
 
     readUint : (cb) ->
         @kclient.readUint32(Command(@id, @cmds.read_uint), cb)
@@ -296,67 +324,6 @@ exports.rcvStdArray = (assert) ->
         )
     )
 
-exports.rcvCArray1 = (assert) ->
-    client = new websock_client.KClient('127.0.0.1', 1)
-    assert.expect(3)
-
-    assert.doesNotThrow( =>
-        client.init( =>
-            tests = new Tests(client)
-            len = 10
-            tests.rcvCArray1(len, (array) =>
-                assert.equal(array.length, 2*len)
-                is_ok = true
-                for i in [0..2*len-1]
-                    if array[i] != i/2
-                        is_ok = false
-                        break
-
-                assert.ok(is_ok)
-                client.exit()
-                assert.done()
-            )
-        )
-    )
-
-exports.rcvCArray2 = (assert) ->
-    client = new websock_client.KClient('127.0.0.1', 1)
-    assert.expect(3)
-
-    assert.doesNotThrow( =>
-        client.init( =>
-            tests = new Tests(client)
-            tests.rcvCArray2((array) =>
-                assert.equal(array.length, 10)
-                is_ok = true
-                for i in [0..10-1]
-                    if array[i] != i/4
-                        is_ok = false
-                        break
-
-                assert.ok(is_ok)
-                client.exit()
-                assert.done()
-            )
-        )
-    )
-
-exports.sendBuffer = (assert) ->
-    client = new websock_client.KClient('127.0.0.1', 1)
-    assert.expect(2)
-
-    assert.doesNotThrow( =>
-        client.init( =>
-            tests = new Tests(client)
-            len = 10
-            tests.sendBuffer(len, (is_ok) =>
-                assert.ok(is_ok)
-                client.exit()
-                assert.done()
-            )
-        )
-    )
-
 exports.sendStdArray = (assert) ->
     client = new websock_client.KClient('127.0.0.1', 1)
     assert.expect(2)
@@ -395,6 +362,81 @@ exports.sendStdArray3 = (assert) ->
         client.init( =>
             tests = new Tests(client)
             tests.sendStdArray3( (is_ok) =>
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.sendStdVector = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.sendStdVector( (is_ok) =>
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.sendStdVector1 = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.sendStdVector1( (is_ok) =>
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.sendStdVector2 = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.sendStdVector2( (is_ok) =>
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.sendStdVector3 = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.sendStdVector3( (is_ok) =>
+                assert.ok(is_ok)
+                client.exit()
+                assert.done()
+            )
+        )
+    )
+
+exports.sendStdVector4 = (assert) ->
+    client = new websock_client.KClient('127.0.0.1', 1)
+    assert.expect(2)
+
+    assert.doesNotThrow( =>
+        client.init( =>
+            tests = new Tests(client)
+            tests.sendStdVector4( (is_ok) =>
                 assert.ok(is_ok)
                 client.exit()
                 assert.done()

@@ -5,7 +5,6 @@ class Device
     "use strict"
 
     constructor: (@devname, @id, @cmds) ->
-        @status = ""
 
     show: ->
         console.log @devname + ":\n"
@@ -14,18 +13,15 @@ class Device
         console.log "  Commands:\n"
         (console.log "  - " + cmd + "\n" for cmd in @cmds)
 
-    setStatus: (status) ->
-        @status = status
-
     getCmdRef: (cmd_name) ->
         for cmd, idx in @cmds
-            if cmd == cmd_name then return idx
+            if cmd == cmd.name then return idx
 
         throw new ReferenceError(cmd_name + ': command not found')
 
     getCmds : ->
         cmds_dict = {}
-        cmds_dict[cmd] = idx for cmd, idx in @cmds
+        cmds_dict[cmd.name] = {'idx': idx, 'fmt': cmd.fmt} for cmd, idx in @cmds
         return cmds_dict
 
 class WebSocketPool
@@ -255,51 +251,63 @@ class CommandBase
     # Build the binary buffer of a command
     # @type {function(number, string=, ...(number|boolean)):Uint8Array}
     ###
-    constructor: (dev_id, cmd_ref, types_str='', params...) ->
+    constructor: (dev_id, cmd, params...) ->
         buffer = []
         appendUint32(buffer, 0) # RESERVED
         appendUint16(buffer, dev_id)
-        appendUint16(buffer, cmd_ref)
+        appendUint16(buffer, cmd.idx)
 
-        if types_str.length == 0
+        if cmd.fmt.length == 0
             appendUint32(buffer, 0) # Payload size
             return new Uint8Array(buffer)
 
-        if types_str.length != params.length
+        if cmd.fmt.length != params.length
             throw new Error('Invalid types string length')
 
-        payload_size = 0
-        payload = []
-        for i in [0..(types_str.length-1)]
-            switch types_str[i]
-                when 'B'
-                    payload_size += appendUint8(payload, params[i])
-                when 'b'
-                    payload_size += appendInt8(payload, params[i])
-                when 'H'
-                    payload_size += appendUint16(payload, params[i])
-                when 'h'
-                    payload_size += appendInt16(payload, params[i])
-                when 'I'
-                    payload_size += appendUint32(payload, params[i])
-                when 'i'
-                    payload_size += appendInt32(payload, params[i])
-                when 'f'
-                    payload_size += appendFloat32(payload, params[i])
-                when 'd'
-                    payload_size += appendFloat64(payload, params[i])
-                when '?'
-                    if params[i]
-                        payload_size += appendUint8(payload, 1)
+        buildPayload = (fmt='', params) ->
+            payload_size = 0
+            payload = []
+            for i in [0..(fmt.length-1)]
+                switch fmt[i]
+                    when 'B'
+                        payload_size += appendUint8(payload, params[i])
+                    when 'b'
+                        payload_size += appendInt8(payload, params[i])
+                    when 'H'
+                        payload_size += appendUint16(payload, params[i])
+                    when 'h'
+                        payload_size += appendInt16(payload, params[i])
+                    when 'I'
+                        payload_size += appendUint32(payload, params[i])
+                    when 'i'
+                        payload_size += appendInt32(payload, params[i])
+                    when 'f'
+                        payload_size += appendFloat32(payload, params[i])
+                    when 'd'
+                        payload_size += appendFloat64(payload, params[i])
+                    when '?'
+                        if params[i]
+                            payload_size += appendUint8(payload, 1)
+                        else
+                            payload_size += appendUint8(payload, 0)
+                    when 'A'
+                        payload_size += appendArray(payload, params[i])
+                    when 'V'
+                        vec_len = params[i].length
+                        payload_size += appendUint32(payload, vec_len)
+                        payload_size += appendUint32(payload, 0)
+                        appendArray(payload, params[i])
+                        if fmt[i+1..].length > 0
+                            payload.concat(buildPayload(fmt[i+1..], params[i+1..])[0])
+                        break
                     else
-                        payload_size += appendUint8(payload, 0)
-                when 'A'
-                    payload_size += appendArray(payload, params[i])
-                else
-                    throw new TypeError('Unknown type ' + types_str[i])
+                        throw new TypeError('Unknown type ' + fmt[i])
 
-        appendUint32(buffer, payload_size)
-        return new Uint8Array(buffer.concat(payload))
+            return [payload, payload_size]
+
+        res = buildPayload(cmd.fmt, params)
+        appendUint32(buffer, res[1])
+        return new Uint8Array(buffer.concat(res[0]))
 
 ###* @param {...*} var_args ###
 Command = (var_args) ->
@@ -328,7 +336,7 @@ class @KClient
             if sockid < 0 then return callback(null, null)
             @broadcast_socketid = sockid
             broadcast_socket = @websockpool.getSocket(sockid)
-            broadcast_socket.send(Command(1, 5, 'I', 0)) # Server broadcasts on channel 0
+            broadcast_socket.send(Command(1, {'idx': 5, 'fmt': 'I'}, 0)) # Server broadcasts on channel 0
 
             broadcast_socket.onmessage = (evt) =>
                 tup = @deserialize('III', evt.data)
@@ -345,7 +353,7 @@ class @KClient
         @websockpool.requestSocket( (sockid) =>
             if sockid < 0 then return
             websocket = @websockpool.getSocket(sockid)
-            websocket.send(Command(1, 6))
+            websocket.send(Command(1, {'idx': 6, 'fmt': ''}))
             if @websockpool?
                 @websockpool.freeSocket(sockid)
         )
@@ -507,7 +515,14 @@ class @KClient
         return tuple
 
     readString: (cmd, fn) ->
-        @_readBase(cmd, (data) => fn(data.toString()))
+        @_readBase(cmd, (data) =>
+            dv = new DataView(data)
+            reserved = dv.getUint32(0)
+            len = dv.getUint32(4)
+            chars = []
+            chars.push(String.fromCharCode(dv.getUint8(8 + i))) for i in [0..len-2]
+            fn(chars.join(''))
+        )
 
     readJSON: (cmd, fn) ->
         @readString(cmd, (str) => fn(JSON.parse(str)))
@@ -517,34 +532,13 @@ class @KClient
     # ------------------------
 
     loadCmds: (callback) ->
-        @websockpool.requestSocket( (sockid) =>
-            if sockid < 0 then return fn(null)
-            websocket = @websockpool.getSocket(sockid)
-            console.assert(websocket.readyState == 1, 'Websocket [ID = ' + sockid.toString() + '] not ready')
-            websocket.send(Command(1,1))
-            msg_num = 0
+        @readJSON(Command(1, {'idx': 1, 'fmt': ''}), (data) =>
+            for dev, id in data
+                dev = new Device(dev.name, id, dev.operations)
+                # dev.show()
+                @devices_list.push(dev)
 
-            websocket.onmessage = (evt) =>
-                msg_num++
-                cmds = []
-
-                if msg_num >= 2 and evt.data != "EOC\n"
-                    tokens = evt.data.split(":")
-                    devname = tokens[1]
-                    id = parseInt(tokens[0], 10)
-
-                    for i in [2..tokens.length-1]
-                        if tokens[i] != "" and tokens[i] != "\n"
-                            cmds.push(tokens[i].replace(/\r?\n|\r/, ''))
-
-                    dev = new Device(devname, id, cmds)
-                    # dev.show()
-                    @devices_list.push(dev)
-
-                if evt.data == "EOC\n"
-                    callback()
-                    if @websockpool?
-                        @websockpool.freeSocket(sockid)
+            callback()
         )
 
     getDeviceList: (fn) ->
@@ -553,28 +547,6 @@ class @KClient
     showDevices: ->
         console.log "Devices:\n"
         (device.show() for device in @devices_list)
-
-    getDevStatus: (callback) ->
-        @websockpool.requestSocket( (sockid) =>
-            if sockid < 0 then return fn(null)
-            websocket = @websockpool.getSocket(sockid)
-            websocket.send(Command(1,3))
-
-            @websocket.onmessage = (evt) =>
-                if evt.data != "EODS\n"
-                    tokens = evt.data.split(":")
-                    dev_id = tokens[0]
-
-                    for device in @devices_list
-                        if device.id == dev_id
-                            device.setStatus(tokens[2].trim())
-
-                else
-                    console.log "Devices status updated"
-                    callback()
-                    if @websockpool?
-                        @websockpool.freeSocket(sockid)
-        )
 
     getDevice: (devname) ->
         for device in @devices_list

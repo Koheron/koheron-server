@@ -10,15 +10,26 @@
 
 #define DEVICES_TABLE(ENTRY) \
 {% for device in devices -%}
-ENTRY( {{device.name}}, {{device.class_name}}, \
-  {% for operation in device.operations -%}
-    {{ operation["name"] }}, \
-  {% endfor -%}
-  {{ ','.join(['""'] * (max_op_num - len(device.operations))) }} ) \
-) \
+    {% if not loop.last -%}
+        ENTRY( {{device.tag}}, {{device.class_name}}, {{ device | list_operations(max_op_num) }} ) \
+    {% else -%}
+        ENTRY( {{device.tag}}, {{device.class_name}}, {{ device | list_operations(max_op_num) }} )
+    {% endif -%}
 {% endfor %}
 
 /// Maximum number of operations
-#define MAX_OP_NUM {{ max_op_num }}
+#define MAX_OP_NUM {{max_op_num}}
+
+/// Devices #
+typedef enum {
+    NO_DEVICE,
+    KSERVER,
+    {% for device in devices -%}
+    {{ device.tag | upper }},
+    {% endfor -%}
+    device_num
+} device_t;
+
+constexpr auto DEVICES_JSON = "{{ json }}";
 
 #endif // __DEVICES_TABLE_HPP__
