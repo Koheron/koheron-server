@@ -219,10 +219,10 @@ int Session<sock_type>::send(const std::vector<T>& vect)
     // Length in front of vector data:
     // RESERVED | LENGTH_BYTES | DATA ...
     const auto& array = serialize<uint32_t, uint64_t>(0U, vect.size() * sizeof(T));
-    std::vector<char> data(array.begin(), array.end());
+    std::vector<unsigned char> data(array.begin(), array.end());
     data.resize(required_buffer_size<uint32_t, uint64_t>() + vect.size() * sizeof(T));
     memcpy(data.data() + required_buffer_size<uint32_t, uint64_t>(), vect.data(), vect.size() * sizeof(T));
-    return send_array<char>(data.data(), data.size());
+    return send_array<unsigned char>(data.data(), data.size());
 }
 
 template<int sock_type>
@@ -245,7 +245,7 @@ template<int sock_type>
 template<typename... Tp>
 int Session<sock_type>::send_cstr(const char *string, Tp&&... args)
 {
-    return send_string(std::move(std::string(string)));
+    return send_string(std::move(std::string(string)), args...);
 }
 
 template<int sock_type>
@@ -253,11 +253,11 @@ template<typename... Tp>
 int Session<sock_type>::send_string(const std::string& str, Tp&&... args)
 {
     uint32_t len = str.size() + 1; // Including '\0'
-    auto array = serialize(std::make_tuple(0U, args..., len));
-    std::vector<char> data(array.begin(), array.end());
+    auto array = serialize(0U, args..., len);
+    std::vector<unsigned char> data(array.begin(), array.end());
     std::copy(str.begin(), str.end(), std::back_inserter(data));
     data.push_back('\0');
-    return send_array<char>(data.data(), data.size());
+    return send_array<unsigned char>(data.data(), data.size());
 }
 
 #define SEND_SPECIALIZE_IMPL(session_kind)                                            \
