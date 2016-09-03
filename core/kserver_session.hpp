@@ -216,7 +216,12 @@ template<int sock_type>
 template<typename T>
 int Session<sock_type>::send(const std::vector<T>& vect)
 {
-    return send_array<T>(vect.data(), vect.size());
+    // Length in front of vector data:
+    // RESERVED | LENGTH_BYTES | DATA ...
+    const auto& array = serialize<uint32_t, uint64_t>(0U, vect.size() * sizeof(T));
+    std::vector<char> data(array.begin(), array.end());
+    std::copy(vect.begin(), vect.end(), std::back_inserter(data));
+    return send_array<char>(data.data(), data.size());
 }
 
 template<int sock_type>
@@ -251,7 +256,7 @@ int Session<sock_type>::send_string(const std::string& str, Tp&&... args)
     std::vector<char> data(array.begin(), array.end());
     std::copy(str.begin(), str.end(), std::back_inserter(data));
     data.push_back('\0');
-    return send(data);
+    return send_array<char>(data.data(), data.size());
 }
 
 #define SEND_SPECIALIZE_IMPL(session_kind)                                            \
