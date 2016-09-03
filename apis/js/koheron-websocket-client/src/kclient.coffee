@@ -442,6 +442,18 @@ class @KClient
             fn(array)
         )
 
+    readUint32Vector: (cmd, fn) ->
+        @_readBase(cmd, (data) =>
+            array = new Uint32Array data.slice(12, data.length)
+            fn(array.slice(1, array.length))
+        )
+
+    readFloat32Vector: (cmd, fn) ->
+        @_readBase(cmd, (data) =>
+            array = new Float32Array data.slice(12, data.length)
+            fn(array)
+        )
+
     readUint32: (cmd, fn) ->
         @_readBase(cmd, (data) =>
             array = new Uint32Array data

@@ -68,7 +68,7 @@ KSERVER_EXECUTE_OP(GET_CMDS)
 
 /////////////////////////////////////
 // GET_STATS
-// Get KServer listeners statistics
+// Get listeners statistics
 
 KSERVER_STRUCT_ARGUMENTS(GET_STATS) {};
 KSERVER_PARSE_ARG(GET_STATS) {return 0;}
