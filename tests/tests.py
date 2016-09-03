@@ -64,7 +64,7 @@ class Tests:
 
     @command()
     def send_std_vector(self):
-        return self.client.recv_array(10, dtype='float32')
+        return self.client.recv_vector(dtype='float32')
 
     @command()
     def rcv_std_array(self, u, f, arr, d, i):

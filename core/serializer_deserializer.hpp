@@ -296,6 +296,13 @@ serialize(const std::tuple<Tp...>& t)
     return arr;
 }
 
+template<typename... Tp>
+inline std::array<unsigned char, required_buffer_size<Tp...>()>
+serialize(Tp... t)
+{
+    return serialize<Tp...>(std::make_tuple(t...));
+}
+
 } // namespace kserver
 
 #endif // __SERIALIZER_DESERIALIZER_HPP__
