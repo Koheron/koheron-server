@@ -33,7 +33,7 @@ class Tests
         @kclient.readBool(Command(@id, @cmds.set_signed, i8, i16, i32), cb)
 
     rcvStdVector : (cb) ->
-        @kclient.readFloat32Array(Command(@id, @cmds.send_std_vector), cb)
+        @kclient.readFloat32Vector(Command(@id, @cmds.send_std_vector), cb)
 
     rcvStdArray : (cb) ->
         @kclient.readFloat32Array(Command(@id, @cmds.send_std_array), cb)

@@ -221,7 +221,7 @@ int Session<sock_type>::send(const std::vector<T>& vect)
     const auto& array = serialize<uint32_t, uint64_t>(0U, vect.size() * sizeof(T));
     std::vector<unsigned char> data(array.begin(), array.end());
     data.resize(required_buffer_size<uint32_t, uint64_t>() + vect.size() * sizeof(T));
-    memcpy(data.data() + required_buffer_size<uint32_t, uint64_t>(), vect.data(), vect.size() * sizeof(T));
+    memcpy(data.data() + array.size(), vect.data(), vect.size() * sizeof(T));
     return send_array<unsigned char>(data.data(), data.size());
 }
 
