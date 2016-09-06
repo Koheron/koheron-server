@@ -2,11 +2,10 @@
 
 [![Circle CI](https://circleci.com/gh/Koheron/koheron-server.svg?style=shield)](https://circleci.com/gh/Koheron/koheron-server)
 
-#### `High performance TCP/Websocket server for instrument control`
+## What is Koheron Server ?
 
-### Accessing C++ code through the network
-
-Consider the following C++ class
+Koheron Server is a high performance TCP/Websocket server for instrument control.
+Each command of the server is implemented as a C++ method:
 
 ``` cpp
 // hello_world.hpp
@@ -19,11 +18,7 @@ class HelloWorld
 
 ```
 
-All the public functions (except the constructor, the destructor) are made accessible through TCP and/or WebSocket. The class is statically compiled into the server to maximize performance.
-
-Simply add the path of `hello_world.hpp` into the `devices` section of your config file (checkout the [config](config) folder for examples) and build `make CONFIG=<config_file.yml>`.
-
-### Python client
+On the client side:
 
 ``` py
 from koheron import KoheronClient, command
