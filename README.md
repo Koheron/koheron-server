@@ -9,8 +9,7 @@ Each command of the server is implemented as a C++ method:
 
 ``` cpp
 
-class Math
-{
+class Math {
   public:
     uint32_t add(uint32_t a, uint32_t b) {return a + b;}
 };
