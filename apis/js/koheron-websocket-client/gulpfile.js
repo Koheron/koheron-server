@@ -30,8 +30,8 @@ gulp.task('compile-tests-js', function() {
     .pipe(gulp.dest('./tests'));
 });
 
-gulp.task('compile-hello-world-js', function() {
-    gulp.src('tests/hello_world.coffee')
+gulp.task('compile-math-js', function() {
+    gulp.src('tests/math.coffee')
     .pipe(coffee())
     .pipe(gulp.dest('./tests'));
 });
