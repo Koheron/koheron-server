@@ -26,7 +26,7 @@ class Math(object):
         self.client = client
 
     @command()
-    def add(self, num):
+    def add(self, a, b):
         return self.client.recv_uint32()
 
 if __name__ == "__main__":
