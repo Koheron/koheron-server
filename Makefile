@@ -28,6 +28,8 @@ DEVICES:=$(shell $(__PYTHON) $(MAKE_PY) --devices $(CONFIG_PATH) $(BASE_DIR) && 
 SERVER:=$(shell $(__PYTHON) $(MAKE_PY) --server-name $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.server-name)
 MIDWARE_PATH=$(shell $(__PYTHON) $(MAKE_PY) --midware-path $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.midware-path)
 
+KS_DEVICES=$(addprefix ks_,$(notdir $(filter-out %.cpp,$(DEVICES))))
+
 __MIDWARE_PATH=$(BASE_DIR)/$(MIDWARE_PATH)
 
 EXECUTABLE=$(TMP)/$(SERVER)
@@ -70,6 +72,8 @@ all: $(EXECUTABLE)
 
 debug:
 	@echo TMP_CORE_OBJ = $(TMP_CORE_OBJ)
+	@echo DEVICES = $(DEVICES)
+	@echo KS_DEVICES = $(KS_DEVICES)
 
 # ------------------------------------------------------------------------------------------------------------
 # Build, start, stop
@@ -83,13 +87,20 @@ $(TMP): requirements
 $(TMP)/%.o: */*/%.cpp
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
 
-$(TMP)/%: $(CORE)/%
-	cp $^ $@
+$(TMP)/%.o: */%.cpp
+	$(CCXX) -c $(CXXFLAGS) -o $@ $<
+
+$(TMP)/%.o: $(TMP)/%.cpp
+	$(CCXX) -c $(CXXFLAGS) -o $@ $<
+
+# $(TMP)/%: $(CORE)/%
+# 	cp $^ $@
 
 requirements: $(MAKE_PY) $(CONFIG_PATH)
 	$(__PYTHON) $(MAKE_PY) --requirements $(CONFIG_PATH) $(BASE_DIR)
 
-$(EXECUTABLE): | $(TMP) $(CORE_HEADERS) $(TMP_CORE_OBJ)
+$(EXECUTABLE): | $(TMP) $(CORE_HEADERS) $(TMP_CORE_OBJ) $(addprefix $(TMP)/,$(KS_DEVICES))
+	$(CCXX) -o $@ $(wildcard $(TMP)/*.o) $(CXXFLAGS) $(LIBS)
 
 # $(EXECUTABLE): $(CORE_HEADERS) $(TMP_CORE_OBJ) $(TMP)/main.cpp $(TMP)/Makefile $(MAKE_PY) $(CONFIG_PATH) | $(TMP)
 # 	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(__MIDWARE_PATH)
