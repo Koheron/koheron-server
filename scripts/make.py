@@ -30,19 +30,6 @@ def install_requirements(config, base_dir):
                          dest_dir)
             else:
                 raise ValueError('Unknown requirement type: ' + requirement['type'])
-
-    if 'copy_devices_to_middleware' in config and config['copy_devices_to_middleware']:
-        for device in get_devices(config):
-            dev_path = os.path.join(base_dir, device)
-            dest_dir = os.path.join('tmp/middleware', os.path.dirname(device))
-            if not os.path.isdir(dest_dir):
-                    os.makedirs(dest_dir)
-
-            copy(dev_path, dest_dir)
-            cpp_filename = os.path.join(os.path.dirname(dev_path), 
-                                        os.path.basename(dev_path).split('.')[0] + '.cpp')
-            if os.path.exists(cpp_filename):
-                copy(cpp_filename, dest_dir)
                 
 def get_devices(config):
     if 'devices' in config:
@@ -102,20 +89,20 @@ def main(argv):
 
     elif cmd == '--arch-flags':
         with open('tmp/.arch-flags', 'w') as f:
-            f.write('"-' + ' -'.join(config['arch_flags']) + '"')
+            f.write('-' + ' -'.join(config['arch_flags']))
 
     elif cmd == '--optim-flags':
         with open('tmp/.optim-flags', 'w') as f:
-            f.write('"-' + ' -'.join(config['optimization_flags']) + '"')
+            f.write('-' + ' -'.join(config['optimization_flags']))
 
     elif cmd == '--debug-flags':
         with open('tmp/.debug-flags', 'w') as f:
             if config['debug']['status']:
-                f.write('"-' + ' -'.join(config['debug']['flags']) + '"')
+                f.write('-' + ' -'.join(config['debug']['flags']))
 
     elif cmd == '--defines':
         with open('tmp/.defines', 'w') as f:
-            f.write('"-D' + ' -D'.join(config['defines']) + ' -DSHA=' + argv[3] + '"')
+            f.write('-D' + ' -D'.join(config['defines']) + ' -DSHA=' + argv[3])
 
     else:
         raise ValueError('Unknown command')

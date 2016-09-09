@@ -1,3 +1,6 @@
+# CPUS = $(shell nproc 2> /dev/null || echo 1)
+# MAKEFLAGS += --jobs=$(CPUS)
+
 CONFIG=config/config_local.yaml
 PYTHON=/usr/bin/python
 
@@ -11,12 +14,10 @@ __PYTHON = $(shell bash scripts/get_python.sh $(PYTHON) $(BASE_DIR))
 TMP = tmp
 CORE = core
 MAKE_PY = scripts/make.py
-TESTS_VENV = venv
-PY2_ENV = $(TESTS_VENV)/py2
-PY3_ENV = $(TESTS_VENV)/py3
 
-CORE_SRC=$(shell find $(CORE) -name '*.cpp' -o -name '*.c' -o -name '*.hpp' -o -name '*.h' -o -name '*.tpp')
-TMP_CORE_SRC=$(addprefix $(TMP)/, $(CORE_SRC))
+CORE_HEADERS=$(shell find $(CORE) -name '*.hpp' -o -name '*.h' -o -name '*.tpp')
+CORE_SRC=$(shell find $(CORE) -name '*.cpp' -o -name '*.c')
+TMP_CORE_OBJ=$(subst .cpp,.o, $(addprefix $(TMP)/, $(notdir $(CORE_SRC))))
 
 ARCH_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --arch-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.arch-flags)
 OPTIM_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --optim-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.optim-flags)
@@ -31,9 +32,44 @@ __MIDWARE_PATH=$(BASE_DIR)/$(MIDWARE_PATH)
 
 EXECUTABLE=$(TMP)/$(SERVER)
 
-.PHONY: all requirements clean start_server stop_server test_python
+# --------------------------------------------------------------
+# Toolchains
+# --------------------------------------------------------------
+
+# Use Link Time Optimization
+CC=$(CROSS_COMPILE)gcc -flto
+CCXX=$(CROSS_COMPILE)g++ -flto
+
+# --------------------------------------------------------------
+# GCC compiling & linking flags
+# --------------------------------------------------------------
+
+INC=-I$(TMP) -I$(BASE_DIR)
+
+CFLAGS=-Wall -Werror -Wno-unknown-pragmas $(INC) $(DEFINES)
+
+CFLAGS += $(ARCH_FLAGS)
+CFLAGS += $(DEBUG_FLAGS)
+CFLAGS += $(OPTIM_FLAGS)
+
+CXXFLAGS=$(CFLAGS) -std=c++14 -pthread
+
+# --------------------------------------------------------------
+# Libraries
+# --------------------------------------------------------------
+
+LIBS = -lm # -lpthread -lssl -lcrypto
+
+# http://bruno.defraine.net/techtips/makefile-auto-dependencies-with-gcc/
+# DEP=$(CORE_SRC:.cpp=.d)
+# -include $(DEP)
+
+.PHONY: all debug requirements clean start_server stop_server test_python
 
 all: $(EXECUTABLE)
+
+debug:
+	@echo TMP_CORE_OBJ = $(TMP_CORE_OBJ)
 
 # ------------------------------------------------------------------------------------------------------------
 # Build, start, stop
@@ -41,11 +77,11 @@ all: $(EXECUTABLE)
 
 $(TMP): requirements
 	mkdir -p $(TMP)
-	mkdir -p $(TMP)/middleware
+	# mkdir -p $(TMP)/middleware
+	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(TMP)
 
-$(TMP)/$(CORE)/%: $(CORE)/%
-	mkdir -p -- `dirname -- $@`
-	cp $^ $@
+$(TMP)/%.o: */*/%.cpp
+	$(CCXX) -c $(CXXFLAGS) -o $@ $<
 
 $(TMP)/%: $(CORE)/%
 	cp $^ $@
@@ -53,11 +89,13 @@ $(TMP)/%: $(CORE)/%
 requirements: $(MAKE_PY) $(CONFIG_PATH)
 	$(__PYTHON) $(MAKE_PY) --requirements $(CONFIG_PATH) $(BASE_DIR)
 
-$(EXECUTABLE): $(TMP_CORE_SRC) $(TMP)/main.cpp $(TMP)/Makefile $(MAKE_PY) $(CONFIG_PATH) | $(TMP)
-	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(__MIDWARE_PATH)
-	make -C $(TMP) CROSS_COMPILE=$(CROSS_COMPILE) DEFINES=$(DEFINES) SERVER=$(SERVER)             \
-	               ARCH_FLAGS=$(ARCH_FLAGS) OPTIM_FLAGS=$(OPTIM_FLAGS) DEBUG_FLAGS=$(DEBUG_FLAGS) \
-	               MIDWARE_PATH=$(__MIDWARE_PATH)
+$(EXECUTABLE): | $(TMP) $(CORE_HEADERS) $(TMP_CORE_OBJ)
+
+# $(EXECUTABLE): $(CORE_HEADERS) $(TMP_CORE_OBJ) $(TMP)/main.cpp $(TMP)/Makefile $(MAKE_PY) $(CONFIG_PATH) | $(TMP)
+# 	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(__MIDWARE_PATH)
+# 	make -C $(TMP) CROSS_COMPILE=$(CROSS_COMPILE) DEFINES=$(DEFINES) SERVER=$(SERVER)             \
+# 	               ARCH_FLAGS=$(ARCH_FLAGS) OPTIM_FLAGS=$(OPTIM_FLAGS) DEBUG_FLAGS=$(DEBUG_FLAGS) \
+# 	               MIDWARE_PATH=$(__MIDWARE_PATH)
 
 start_server: $(EXECUTABLE) stop_server
 	nohup $(EXECUTABLE) -c config/kserver_local.conf > /dev/null 2> server.log &
@@ -68,6 +106,10 @@ stop_server:
 # ------------------------------------------------------------------------------------------------------------
 # Tests
 # ------------------------------------------------------------------------------------------------------------
+
+TESTS_VENV = venv
+PY2_ENV = $(TESTS_VENV)/py2
+PY3_ENV = $(TESTS_VENV)/py3
 
 $(PY2_ENV): tests/requirements.txt
 	virtualenv $(PY2_ENV)
@@ -80,6 +122,10 @@ $(PY3_ENV): tests/requirements.txt
 test_python: $(PY2_ENV) $(PY3_ENV) start_server
 	PYTEST_UNIXSOCK=/tmp/kserver_local.sock $(PY2_ENV)/bin/python -m pytest -v tests/tests.py
 	PYTEST_UNIXSOCK=/tmp/kserver_local.sock $(PY3_ENV)/bin/python3 -m pytest -v tests/tests.py
+
+# ------------------------------------------------------------------------------------------------------------
+# Clean
+# ------------------------------------------------------------------------------------------------------------
 
 clean_venv:
 	rm -rf $(TESTS_VENV)

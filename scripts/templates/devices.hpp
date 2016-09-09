@@ -4,5 +4,5 @@
 /// (c) Koheron 
 
 {% for device in devices -%}
-# include <{{ device.header_path + '/' + device.class_name|lower + '.hpp' }}>
+# include <{{ device.class_name|lower + '.hpp' }}>
 {% endfor %}
