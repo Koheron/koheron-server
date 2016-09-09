@@ -35,9 +35,9 @@ nohup tmp/kserverd -c config/kserver_docker.conf > /dev/null 2> server.log &
 ps -A | grep -w "kserverd"
 
 echo "== Test Hello World =="
-node apis/js/koheron-websocket-client/tests/hello_world.js
-python tests/hello_world.py
-python3 tests/hello_world.py
+node apis/js/koheron-websocket-client/tests/math.js
+python tests/math.py
+python3 tests/math.py
 
 echo "== Test Javascript API =="
 make -C apis/js/koheron-websocket-client tests
