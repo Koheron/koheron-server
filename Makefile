@@ -31,8 +31,22 @@ SERVER:=$(shell $(__PYTHON) $(MAKE_PY) --server-name $(CONFIG_PATH) $(BASE_DIR) 
 MIDWARE_PATH=$(shell $(__PYTHON) $(MAKE_PY) --midware-path $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.midware-path)
 
 DEVICES_OBJ=$(addprefix $(TMP)/, $(subst .cpp,.o,$(notdir $(filter-out %.hpp,$(DEVICES)))))
-KS_DEVICES=$(addprefix ks_,$(notdir $(filter-out %.cpp,$(DEVICES))))
-KS_DEVICES_OBJ=$(addprefix $(TMP)/,$(subst .hpp,.o,$(KS_DEVICES)))
+_DEVICES_PATHS=$(addprefix $(BASE_DIR)/, $(sort $(dir $(DEVICES))))
+# Concat paths using ':' for VPATH
+# https://www.chemie.fu-berlin.de/chemnet/use/info/make/make_8.html
+semicolon:=:
+empty:=
+space:= $(empty) $(empty)
+DEVICES_PATHS=$(subst $(space),$(semicolon),$(_DEVICES_PATHS))
+
+KS_DEVICES_HPP=$(addprefix ks_,$(notdir $(filter-out %.cpp,$(DEVICES))))
+KS_DEVICES_CPP=$(addprefix $(TMP)/,$(subst .hpp,.cpp,$(KS_DEVICES_HPP)))
+KS_DEVICES_OBJ=$(addprefix $(TMP)/,$(subst .hpp,.o,$(KS_DEVICES_HPP)))
+
+DEVICE_TABLE_HPP=$(TMP)/devices_table.hpp
+DEVICES_HPP=$(TMP)/devices.hpp
+
+VPATH=core:core/crypto:$(DEVICES_PATHS)
 
 __MIDWARE_PATH=$(BASE_DIR)/$(MIDWARE_PATH)
 
@@ -78,7 +92,9 @@ debug:
 	@echo TMP_CORE_OBJ = $(TMP_CORE_OBJ)
 	@echo DEVICES = $(DEVICES)
 	@echo DEVICES_OBJ = $(DEVICES_OBJ)
-	@echo KS_DEVICES = $(KS_DEVICES)
+	@echo DEVICES_PATHS = $(DEVICES_PATHS)
+	@echo KS_DEVICES_HPP = $(KS_DEVICES_HPP)
+	@echo KS_DEVICES_CPP = $(KS_DEVICES_CPP)
 	@echo KS_DEVICES_OBJ = $(KS_DEVICES_OBJ)
 
 # ------------------------------------------------------------------------------------------------------------
@@ -90,15 +106,10 @@ $(TMP): requirements
 	# TODO Have a target KS_DEVICES
 	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(TMP)
 
-# TODO Handle source paths for cpp files
-
-$(TMP)/%.o: $(BASE_DIR)/*/*/%.cpp
+$(TMP)/%.o: %.cpp
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
 
-$(TMP)/%.o: $(BASE_DIR)/*/%.cpp
-	$(CCXX) -c $(CXXFLAGS) -o $@ $<
-
-$(TMP)/%.o: $(TMP)/%.cpp
+$(TMP)/ks_%.o: $(TMP)/ks_%.cpp
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
 
 requirements: $(MAKE_PY) $(CONFIG_PATH)
@@ -106,12 +117,6 @@ requirements: $(MAKE_PY) $(CONFIG_PATH)
 
 $(EXECUTABLE): | $(TMP) $(CORE_HEADERS) $(TMP_CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ)
 	$(CCXX) -o $@ $(wildcard $(TMP)/*.o) $(KS_DEVICES_OBJ) $(DEVICES_OBJ) $(CXXFLAGS) $(LIBS)
-
-# $(EXECUTABLE): $(CORE_HEADERS) $(TMP_CORE_OBJ) $(TMP)/main.cpp $(TMP)/Makefile $(MAKE_PY) $(CONFIG_PATH) | $(TMP)
-# 	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(__MIDWARE_PATH)
-# 	make -C $(TMP) CROSS_COMPILE=$(CROSS_COMPILE) DEFINES=$(DEFINES) SERVER=$(SERVER)             \
-# 	               ARCH_FLAGS=$(ARCH_FLAGS) OPTIM_FLAGS=$(OPTIM_FLAGS) DEBUG_FLAGS=$(DEBUG_FLAGS) \
-# 	               MIDWARE_PATH=$(__MIDWARE_PATH)
 
 start_server: $(EXECUTABLE) stop_server
 	nohup $(EXECUTABLE) -c config/kserver_local.conf > /dev/null 2> server.log &
