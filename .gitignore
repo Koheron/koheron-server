@@ -30,7 +30,7 @@
 *.md~
 
 .gitignore~
-.kdevgen
+.cache
 Makefile~
 Dockerfile~
 README.md~
@@ -40,7 +40,9 @@ apis/cli/kserver
 tmp
 venv
 
+apis/js/koheron-websocket-client/lib/
 apis/js/koheron-websocket-client/tests/hello_world.js
 apis/js/koheron-websocket-client/tests/tests.js
 apis/C/hello_world/hello_world
 apis/C/tests/tests
+apis/js/koheron-websocket-client/node_modules/
