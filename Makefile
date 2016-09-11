@@ -30,6 +30,8 @@ CROSS_COMPILE:=$(shell $(__PYTHON) $(MAKE_PY) --cross-compile $(CONFIG_PATH) $(B
 DEVICES:=$(shell $(__PYTHON) $(MAKE_PY) --devices $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.devices)
 SERVER:=$(shell $(__PYTHON) $(MAKE_PY) --server-name $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.server-name)
 
+DEVICES_HPP=$(filter-out %.cpp,$(DEVICES))
+DEVICES_CPP=$(filter-out %.hpp,$(DEVICES))
 DEVICES_OBJ=$(addprefix $(TMP)/, $(subst .cpp,.o,$(notdir $(filter-out %.hpp,$(DEVICES)))))
 _DEVICES_PATHS=$(addprefix $(BASE_DIR)/, $(sort $(dir $(DEVICES))))
 # Concat paths using ':' for VPATH
@@ -39,12 +41,12 @@ empty:=
 space:= $(empty) $(empty)
 DEVICES_PATHS=$(subst $(space),$(semicolon),$(_DEVICES_PATHS))
 
-KS_DEVICES_HPP=$(addprefix ks_,$(notdir $(filter-out %.cpp,$(DEVICES))))
+# Generated source files
+KS_DEVICES_HPP=$(addprefix ks_,$(notdir $(DEVICES_HPP)))
 KS_DEVICES_CPP=$(addprefix $(TMP)/,$(subst .hpp,.cpp,$(KS_DEVICES_HPP)))
 KS_DEVICES_OBJ=$(addprefix $(TMP)/,$(subst .hpp,.o,$(KS_DEVICES_HPP)))
-
-DEVICE_TABLE_HPP=$(TMP)/devices_table.hpp
-DEVICES_HPP=$(TMP)/devices.hpp
+TMP_DEVICE_TABLE_HPP=$(TMP)/devices_table.hpp
+TMP_DEVICES_HPP=$(TMP)/devices.hpp
 
 VPATH=core:core/crypto:$(DEVICES_PATHS)
 
@@ -67,10 +69,6 @@ CFLAGS=-Wall -Werror $(INC) $(DEFINES) -MMD -MP
 CFLAGS += $(ARCH_FLAGS) $(DEBUG_FLAGS) $(OPTIM_FLAGS)
 CXXFLAGS=$(CFLAGS) -std=c++14 -pthread
 
-# Track core dependencies
-# http://bruno.defraine.net/techtips/makefile-auto-dependencies-with-gcc/
--include $(CORE_DEP)
-
 # --------------------------------------------------------------
 # Libraries
 # --------------------------------------------------------------
@@ -85,7 +83,8 @@ debug:
 	@echo CORE_SRC = $(CORE_SRC)
 	@echo CORE_OBJ = $(CORE_OBJ)
 	@echo CORE_DEP = $(CORE_DEP)
-	@echo DEVICES = $(DEVICES)
+	@echo DEVICES_HPP = $(DEVICES_HPP)
+	@echo DEVICES_CPP = $(DEVICES_CPP)
 	@echo DEVICES_OBJ = $(DEVICES_OBJ)
 	@echo DEVICES_PATHS = $(DEVICES_PATHS)
 	@echo KS_DEVICES_HPP = $(KS_DEVICES_HPP)
@@ -96,10 +95,17 @@ debug:
 # Build, start, stop
 # ------------------------------------------------------------------------------------------------------------
 
-$(DEVICE_TABLE_HPP) $(DEVICES_HPP) $(KS_DEVICES_CPP): $(DEVICES)
+# Track core dependencies
+# http://bruno.defraine.net/techtips/makefile-auto-dependencies-with-gcc/
+# http://scottmcpeak.com/autodepend/autodepend.html
+-include $(CORE_DEP)
+
+$(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(KS_DEVICES_CPP): $(DEVICES_HPP)
 	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(TMP)
 
-$(TMP)/%.o: %.cpp $(DEVICE_TABLE_HPP) $(DEVICES)
+$(TMP)/kserver.o: $(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP)
+
+$(TMP)/%.o: %.cpp
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
 
 $(TMP)/ks_%.o: $(TMP)/ks_%.cpp $(KS_DEVICES_CPP)
