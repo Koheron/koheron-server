@@ -1,3 +1,5 @@
+# Parallel build not working
+# Need an extra Makefile ?
 # CPUS = $(shell nproc 2> /dev/null || echo 1)
 # MAKEFLAGS += --jobs=$(CPUS)
 
@@ -28,6 +30,7 @@ DEVICES:=$(shell $(__PYTHON) $(MAKE_PY) --devices $(CONFIG_PATH) $(BASE_DIR) && 
 SERVER:=$(shell $(__PYTHON) $(MAKE_PY) --server-name $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.server-name)
 MIDWARE_PATH=$(shell $(__PYTHON) $(MAKE_PY) --midware-path $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.midware-path)
 
+DEVICES_OBJ=$(addprefix $(TMP)/, $(subst .cpp,.o,$(notdir $(filter-out %.hpp,$(DEVICES)))))
 KS_DEVICES=$(addprefix ks_,$(notdir $(filter-out %.cpp,$(DEVICES))))
 KS_DEVICES_OBJ=$(addprefix $(TMP)/,$(subst .hpp,.o,$(KS_DEVICES)))
 
@@ -74,6 +77,7 @@ all: $(EXECUTABLE)
 debug:
 	@echo TMP_CORE_OBJ = $(TMP_CORE_OBJ)
 	@echo DEVICES = $(DEVICES)
+	@echo DEVICES_OBJ = $(DEVICES_OBJ)
 	@echo KS_DEVICES = $(KS_DEVICES)
 	@echo KS_DEVICES_OBJ = $(KS_DEVICES_OBJ)
 
@@ -86,10 +90,12 @@ $(TMP): requirements
 	# TODO Have a target KS_DEVICES
 	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(TMP)
 
-$(TMP)/%.o: */*/%.cpp
+# TODO Handle source paths for cpp files
+
+$(TMP)/%.o: $(BASE_DIR)/*/*/%.cpp
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
 
-$(TMP)/%.o: */%.cpp
+$(TMP)/%.o: $(BASE_DIR)/*/%.cpp
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
 
 $(TMP)/%.o: $(TMP)/%.cpp
@@ -98,8 +104,8 @@ $(TMP)/%.o: $(TMP)/%.cpp
 requirements: $(MAKE_PY) $(CONFIG_PATH)
 	$(__PYTHON) $(MAKE_PY) --requirements $(CONFIG_PATH) $(BASE_DIR)
 
-$(EXECUTABLE): | $(TMP) $(CORE_HEADERS) $(TMP_CORE_OBJ) $(KS_DEVICES_OBJ)
-	$(CCXX) -o $@ $(wildcard $(TMP)/*.o) $(KS_DEVICES_OBJ) $(CXXFLAGS) $(LIBS)
+$(EXECUTABLE): | $(TMP) $(CORE_HEADERS) $(TMP_CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ)
+	$(CCXX) -o $@ $(wildcard $(TMP)/*.o) $(KS_DEVICES_OBJ) $(DEVICES_OBJ) $(CXXFLAGS) $(LIBS)
 
 # $(EXECUTABLE): $(CORE_HEADERS) $(TMP_CORE_OBJ) $(TMP)/main.cpp $(TMP)/Makefile $(MAKE_PY) $(CONFIG_PATH) | $(TMP)
 # 	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(__MIDWARE_PATH)
