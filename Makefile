@@ -28,7 +28,7 @@ SERVER:=$(shell $(__PYTHON) $(MAKE_PY) --server-name $(CONFIG_PATH) $(BASE_DIR) 
 DEVICES_HPP=$(filter-out %.cpp,$(DEVICES))
 DEVICES_CPP=$(filter-out %.hpp,$(DEVICES))
 DEVICES_OBJ=$(addprefix $(TMP)/, $(subst .cpp,.o,$(notdir $(filter-out %.hpp,$(DEVICES)))))
-_DEVICES_PATHS=$(addprefix $(BASE_DIR)/, $(sort $(dir $(DEVICES))))
+_DEVICES_PATHS=$(sort $(dir $(DEVICES)))
 # Concat paths using ':' for VPATH
 # https://www.chemie.fu-berlin.de/chemnet/use/info/make/make_8.html
 semicolon:=:
