@@ -1,7 +1,3 @@
-# Parallel build not working
-# Need an extra Makefile ?
-CPUS = $(shell nproc 2> /dev/null || echo 1)
-
 CONFIG=config/config_local.yaml
 PYTHON=/usr/bin/python
 
@@ -48,9 +44,10 @@ TMP_DEVICE_TABLE_HPP=$(TMP)/devices_table.hpp
 TMP_DEVICES_HPP=$(TMP)/devices.hpp
 
 VPATH=core:core/crypto:$(DEVICES_PATHS)
-
 OBJ = $(CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ)
 EXECUTABLE=$(TMP)/$(SERVER)
+
+CPUS = $(shell nproc 2> /dev/null || echo 1)
 
 # --------------------------------------------------------------
 # Toolchains
