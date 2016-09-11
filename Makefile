@@ -8,7 +8,7 @@ BASE_DIR=.
 CONFIG_PATH=$(BASE_DIR)/$(CONFIG)
 __PYTHON = $(shell bash scripts/get_python.sh $(PYTHON) $(BASE_DIR))
 
-TMP = tmp
+TMP = $(BASE_DIR)/tmp
 CORE = core
 MAKE_PY = scripts/make.py
 
