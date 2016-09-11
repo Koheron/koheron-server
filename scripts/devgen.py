@@ -43,7 +43,7 @@ def generate(devices_list, base_dir, build_dir):
                 output.write(template.render(device=device))
 
             devices.append(device)
-    render_device_table(devices)
+    render_device_table(devices, build_dir)
 
 # Number of operation in the KServer device
 KSERVER_OP_NUM = 7
@@ -104,15 +104,15 @@ def fill_template(devices, template_filename, output_filename):
     with open(output_filename, 'w') as output:
         output.write(template.render(devices=devices))
 
-def render_device_table(devices):
+def render_device_table(devices, build_dir):
     print('Generate device table')
     template = get_renderer().get_template(os.path.join('scripts/templates', 'devices_table.hpp'))
-    with open('tmp/devices_table.hpp', 'w') as output:
+    with open(os.path.join(build_dir, 'devices_table.hpp'), 'w') as output:
         output.write(template.render(devices=devices,
                                      max_op_num=get_max_op_num(devices),
                                      json=get_json(devices)))
 
-    output_filename = os.path.join('tmp', 'devices.hpp')
+    output_filename = os.path.join(build_dir, 'devices.hpp')
     fill_template(devices, 'devices.hpp', output_filename)
 
 # -----------------------------------------------------------------------------
