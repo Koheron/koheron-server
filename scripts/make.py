@@ -11,26 +11,7 @@ from distutils.dir_util import copy_tree
 from shutil import copy
 
 from devgen import generate
-
-def install_requirements(config, base_dir):
-    if 'requirements' in config:
-        for requirement in config['requirements']:
-            if requirement['type'] == 'git':
-                subprocess.call(['git', 'clone', requirement['src'], requirement['dest']])
-                subprocess.call('cd ' + requirement['dest'] + ' && git checkout ' + requirement['branch'], shell=True)
-            elif requirement['type'] == 'folder':
-                copy_tree(os.path.join(base_dir, requirement['from'], requirement['import']),
-                          os.path.join('tmp/middleware', requirement['import']))
-            elif requirement['type'] == 'file':
-                dest_dir = os.path.join('tmp/middleware', os.path.dirname(requirement['import']))
-                if not os.path.isdir(dest_dir):
-                    os.makedirs(dest_dir)
-
-                copy(os.path.join(base_dir, requirement['from'], requirement['import']),
-                         dest_dir)
-            else:
-                raise ValueError('Unknown requirement type: ' + requirement['type'])
-                
+             
 def get_devices(config):
     if 'devices' in config:
         return config['devices']
@@ -72,9 +53,6 @@ def main(argv):
             f.write(' '.join(hpp_files))
             f.write(' ' + ' '.join(cpp_files))
 
-    elif cmd == '--requirements':
-        install_requirements(config, argv[2])
-
     elif cmd == '--cross-compile':
         with open('tmp/.cross-compile', 'w') as f:
             f.write(config['cross-compile'])
@@ -82,10 +60,6 @@ def main(argv):
     elif cmd == '--server-name':
         with open('tmp/.server-name', 'w') as f:
             f.write(config['server-name'])
-
-    elif cmd == '--midware-path':
-        with open('tmp/.midware-path', 'w') as f:
-            f.write(config['middleware-path'])
 
     elif cmd == '--arch-flags':
         with open('tmp/.arch-flags', 'w') as f:

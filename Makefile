@@ -19,7 +19,8 @@ MAKE_PY = scripts/make.py
 
 CORE_HEADERS=$(shell find $(CORE) -name '*.hpp' -o -name '*.h' -o -name '*.tpp')
 CORE_SRC=$(shell find $(CORE) -name '*.cpp' -o -name '*.c')
-TMP_CORE_OBJ=$(subst .cpp,.o, $(addprefix $(TMP)/, $(notdir $(CORE_SRC))))
+CORE_OBJ=$(subst .cpp,.o, $(addprefix $(TMP)/, $(notdir $(CORE_SRC))))
+CORE_DEP=$(CORE_SRC:.cpp=.d)
 
 ARCH_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --arch-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.arch-flags)
 OPTIM_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --optim-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.optim-flags)
@@ -28,7 +29,6 @@ DEFINES:=$(shell $(__PYTHON) $(MAKE_PY) --defines $(CONFIG_PATH) $(BASE_DIR) $(S
 CROSS_COMPILE:=$(shell $(__PYTHON) $(MAKE_PY) --cross-compile $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.cross-compile)
 DEVICES:=$(shell $(__PYTHON) $(MAKE_PY) --devices $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.devices)
 SERVER:=$(shell $(__PYTHON) $(MAKE_PY) --server-name $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.server-name)
-MIDWARE_PATH=$(shell $(__PYTHON) $(MAKE_PY) --midware-path $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.midware-path)
 
 DEVICES_OBJ=$(addprefix $(TMP)/, $(subst .cpp,.o,$(notdir $(filter-out %.hpp,$(DEVICES)))))
 _DEVICES_PATHS=$(addprefix $(BASE_DIR)/, $(sort $(dir $(DEVICES))))
@@ -48,8 +48,6 @@ DEVICES_HPP=$(TMP)/devices.hpp
 
 VPATH=core:core/crypto:$(DEVICES_PATHS)
 
-__MIDWARE_PATH=$(BASE_DIR)/$(MIDWARE_PATH)
-
 EXECUTABLE=$(TMP)/$(SERVER)
 
 # --------------------------------------------------------------
@@ -65,14 +63,13 @@ CCXX=$(CROSS_COMPILE)g++ -flto
 # --------------------------------------------------------------
 
 INC=-I$(TMP) -I$(BASE_DIR)
-
-CFLAGS=-Wall -Werror -Wno-unknown-pragmas $(INC) $(DEFINES)
-
-CFLAGS += $(ARCH_FLAGS)
-CFLAGS += $(DEBUG_FLAGS)
-CFLAGS += $(OPTIM_FLAGS)
-
+CFLAGS=-Wall -Werror -Wno-unknown-pragmas $(INC) $(DEFINES) -MMD
+CFLAGS += $(ARCH_FLAGS) $(DEBUG_FLAGS) $(OPTIM_FLAGS)
 CXXFLAGS=$(CFLAGS) -std=c++14 -pthread
+
+# Track core dependencies
+# http://bruno.defraine.net/techtips/makefile-auto-dependencies-with-gcc/
+-include $(CORE_DEP)
 
 # --------------------------------------------------------------
 # Libraries
@@ -80,16 +77,14 @@ CXXFLAGS=$(CFLAGS) -std=c++14 -pthread
 
 LIBS = -lm # -lpthread -lssl -lcrypto
 
-# http://bruno.defraine.net/techtips/makefile-auto-dependencies-with-gcc/
-# DEP=$(CORE_SRC:.cpp=.d)
-# -include $(DEP)
-
-.PHONY: all debug requirements clean start_server stop_server test_python
+.PHONY: all debug generate requirements clean start_server stop_server test_python
 
 all: $(EXECUTABLE)
 
 debug:
-	@echo TMP_CORE_OBJ = $(TMP_CORE_OBJ)
+	@echo CORE_SRC = $(CORE_SRC)
+	@echo CORE_OBJ = $(CORE_OBJ)
+	@echo CORE_DEP = $(CORE_DEP)
 	@echo DEVICES = $(DEVICES)
 	@echo DEVICES_OBJ = $(DEVICES_OBJ)
 	@echo DEVICES_PATHS = $(DEVICES_PATHS)
@@ -101,9 +96,10 @@ debug:
 # Build, start, stop
 # ------------------------------------------------------------------------------------------------------------
 
-$(TMP): requirements
+$(TMP):
 	mkdir -p $(TMP)
-	# TODO Have a target KS_DEVICES
+
+generate: $(TMP) $(DEVICES)
 	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(TMP)
 
 $(TMP)/%.o: %.cpp
@@ -112,10 +108,7 @@ $(TMP)/%.o: %.cpp
 $(TMP)/ks_%.o: $(TMP)/ks_%.cpp
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
 
-requirements: $(MAKE_PY) $(CONFIG_PATH)
-	$(__PYTHON) $(MAKE_PY) --requirements $(CONFIG_PATH) $(BASE_DIR)
-
-$(EXECUTABLE): | $(TMP) $(CORE_HEADERS) $(TMP_CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ)
+$(EXECUTABLE): | generate $(CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ)
 	$(CCXX) -o $@ $(wildcard $(TMP)/*.o) $(KS_DEVICES_OBJ) $(DEVICES_OBJ) $(CXXFLAGS) $(LIBS)
 
 start_server: $(EXECUTABLE) stop_server
