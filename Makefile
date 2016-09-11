@@ -61,7 +61,7 @@ CCXX=$(CROSS_COMPILE)g++ -flto
 # GCC compiling & linking flags
 # --------------------------------------------------------------
 
-INC=-I$(TMP) -I$(BASE_DIR)
+INC=-I$(TMP) -I$(BASE_DIR) -I.
 CFLAGS=-Wall -Werror $(INC) $(DEFINES) -MMD -MP
 CFLAGS += $(ARCH_FLAGS) $(DEBUG_FLAGS) $(OPTIM_FLAGS)
 CXXFLAGS=$(CFLAGS) -std=c++14 -pthread
