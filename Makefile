@@ -77,7 +77,7 @@ CXXFLAGS=$(CFLAGS) -std=c++14 -pthread
 
 LIBS = -lm # -lpthread -lssl -lcrypto
 
-.PHONY: all debug generate requirements clean start_server stop_server test_python
+.PHONY: all debug requirements clean start_server stop_server test_python
 
 all: $(EXECUTABLE)
 
@@ -99,17 +99,17 @@ debug:
 $(TMP):
 	mkdir -p $(TMP)
 
-generate: $(TMP) $(DEVICES)
+$(DEVICE_TABLE_HPP) $(DEVICES_HPP) $(KS_DEVICES_CPP): $(TMP) $(DEVICES)
 	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(TMP)
 
-$(TMP)/%.o: %.cpp
+$(TMP)/%.o: %.cpp $(DEVICE_TABLE_HPP) $(DEVICES)
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
 
-$(TMP)/ks_%.o: $(TMP)/ks_%.cpp
+$(TMP)/ks_%.o: $(TMP)/ks_%.cpp $(KS_DEVICES_CPP)
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
 
-$(EXECUTABLE): | generate $(CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ)
-	$(CCXX) -o $@ $(wildcard $(TMP)/*.o) $(KS_DEVICES_OBJ) $(DEVICES_OBJ) $(CXXFLAGS) $(LIBS)
+$(EXECUTABLE): $(CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ)
+	$(CCXX) -o $@ $(wildcard $(TMP)/*.o) $(CXXFLAGS) $(LIBS)
 
 start_server: $(EXECUTABLE) stop_server
 	nohup $(EXECUTABLE) -c config/kserver_local.conf > /dev/null 2> server.log &
