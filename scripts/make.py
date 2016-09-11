@@ -36,7 +36,7 @@ def main(argv):
                     config[key] = value
 
     if cmd == '--generate':
-        generate(get_devices(config), tmp_dir)
+        generate(get_devices(config), argv[2], tmp_dir)
 
     elif cmd == '--devices':
         hpp_files = []

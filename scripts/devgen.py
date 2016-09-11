@@ -11,9 +11,9 @@ import json
 # -----------------------------------------------------------------------------------------
 
 class Device:
-    def __init__(self, path):
+    def __init__(self, path, base_dir):
         print 'Parsing and analysing ' + path + '...'
-        dev = parse_header(path)[0]
+        dev = parse_header(os.path.join(base_dir, path))[0]
         self.header_path = os.path.dirname(path)
         self.calls = cmd_calls(dev)
 
@@ -25,13 +25,13 @@ class Device:
         self.objects = dev['objects']
         self.includes = dev['includes']
 
-def generate(devices_list, build_dir):
+def generate(devices_list, base_dir, build_dir):
     print devices_list
     devices = [] # List of generated devices
     obj_files = []  # Object file names
     for path in devices_list or []:
         if path.endswith('.hpp') or path.endswith('.h'):
-            device = Device(path)
+            device = Device(path, base_dir)
             print('Generating ' + device.name + '...')
 
             template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device.hpp'))
