@@ -20,7 +20,7 @@ MAKE_PY = scripts/make.py
 CORE_HEADERS=$(shell find $(CORE) -name '*.hpp' -o -name '*.h' -o -name '*.tpp')
 CORE_SRC=$(shell find $(CORE) -name '*.cpp' -o -name '*.c')
 CORE_OBJ=$(subst .cpp,.o, $(addprefix $(TMP)/, $(notdir $(CORE_SRC))))
-CORE_DEP=$(CORE_SRC:.cpp=.d)
+CORE_DEP=$(subst .o,.d,$(CORE_OBJ))
 
 ARCH_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --arch-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.arch-flags)
 OPTIM_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --optim-flags $(CONFIG_PATH) $(BASE_DIR) && cat $(TMP)/.optim-flags)
@@ -63,7 +63,7 @@ CCXX=$(CROSS_COMPILE)g++ -flto
 # --------------------------------------------------------------
 
 INC=-I$(TMP) -I$(BASE_DIR)
-CFLAGS=-Wall -Werror -Wno-unknown-pragmas $(INC) $(DEFINES) -MMD
+CFLAGS=-Wall -Werror $(INC) $(DEFINES) -MMD -MP
 CFLAGS += $(ARCH_FLAGS) $(DEBUG_FLAGS) $(OPTIM_FLAGS)
 CXXFLAGS=$(CFLAGS) -std=c++14 -pthread
 
@@ -96,10 +96,7 @@ debug:
 # Build, start, stop
 # ------------------------------------------------------------------------------------------------------------
 
-$(TMP):
-	mkdir -p $(TMP)
-
-$(DEVICE_TABLE_HPP) $(DEVICES_HPP) $(KS_DEVICES_CPP): $(TMP) $(DEVICES)
+$(DEVICE_TABLE_HPP) $(DEVICES_HPP) $(KS_DEVICES_CPP): $(DEVICES)
 	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(TMP)
 
 $(TMP)/%.o: %.cpp $(DEVICE_TABLE_HPP) $(DEVICES)
@@ -109,7 +106,7 @@ $(TMP)/ks_%.o: $(TMP)/ks_%.cpp $(KS_DEVICES_CPP)
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
 
 $(EXECUTABLE): $(CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ)
-	$(CCXX) -o $@ $(wildcard $(TMP)/*.o) $(CXXFLAGS) $(LIBS)
+	$(CCXX) -o $@ $(CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ) $(CXXFLAGS) $(LIBS)
 
 start_server: $(EXECUTABLE) stop_server
 	nohup $(EXECUTABLE) -c config/kserver_local.conf > /dev/null 2> server.log &
