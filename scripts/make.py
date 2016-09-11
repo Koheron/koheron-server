@@ -21,7 +21,7 @@ def get_devices(config):
 def main(argv):
     cmd = argv[0]
 
-    tmp_dir = 'tmp'
+    tmp_dir = argv[3]
     if not os.path.exists(tmp_dir):
         os.makedirs(tmp_dir)
 
@@ -36,7 +36,7 @@ def main(argv):
                     config[key] = value
 
     if cmd == '--generate':
-        generate(get_devices(config), argv[3])
+        generate(get_devices(config), tmp_dir)
 
     elif cmd == '--devices':
         hpp_files = []
@@ -49,34 +49,34 @@ def main(argv):
             if os.path.exists(cpp_filename):
                 cpp_files.append(cpp_filename)
 
-        with open('tmp/.devices', 'w') as f:
+        with open(os.path.join(tmp_dir, '.devices'), 'w') as f:
             f.write(' '.join(hpp_files))
             f.write(' ' + ' '.join(cpp_files))
 
     elif cmd == '--cross-compile':
-        with open('tmp/.cross-compile', 'w') as f:
+        with open(os.path.join(tmp_dir, '.cross-compile'), 'w') as f:
             f.write(config['cross-compile'])
 
     elif cmd == '--server-name':
-        with open('tmp/.server-name', 'w') as f:
+        with open(os.path.join(tmp_dir, '.server-name'), 'w') as f:
             f.write(config['server-name'])
 
     elif cmd == '--arch-flags':
-        with open('tmp/.arch-flags', 'w') as f:
+        with open(os.path.join(tmp_dir, '.arch-flags'), 'w') as f:
             f.write('-' + ' -'.join(config['arch_flags']))
 
     elif cmd == '--optim-flags':
-        with open('tmp/.optim-flags', 'w') as f:
+        with open(os.path.join(tmp_dir, '.optim-flags'), 'w') as f:
             f.write('-' + ' -'.join(config['optimization_flags']))
 
     elif cmd == '--debug-flags':
-        with open('tmp/.debug-flags', 'w') as f:
+        with open(os.path.join(tmp_dir, '.debug-flags'), 'w') as f:
             if config['debug']['status']:
                 f.write('-' + ' -'.join(config['debug']['flags']))
 
     elif cmd == '--defines':
-        with open('tmp/.defines', 'w') as f:
-            f.write('-D' + ' -D'.join(config['defines']) + ' -DSHA=' + argv[3])
+        with open(os.path.join(tmp_dir, '.defines'), 'w') as f:
+            f.write('-D' + ' -D'.join(config['defines']) + ' -DSHA=' + argv[4])
 
     else:
         raise ValueError('Unknown command')
