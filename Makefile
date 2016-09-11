@@ -1,7 +1,6 @@
 # Parallel build not working
 # Need an extra Makefile ?
 CPUS = $(shell nproc 2> /dev/null || echo 1)
-# MAKEFLAGS += --jobs=$(CPUS)
 
 CONFIG=config/config_local.yaml
 PYTHON=/usr/bin/python
@@ -76,12 +75,9 @@ CXXFLAGS=$(CFLAGS) -std=c++14 -pthread
 
 LIBS = -lm # -lpthread -lssl -lcrypto
 
-.PHONY: all exec debug requirements clean start_server stop_server test_python
+.PHONY: all debug
 
 all: exec
-
-exec: $(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(KS_DEVICES_CPP)
-	$(MAKE) --jobs=$(CPUS) $(EXECUTABLE)
 
 debug:
 	@echo CORE_SRC = $(CORE_SRC)
@@ -98,6 +94,8 @@ debug:
 # ------------------------------------------------------------------------------------------------------------
 # Build, start, stop
 # ------------------------------------------------------------------------------------------------------------
+
+.PHONY: exec start_server stop_server
 
 # Track core dependencies
 # http://bruno.defraine.net/techtips/makefile-auto-dependencies-with-gcc/
@@ -116,6 +114,9 @@ $(TMP)/ks_%.o: $(TMP)/ks_%.cpp
 $(EXECUTABLE): $(OBJ)
 	$(CCXX) -o $@ $(OBJ) $(CXXFLAGS) $(LIBS)
 
+exec: $(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(KS_DEVICES_CPP)
+	$(MAKE) --jobs=$(CPUS) $(EXECUTABLE)
+
 start_server: exec stop_server
 	nohup $(EXECUTABLE) -c config/kserver_local.conf > /dev/null 2> server.log &
 
@@ -125,6 +126,8 @@ stop_server:
 # ------------------------------------------------------------------------------------------------------------
 # Tests
 # ------------------------------------------------------------------------------------------------------------
+
+.PHONY: test_python
 
 TESTS_VENV = venv
 PY2_ENV = $(TESTS_VENV)/py2
@@ -145,6 +148,8 @@ test_python: $(PY2_ENV) $(PY3_ENV) start_server
 # ------------------------------------------------------------------------------------------------------------
 # Clean
 # ------------------------------------------------------------------------------------------------------------
+
+.PHONY: clean clean_venv
 
 clean_venv:
 	rm -rf $(TESTS_VENV)
