@@ -1,6 +1,6 @@
 # Parallel build not working
 # Need an extra Makefile ?
-# CPUS = $(shell nproc 2> /dev/null || echo 1)
+CPUS = $(shell nproc 2> /dev/null || echo 1)
 # MAKEFLAGS += --jobs=$(CPUS)
 
 CONFIG=config/config_local.yaml
@@ -50,6 +50,7 @@ TMP_DEVICES_HPP=$(TMP)/devices.hpp
 
 VPATH=core:core/crypto:$(DEVICES_PATHS)
 
+OBJ = $(CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ)
 EXECUTABLE=$(TMP)/$(SERVER)
 
 # --------------------------------------------------------------
@@ -75,9 +76,12 @@ CXXFLAGS=$(CFLAGS) -std=c++14 -pthread
 
 LIBS = -lm # -lpthread -lssl -lcrypto
 
-.PHONY: all debug requirements clean start_server stop_server test_python
+.PHONY: all exec debug requirements clean start_server stop_server test_python
 
-all: $(EXECUTABLE)
+all: exec
+
+exec: $(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(KS_DEVICES_CPP)
+	$(MAKE) --jobs=$(CPUS) $(EXECUTABLE)
 
 debug:
 	@echo CORE_SRC = $(CORE_SRC)
@@ -103,18 +107,16 @@ debug:
 $(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(KS_DEVICES_CPP): $(DEVICES_HPP)
 	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(TMP)
 
-$(TMP)/kserver.o: $(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP)
-
 $(TMP)/%.o: %.cpp
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
 
-$(TMP)/ks_%.o: $(TMP)/ks_%.cpp $(KS_DEVICES_CPP)
+$(TMP)/ks_%.o: $(TMP)/ks_%.cpp
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
 
-$(EXECUTABLE): $(CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ)
-	$(CCXX) -o $@ $(CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ) $(CXXFLAGS) $(LIBS)
+$(EXECUTABLE): $(OBJ)
+	$(CCXX) -o $@ $(OBJ) $(CXXFLAGS) $(LIBS)
 
-start_server: $(EXECUTABLE) stop_server
+start_server: exec stop_server
 	nohup $(EXECUTABLE) -c config/kserver_local.conf > /dev/null 2> server.log &
 
 stop_server:
