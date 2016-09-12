@@ -30,9 +30,5 @@ debug:
 optimization_flags:
   - O3
 
-middleware-path: tmp/middleware
-
-copy_devices_to_middleware: yes
-
 devices:
   - tests/tests.hpp

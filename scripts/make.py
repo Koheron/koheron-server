@@ -11,39 +11,7 @@ from distutils.dir_util import copy_tree
 from shutil import copy
 
 from devgen import generate
-
-def install_requirements(config, base_dir):
-    if 'requirements' in config:
-        for requirement in config['requirements']:
-            if requirement['type'] == 'git':
-                subprocess.call(['git', 'clone', requirement['src'], requirement['dest']])
-                subprocess.call('cd ' + requirement['dest'] + ' && git checkout ' + requirement['branch'], shell=True)
-            elif requirement['type'] == 'folder':
-                copy_tree(os.path.join(base_dir, requirement['from'], requirement['import']),
-                          os.path.join('tmp/middleware', requirement['import']))
-            elif requirement['type'] == 'file':
-                dest_dir = os.path.join('tmp/middleware', os.path.dirname(requirement['import']))
-                if not os.path.isdir(dest_dir):
-                    os.makedirs(dest_dir)
-
-                copy(os.path.join(base_dir, requirement['from'], requirement['import']),
-                         dest_dir)
-            else:
-                raise ValueError('Unknown requirement type: ' + requirement['type'])
-
-    if 'copy_devices_to_middleware' in config and config['copy_devices_to_middleware']:
-        for device in get_devices(config):
-            dev_path = os.path.join(base_dir, device)
-            dest_dir = os.path.join('tmp/middleware', os.path.dirname(device))
-            if not os.path.isdir(dest_dir):
-                    os.makedirs(dest_dir)
-
-            copy(dev_path, dest_dir)
-            cpp_filename = os.path.join(os.path.dirname(dev_path), 
-                                        os.path.basename(dev_path).split('.')[0] + '.cpp')
-            if os.path.exists(cpp_filename):
-                copy(cpp_filename, dest_dir)
-                
+             
 def get_devices(config):
     if 'devices' in config:
         return config['devices']
@@ -53,7 +21,7 @@ def get_devices(config):
 def main(argv):
     cmd = argv[0]
 
-    tmp_dir = 'tmp'
+    tmp_dir = argv[3]
     if not os.path.exists(tmp_dir):
         os.makedirs(tmp_dir)
 
@@ -68,7 +36,7 @@ def main(argv):
                     config[key] = value
 
     if cmd == '--generate':
-        generate(get_devices(config), argv[3])
+        generate(get_devices(config), argv[2], tmp_dir)
 
     elif cmd == '--devices':
         hpp_files = []
@@ -81,41 +49,39 @@ def main(argv):
             if os.path.exists(cpp_filename):
                 cpp_files.append(cpp_filename)
 
-        with open('tmp/.devices', 'w') as f:
+        with open(os.path.join(tmp_dir, '.devices'), 'w') as f:
             f.write(' '.join(hpp_files))
             f.write(' ' + ' '.join(cpp_files))
 
-    elif cmd == '--requirements':
-        install_requirements(config, argv[2])
+    elif cmd == '--dependencies':
+        with open(os.path.join(tmp_dir, '.dependencies'), 'w') as f:
+            if 'dependencies' in config:
+                f.write(' '.join((os.path.join(argv[2], dep) for dep in config['dependencies'])))
 
     elif cmd == '--cross-compile':
-        with open('tmp/.cross-compile', 'w') as f:
+        with open(os.path.join(tmp_dir, '.cross-compile'), 'w') as f:
             f.write(config['cross-compile'])
 
     elif cmd == '--server-name':
-        with open('tmp/.server-name', 'w') as f:
+        with open(os.path.join(tmp_dir, '.server-name'), 'w') as f:
             f.write(config['server-name'])
 
-    elif cmd == '--midware-path':
-        with open('tmp/.midware-path', 'w') as f:
-            f.write(config['middleware-path'])
-
     elif cmd == '--arch-flags':
-        with open('tmp/.arch-flags', 'w') as f:
-            f.write('"-' + ' -'.join(config['arch_flags']) + '"')
+        with open(os.path.join(tmp_dir, '.arch-flags'), 'w') as f:
+            f.write('-' + ' -'.join(config['arch_flags']))
 
     elif cmd == '--optim-flags':
-        with open('tmp/.optim-flags', 'w') as f:
-            f.write('"-' + ' -'.join(config['optimization_flags']) + '"')
+        with open(os.path.join(tmp_dir, '.optim-flags'), 'w') as f:
+            f.write('-' + ' -'.join(config['optimization_flags']))
 
     elif cmd == '--debug-flags':
-        with open('tmp/.debug-flags', 'w') as f:
+        with open(os.path.join(tmp_dir, '.debug-flags'), 'w') as f:
             if config['debug']['status']:
-                f.write('"-' + ' -'.join(config['debug']['flags']) + '"')
+                f.write('-' + ' -'.join(config['debug']['flags']))
 
     elif cmd == '--defines':
-        with open('tmp/.defines', 'w') as f:
-            f.write('"-D' + ' -D'.join(config['defines']) + ' -DSHA=' + argv[3] + '"')
+        with open(os.path.join(tmp_dir, '.defines'), 'w') as f:
+            f.write('-D' + ' -D'.join(config['defines']) + ' -DSHA=' + argv[4])
 
     else:
         raise ValueError('Unknown command')
