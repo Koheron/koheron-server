@@ -53,6 +53,11 @@ def main(argv):
             f.write(' '.join(hpp_files))
             f.write(' ' + ' '.join(cpp_files))
 
+    elif cmd == '--dependencies':
+        with open(os.path.join(tmp_dir, '.dependencies'), 'w') as f:
+            if 'dependencies' in config:
+                f.write(' '.join(config['dependencies']))
+
     elif cmd == '--cross-compile':
         with open(os.path.join(tmp_dir, '.cross-compile'), 'w') as f:
             f.write(config['cross-compile'])

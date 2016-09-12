@@ -23,12 +23,16 @@ DEBUG_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --debug-flags $(CONFIG_PATH) $(BASE_
 DEFINES:=$(shell $(__PYTHON) $(MAKE_PY) --defines $(CONFIG_PATH) $(BASE_DIR) $(TMP) $(SHA) && cat $(TMP)/.defines)
 CROSS_COMPILE:=$(shell $(__PYTHON) $(MAKE_PY) --cross-compile $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.cross-compile)
 DEVICES:=$(shell $(__PYTHON) $(MAKE_PY) --devices $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.devices)
+DEPENDENCIES:=$(shell $(__PYTHON) $(MAKE_PY) --dependencies $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.dependencies)
 SERVER:=$(shell $(__PYTHON) $(MAKE_PY) --server-name $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.server-name)
 
 DEVICES_HPP=$(filter-out %.cpp,$(DEVICES))
 DEVICES_CPP=$(filter-out %.hpp,$(DEVICES))
 DEVICES_OBJ=$(addprefix $(TMP)/, $(subst .cpp,.o,$(notdir $(filter-out %.hpp,$(DEVICES)))))
-_DEVICES_PATHS=$(sort $(dir $(DEVICES)))
+
+DEPENDENCIES_OBJ=$(addprefix $(TMP)/, $(notdir $(subst .cpp,.o,$(DEPENDENCIES))))
+
+_DEVICES_PATHS=$(sort $(dir $(DEVICES))) $(sort $(dir $(DEPENDENCIES)))
 # Concat paths using ':' for VPATH
 # https://www.chemie.fu-berlin.de/chemnet/use/info/make/make_8.html
 semicolon:=:
@@ -44,7 +48,7 @@ TMP_DEVICE_TABLE_HPP=$(TMP)/devices_table.hpp
 TMP_DEVICES_HPP=$(TMP)/devices.hpp
 
 VPATH=core:core/crypto:$(DEVICES_PATHS)
-OBJ = $(CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ)
+OBJ = $(CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ) $(DEPENDENCIES_OBJ)
 EXECUTABLE=$(TMP)/$(SERVER)
 
 CPUS = $(shell nproc 2> /dev/null || echo 1)
