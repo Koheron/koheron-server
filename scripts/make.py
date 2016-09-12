@@ -56,7 +56,7 @@ def main(argv):
     elif cmd == '--dependencies':
         with open(os.path.join(tmp_dir, '.dependencies'), 'w') as f:
             if 'dependencies' in config:
-                f.write(' '.join(config['dependencies']))
+                f.write(' '.join((os.path.join(argv[2], dep) for dep in config['dependencies'])))
 
     elif cmd == '--cross-compile':
         with open(os.path.join(tmp_dir, '.cross-compile'), 'w') as f:
