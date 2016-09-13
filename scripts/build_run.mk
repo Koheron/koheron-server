@@ -31,5 +31,5 @@ $(KOHERON_SERVER_BIN): $(KOHERON_SERVER_VENV)
 start_koheron_server: $(KOHERON_SERVER_BIN)
 	make -C $(KOHERON_SERVER_DIR) PYTHON=koheron_server_venv/bin/python start_server
 
-stop_koheron_server: $(KOHERON_SERVER_BIN)
+stop_koheron_server:
 	make -C $(KOHERON_SERVER_DIR) PYTHON=koheron_server_venv/bin/python stop_server
