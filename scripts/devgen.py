@@ -11,12 +11,13 @@ import json
 # -----------------------------------------------------------------------------------------
 
 class Device:
-    def __init__(self, path, midware_path):
+    def __init__(self, path, base_dir):
         print 'Parsing and analysing ' + path + '...'
-        dev = parse_header(os.path.join(midware_path, path))[0]
+        dev = parse_header(os.path.join(base_dir, path))[0]
         self.header_path = os.path.dirname(path)
         self.calls = cmd_calls(dev)
 
+        self.path = path
         self.operations = dev['operations']
         self.tag = dev['tag']
         self.name = dev['name']
@@ -24,24 +25,25 @@ class Device:
         self.objects = dev['objects']
         self.includes = dev['includes']
 
-def generate(devices_list, midware_path):
+def generate(devices_list, base_dir, build_dir):
+    print devices_list
     devices = [] # List of generated devices
     obj_files = []  # Object file names
     for path in devices_list or []:
         if path.endswith('.hpp') or path.endswith('.h'):
-            device = Device(path, midware_path)
+            device = Device(path, base_dir)
             print('Generating ' + device.name + '...')
 
             template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device.hpp'))
-            with open(os.path.join(midware_path, os.path.dirname(path), 'ks_' + device.tag.lower() + '.hpp'), 'w') as output:
+            with open(os.path.join(build_dir, 'ks_' + device.tag.lower() + '.hpp'), 'w') as output:
                 output.write(template.render(device=device))
 
             template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device.cpp'))
-            with open(os.path.join(midware_path, os.path.dirname(path), 'ks_' + device.tag.lower() + '.cpp'), 'w') as output:
+            with open(os.path.join(build_dir, 'ks_' + device.tag.lower() + '.cpp'), 'w') as output:
                 output.write(template.render(device=device))
 
             devices.append(device)
-    render_device_table(devices)
+    render_device_table(devices, build_dir)
 
 # Number of operation in the KServer device
 KSERVER_OP_NUM = 7
@@ -102,15 +104,15 @@ def fill_template(devices, template_filename, output_filename):
     with open(output_filename, 'w') as output:
         output.write(template.render(devices=devices))
 
-def render_device_table(devices):
+def render_device_table(devices, build_dir):
     print('Generate device table')
     template = get_renderer().get_template(os.path.join('scripts/templates', 'devices_table.hpp'))
-    with open('tmp/devices_table.hpp', 'w') as output:
+    with open(os.path.join(build_dir, 'devices_table.hpp'), 'w') as output:
         output.write(template.render(devices=devices,
                                      max_op_num=get_max_op_num(devices),
                                      json=get_json(devices)))
 
-    output_filename = os.path.join('tmp', 'devices.hpp')
+    output_filename = os.path.join(build_dir, 'devices.hpp')
     fill_template(devices, 'devices.hpp', output_filename)
 
 # -----------------------------------------------------------------------------
@@ -128,7 +130,7 @@ def parse_header_device(_class, hppfile):
     device = {}
     device['name'] = _class['name']
     device['tag'] = '_'.join(re.findall('[A-Z][^A-Z]*', device['name'])).upper()
-    device['includes'] = [os.path.basename(hppfile)]
+    device['includes'] = [hppfile]
     device['objects'] = [{
       'type': str(_class['name']),
       'name': '__' + _class['name']

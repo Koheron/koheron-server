@@ -29,10 +29,6 @@ optimization_flags:
   - O3
   - finline-limit=150
 
-middleware-path: tmp/middleware
-
-copy_devices_to_middleware: yes
-
 devices:
     - tests/tests.hpp
     # - tests/eigen_tests.hpp
