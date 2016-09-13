@@ -13,6 +13,8 @@ KOHERON_SERVER_DIR = $(KOHERON_SERVER_DEST)/koheron-server
 KOHERON_SERVER_BIN = $(KOHERON_SERVER_DIR)/tmp/kserverd
 KOHERON_SERVER_VENV = $(KOHERON_SERVER_DIR)/koheron_server_venv
 
+.PHONY: start_koheron_server stop_koheron_server
+
 $(KOHERON_SERVER_DIR):
 	git clone $(KOHERON_SERVER_URL) $(KOHERON_SERVER_DIR)
 	cd $(KOHERON_SERVER_DIR) && git checkout $(KOHERON_SERVER_BRANCH)
