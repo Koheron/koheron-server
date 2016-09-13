@@ -1,9 +1,9 @@
 # -------------------------------------------------------------------------------------
 # Build and run koheron-server in local
 #
-#
-# Usage: in your Makefile
-# KOHERON_SERVER_DEST = tmp
+# In your Makefile:
+# KOHERON_SERVER_DEST=$(TMP)
+# DUMMY:=$(shell curl https://raw.githubusercontent.com/Koheron/koheron-server/master/scripts/build_run.mk > build_run.mk)
 # include build_run.mk
 # -------------------------------------------------------------------------------------
 
