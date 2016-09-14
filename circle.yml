@@ -9,6 +9,7 @@ dependencies:
     - "venv"
   pre:
     - curl -v -X POST https://circleci.com/api/v1.1/project/github/Koheron/koheron-python/tree/master?circle-token=$CIRCLE_TOKEN
+    - pip install -r requirements.txt
     - make venv/py2 venv/py3
     - npm install -g gulp
     - npm install -g nodeunit
