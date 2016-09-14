@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-UNIXSOCK=$1
+UNIXSOCK=/tmp/kserver_local.sock
 PYTHON_2=venv/py2/bin/python
 PYTHON_3=venv/py3/bin/python3
 
@@ -10,8 +10,9 @@ PYTHON_3=venv/py3/bin/python3
 # ---------------------------------------
 
 # Compile kserverd
-make CONFIG=config/config_local.yaml __PYTHON=python clean all
+# Local build must be done last for tests afterwards
 make CONFIG=config/config_armhf.yaml __PYTHON=python clean all
+make CONFIG=config/config_local.yaml __PYTHON=python clean all
 
 # Build js API
 make -C apis/js/koheron-websocket-client build
@@ -19,9 +20,6 @@ make -C apis/js/koheron-websocket-client build
 # ---------------------------------------
 # Tests
 # ---------------------------------------
-
-# Compile executables in local for tests
-make CONFIG=config/config_local.yaml __PYTHON=python clean all
 
 echo "== Test Python API =="
 make __PYTHON=python test_python

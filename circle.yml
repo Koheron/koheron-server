@@ -30,4 +30,4 @@ dependencies:
 
 test:
   pre:
-    - bash scripts/ci_tests.sh /tmp/kserver_local.sock
+    - bash scripts/ci_tests.sh
