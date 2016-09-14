@@ -10,8 +10,8 @@ PYTHON_3=venv/py3/bin/python3
 # ---------------------------------------
 
 # Compile kserverd
-make CONFIG=config/config_local.yaml clean all
-make CONFIG=config/config_armhf.yaml clean all
+make CONFIG=config/config_local.yaml PYTHON=python clean all
+make CONFIG=config/config_armhf.yaml PYTHON=python clean all
 
 # Build js API
 make -C apis/js/koheron-websocket-client build
@@ -21,7 +21,7 @@ make -C apis/js/koheron-websocket-client build
 # ---------------------------------------
 
 # Compile executables in local for tests
-make CONFIG=config/config_local.yaml clean all
+make CONFIG=config/config_local.yaml PYTHON=python clean all
 
 echo "== Test Python API =="
 make test_python
