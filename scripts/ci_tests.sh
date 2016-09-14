@@ -24,7 +24,7 @@ make -C apis/js/koheron-websocket-client build
 make CONFIG=config/config_local.yaml __PYTHON=python clean all
 
 echo "== Test Python API =="
-make test_python
+make __PYTHON=python test_python
 
 echo "== Test Hello World =="
 node apis/js/koheron-websocket-client/tests/math.js
