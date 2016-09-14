@@ -10,7 +10,7 @@ dependencies:
   pre:
     - curl -v -X POST https://circleci.com/api/v1.1/project/github/Koheron/koheron-python/tree/master?circle-token=$CIRCLE_TOKEN
     - pip install -r requirements.txt
-    - make venv/py2 venv/py3
+    - make PYTHON=python venv/py2 venv/py3
     - npm install -g gulp
     - npm install -g nodeunit
     - sudo bash -c "echo deb http://fr.archive.ubuntu.com/ubuntu/ wily main >> /etc/apt/sources.list"
