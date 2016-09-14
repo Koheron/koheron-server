@@ -8,8 +8,8 @@ machine:
 dependencies:
   cache_directories:
     - "venv"
-    - /home/ubuntu/nvm/versions/node/v5.7.0/bin
-    - /home/ubuntu/nvm/versions/node/v5.7.0/lib/node_modules
+    - /opt/circleci/nodejs/v5.7.0/bin
+    - /opt/circleci/nodejs/v5.7.0/lib/node_modules
     - apis/js/koheron-websocket-client/node_modules
   pre:
     - curl -v -X POST https://circleci.com/api/v1.1/project/github/Koheron/koheron-python/tree/master?circle-token=$CIRCLE_TOKEN
