@@ -137,12 +137,10 @@ PY2_ENV = $(TESTS_VENV)/py2
 PY3_ENV = $(TESTS_VENV)/py3
 
 $(PY2_ENV): tests/requirements.txt
-	virtualenv $(PY2_ENV)
-	$(PY2_ENV)/bin/pip install -r tests/requirements.txt
+	test -d $(PY2_ENV) || (virtualenv $(PY2_ENV) && $(PY2_ENV)/bin/pip install -r tests/requirements.txt)
 
 $(PY3_ENV): tests/requirements.txt
-	virtualenv -p python3 $(PY3_ENV)
-	$(PY3_ENV)/bin/pip3 install -r tests/requirements.txt
+	test -d $(PY2_ENV) || (virtualenv -p python3 $(PY3_ENV) && $(PY3_ENV)/bin/pip3 install -r tests/requirements.txt)
 
 test_python: $(PY2_ENV) $(PY3_ENV) start_server
 	PYTEST_UNIXSOCK=/tmp/kserver_local.sock $(PY2_ENV)/bin/python -m pytest -v tests/tests.py

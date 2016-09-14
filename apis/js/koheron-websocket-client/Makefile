@@ -6,7 +6,7 @@ init:
 	npm install
 	mkdir -p lib/
 
-build: init
+build:
 	gulp compile-lib-js
 	gulp compile-tests-js
 	gulp compile-math-js
