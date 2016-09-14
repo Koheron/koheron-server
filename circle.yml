@@ -4,9 +4,12 @@ machine:
   node:
     version: 5.7.0
 
+# https://discuss.circleci.com/t/how-to-cache-global-npm-packages/951
 dependencies:
   cache_directories:
     - "venv"
+    - /home/ubuntu/nvm/versions/node/5.7.0/bin
+    - /home/ubuntu/nvm/versions/node/5.7.0/lib/node_modules
   pre:
     - curl -v -X POST https://circleci.com/api/v1.1/project/github/Koheron/koheron-python/tree/master?circle-token=$CIRCLE_TOKEN
     - pip install -r requirements.txt
