@@ -15,7 +15,6 @@ MAKE_PY = scripts/make.py
 CORE_HEADERS=$(shell find $(CORE) -name '*.hpp' -o -name '*.h' -o -name '*.tpp')
 CORE_SRC=$(shell find $(CORE) -name '*.cpp' -o -name '*.c')
 CORE_OBJ=$(subst .cpp,.o, $(addprefix $(TMP)/, $(notdir $(CORE_SRC))))
-CORE_DEP=$(subst .o,.d,$(CORE_OBJ))
 
 ARCH_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --arch-flags $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.arch-flags)
 OPTIM_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --optim-flags $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.optim-flags)
@@ -49,6 +48,7 @@ TMP_DEVICES_HPP=$(TMP)/devices.hpp
 
 VPATH=core:core/crypto:$(DEVICES_PATHS)
 OBJ = $(CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ) $(DEPENDENCIES_OBJ)
+DEP=$(subst .o,.d,$(OBJ))
 EXECUTABLE=$(TMP)/$(SERVER)
 
 CPUS = $(shell nproc 2> /dev/null || echo 1)
@@ -103,7 +103,7 @@ debug:
 # Track core dependencies
 # http://bruno.defraine.net/techtips/makefile-auto-dependencies-with-gcc/
 # http://scottmcpeak.com/autodepend/autodepend.html
--include $(CORE_DEP)
+-include $(DEP)
 
 $(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(KS_DEVICES_CPP): $(DEVICES_HPP)
 	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(TMP)
