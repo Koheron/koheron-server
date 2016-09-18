@@ -8,7 +8,11 @@
 # -------------------------------------------------------------------------------------
 
 KOHERON_SERVER_URL = https://github.com/Koheron/koheron-server.git
+
+ifeq ($(KOHERON_SERVER_BRANCH),)
 KOHERON_SERVER_BRANCH = master
+endif
+
 KOHERON_SERVER_DIR = $(KOHERON_SERVER_DEST)/koheron-server
 KOHERON_SERVER_BIN = $(KOHERON_SERVER_DIR)/tmp/kserverd
 KOHERON_SERVER_VENV = $(KOHERON_SERVER_DIR)/koheron_server_venv
