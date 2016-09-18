@@ -163,7 +163,6 @@ def parse_header_operation(devname, method):
     else:
         operation["io_type"] = 'READ'
 
-    operation['fmt'] = ''
     if len(method['parameters']) > 0:
         operation['arguments'] = []
         for param in method['parameters']:
@@ -179,7 +178,6 @@ def parse_header_operation(devname, method):
                 arg['type'] = arg['type'][5:].strip()
 
             check_type(arg['type'], devname, operation['name'])
-            operation['fmt'] += get_arg_fmt(arg['type'], devname, operation['name'])
             operation['arguments'].append(arg)
     return operation
 
@@ -192,30 +190,6 @@ FORBIDDEN_INTS = ['short', 'int', 'unsigned', 'long', 'unsigned short', 'short u
 def check_type(_type, devname, opname):
     if _type in FORBIDDEN_INTS:
         raise ValueError('[' + devname + '::' + opname + '] Invalid type "' + _type + '": Only integers with exact width (e.g. uint32_t) are supported (http://en.cppreference.com/w/cpp/header/cstdint).')
-
-TYPE_FMT = {
-    'uint8_t': 'B',
-    'int8_t': 'b',
-    'uint16_t': 'H',
-    'int16_t': 'h',
-    'uint32_t': 'I',
-    'int32_t': 'i',
-    'uint64_t': 'Q',
-    'int64_t': 'q',
-    'bool': '?',
-    'float': 'f',
-    'double': 'd'
-}
-
-def get_arg_fmt(_type, devname, opname):
-    if _type in TYPE_FMT:
-        return TYPE_FMT[_type]
-    elif is_std_array(_type):
-        return 'A'
-    elif is_std_vector(_type):
-        return 'V'
-    else:
-        raise ValueError('[' + devname + '::' + opname + '] Invalid type "' + _type + '"')
 
 # -----------------------------------------------------------------------------
 # Generate command call and send
