@@ -26,8 +26,7 @@ $(KOHERON_SERVER_DIR):
 $(KOHERON_SERVER_DIR)/requirements.txt: $(KOHERON_SERVER_DIR)
 
 $(KOHERON_SERVER_VENV): $(KOHERON_SERVER_DIR)/requirements.txt
-	virtualenv $(KOHERON_SERVER_VENV)
-	$(KOHERON_SERVER_VENV)/bin/pip install -r $(KOHERON_SERVER_DIR)/requirements.txt
+	test -d $(KOHERON_SERVER_VENV) || (virtualenv $(KOHERON_SERVER_VENV) && $(KOHERON_SERVER_VENV)/bin/pip install -r $(KOHERON_SERVER_DIR)/requirements.txt)
 
 $(KOHERON_SERVER_BIN): $(KOHERON_SERVER_VENV)
 	make -C $(KOHERON_SERVER_DIR) CONFIG=config/config_local.yaml PYTHON=koheron_server_venv/bin/python
