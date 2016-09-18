@@ -61,15 +61,20 @@ def get_json(devices):
       }, {
         'name': 'KServer',
         'operations': [
-            {'name': 'get_version', 'fmt': ''}, {'name': 'get_cmds', 'fmt': ''}, {'name': 'get_stats', 'fmt': ''}, {'name': 'get_dev_status', 'fmt': ''},
-            {'name': 'get_running_sessions', 'fmt': ''}, {'name': 'subscribe_broadcast', 'fmt': 'I'}, {'name': 'broadcast_ping', 'fmt': ''}
+            {'name': 'get_version', 'args': []},
+            {'name': 'get_cmds', 'args': []},
+            {'name': 'get_stats', 'args': []},
+            {'name': 'get_dev_status', 'args': []},
+            {'name': 'get_running_sessions', 'args': []},
+            {'name': 'subscribe_pubsub', 'args': [{'name': 'channel', 'type': 'uint32_t'}]},
+            {'name': 'pubsub_ping', 'args': []}
         ]
     }]
 
     for device in devices:
         data.append({
             'name': device.name,
-            'operations': [{'name': op['name'], 'fmt': op['fmt']} for op in device.operations]
+            'operations': [{'name': op['name'], 'args': op.get('arguments',[])} for op in device.operations]
         })
     return json.dumps(data, separators=(',', ':')).replace('"', '\\"')
 

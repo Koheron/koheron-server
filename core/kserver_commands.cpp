@@ -267,7 +267,7 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
 }
 
 /////////////////////////////////////
-// SUBSCRIBE_PÜBSUB
+// SUBSCRIBE_PUBSUB
 // Subscribe to a pubsub channel
 
 KSERVER_STRUCT_ARGUMENTS(SUBSCRIBE_PUBSUB)
