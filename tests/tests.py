@@ -217,6 +217,13 @@ def test_rcv_std_array3(tests):
     assert tests.rcv_std_array3(arr)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_array_length_exception(tests):
+    arr = np.arange(16384, dtype='float64')
+    with pytest.raises(ValueError) as excinfo:
+        tests.rcv_std_array3(arr)
+    assert str(excinfo.value) == 'Invalid array length. Expected 8192 but received 16384.'
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_rcv_std_vector(tests):
     vec = np.arange(8192, dtype='uint32')
     assert tests.rcv_std_vector(vec)
