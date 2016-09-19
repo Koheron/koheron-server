@@ -79,6 +79,10 @@ class Tests:
         return self.client.recv_bool()
 
     @command()
+    def rcv_std_array4(self, arr):
+        return self.client.recv_bool()
+
+    @command()
     def rcv_std_vector(self, vec):
         return self.client.recv_bool()
 
@@ -215,6 +219,11 @@ def test_rcv_std_array2(tests):
 def test_rcv_std_array3(tests):
     arr = np.sin(np.arange(8192, dtype='float64'))
     assert tests.rcv_std_array3(arr)
+
+@pytest.mark.parametrize('tests', [tests, tests_unix])
+def test_rcv_std_array4(tests):
+    arr = np.arange(1024, dtype='uint32')
+    assert tests.rcv_std_array4(arr)
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_array_length_exception(tests):

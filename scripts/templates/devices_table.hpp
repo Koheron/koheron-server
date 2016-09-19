@@ -7,6 +7,14 @@
 #define __DEVICES_TABLE_HPP__
 
 #include <array>
+#include <sstream>
+#include <string>
+
+{% for device in devices -%}
+{% for include in device.includes -%}
+#include "{{ include }}"
+{% endfor -%}
+{% endfor %}
 
 #define DEVICES_TABLE(ENTRY) \
 {% for device in devices -%}
@@ -30,6 +38,10 @@ typedef enum {
     device_num
 } device_t;
 
-constexpr auto DEVICES_JSON = "{{ json }}";
+inline auto build_devices_json() {
+    std::stringstream ss;
+    ss << "{{ json }}";
+    return ss.str();
+}
 
 #endif // __DEVICES_TABLE_HPP__

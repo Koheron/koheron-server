@@ -91,6 +91,14 @@ bool Tests::rcv_std_array3(const std::array<double, 8192>& arr)
     return true;
 }
 
+bool Tests::rcv_std_array4(const std::array<uint32_t, calc_array_length(10)>& arr)
+{
+    for (unsigned int i=0; i<calc_array_length(10); i++)
+        if (arr[i] != i) return false;
+
+    return true;
+}
+
 bool Tests::rcv_std_vector(const std::vector<uint32_t>& vec)
 {
     if (vec.size() != 8192) return false;

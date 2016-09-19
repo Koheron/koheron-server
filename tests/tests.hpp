@@ -6,6 +6,10 @@
 #include <tuple>
 #include <string>
 
+constexpr size_t calc_array_length(size_t n_bits) {
+    return 1 << n_bits;
+}
+
 class Tests
 {
   public:
@@ -29,6 +33,7 @@ class Tests
     bool rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 8192>& arr, double d, int32_t i);
     bool rcv_std_array2(const std::array<float, 8192>& arr);
     bool rcv_std_array3(const std::array<double, 8192>& arr);
+    bool rcv_std_array4(const std::array<uint32_t, calc_array_length(10)>& arr);
 
     // Receive vector
     bool rcv_std_vector(const std::vector<uint32_t>& vec);

@@ -63,7 +63,7 @@ KSERVER_PARSE_ARG(GET_CMDS) {return 0;}
 
 KSERVER_EXECUTE_OP(GET_CMDS)
 {
-    return GET_SESSION.send_cstr(DEVICES_JSON);
+    return GET_SESSION.send(build_devices_json());
 }
 
 /////////////////////////////////////

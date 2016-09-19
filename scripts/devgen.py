@@ -80,7 +80,7 @@ def get_json(devices):
             'functions': [{'name': op['name'], 'id': op['id'], 'args': op.get('args_client',[])} for op in device.operations]
         })
 
-    return json.dumps(data, separators=(',', ':')).replace('"', '\\"')
+    return json.dumps(data, separators=(',', ':')).replace('"', '\\"').replace('\\\\','')
 
 def get_renderer():
     renderer = jinja2.Environment(
@@ -187,7 +187,7 @@ def parse_header_operation(devname, method):
 
             check_type(arg['type'], devname, operation['name'])
             operation['arguments'].append(arg)
-            operation['args_client'].append({'name': arg['name'], 'type': arg['type']})
+            operation['args_client'].append({'name': arg['name'], 'type': format_type(arg['type'])})
     return operation
 
 # The following integers are forbiden since they are plateform
@@ -199,6 +199,14 @@ FORBIDDEN_INTS = ['short', 'int', 'unsigned', 'long', 'unsigned short', 'short u
 def check_type(_type, devname, opname):
     if _type in FORBIDDEN_INTS:
         raise ValueError('[' + devname + '::' + opname + '] Invalid type "' + _type + '": Only integers with exact width (e.g. uint32_t) are supported (http://en.cppreference.com/w/cpp/header/cstdint).')
+
+def format_type(_type):
+    if _type.split('<')[0].strip() == 'std::array':
+        templates = _type.split('<')[1].split('>')[0].split(',')
+        return 'std::array<' + templates[0] + ', " << ' +  templates[1] + ' << ">'
+    else:
+        return _type
+
 
 # -----------------------------------------------------------------------------
 # Generate command call and send
