@@ -77,7 +77,7 @@ def get_json(devices):
         data.append({
             'class': device.name,
             'id': device.id,
-            'functions': [{'name': op['name'], 'id': op['id'], 'args': op.get('args_client',[])} for op in device.operations]
+            'functions': [{'name': op['name'], 'id': op['id'], 'ret_type': format_ret_type(op['ret_type']), 'args': op.get('args_client',[])} for op in device.operations]
         })
 
     return json.dumps(data, separators=(',', ':')).replace('"', '\\"').replace('\\\\','')
@@ -206,6 +206,12 @@ def format_type(_type):
         return 'std::array<' + templates[0] + ', " << ' +  templates[1] + ' << ">'
     else:
         return _type
+
+def format_ret_type(ret_type):
+    if ret_type == 'auto':
+        # TODO
+    else:
+        return ret_type
 
 
 # -----------------------------------------------------------------------------
