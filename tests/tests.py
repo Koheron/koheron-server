@@ -132,7 +132,7 @@ class Tests:
 
 # Unit Tests
 
-unixsock = os.getenv('PYTEST_UNIXSOCK','/code/kserver.sock')
+unixsock = os.getenv('PYTEST_UNIXSOCK','/tmp/kserver_local.sock')
 port = int(os.getenv('PYTEST_PORT', '36000'))
 
 client = KoheronClient('127.0.0.1', port)

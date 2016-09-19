@@ -11,6 +11,7 @@ __PYTHON = $(shell bash scripts/get_python.sh $(PYTHON) $(BASE_DIR))
 TMP = $(BASE_DIR)/tmp
 CORE = core
 MAKE_PY = scripts/make.py
+DEVGEN_PY = scripts/devgen.py
 
 CORE_HEADERS=$(shell find $(CORE) -name '*.hpp' -o -name '*.h' -o -name '*.tpp')
 CORE_SRC=$(shell find $(CORE) -name '*.cpp' -o -name '*.c')
@@ -105,7 +106,7 @@ debug:
 # http://scottmcpeak.com/autodepend/autodepend.html
 -include $(DEP)
 
-$(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(KS_DEVICES_CPP): $(DEVICES_HPP)
+$(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(KS_DEVICES_CPP): $(DEVICES_HPP) $(DEVGEN_PY)
 	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(TMP)
 
 $(TMP)/%.o: %.cpp
@@ -140,7 +141,7 @@ $(PY2_ENV): tests/requirements.txt
 	test -d $(PY2_ENV) || (virtualenv $(PY2_ENV) && $(PY2_ENV)/bin/pip install -r tests/requirements.txt)
 
 $(PY3_ENV): tests/requirements.txt
-	test -d $(PY2_ENV) || (virtualenv -p python3 $(PY3_ENV) && $(PY3_ENV)/bin/pip3 install -r tests/requirements.txt)
+	test -d $(PY3_ENV) || (virtualenv -p python3 $(PY3_ENV) && $(PY3_ENV)/bin/pip3 install -r tests/requirements.txt)
 
 test_python: $(PY2_ENV) $(PY3_ENV) start_server
 	PYTEST_UNIXSOCK=/tmp/kserver_local.sock $(PY2_ENV)/bin/python -m pytest -v tests/tests.py

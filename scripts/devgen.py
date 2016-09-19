@@ -56,11 +56,8 @@ def get_max_op_num(devices):
 
 def get_json(devices):
     data = [{
-        'name': 'NO_DEVICE',
-        'operations': []
-      }, {
-        'name': 'KServer',
-        'operations': [
+        'class': 'KServer',
+        'functions': [
             {'name': 'get_version', 'args': []},
             {'name': 'get_cmds', 'args': []},
             {'name': 'get_stats', 'args': []},
@@ -73,8 +70,8 @@ def get_json(devices):
 
     for device in devices:
         data.append({
-            'name': device.name,
-            'operations': [{'name': op['name'], 'args': op.get('arguments',[])} for op in device.operations]
+            'class': device.name,
+            'functions': [{'name': op['name'], 'args': op.get('args_client',[])} for op in device.operations]
         })
     return json.dumps(data, separators=(',', ':')).replace('"', '\\"')
 
@@ -164,7 +161,8 @@ def parse_header_operation(devname, method):
         operation["io_type"] = 'READ'
 
     if len(method['parameters']) > 0:
-        operation['arguments'] = []
+        operation['arguments'] = [] # Use for code generation
+        operation['args_client'] = [] # Send to client
         for param in method['parameters']:
             arg = {}
             arg['name'] = str(param['name'])
@@ -179,6 +177,7 @@ def parse_header_operation(devname, method):
 
             check_type(arg['type'], devname, operation['name'])
             operation['arguments'].append(arg)
+            operation['args_client'].append({'name': arg['name'], 'type': arg['type']})
     return operation
 
 # The following integers are forbiden since they are plateform
