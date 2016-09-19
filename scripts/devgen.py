@@ -24,14 +24,18 @@ class Device:
         self.class_name = 'KS_' + self.tag.capitalize()
         self.objects = dev['objects']
         self.includes = dev['includes']
+        self.id = None
 
 def generate(devices_list, base_dir, build_dir):
     print devices_list
     devices = [] # List of generated devices
     obj_files = []  # Object file names
+    dev_id = 2
     for path in devices_list or []:
         if path.endswith('.hpp') or path.endswith('.h'):
             device = Device(path, base_dir)
+            device.id = dev_id
+            dev_id +=1
             print('Generating ' + device.name + '...')
 
             template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device.hpp'))
@@ -57,22 +61,25 @@ def get_max_op_num(devices):
 def get_json(devices):
     data = [{
         'class': 'KServer',
+        'id': 1,
         'functions': [
-            {'name': 'get_version', 'args': []},
-            {'name': 'get_cmds', 'args': []},
-            {'name': 'get_stats', 'args': []},
-            {'name': 'get_dev_status', 'args': []},
-            {'name': 'get_running_sessions', 'args': []},
-            {'name': 'subscribe_pubsub', 'args': [{'name': 'channel', 'type': 'uint32_t'}]},
-            {'name': 'pubsub_ping', 'args': []}
+            {'name': 'get_version', 'id': 0, 'args': []},
+            {'name': 'get_cmds', 'id': 1, 'args': []},
+            {'name': 'get_stats', 'id': 2, 'args': []},
+            {'name': 'get_dev_status', 'id': 3, 'args': []},
+            {'name': 'get_running_sessions', 'id': 4, 'args': []},
+            {'name': 'subscribe_pubsub', 'id': 5, 'args': [{'name': 'channel', 'type': 'uint32_t'}]},
+            {'name': 'pubsub_ping', 'id': 6, 'args': []}
         ]
     }]
 
     for device in devices:
         data.append({
             'class': device.name,
-            'functions': [{'name': op['name'], 'args': op.get('args_client',[])} for op in device.operations]
+            'id': device.id,
+            'functions': [{'name': op['name'], 'id': op['id'], 'args': op.get('args_client',[])} for op in device.operations]
         })
+
     return json.dumps(data, separators=(',', ':')).replace('"', '\\"')
 
 def get_renderer():
@@ -139,10 +146,13 @@ def parse_header_device(_class, hppfile):
     }]
 
     device['operations'] = []
+    op_id = 0
     for method in _class['methods']['public']:
         # We eliminate constructor and destructor
         if not (method['name'] in [s + _class['name'] for s in ['','~']]):
             device['operations'].append(parse_header_operation(device['name'], method))
+            device['operations'][-1]['id'] = op_id
+            op_id += 1
     return device
 
 def parse_header_operation(devname, method):

@@ -48,7 +48,7 @@ class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device
 
     enum Operation {
         {% for operation in device.operations -%}
-        {{ operation['tag'] }},
+        {{ operation['tag'] }} = {{ operation['id'] }},
         {% endfor -%}        
         {{ device.tag|lower }}_op_num
     };

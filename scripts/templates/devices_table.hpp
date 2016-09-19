@@ -22,10 +22,10 @@
 
 /// Devices #
 typedef enum {
-    NO_DEVICE,
-    KSERVER,
+    NO_DEVICE = 0,
+    KSERVER = 1,
     {% for device in devices -%}
-    {{ device.tag | upper }},
+    {{ device.tag | upper }} = {{ device.id }},
     {% endfor -%}
     device_num
 } device_t;
