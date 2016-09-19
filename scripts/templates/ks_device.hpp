@@ -72,12 +72,10 @@ struct KDevice<{{ device.class_name }},{{ device.tag }}>::
             Argument<{{ device.class_name }}::{{ operation['tag'] }}>
 {
 {%- macro print_param_line(arg) %}
-        {{ arg["type"] }} {{ arg["name"]}}; ///< {{ arg["description"] }}
+        {{ arg["type"] }} {{ arg["name"]}};
 {%- endmacro -%}
 {% for arg in operation["arguments"] -%}
-{%   if arg.get("flag") != "CLIENT_ONLY" -%}
     {{ arg["type"] }} {{ arg["name"]}};
-{%   endif -%}
 {% endfor -%}
 };
 
