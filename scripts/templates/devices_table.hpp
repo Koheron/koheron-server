@@ -9,6 +9,7 @@
 #include <array>
 #include <sstream>
 #include <string>
+#include <typeinfo>
 
 {% for device in devices -%}
 {% for include in device.includes -%}
