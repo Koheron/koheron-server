@@ -74,14 +74,12 @@ class Tests
     double read_double();
     bool read_bool();
 
-    auto ret_type_exception() {return true;}
-
     std::vector<float> data;
 
   private:
     std::vector<uint32_t> buffer;
     std::array<float, 10> data_std_array;
     std::array<uint32_t, 512> data_std_array2;
-}; // class Tests
+};
 
 #endif // __TESTS_TESTS_HPP__

@@ -138,10 +138,6 @@ class Tests:
     def get_tuple4(self):
         return self.client.recv_tuple('bbhhii')
 
-    @command()
-    def ret_type_exception(self):
-        return self.client.recv_uint32()
-
 # Unit Tests
 
 unixsock = os.getenv('PYTEST_UNIXSOCK','/tmp/kserver_local.sock')
@@ -152,6 +148,8 @@ tests = Tests(client)
 
 client_unix = KoheronClient(unixsock=unixsock)
 tests_unix = Tests(client_unix)
+
+tests.send_std_vector()
 
 @pytest.mark.parametrize('tests', [tests, tests_unix])
 def test_send_many_params(tests):
@@ -357,9 +355,3 @@ def test_get_tuple4(tests):
     assert tup[3] == 32767
     assert tup[4] == -2147483647
     assert tup[5] == 2147483647
-
-@pytest.mark.parametrize('tests', [tests, tests_unix])
-def test_ret_type_exception(tests):
-    with pytest.raises(TypeError) as excinfo:
-        tests.ret_type_exception()
-    assert str(excinfo.value) == 'Tests::ret_type_exception returns a bool.'
