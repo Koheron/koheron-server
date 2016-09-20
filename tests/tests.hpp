@@ -74,6 +74,8 @@ class Tests
     double read_double();
     bool read_bool();
 
+    auto ret_type_exception() {return true;}
+
     std::vector<float> data;
 
   private:
