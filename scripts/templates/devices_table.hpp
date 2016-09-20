@@ -10,6 +10,7 @@
 #include <sstream>
 #include <string>
 #include <typeinfo>
+#include <cxxabi.h>
 
 {% for device in devices -%}
 {% for include in device.includes -%}
@@ -39,7 +40,26 @@ typedef enum {
     device_num
 } device_t;
 
-inline auto build_devices_json() {
+// http://stackoverflow.com/questions/4484982/how-to-convert-typename-t-to-string-in-c
+template<typename T>
+inline auto get_type_str()
+{
+    std::string res;
+    char *name = nullptr;
+    int status;
+    name = abi::__cxa_demangle(typeid(T).name(), 0, 0, &status);
+
+    if (name != nullptr)
+        res = std::string(name);
+    else
+        res = std::string(typeid(T).name());
+
+    free(name);
+    return res;
+}
+
+inline auto build_devices_json()
+{
     std::stringstream ss;
     ss << "{{ json }}";
     return ss.str();

@@ -209,7 +209,7 @@ def format_type(_type):
 
 def format_ret_type(classname, operation):
     if operation['ret_type'] == 'auto':
-        return '" << typeid(decltype(std::declval<' + classname + '>().' + operation['name'] + '())).name() << "'
+        return '" << get_type_str<decltype(std::declval<' + classname + '>().' + operation['name'] + '())>() << "'
     else:
         return operation['ret_type']
 
