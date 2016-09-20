@@ -208,8 +208,11 @@ def format_type(_type):
         return _type
 
 def format_ret_type(classname, operation):
-    if operation['ret_type'] == 'auto':
-        return '" << get_type_str<decltype(std::declval<' + classname + '>().' + operation['name'] + '())>() << "'
+    if operation['ret_type'] in ['auto', 'auto&', 'auto &']:
+        decl_arg_list = []
+        for arg in operation.get('arguments', []):
+            decl_arg_list.append('std::declval<' + arg['type'] + '>()')
+        return '" << get_type_str<decltype(std::declval<' + classname + '>().' + operation['name'] + '(' + ' ,'.join(decl_arg_list) + '))>() << "'
     else:
         return operation['ret_type']
 
