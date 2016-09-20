@@ -5,7 +5,7 @@
 import os
 import pytest
 
-from koheron import KoheronClient, command
+from koheron import KoheronClient, command, ConnectionError
 
 class ExceptionTests:
     def __init__(self, client):
@@ -28,6 +28,16 @@ class ExceptionTests:
         return self.client.recv_array(shape=20, dtype='float32') # Instead of 10
 
 port = int(os.getenv('PYTEST_PORT', '36000'))
+
+def test_tcp_connect_fail_exception():
+    with pytest.raises(ConnectionError) as excinfo:
+        client = KoheronClient('127.0.0.1', 3600) # Instead of 36000
+    assert str(excinfo.value) == 'Failed to connect to 127.0.0.1:3600 : [Errno 111] Connection refused'
+
+def test_unix_connect_fail_exception():
+    with pytest.raises(ConnectionError) as excinfo:
+        client = KoheronClient(unixsock='dummy/path')
+    assert str(excinfo.value) == 'Failed to connect to unix socket address dummy/path'
 
 @pytest.mark.parametrize('port', [port])
 def test_ret_type_exception(port):
