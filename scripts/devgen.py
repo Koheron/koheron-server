@@ -201,7 +201,7 @@ def check_type(_type, devname, opname):
         raise ValueError('[' + devname + '::' + opname + '] Invalid type "' + _type + '": Only integers with exact width (e.g. uint32_t) are supported (http://en.cppreference.com/w/cpp/header/cstdint).')
 
 def format_type(_type):
-    if _type.split('<')[0].strip() == 'std::array':
+    if is_std_array(_type):
         templates = _type.split('<')[1].split('>')[0].split(',')
         return 'std::array<' + templates[0] + ', " << ' +  templates[1] + ' << ">'
     else:

@@ -52,6 +52,16 @@ std::vector<float>& Tests::send_std_vector()
     return data;
 }
 
+std::vector<uint32_t>& Tests::send_std_vector2()
+{
+    data_u.resize(20);
+
+    for (unsigned int i=0; i<data_u.size(); i++)
+        data_u[i] = i*i;
+
+    return data_u;
+}
+
 std::array<float, 10>& Tests::send_std_array()
 {    
     for (uint32_t i=0; i<data_std_array.size(); i++)
