@@ -27,6 +27,10 @@ class ExceptionTests
         return std_vector;
     }
 
+    auto std_tuple_exception() {
+        return std::make_tuple(42U, 3.14F);
+    }
+
   private:
     std::array<float, 10> std_array;
     std::vector<uint32_t> std_vector;
