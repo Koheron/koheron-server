@@ -7,8 +7,7 @@ dependencies:
   cache_directories:
     - "venv"
   pre:
-    - curl -v -X POST https://circleci.com/api/v1.1/project/github/Koheron/koheron-python/tree/master?circle-token=$CIRCLE_TOKEN
-    - curl -v -X POST https://circleci.com/api/v1.1/project/github/Koheron/automation/tree/master?circle-token=$CIRCLE_TOKEN
+    - bash scripts/trig_builds.sh
     - pip install -r requirements.txt
     - make __PYTHON=python venv/py2 venv/py3
     - sudo bash -c "echo deb http://fr.archive.ubuntu.com/ubuntu/ wily main >> /etc/apt/sources.list"

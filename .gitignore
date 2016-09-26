@@ -37,6 +37,7 @@ README.md~
 kserverd
 tmp
 venv
+server.log
 
 apis/js/koheron-websocket-client/lib/
 apis/js/koheron-websocket-client/tests/hello_world.js
