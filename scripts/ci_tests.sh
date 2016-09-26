@@ -14,9 +14,6 @@ PYTHON_3=venv/py3/bin/python3
 make CONFIG=config/config_armhf.yaml __PYTHON=python clean all
 make CONFIG=config/config_local.yaml __PYTHON=python clean all
 
-# Build js API
-make -C apis/js/koheron-websocket-client build
-
 # ---------------------------------------
 # Tests
 # ---------------------------------------
@@ -28,9 +25,6 @@ echo "== Test Hello World =="
 node apis/js/koheron-websocket-client/tests/math.js
 ${PYTHON_2} tests/basic_math.py
 ${PYTHON_3} tests/basic_math.py
-
-echo "== Test Javascript API =="
-make -C apis/js/koheron-websocket-client tests
 
 echo "== Server log =="
 cat server.log
