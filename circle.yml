@@ -1,23 +1,15 @@
 machine:
   post:
     - pyenv global 2.7.11 3.5.1
-  node:
-    version: 5.7.0
 
 # https://discuss.circleci.com/t/how-to-cache-global-npm-packages/951
 dependencies:
   cache_directories:
     - "venv"
-    - /opt/circleci/nodejs/v5.7.0/bin
-    - /opt/circleci/nodejs/v5.7.0/lib/node_modules
-    - apis/js/koheron-websocket-client/node_modules
   pre:
     - curl -v -X POST https://circleci.com/api/v1.1/project/github/Koheron/koheron-python/tree/master?circle-token=$CIRCLE_TOKEN
     - pip install -r requirements.txt
     - make __PYTHON=python venv/py2 venv/py3
-    - make -C apis/js/koheron-websocket-client init
-    - if [ ! -e /opt/circleci/nodejs/v5.7.0/bin/gulp ]; then npm install -g gulp; else echo "Gulp seems to be cached"; fi;
-    - if [ ! -e /opt/circleci/nodejs/v5.7.0/bin/nodeunit ]; then npm install -g nodeunit; else echo "Nodeunit seems to be cached"; fi;
     - sudo bash -c "echo deb http://fr.archive.ubuntu.com/ubuntu/ wily main >> /etc/apt/sources.list"
     - sudo bash -c "echo deb-src http://fr.archive.ubuntu.com/ubuntu/ wily main >> /etc/apt/sources.list"
     - sudo apt-get update; sudo apt-get install gcc-5 g++-5 gcc-5-arm-linux-gnueabihf g++-5-arm-linux-gnueabihf

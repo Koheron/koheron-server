@@ -18,11 +18,7 @@ make CONFIG=config/config_local.yaml __PYTHON=python clean all
 # Tests
 # ---------------------------------------
 
-echo "== Test Python API =="
-make __PYTHON=python test_python
-
 echo "== Test Hello World =="
-node apis/js/koheron-websocket-client/tests/math.js
 ${PYTHON_2} tests/basic_math.py
 ${PYTHON_3} tests/basic_math.py
 
