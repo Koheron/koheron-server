@@ -8,5 +8,5 @@ for repo in koheron-python automation; do
       --header "Content-Type: application/json" \
       --data '{"build_parameters": {"KOHERON_SERVER_BRANCH": "'$branch'"}}' \
       --request POST \
-      https://circleci.com/api/v1.1/project/github/Koheron/$repo/tree/master?circle-token=$CIRCLE_TOKEN
+      https://circleci.com/api/v1.1/project/github/Koheron/$repo/tree/$branch?circle-token=$CIRCLE_TOKEN
 done
