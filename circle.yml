@@ -21,4 +21,8 @@ dependencies:
 
 test:
   pre:
-    - bash scripts/ci_tests.sh
+    # - bash scripts/ci_tests.sh
+    - make CONFIG=config/config_armhf.yaml __PYTHON=python clean all
+    - make CONFIG=config/config_local.yaml __PYTHON=python clean all
+    - make __PYTHON=python start_server
+    - make -C tmp/koheron-python test
