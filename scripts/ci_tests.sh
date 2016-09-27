@@ -2,8 +2,8 @@
 set -e
 
 UNIXSOCK=/tmp/kserver_local.sock
-PYTHON_2=venv/py2/bin/python
-PYTHON_3=venv/py3/bin/python3
+PYTHON_2=tmp/koheron-python/venv/py2/bin/python
+PYTHON_3=tmp/koheron-python/venv/py3/bin/python3
 
 # ---------------------------------------
 # Build
@@ -19,6 +19,7 @@ make CONFIG=config/config_local.yaml __PYTHON=python clean all
 # ---------------------------------------
 
 echo "== Test Hello World =="
+make __PYTHON=python test_python
 ${PYTHON_2} tests/basic_math.py
 ${PYTHON_3} tests/basic_math.py
 
