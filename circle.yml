@@ -9,8 +9,8 @@ dependencies:
   pre:
     - bash scripts/trig_builds.sh
     - pip install -r requirements.txt
-    - make tmp/koheron-python
-    - make __PYTHON=python tmp/koheron-python/venv/py2 tmp/koheron-python/venv/py3
+    - make __PYTHON=python tmp/koheron-python
+    - make -C tmp/koheron-python venv/py2 venv/py3
     - sudo bash -c "echo deb http://fr.archive.ubuntu.com/ubuntu/ wily main >> /etc/apt/sources.list"
     - sudo bash -c "echo deb-src http://fr.archive.ubuntu.com/ubuntu/ wily main >> /etc/apt/sources.list"
     - sudo apt-get update; sudo apt-get install gcc-5 g++-5 gcc-5-arm-linux-gnueabihf g++-5-arm-linux-gnueabihf
