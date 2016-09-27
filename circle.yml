@@ -5,12 +5,12 @@ machine:
 # https://discuss.circleci.com/t/how-to-cache-global-npm-packages/951
 dependencies:
   cache_directories:
-    - tmp/koheron-python/venv
+    - venv
   pre:
     - bash scripts/trig_builds.sh
     - pip install -r requirements.txt
     - make __PYTHON=python tmp/koheron-python
-    - make -C tmp/koheron-python venv/py2 venv/py3
+    - make -C tmp/koheron-python PY2_VENV=venv/py2 PY3_VENV=venv/py3 venv/py2 venv/py3
     - sudo bash -c "echo deb http://fr.archive.ubuntu.com/ubuntu/ wily main >> /etc/apt/sources.list"
     - sudo bash -c "echo deb-src http://fr.archive.ubuntu.com/ubuntu/ wily main >> /etc/apt/sources.list"
     - sudo apt-get update; sudo apt-get install gcc-5 g++-5 gcc-5-arm-linux-gnueabihf g++-5-arm-linux-gnueabihf
@@ -25,4 +25,5 @@ test:
     - make CONFIG=config/config_armhf.yaml __PYTHON=python clean all
     - make CONFIG=config/config_local.yaml __PYTHON=python clean all
     - make __PYTHON=python start_server
+    - make __PYTHON=python tmp/koheron-python
     - make -C tmp/koheron-python test
