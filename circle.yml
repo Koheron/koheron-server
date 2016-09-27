@@ -27,5 +27,6 @@ test:
     - ./tmp/koheron-server/tmp/kserverd -c ./tmp/koheron-server/config/kserver_local.conf:
           background: true
     - sleep 5
+    - ps -A | grep kserverd
     - make __PYTHON=python tmp/koheron-python
     - make -C tmp/koheron-python PY2_VENV=venv/py2 PY3_VENV=venv/py3 test
