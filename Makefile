@@ -102,7 +102,6 @@ debug:
 
 .PHONY: exec start_server stop_server
 
-# Track core dependencies
 # http://bruno.defraine.net/techtips/makefile-auto-dependencies-with-gcc/
 # http://scottmcpeak.com/autodepend/autodepend.html
 -include $(DEP)
@@ -129,24 +128,21 @@ stop_server:
 	-pkill -SIGINT $(SERVER) # We ignore the error raised if the server is already stopped
 
 # ------------------------------------------------------------------------------------------------------------
-# Tests
+# Test python API
 # ------------------------------------------------------------------------------------------------------------
 
 .PHONY: test_python
 
-TESTS_VENV = venv
-PY2_ENV = $(TESTS_VENV)/py2
-PY3_ENV = $(TESTS_VENV)/py3
+KOHERON_PYTHON_URL = https://github.com/Koheron/koheron-python.git
+KOHERON_PYTHON_BRANCH = protocol
+KOHERON_PYTHON_DIR = $(TMP)/koheron-python
 
-$(PY2_ENV): tests/requirements.txt
-	test -d $(PY2_ENV) || (virtualenv $(PY2_ENV) && $(PY2_ENV)/bin/pip install -r tests/requirements.txt)
+$(KOHERON_PYTHON_DIR):
+	git clone $(KOHERON_PYTHON_URL) $(KOHERON_PYTHON_DIR)
+	cd $(KOHERON_PYTHON_DIR) && git checkout $(KOHERON_PYTHON_BRANCH)
 
-$(PY3_ENV): tests/requirements.txt
-	test -d $(PY3_ENV) || (virtualenv -p python3 $(PY3_ENV) && $(PY3_ENV)/bin/pip3 install -r tests/requirements.txt)
-
-test_python: $(PY2_ENV) $(PY3_ENV) start_server
-	PYTEST_UNIXSOCK=/tmp/kserver_local.sock $(PY2_ENV)/bin/python -m pytest -v tests/tests.py
-	PYTEST_UNIXSOCK=/tmp/kserver_local.sock $(PY3_ENV)/bin/python3 -m pytest -v tests/tests.py
+test_python: $(KOHERON_PYTHON_DIR) start_server
+	make -C $(KOHERON_PYTHON_DIR) test
 
 # ------------------------------------------------------------------------------------------------------------
 # Clean
