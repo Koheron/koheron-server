@@ -24,6 +24,8 @@ test:
     # - bash scripts/ci_tests.sh
     - make CONFIG=config/config_armhf.yaml __PYTHON=python clean all
     - make CONFIG=config/config_local.yaml __PYTHON=python clean all
-    - make __PYTHON=python start_server
+    - ./tmp/koheron-server/tmp/kserverd -c ./tmp/koheron-server/config/kserver_local.conf:
+          background: true
+    - sleep 5
     - make __PYTHON=python tmp/koheron-python
     - make -C tmp/koheron-python PY2_VENV=venv/py2 PY3_VENV=venv/py3 test
