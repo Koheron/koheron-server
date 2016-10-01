@@ -6,26 +6,29 @@ SHA=`git rev-parse --short HEAD`
 # Base directory for paths
 BASE_DIR=.
 CONFIG_PATH=$(BASE_DIR)/$(CONFIG)
+TMP = $(BASE_DIR)/tmp
 __PYTHON = $(shell bash scripts/get_python.sh $(PYTHON) $(BASE_DIR))
 
-TMP = $(BASE_DIR)/tmp
 CORE = core
 MAKE_PY = scripts/make.py
 DEVGEN_PY = scripts/devgen.py
-TEMPLATES = $(shell find scripts/templates -name '*.hpp' -o -name '*.h' -o -name '*.tpp')
 
+FULL_CFG = $(TMP)/full_config.json
+$(shell $(__PYTHON) $(MAKE_PY) --config $(CONFIG_PATH) $(BASE_DIR) $(TMP))
+
+TEMPLATES = $(shell find scripts/templates -name '*.hpp' -o -name '*.h' -o -name '*.tpp')
 CORE_HEADERS=$(shell find $(CORE) -name '*.hpp' -o -name '*.h' -o -name '*.tpp')
 CORE_SRC=$(shell find $(CORE) -name '*.cpp' -o -name '*.c')
 CORE_OBJ=$(subst .cpp,.o, $(addprefix $(TMP)/, $(notdir $(CORE_SRC))))
 
-ARCH_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --arch-flags $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.arch-flags)
-OPTIM_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --optim-flags $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.optim-flags)
+ARCH_FLAGS:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; cfg = json.load(sys.stdin); print '-' + ' -'.join(cfg['arch_flags'])")
+OPTIM_FLAGS:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; cfg = json.load(sys.stdin); print '-' + ' -'.join(cfg['optimization_flags'])")
 DEBUG_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --debug-flags $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.debug-flags)
-DEFINES:=$(shell $(__PYTHON) $(MAKE_PY) --defines $(CONFIG_PATH) $(BASE_DIR) $(TMP) $(SHA) && cat $(TMP)/.defines)
-CROSS_COMPILE:=$(shell $(__PYTHON) $(MAKE_PY) --cross-compile $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.cross-compile)
+DEFINES:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; cfg = json.load(sys.stdin); print '-D' + ' -D'.join(cfg['defines']) + ' -DSHA=' + '$(SHA)'")
+CROSS_COMPILE:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; print json.load(sys.stdin)['cross-compile']")
 DEVICES:=$(shell $(__PYTHON) $(MAKE_PY) --devices $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.devices)
 DEPENDENCIES:=$(shell $(__PYTHON) $(MAKE_PY) --dependencies $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.dependencies)
-SERVER:=$(shell $(__PYTHON) $(MAKE_PY) --server-name $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.server-name)
+SERVER:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; print json.load(sys.stdin)['server-name']")
 
 DEVICES_HPP=$(filter-out %.cpp,$(DEVICES))
 DEVICES_CPP=$(filter-out %.hpp,$(DEVICES))
