@@ -24,7 +24,7 @@ test:
     # - bash scripts/ci_tests.sh
     - make CONFIG=config/config_armhf.yaml __PYTHON=python clean all
     - make CONFIG=config/config_local.yaml __PYTHON=python clean all
-    - ./tmp/koheron-server/tmp/kserverd -c ./tmp/koheron-server/config/kserver_local.conf:
+    - ./tmp/kserverd -c ./config/kserver_local.conf:
           background: true
     - sleep 5
     - ps -A | grep kserverd
