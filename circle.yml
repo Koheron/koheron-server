@@ -11,7 +11,7 @@ dependencies:
     - make __PYTHON=python tmp/koheron-python
     - ls -l
     - ls -l venv
-    - if [ ! -e /home/ubuntu/koheron-server/venv ]; then make -C tmp/koheron-python PY2_VENV=../../venv/py2 PY3_VENV=../../venv/py3 ../../venv/py2 ../../venv/py3; else echo "Venv seems to be cached"; fi
+    - if [ ! -e venv/py2 ]; then make -C tmp/koheron-python PY2_VENV=../../venv/py2 PY3_VENV=../../venv/py3 ../../venv/py2 ../../venv/py3; else echo "Venv seems to be cached"; fi
     - sudo bash -c "echo deb http://fr.archive.ubuntu.com/ubuntu/ wily main >> /etc/apt/sources.list"
     - sudo bash -c "echo deb-src http://fr.archive.ubuntu.com/ubuntu/ wily main >> /etc/apt/sources.list"
     - sudo apt-get update; sudo apt-get install gcc-5 g++-5 gcc-5-arm-linux-gnueabihf g++-5-arm-linux-gnueabihf
