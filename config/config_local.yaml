@@ -32,5 +32,4 @@ optimization_flags:
 devices:
     - tests/tests.hpp
     # - tests/eigen_tests.hpp
-    - tests/math.hpp
     - tests/exception_tests.hpp
