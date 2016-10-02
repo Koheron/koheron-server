@@ -6,7 +6,6 @@ dependencies:
   cache_directories:
     - venv
   pre:
-    - bash scripts/trig_builds.sh
     - pip install -r requirements.txt
     - make __PYTHON=python tmp/koheron-python
     - if [ ! -e venv/py2 ]; then make -C tmp/koheron-python PY2_VENV=../../venv/py2 PY3_VENV=../../venv/py3 ../../venv/py2 ../../venv/py3; else echo "Venv seems to be cached"; fi
@@ -27,3 +26,6 @@ test:
     - sleep 5
     - make __PYTHON=python tmp/koheron-python
     - make -C tmp/koheron-python PY2_VENV=../../venv/py2 PY3_VENV=../../venv/py3 test
+
+deployment:
+    - bash scripts/trig_builds.sh
