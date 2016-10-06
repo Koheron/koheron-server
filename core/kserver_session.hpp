@@ -44,7 +44,7 @@ class SessionAbstract
     SessionAbstract(int sock_type_)
     : kind(sock_type_) {}
 
-    template<typename... Tp> int send_cstr(const char *string, Tp&&... args);
+    int send_cstr(const char *string);
     template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd);
     template<typename T, size_t N> std::tuple<int, const std::array<T, N>&> extract_array(Command& cmd);
     template<typename T> int rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd);
@@ -97,11 +97,11 @@ class Session : public SessionAbstract
     //The TCP won't use it as it reads directly the TCP buffer.
     template<typename T> int rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd);
 
-    /// Send scalar data
+    template<class T> int send_data_packet(const T *data, size_t len);
     template<class T> int send(const T& data);
 
-    template<typename... Tp> int send_string(const std::string& str, Tp&&... args);
-    template<typename... Tp> int send_cstr(const char* string, Tp&&... args);
+    int send_string(const std::string& str);
+    int send_cstr(const char* string);
 
     template<typename T> int send_array(const T* data, unsigned int len);
     template<typename T> int send(const std::vector<T>& vect);
@@ -212,24 +212,36 @@ int Session<sock_type>::run()
     return 0;
 }
 
+// TODO Specialize the implementation for each socket type
+// to minize copies
+
+// Data packet:
+//  4 bytes |    8 bytes   | 
+// RESERVED | LENGTH_BYTES | DATA ...
+template<int sock_type>
+template<class T>
+int Session<sock_type>::send_data_packet(const T *data, size_t len)
+{
+    const auto bytes = reinterpret_cast<const unsigned char*>(data);
+    auto n_bytes = len * sizeof(T);
+    const auto& array = serialize<uint32_t, uint64_t>(0U, n_bytes);
+    std::vector<unsigned char> buffer(array.begin(), array.end());
+    std::copy(bytes, bytes + n_bytes, std::back_inserter(buffer));
+    return send_array<unsigned char>(buffer.data(), buffer.size());
+}
+
 template<int sock_type>
 template<typename T>
 int Session<sock_type>::send(const std::vector<T>& vect)
 {
-    // Length in front of vector data:
-    // RESERVED | LENGTH_BYTES | DATA ...
-    const auto& array = serialize<uint32_t, uint64_t>(0U, vect.size() * sizeof(T));
-    std::vector<unsigned char> data(array.begin(), array.end());
-    data.resize(required_buffer_size<uint32_t, uint64_t>() + vect.size() * sizeof(T));
-    memcpy(data.data() + array.size(), vect.data(), vect.size() * sizeof(T));
-    return send_array<unsigned char>(data.data(), data.size());
+    return send_data_packet(vect.data(), vect.size());
 }
 
 template<int sock_type>
 template<typename T, size_t N>
 int Session<sock_type>::send(const std::array<T, N>& vect)
 {
-    return send_array<T>(vect.data(), N);
+    return send_data_packet(vect.data(), N);
 }
 
 // http://stackoverflow.com/questions/1374468/stringstream-string-and-char-conversion-confusion
@@ -238,22 +250,20 @@ template<typename... Tp>
 int Session<sock_type>::send(const std::tuple<Tp...>& t)
 {
     const auto& arr = serialize(t);
-    return send_array<unsigned char>(arr.data(), arr.size());
+    return send_data_packet(arr.data(), arr.size());
 }
 
 template<int sock_type>
-template<typename... Tp>
-int Session<sock_type>::send_cstr(const char *string, Tp&&... args)
+int Session<sock_type>::send_cstr(const char *string)
 {
-    return send_string(std::move(std::string(string)), args...);
+    return send_string(std::move(std::string(string)));
 }
 
 template<int sock_type>
-template<typename... Tp>
-int Session<sock_type>::send_string(const std::string& str, Tp&&... args)
+int Session<sock_type>::send_string(const std::string& str)
 {
     uint32_t len = str.size() + 1; // Including '\0'
-    auto array = serialize(0U, args..., len);
+    auto array = serialize(0U, len);
     std::vector<unsigned char> data(array.begin(), array.end());
     std::copy(str.begin(), str.end(), std::back_inserter(data));
     data.push_back('\0');
@@ -270,7 +280,7 @@ int Session<sock_type>::send_string(const std::string& str, Tp&&... args)
     template<> template<>                                                             \
     inline int session_kind::send<uint32_t>(const uint32_t& val)                      \
     {                                                                                 \
-        return send_array<uint32_t>(&val, 1);                                         \
+        return send_data_packet(&val, 1);                                             \
     }                                                                                 \
                                                                                       \
     template<> template<>                                                             \
@@ -288,19 +298,19 @@ int Session<sock_type>::send_string(const std::string& str, Tp&&... args)
     template<> template<>                                                             \
     inline int session_kind::send<uint64_t>(const uint64_t& val)                      \
     {                                                                                 \
-        return send_array<uint64_t>(&val, 1);                                         \
+        return send_data_packet(&val, 1);                                             \
     }                                                                                 \
                                                                                       \
     template<> template<>                                                             \
     inline int session_kind::send<float>(const float& val)                            \
     {                                                                                 \
-        return send_array<float>(&val, 1);                                            \
+        return send_data_packet(&val, 1);                                             \
     }                                                                                 \
                                                                                       \
     template<> template<>                                                             \
     inline int session_kind::send<double>(const double& val)                          \
     {                                                                                 \
-        return send_array<double>(&val, 1);                                           \
+        return send_data_packet(&val, 1);                                             \
     }
 
 // -----------------------------------------------
@@ -524,10 +534,9 @@ inline int SessionAbstract::rcv_vector(std::vector<T>& vec, uint64_t length, Com
     return -1;
 }
 
-template<typename... Tp>
-inline int SessionAbstract::send_cstr(const char *string, Tp&&... args)
+inline int SessionAbstract::send_cstr(const char *string)
 {
-    SWITCH_SOCK_TYPE(send_cstr(string, args...))
+    SWITCH_SOCK_TYPE(send_cstr(string))
     return -1;
 }
 
