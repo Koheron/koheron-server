@@ -6,7 +6,6 @@ namespace kserver {
 template<unsigned int severity>
 void SysLog::print(const char *message, ...)
 {
-    auto msg = std::string(message);
     va_list argptr, argptr1;
     va_start(argptr, message);
     va_copy(argptr1, argptr);
