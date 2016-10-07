@@ -86,24 +86,16 @@ private:
             std::make_tuple(LOG_NOTICE, str_const("KSERVER INFO"))
         }};
 
-        print_stdout<severity>(std::get<1>(log_array[severity]), std::string(message), args...);
-
-        if (config->syslog)
-            syslog_pack(std::get<0>(log_array[severity]), message, args...);
-    }
-
-    template<unsigned int severity, typename... Tp>
-    int print_stdout(const str_const& header, const std::string& message, Tp... args)
-    {
         if (severity <= WARNING) {
-            auto fmt = std::string(header.data()) + ": " + message;
+            auto fmt = std::string(std::get<1>(log_array[severity]).data()) + ": " + std::string(message);
             fprintf_pack(stderr, fmt.data(), args...);
         } else { // INFO
             if (config->verbose)
-                printf_pack(message.data(), args...);
+                printf_pack(message, args...);
         }
 
-        return 0;
+        if (config->syslog)
+            syslog_pack(std::get<0>(log_array[severity]), message, args...);
     }
 
     template<unsigned int severity, typename... Tp>
