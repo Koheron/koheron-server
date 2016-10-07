@@ -227,7 +227,7 @@ int Session<sock_type>::send_data_packet(const T *data, size_t len)
     const auto& array = serialize<uint32_t, uint64_t>(0U, n_bytes);
     std::vector<unsigned char> buffer(array.begin(), array.end());
     std::copy(bytes, bytes + n_bytes, std::back_inserter(buffer));
-    return send_array<unsigned char>(buffer.data(), buffer.size());
+    return send_array(buffer.data(), buffer.size());
 }
 
 template<int sock_type>
@@ -340,7 +340,8 @@ std::tuple<int, const std::array<T, N>&> Session<TCP>::extract_array(Command& cm
 {
     Buffer<size_of<T, N>> buff;
     int err = rcv_n_bytes(buff.data(), size_of<T, N>);
-    return std::tuple_cat(std::make_tuple(err), std::forward_as_tuple(buff.extract_array<T, N>()));
+    return std::tuple_cat(std::make_tuple(err),
+                          std::forward_as_tuple(buff.extract_array<T, N>()));
 }
 
 template<>
