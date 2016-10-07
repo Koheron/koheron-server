@@ -256,18 +256,13 @@ int Session<sock_type>::send(const std::tuple<Tp...>& t)
 template<int sock_type>
 int Session<sock_type>::send_cstr(const char *string)
 {
-    return send_string(std::move(std::string(string)));
+    return send_data_packet(string, std::strlen(string) + 1);
 }
 
 template<int sock_type>
 int Session<sock_type>::send_string(const std::string& str)
 {
-    uint32_t len = str.size() + 1; // Including '\0'
-    auto array = serialize(0U, len);
-    std::vector<unsigned char> data(array.begin(), array.end());
-    std::copy(str.begin(), str.end(), std::back_inserter(data));
-    data.push_back('\0');
-    return send_array<unsigned char>(data.data(), data.size());
+    return send_data_packet(str.data(), str.size() + 1);
 }
 
 #define SEND_SPECIALIZE_IMPL(session_kind)                                            \
