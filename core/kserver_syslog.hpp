@@ -85,8 +85,8 @@ struct SysLog
         syslog_severity_num
     };
 
-    template<unsigned int severity>
-    void print(const char *message, ...);
+    template<unsigned int severity, typename... Tp>
+    void print(const char *message, Tp... args);
 
     void print_dbg(const char *message, ...)
     {
@@ -134,7 +134,41 @@ private:
     }
 
     template<unsigned int severity>
-    int emit_error(const char *message, va_list argptr);
+    void notify(const char *message)
+    {
+        static constexpr std::array<std::tuple<int, str_const>, syslog_severity_num> log_array = {{
+            std::make_tuple(LOG_ALERT, str_const("KSERVER PANIC")),
+            std::make_tuple(LOG_CRIT, str_const("KSERVER CRITICAL")),
+            std::make_tuple(LOG_ERR, str_const("KSERVER ERROR")),
+            std::make_tuple(LOG_WARNING, str_const("KSERVER WARNING")),
+            std::make_tuple(LOG_NOTICE, str_const("KSERVER INFO"))
+        }};
+
+        print_stdout<severity>(std::get<1>(log_array[severity]), std::string(message));
+
+        if (config->syslog)
+            syslog(std::get<0>(log_array[severity]), "%s", message);
+    }
+
+    template<unsigned int severity>
+    int print_stdout(const str_const& header, const std::string& message)
+    {
+        if (severity <= WARNING) {
+            auto fmt = std::string(header.data()) + ": " + message;
+            fprintf(stderr, "%s", fmt.data());
+        } else { // INFO
+            if (config->verbose)
+                printf("%s", message.data());
+        }
+
+        return 0;
+    }
+
+    template<unsigned int severity, typename... Tp>
+    int emit_error(const char *message, Tp... args);
+
+    template<unsigned int severity>
+    int emit_error(const char *message);
 };
 
 } // namespace kserver

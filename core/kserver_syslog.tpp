@@ -3,26 +3,45 @@
 
 namespace kserver {
 
-template<unsigned int severity>
-void SysLog::print(const char *message, ...)
+template<unsigned int severity, typename... Tp>
+void SysLog::print(const char *message, Tp... args)
 {
-    va_list argptr, argptr1;
-    va_start(argptr, message);
-    va_copy(argptr1, argptr);
-    notify<severity>(message, argptr);
+    // va_list argptr, argptr1;
+    // va_start(argptr, message);
+    // va_copy(argptr1, argptr);
+    notify<severity>(message, args...);
 
     // We don't emit if connections are closed
     if (! kserver->sig_handler.Interrupt())
-        emit_error<severity>(message, argptr1);
+        emit_error<severity>(message, args...);
 
-    va_end(argptr1);
-    va_end(argptr);
+    // va_end(argptr1);
+    // va_end(argptr);
+}
+
+template<unsigned int severity, typename... Tp>
+int SysLog::emit_error(const char *message, Tp... args)
+{
+    int ret = snprintf(fmt_buffer, FMT_BUFF_LEN, message, args...);
+
+    if (ret < 0) {
+        fprintf(stderr, "emit_error: Format error\n");
+        return -1;
+    }
+
+    if (ret >= FMT_BUFF_LEN) {
+        fprintf(stderr, "emit_error: Buffer fmt_buffer overflow\n");
+        return -1;
+    }
+
+    kserver->pubsub.emit_cstr<PubSub::SYSLOG_CHANNEL, severity>(fmt_buffer);
+    return 0;
 }
 
 template<unsigned int severity>
-int SysLog::emit_error(const char *message, va_list argptr)
+int SysLog::emit_error(const char *message)
 {
-    int ret = vsnprintf(fmt_buffer, FMT_BUFF_LEN, message, argptr);
+    int ret = snprintf(fmt_buffer, FMT_BUFF_LEN, "%s", message);
 
     if (ret < 0) {
         fprintf(stderr, "emit_error: Format error\n");

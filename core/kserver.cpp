@@ -60,7 +60,7 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
         exit(EXIT_FAILURE);
 #else
     if (config->unixsock_worker_connections > 0)
-        syslog.print<SysLog::ERROR>( "Unix socket connections not supported\n");
+        syslog.print<SysLog::ERROR>("Unix socket connections not supported\n");
 #endif // KSERVER_HAS_UNIX_SOCKET
 }
 

@@ -2,6 +2,8 @@
 
 #include "kserver_session.hpp"
 
+#include "kserver_syslog.tpp"
+
 namespace kserver {
 
 // -----------------------------------------------
