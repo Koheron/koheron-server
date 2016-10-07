@@ -8,44 +8,19 @@
 #include "config.hpp"
 
 #include <memory>
-#include <cstdarg>
 #include <string>
 #include <cstring>
 #include <tuple>
 
 #include <syslog.h>
 
+#include "string_utils.hpp"
+
 namespace kserver {
 
 class KServer;
 
 #define FMT_BUFF_LEN 512
-
-// ----------------------------------------------------------------------------------------------------
-// str_const: TODO put in separate source file
-
-// http://stackoverflow.com/questions/15858141/conveniently-declaring-compile-time-strings-in-c
-class str_const { // constexpr string
-  private:
-    const char* const p_;
-    const std::size_t sz_;
-
-  public:
-    template<std::size_t N>
-    constexpr str_const(const char(&a)[N]) : // ctor
-        p_(a), sz_(N-1) {}
-
-    constexpr char operator[](std::size_t n) { // []
-        return n < sz_ ? p_[n] :
-        throw std::out_of_range("");
-    }
-
-    constexpr std::size_t size() const {return sz_;} // size()
-
-    constexpr const char* data() const {return p_;}
-};
-
-// ----------------------------------------------------------------------------------------------------
 
 struct SysLog
 {
@@ -133,58 +108,6 @@ private:
 
     template<unsigned int severity, typename... Tp>
     int emit_error(const char *message, Tp... args);
-
-    // printf
-    template<typename... Tp>
-    typename std::enable_if_t< 0 < sizeof...(Tp), void >
-    printf_pack(const char *fmt, Tp... args) {
-        printf(fmt, args...);
-    }
-
-    template<typename... Tp>
-    typename std::enable_if_t< 0 == sizeof...(Tp), void >
-    printf_pack(const char *fmt, Tp... args) {
-        printf("%s", fmt);
-    }
-
-    // fprintf
-    template<typename... Tp>
-    typename std::enable_if_t< 0 < sizeof...(Tp), void >
-    fprintf_pack(FILE *stream, const char *fmt, Tp... args) {
-        fprintf(stream, fmt, args...);
-    }
-
-    template<typename... Tp>
-    typename std::enable_if_t< 0 == sizeof...(Tp), void >
-    fprintf_pack(FILE *stream, const char *fmt, Tp... args) {
-        fprintf(stream, "%s", fmt);
-    }
-
-    // snprintf
-    template<typename... Tp>
-    typename std::enable_if_t< 0 < sizeof...(Tp), int >
-    snprintf_pack(char *s, size_t n, const char *fmt, Tp... args) {
-        return snprintf(s, n, fmt, args...);
-    }
-
-    template<typename... Tp>
-    typename std::enable_if_t< 0 == sizeof...(Tp), int >
-    snprintf_pack(char *s, size_t n, const char *fmt, Tp... args) {
-        return snprintf(s, n, "%s", fmt);
-    }
-
-    // syslog
-    template<typename... Tp>
-    typename std::enable_if_t< 0 < sizeof...(Tp), void >
-    syslog_pack(int priority, const char *fmt, Tp... args) {
-        syslog(priority, fmt, args...);
-    }
-
-    template<typename... Tp>
-    typename std::enable_if_t< 0 == sizeof...(Tp), void >
-    syslog_pack(int priority, const char *fmt, Tp... args) {
-        syslog(priority, "%s", fmt);
-    }
 };
 
 } // namespace kserver
