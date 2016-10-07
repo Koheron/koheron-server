@@ -6,17 +6,11 @@ namespace kserver {
 template<unsigned int severity, typename... Tp>
 void SysLog::print(const char *message, Tp... args)
 {
-    // va_list argptr, argptr1;
-    // va_start(argptr, message);
-    // va_copy(argptr1, argptr);
     notify<severity>(message, args...);
 
     // We don't emit if connections are closed
     if (! kserver->sig_handler.Interrupt())
         emit_error<severity>(message, args...);
-
-    // va_end(argptr1);
-    // va_end(argptr);
 }
 
 template<unsigned int severity, typename... Tp>
