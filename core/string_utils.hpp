@@ -52,15 +52,15 @@ snprintf_pack(char *s, size_t n, const char *fmt, Tp... args) {
 }
 
 // syslog
-template<typename... Tp>
+template<int priority, typename... Tp>
 typename std::enable_if_t< 0 < sizeof...(Tp), void >
-syslog_pack(int priority, const char *fmt, Tp... args) {
+syslog_pack(const char *fmt, Tp... args) {
     syslog(priority, fmt, args...);
 }
 
-template<typename... Tp>
+template<int priority, typename... Tp>
 typename std::enable_if_t< 0 == sizeof...(Tp), void >
-syslog_pack(int priority, const char *fmt, Tp... args) {
+syslog_pack(const char *fmt, Tp... args) {
     syslog(priority, "%s", fmt);
 }
 

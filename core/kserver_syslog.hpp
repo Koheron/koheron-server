@@ -95,7 +95,7 @@ private:
         }
 
         if (config->syslog)
-            syslog_pack(std::get<0>(log_array[severity]), message, args...);
+            syslog_pack<std::get<0>(log_array[severity])>(message, args...);
     }
 
     template<unsigned int severity, typename... Tp>
