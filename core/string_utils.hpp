@@ -16,53 +16,53 @@ namespace kserver {
 // printf
 template<typename... Tp>
 typename std::enable_if_t< 0 < sizeof...(Tp), void >
-printf_pack(const std::string& fmt, Tp... args) {
-    printf(fmt.c_str(), args...);
+printf(const std::string& fmt, Tp... args) {
+    std::printf(fmt.c_str(), args...);
 }
 
 template<typename... Tp>
 typename std::enable_if_t< 0 == sizeof...(Tp), void >
-printf_pack(const std::string& fmt, Tp... args) {
-    printf("%s", fmt.c_str());
+printf(const std::string& fmt, Tp... args) {
+    std::printf("%s", fmt.c_str());
 }
 
 // fprintf
 template<typename... Tp>
 typename std::enable_if_t< 0 < sizeof...(Tp), void >
-fprintf_pack(FILE *stream, const std::string& fmt, Tp... args) {
-    fprintf(stream, fmt.c_str(), args...);
+fprintf(FILE *stream, const std::string& fmt, Tp... args) {
+    std::fprintf(stream, fmt.c_str(), args...);
 }
 
 template<typename... Tp>
 typename std::enable_if_t< 0 == sizeof...(Tp), void >
-fprintf_pack(FILE *stream, const std::string& fmt, Tp... args) {
-    fprintf(stream, "%s", fmt.c_str());
+fprintf(FILE *stream, const std::string& fmt, Tp... args) {
+    std::fprintf(stream, "%s", fmt.c_str());
 }
 
 // snprintf
 template<typename... Tp>
 typename std::enable_if_t< 0 < sizeof...(Tp), int >
-snprintf_pack(char *s, size_t n, const std::string& fmt, Tp... args) {
-    return snprintf(s, n, fmt.c_str(), args...);
+snprintf(char *s, size_t n, const std::string& fmt, Tp... args) {
+    return std::snprintf(s, n, fmt.c_str(), args...);
 }
 
 template<typename... Tp>
 typename std::enable_if_t< 0 == sizeof...(Tp), int >
-snprintf_pack(char *s, size_t n, const std::string& fmt, Tp... args) {
-    return snprintf(s, n, "%s", fmt.c_str());
+snprintf(char *s, size_t n, const std::string& fmt, Tp... args) {
+    return std::snprintf(s, n, "%s", fmt.c_str());
 }
 
 // syslog
 template<int priority, typename... Tp>
 typename std::enable_if_t< 0 < sizeof...(Tp), void >
-syslog_pack(const std::string& fmt, Tp... args) {
-    syslog(priority, fmt.c_str(), args...);
+syslog(const std::string& fmt, Tp... args) {
+    ::syslog(priority, fmt.c_str(), args...);
 }
 
 template<int priority, typename... Tp>
 typename std::enable_if_t< 0 == sizeof...(Tp), void >
-syslog_pack(const std::string& fmt, Tp... args) {
-    syslog(priority, "%s", fmt.c_str());
+syslog(const std::string& fmt, Tp... args) {
+    ::syslog(priority, "%s", fmt.c_str());
 }
 
 // -------------------------------------------------------------------------

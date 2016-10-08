@@ -364,7 +364,7 @@ int Session<TCP>::send_array(const T *data, unsigned int len)
     }
 
     if (config->verbose)
-        session_manager.kserver.syslog.print_dbg("[S] [%u bytes]\n", bytes_send);
+        session_manager.kserver.syslog.print<SysLog::DEBUG>("[S] [%u bytes]\n", bytes_send);
 
     return bytes_send;
 }

@@ -19,7 +19,7 @@ void SysLog::print(const char *message, Tp... args)
 template<unsigned int severity, typename... Tp>
 int SysLog::emit_error(const std::string& message, Tp... args)
 {
-    int ret = snprintf_pack(fmt_buffer, FMT_BUFF_LEN, message.c_str(), args...);
+    int ret = snprintf(fmt_buffer, FMT_BUFF_LEN, message, args...);
 
     if (ret < 0) {
         fprintf(stderr, "emit_error: Format error\n");

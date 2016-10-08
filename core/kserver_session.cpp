@@ -67,7 +67,7 @@ int Session<TCP>::read_command(Command& cmd)
     }
 
     if (config->verbose)
-        session_manager.kserver.syslog.print_dbg(
+        session_manager.kserver.syslog.print<SysLog::DEBUG>(
             "TCPSocket: Receive command for device %u, operation %u [%u bytes]\n",
             cmd.device, cmd.operation, cmd.payload_size);
 
@@ -102,8 +102,8 @@ int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes)
     assert(bytes_read == n_bytes);
 
     if (config->verbose)
-        session_manager.kserver.syslog.print_dbg("[R@%u] [%u bytes]\n",
-                                                 id, bytes_read);
+        session_manager.kserver.syslog.print<SysLog::DEBUG>("[R@%u] [%u bytes]\n",
+                                                            id, bytes_read);
 
     return bytes_read;
 }
@@ -154,7 +154,8 @@ int Session<WEBSOCK>::read_command(Command& cmd)
     uint32_t payload_size = std::get<2>(header_tuple);
 
     if (unlikely(payload_size > CMD_PAYLOAD_BUFFER_LEN)) {
-        DEBUG_MSG("WebSocket: Command payload buffer size too small\n");
+        session_manager.kserver.syslog.print<SysLog::DEBUG>(
+            "WebSocket: Command payload buffer size too small\n");
         return -1;
     }
 

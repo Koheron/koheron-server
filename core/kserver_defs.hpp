@@ -139,14 +139,6 @@ namespace kserver {
 # define NDEBUG
 #endif
 
-#ifdef DEBUG_KSERVER
-# define DEBUG_MSG(msg)                                 \
-    fprintf(stderr,"Error in file %s at line %u: %s",   \
-        __FILE__, __LINE__, msg);
-#else
-# define DEBUG_MSG(msg)
-#endif
-
 // ------------------------------------------
 // Libraries
 // ------------------------------------------

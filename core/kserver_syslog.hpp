@@ -56,19 +56,12 @@ struct SysLog
         ERROR,    ///< Typically when a command execution failed
         WARNING,
         INFO,
-        // DEBUG, // Special print function for debug
+        DEBUG, // Special print function for debug
         syslog_severity_num
     };
 
     template<unsigned int severity, typename... Tp>
     void print(const char *message, Tp... args);
-
-    template<typename... Tp>
-    void print_dbg(const char *message,  Tp... args)
-    {
-        if (config->verbose)
-            printf_pack(message, args...);
-    }
 
 private:
     std::shared_ptr<KServerConfig> config;
@@ -78,18 +71,20 @@ private:
     template<unsigned int severity, typename... Tp>
     void notify(const std::string& message, Tp... args)
     {
-        static constexpr std::array<std::tuple<int, str_const>, syslog_severity_num> log_array = {{
+        static constexpr std::array<std::tuple<int, str_const>, syslog_severity_num>
+        log_array = {{
             std::make_tuple(LOG_ALERT, str_const("KSERVER PANIC")),
             std::make_tuple(LOG_CRIT, str_const("KSERVER CRITICAL")),
             std::make_tuple(LOG_ERR, str_const("KSERVER ERROR")),
             std::make_tuple(LOG_WARNING, str_const("KSERVER WARNING")),
-            std::make_tuple(LOG_NOTICE, str_const("KSERVER INFO"))
+            std::make_tuple(LOG_NOTICE, str_const("KSERVER INFO")),
+            std::make_tuple(LOG_DEBUG, str_const("KSERVER DEBUG"))
         }};
 
         print_msg<severity>(std::get<1>(log_array[severity]), message, args...);
 
         if (config->syslog)
-            syslog_pack<std::get<0>(log_array[severity])>(message, args...);
+            syslog<std::get<0>(log_array[severity])>(message, args...);
     }
 
     // High severity (Panic, ..., Warning)
@@ -97,8 +92,7 @@ private:
     typename std::enable_if_t< severity <= WARNING, void >
     print_msg(const str_const& severity_desc, const std::string& message, Tp... args)
     {
-        auto fmt = severity_desc.to_string() + ": " + message;
-        fprintf_pack(stderr, fmt.c_str(), args...);
+        fprintf(stderr, severity_desc.to_string() + ": " + message, args...);
     }
 
     // Low severity (Info, Debug)
@@ -107,7 +101,7 @@ private:
     print_msg(const str_const& severity_desc, const std::string& message, Tp... args)
     {
         if (config->verbose)
-            printf_pack(message, args...);
+            printf(message, args...);
     }
 
     template<unsigned int severity, typename... Tp>
