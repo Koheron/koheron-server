@@ -1,22 +1,25 @@
 
 #include "kserver.hpp"
 
+#include <string>
+
 namespace kserver {
 
 template<unsigned int severity, typename... Tp>
 void SysLog::print(const char *message, Tp... args)
 {
-    notify<severity>(message, args...);
+    auto msg = std::string(message);
+    notify<severity>(msg, args...);
 
     // We don't emit if connections are closed
     if (! kserver->sig_handler.Interrupt())
-        emit_error<severity>(message, args...);
+        emit_error<severity>(msg, args...);
 }
 
 template<unsigned int severity, typename... Tp>
-int SysLog::emit_error(const char *message, Tp... args)
+int SysLog::emit_error(const std::string& message, Tp... args)
 {
-    int ret = snprintf_pack(fmt_buffer, FMT_BUFF_LEN, message, args...);
+    int ret = snprintf_pack(fmt_buffer, FMT_BUFF_LEN, message.c_str(), args...);
 
     if (ret < 0) {
         fprintf(stderr, "emit_error: Format error\n");

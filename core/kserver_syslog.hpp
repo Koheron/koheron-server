@@ -76,7 +76,7 @@ private:
     KServer *kserver;
 
     template<unsigned int severity, typename... Tp>
-    void notify(const char *message, Tp... args)
+    void notify(const std::string& message, Tp... args)
     {
         static constexpr std::array<std::tuple<int, str_const>, syslog_severity_num> log_array = {{
             std::make_tuple(LOG_ALERT, str_const("KSERVER PANIC")),
@@ -87,8 +87,9 @@ private:
         }};
 
         if (severity <= WARNING) {
-            auto fmt = std::string(std::get<1>(log_array[severity]).data()) + ": " + std::string(message);
-            fprintf_pack(stderr, fmt.data(), args...);
+            auto fmt = std::get<1>(log_array[severity]).to_string();
+            fmt += ": " + message;
+            fprintf_pack(stderr, fmt.c_str(), args...);
         } else { // INFO
             if (config->verbose)
                 printf_pack(message, args...);
@@ -99,7 +100,7 @@ private:
     }
 
     template<unsigned int severity, typename... Tp>
-    int emit_error(const char *message, Tp... args);
+    int emit_error(const std::string& message, Tp... args);
 };
 
 } // namespace kserver
