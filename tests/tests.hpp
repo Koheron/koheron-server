@@ -10,6 +10,8 @@ constexpr size_t calc_array_length(size_t n_bits) {
     return 1 << n_bits;
 }
 
+#define HALF_ARRAY_LEN 24
+
 class Tests
 {
   public:
@@ -36,6 +38,13 @@ class Tests
             data_std_array2[i] = mul * i;
 
         return data_std_array2;
+    }
+
+    std::array<uint32_t, 2 * HALF_ARRAY_LEN>& send_std_array3(uint32_t add) {
+        for (uint32_t i=0; i<data_std_array3.size(); i++)
+            data_std_array3[i] = add + i;
+
+        return data_std_array3;
     }
 
     bool rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 8192>& arr, double d, int32_t i);
@@ -82,6 +91,7 @@ class Tests
     std::vector<uint32_t> buffer;
     std::array<float, 10> data_std_array;
     std::array<uint32_t, 512> data_std_array2;
+    std::array<uint32_t, 2 * HALF_ARRAY_LEN> data_std_array3;
 };
 
 #endif // __TESTS_TESTS_HPP__

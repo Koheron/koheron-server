@@ -1,7 +1,9 @@
 
-#include "kserver.hpp"
+#include "syslog.hpp"
 
 #include <string>
+
+#include "kserver.hpp"
 
 namespace kserver {
 

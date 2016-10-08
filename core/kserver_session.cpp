@@ -66,10 +66,9 @@ int Session<TCP>::read_command(Command& cmd)
         }
     }
 
-    if (config->verbose)
-        session_manager.kserver.syslog.print<SysLog::DEBUG>(
-            "TCPSocket: Receive command for device %u, operation %u [%u bytes]\n",
-            cmd.device, cmd.operation, cmd.payload_size);
+    session_manager.kserver.syslog.print<SysLog::DEBUG>(
+        "TCPSocket: Receive command for device %u, operation %u [%u bytes]\n",
+        cmd.device, cmd.operation, cmd.payload_size);
 
     return header_bytes + payload_bytes;
 }
@@ -100,11 +99,8 @@ int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes)
     }
 
     assert(bytes_read == n_bytes);
-
-    if (config->verbose)
-        session_manager.kserver.syslog.print<SysLog::DEBUG>("[R@%u] [%u bytes]\n",
-                                                            id, bytes_read);
-
+    session_manager.kserver.syslog.print<SysLog::DEBUG>("[R@%u] [%u bytes]\n",
+                                                        id, bytes_read);
     return bytes_read;
 }
 

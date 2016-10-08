@@ -133,7 +133,7 @@ class KServer : public KDevice<KServer, KSERVER>
 
     std::atomic<bool> exit_comm;
 
-    // Listeners    
+    // Listeners
 #if KSERVER_HAS_TCP
     ListeningChannel<TCP> tcp_listener;
 #endif

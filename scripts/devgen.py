@@ -208,7 +208,7 @@ def format_type(_type):
         return _type
 
 def format_ret_type(classname, operation):
-    if operation['ret_type'] in ['auto', 'auto&', 'auto &']:
+    if operation['ret_type'] in ['auto', 'auto&', 'auto &'] or is_std_array(operation['ret_type']):
         decl_arg_list = []
         for arg in operation.get('arguments', []):
             decl_arg_list.append('std::declval<' + arg['type'] + '>()')

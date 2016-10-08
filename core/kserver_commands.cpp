@@ -160,7 +160,6 @@ KSERVER_EXECUTE_OP(GET_STATS)
         return -1;
 
     kserver->syslog.print<SysLog::DEBUG>("[S] [%u bytes]\n", bytes_send + bytes);
-
     return 0;
 }
 
@@ -264,7 +263,6 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
         return -1;
 
     kserver->syslog.print<SysLog::DEBUG>("[S] [%u bytes]\n", bytes_send + bytes);
-
     return 0;
 }
 
