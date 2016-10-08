@@ -63,13 +63,13 @@ def get_json(devices):
         'class': 'KServer',
         'id': 1,
         'functions': [
-            {'name': 'get_version', 'id': 0, 'args': []},
-            {'name': 'get_cmds', 'id': 1, 'args': []},
-            {'name': 'get_stats', 'id': 2, 'args': []},
-            {'name': 'get_dev_status', 'id': 3, 'args': []},
-            {'name': 'get_running_sessions', 'id': 4, 'args': []},
-            {'name': 'subscribe_pubsub', 'id': 5, 'args': [{'name': 'channel', 'type': 'uint32_t'}]},
-            {'name': 'pubsub_ping', 'id': 6, 'args': []}
+            {'name': 'get_version', 'id': 0, 'args': [], 'ret_type': 'const char *'},
+            {'name': 'get_cmds', 'id': 1, 'args': [], 'ret_type': 'std::string'},
+            {'name': 'get_stats', 'id': 2, 'args': [], 'ret_type': 'const char *'},
+            {'name': 'get_dev_status', 'id': 3, 'args': [], 'ret_type': 'void'},
+            {'name': 'get_running_sessions', 'id': 4, 'args': [], 'ret_type': 'const char *'},
+            {'name': 'subscribe_pubsub', 'id': 5, 'args': [{'name': 'channel', 'type': 'uint32_t'}], 'ret_type': 'void'},
+            {'name': 'pubsub_ping', 'id': 6, 'args': [], 'ret_type': 'void'}
         ]
     }]
 
