@@ -21,7 +21,7 @@ extern "C" {
 #include "crypto/base64.hpp"
 #include "crypto/sha1.h"
 #include "kserver.hpp"
-#include "kserver_syslog.tpp"
+#include "syslog.tpp"
 
 namespace kserver {
 

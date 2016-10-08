@@ -25,7 +25,7 @@ extern "C" {
 #include "session_manager.hpp"
 #include "session_manager.tpp"
 #include "kserver_session.hpp"
-#include "kserver_syslog.tpp"
+#include "syslog.tpp"
 
 namespace kserver {
 

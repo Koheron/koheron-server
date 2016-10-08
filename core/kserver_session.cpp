@@ -2,7 +2,7 @@
 
 #include "kserver_session.hpp"
 
-#include "kserver_syslog.tpp"
+#include "syslog.tpp"
 
 namespace kserver {
 

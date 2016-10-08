@@ -6,7 +6,7 @@
 
 #include "kserver_session.hpp"
 #include "pubsub.tpp"
-#include "kserver_syslog.tpp"
+#include "syslog.tpp"
 
 #include <sys/socket.h>
 

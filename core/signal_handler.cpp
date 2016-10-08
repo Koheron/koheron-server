@@ -13,7 +13,7 @@ extern "C" {
 }
 
 #include "kserver.hpp"
-#include "kserver_syslog.tpp"
+#include "syslog.tpp"
 
 namespace kserver {
 
