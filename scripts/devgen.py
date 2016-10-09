@@ -10,6 +10,22 @@ import json
 # Code generation
 # -----------------------------------------------------------------------------------------
 
+def generate(devices_list, base_dir, build_dir):
+    print devices_list
+    devices = [] # List of generated devices
+    obj_files = []  # Object file names
+    dev_id = 2
+    for path in devices_list or []:
+        if path.endswith('.hpp') or path.endswith('.h'):
+            device = Device(path, base_dir)
+            device.id = dev_id
+            dev_id +=1
+            print('Generating ' + device.name + '...')
+            render_device('.hpp', device, build_dir)
+            render_device('.cpp', device, build_dir)
+            devices.append(device)
+    render_device_table(devices, build_dir)
+
 class Device:
     def __init__(self, path, base_dir):
         print 'Parsing and analysing ' + path + '...'
@@ -26,28 +42,10 @@ class Device:
         self.includes = dev['includes']
         self.id = None
 
-def generate(devices_list, base_dir, build_dir):
-    print devices_list
-    devices = [] # List of generated devices
-    obj_files = []  # Object file names
-    dev_id = 2
-    for path in devices_list or []:
-        if path.endswith('.hpp') or path.endswith('.h'):
-            device = Device(path, base_dir)
-            device.id = dev_id
-            dev_id +=1
-            print('Generating ' + device.name + '...')
-
-            template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device.hpp'))
-            with open(os.path.join(build_dir, 'ks_' + device.tag.lower() + '.hpp'), 'w') as output:
-                output.write(template.render(device=device))
-
-            template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device.cpp'))
-            with open(os.path.join(build_dir, 'ks_' + device.tag.lower() + '.cpp'), 'w') as output:
-                output.write(template.render(device=device))
-
-            devices.append(device)
-    render_device_table(devices, build_dir)
+def render_device(extension, device, build_dir):
+    template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device' + extension))
+    with open(os.path.join(build_dir, 'ks_' + device.tag.lower() + extension), 'w') as output:
+        output.write(template.render(device=device))
 
 # Number of operation in the KServer device
 KSERVER_OP_NUM = 7

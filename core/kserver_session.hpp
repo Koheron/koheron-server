@@ -253,44 +253,37 @@ int Session<sock_type>::send_data_packet(const T *data, size_t len)
 
 #define SEND_SPECIALIZE_IMPL(session_kind)                                            \
     template<> template<>                                                             \
-    inline int session_kind::send<std::string>(const std::string& str)                \
-    {                                                                                 \
+    inline int session_kind::send<std::string>(const std::string& str) {              \
         return send_string(str);                                                      \
     }                                                                                 \
                                                                                       \
     template<> template<>                                                             \
-    inline int session_kind::send<uint32_t>(const uint32_t& val)                      \
-    {                                                                                 \
+    inline int session_kind::send<uint32_t>(const uint32_t& val) {                    \
         return send_data_packet(&val, 1);                                             \
     }                                                                                 \
                                                                                       \
     template<> template<>                                                             \
-    inline int session_kind::send<bool>(const bool& val)                              \
-    {                                                                                 \
+    inline int session_kind::send<bool>(const bool& val) {                            \
         return send<uint32_t>(val);                                                   \
     }                                                                                 \
                                                                                       \
     template<> template<>                                                             \
-    inline int session_kind::send<int>(const int& val)                                \
-    {                                                                                 \
+    inline int session_kind::send<int>(const int& val) {                              \
         return send<uint32_t>(val);                                                   \
     }                                                                                 \
                                                                                       \
     template<> template<>                                                             \
-    inline int session_kind::send<uint64_t>(const uint64_t& val)                      \
-    {                                                                                 \
+    inline int session_kind::send<uint64_t>(const uint64_t& val) {                    \
         return send_data_packet(&val, 1);                                             \
     }                                                                                 \
                                                                                       \
     template<> template<>                                                             \
-    inline int session_kind::send<float>(const float& val)                            \
-    {                                                                                 \
+    inline int session_kind::send<float>(const float& val) {                          \
         return send_data_packet(&val, 1);                                             \
     }                                                                                 \
                                                                                       \
     template<> template<>                                                             \
-    inline int session_kind::send<double>(const double& val)                          \
-    {                                                                                 \
+    inline int session_kind::send<double>(const double& val) {                        \
         return send_data_packet(&val, 1);                                             \
     }
 
