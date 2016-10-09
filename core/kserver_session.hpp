@@ -100,6 +100,7 @@ class Session : public SessionAbstract
     template<typename T>
     int rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd);
 
+    template<typename T> int send_array(const T* data, unsigned int len);
     template<class T> int send_data_packet(const T *data, size_t len);
     template<class T> int send(const T& data);
 
@@ -111,17 +112,18 @@ class Session : public SessionAbstract
         return send_data_packet(string, std::strlen(string) + 1);
     }
 
-    template<typename T> int send_array(const T* data, unsigned int len);
-
-    template<typename T> int send(const std::vector<T>& vect) {
+    template<typename T>
+    int send(const std::vector<T>& vect) {
         return send_data_packet(vect.data(), vect.size());
     }
 
-    template<typename T, size_t N> int send(const std::array<T, N>& vect) {
+    template<typename T, size_t N>
+    int send(const std::array<T, N>& vect) {
         return send_data_packet(vect.data(), N);
     }
 
-    template<typename... Tp> int send(const std::tuple<Tp...>& t) {
+    template<typename... Tp>
+    int send(const std::tuple<Tp...>& t) {
         const auto& arr = serialize(t);
         return send_data_packet(arr.data(), arr.size());
     }
@@ -151,6 +153,8 @@ class Session : public SessionAbstract
     unsigned int requests_num; ///< Number of requests received during the current session
     unsigned int errors_num;   ///< Number of requests errors during the current session
     std::time_t start_time;    ///< Starting time of the session
+
+    std::vector<unsigned char> send_buffer;
 
     // Internal functions
     int init_socket();
@@ -192,6 +196,7 @@ Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
 , requests_num(0)
 , errors_num(0)
 , start_time(0)
+, send_buffer(0)
 {}
 
 template<int sock_type>
@@ -238,10 +243,12 @@ int Session<sock_type>::send_data_packet(const T *data, size_t len)
     const auto bytes = reinterpret_cast<const unsigned char*>(data);
     auto n_bytes = len * sizeof(T);
     const auto& array = serialize<uint32_t, uint64_t>(0U, n_bytes);
-    // I should allocate some memory in the class for this
-    std::vector<unsigned char> buffer(array.begin(), array.end());
-    std::copy(bytes, bytes + n_bytes, std::back_inserter(buffer));
-    return send_array(buffer.data(), buffer.size());
+
+    // http://stackoverflow.com/questions/259297/how-do-you-copy-the-contents-of-an-array-to-a-stdvector-in-c-without-looping
+    send_buffer.resize(0);
+    send_buffer.insert(send_buffer.end(), array.begin(), array.end());
+    send_buffer.insert(send_buffer.end(), bytes, bytes + n_bytes);
+    return send_array(send_buffer.data(), send_buffer.size());
 }
 
 #define SEND_SPECIALIZE_IMPL(session_kind)                                            \
