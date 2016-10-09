@@ -107,15 +107,13 @@ int KServer::start_listeners_workers()
 
 void KServer::join_listeners_workers()
 {
-#if KSERVER_HAS_TCP && KSERVER_HAS_THREADS
+#if KSERVER_HAS_TCP
     tcp_listener.join_worker();
 #endif
-
-#if KSERVER_HAS_WEBSOCKET && KSERVER_HAS_THREADS
+#if KSERVER_HAS_WEBSOCKET
     websock_listener.join_worker();
 #endif
-
-#if KSERVER_HAS_UNIX_SOCKET && KSERVER_HAS_THREADS
+#if KSERVER_HAS_UNIX_SOCKET
     unix_listener.join_worker();
 #endif
 }
