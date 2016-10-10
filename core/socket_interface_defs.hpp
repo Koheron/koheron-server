@@ -22,7 +22,7 @@ enum SockType {
 };
 
 /// Listening channel descriptions
-const std::array< std::string, sock_type_num >
+const std::array<std::string, sock_type_num>
 listen_channel_desc = {{
     "NONE",
     "TCP",

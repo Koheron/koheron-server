@@ -10,6 +10,22 @@ import json
 # Code generation
 # -----------------------------------------------------------------------------------------
 
+def generate(devices_list, base_dir, build_dir):
+    print devices_list
+    devices = [] # List of generated devices
+    obj_files = []  # Object file names
+    dev_id = 2
+    for path in devices_list or []:
+        if path.endswith('.hpp') or path.endswith('.h'):
+            device = Device(path, base_dir)
+            device.id = dev_id
+            dev_id +=1
+            print('Generating ' + device.name + '...')
+            render_device('.hpp', device, build_dir)
+            render_device('.cpp', device, build_dir)
+            devices.append(device)
+    render_device_table(devices, build_dir)
+
 class Device:
     def __init__(self, path, base_dir):
         print 'Parsing and analysing ' + path + '...'
@@ -24,26 +40,12 @@ class Device:
         self.class_name = 'KS_' + self.tag.capitalize()
         self.objects = dev['objects']
         self.includes = dev['includes']
+        self.id = None
 
-def generate(devices_list, base_dir, build_dir):
-    print devices_list
-    devices = [] # List of generated devices
-    obj_files = []  # Object file names
-    for path in devices_list or []:
-        if path.endswith('.hpp') or path.endswith('.h'):
-            device = Device(path, base_dir)
-            print('Generating ' + device.name + '...')
-
-            template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device.hpp'))
-            with open(os.path.join(build_dir, 'ks_' + device.tag.lower() + '.hpp'), 'w') as output:
-                output.write(template.render(device=device))
-
-            template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device.cpp'))
-            with open(os.path.join(build_dir, 'ks_' + device.tag.lower() + '.cpp'), 'w') as output:
-                output.write(template.render(device=device))
-
-            devices.append(device)
-    render_device_table(devices, build_dir)
+def render_device(extension, device, build_dir):
+    template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device' + extension))
+    with open(os.path.join(build_dir, 'ks_' + device.tag.lower() + extension), 'w') as output:
+        output.write(template.render(device=device))
 
 # Number of operation in the KServer device
 KSERVER_OP_NUM = 7
@@ -56,22 +58,27 @@ def get_max_op_num(devices):
 
 def get_json(devices):
     data = [{
-        'name': 'NO_DEVICE',
-        'operations': []
-      }, {
-        'name': 'KServer',
-        'operations': [
-            {'name': 'get_version', 'fmt': ''}, {'name': 'get_cmds', 'fmt': ''}, {'name': 'get_stats', 'fmt': ''}, {'name': 'get_dev_status', 'fmt': ''},
-            {'name': 'get_running_sessions', 'fmt': ''}, {'name': 'subscribe_broadcast', 'fmt': 'I'}, {'name': 'broadcast_ping', 'fmt': ''}
+        'class': 'KServer',
+        'id': 1,
+        'functions': [
+            {'name': 'get_version', 'id': 0, 'args': [], 'ret_type': 'const char *'},
+            {'name': 'get_cmds', 'id': 1, 'args': [], 'ret_type': 'std::string'},
+            {'name': 'get_stats', 'id': 2, 'args': [], 'ret_type': 'const char *'},
+            {'name': 'get_dev_status', 'id': 3, 'args': [], 'ret_type': 'void'},
+            {'name': 'get_running_sessions', 'id': 4, 'args': [], 'ret_type': 'const char *'},
+            {'name': 'subscribe_pubsub', 'id': 5, 'args': [{'name': 'channel', 'type': 'uint32_t'}], 'ret_type': 'void'},
+            {'name': 'pubsub_ping', 'id': 6, 'args': [], 'ret_type': 'void'}
         ]
     }]
 
     for device in devices:
         data.append({
-            'name': device.name,
-            'operations': [{'name': op['name'], 'fmt': op['fmt']} for op in device.operations]
+            'class': device.name,
+            'id': device.id,
+            'functions': [{'name': op['name'], 'id': op['id'], 'ret_type': format_ret_type(device.name, op), 'args': op.get('args_client',[])} for op in device.operations]
         })
-    return json.dumps(data, separators=(',', ':')).replace('"', '\\"')
+
+    return json.dumps(data, separators=(',', ':')).replace('"', '\\"').replace('\\\\','')
 
 def get_renderer():
     renderer = jinja2.Environment(
@@ -137,10 +144,13 @@ def parse_header_device(_class, hppfile):
     }]
 
     device['operations'] = []
+    op_id = 0
     for method in _class['methods']['public']:
         # We eliminate constructor and destructor
         if not (method['name'] in [s + _class['name'] for s in ['','~']]):
             device['operations'].append(parse_header_operation(device['name'], method))
+            device['operations'][-1]['id'] = op_id
+            op_id += 1
     return device
 
 def parse_header_operation(devname, method):
@@ -158,9 +168,9 @@ def parse_header_operation(devname, method):
     else:
         operation["io_type"] = 'READ'
 
-    operation['fmt'] = ''
     if len(method['parameters']) > 0:
-        operation['arguments'] = []
+        operation['arguments'] = [] # Use for code generation
+        operation['args_client'] = [] # Send to client
         for param in method['parameters']:
             arg = {}
             arg['name'] = str(param['name'])
@@ -174,8 +184,8 @@ def parse_header_operation(devname, method):
                 arg['type'] = arg['type'][5:].strip()
 
             check_type(arg['type'], devname, operation['name'])
-            operation['fmt'] += get_arg_fmt(arg['type'], devname, operation['name'])
             operation['arguments'].append(arg)
+            operation['args_client'].append({'name': arg['name'], 'type': format_type(arg['type'])})
     return operation
 
 # The following integers are forbiden since they are plateform
@@ -188,29 +198,22 @@ def check_type(_type, devname, opname):
     if _type in FORBIDDEN_INTS:
         raise ValueError('[' + devname + '::' + opname + '] Invalid type "' + _type + '": Only integers with exact width (e.g. uint32_t) are supported (http://en.cppreference.com/w/cpp/header/cstdint).')
 
-TYPE_FMT = {
-    'uint8_t': 'B',
-    'int8_t': 'b',
-    'uint16_t': 'H',
-    'int16_t': 'h',
-    'uint32_t': 'I',
-    'int32_t': 'i',
-    'uint64_t': 'Q',
-    'int64_t': 'q',
-    'bool': '?',
-    'float': 'f',
-    'double': 'd'
-}
-
-def get_arg_fmt(_type, devname, opname):
-    if _type in TYPE_FMT:
-        return TYPE_FMT[_type]
-    elif is_std_array(_type):
-        return 'A'
-    elif is_std_vector(_type):
-        return 'V'
+def format_type(_type):
+    if is_std_array(_type):
+        templates = _type.split('<')[1].split('>')[0].split(',')
+        return 'std::array<' + templates[0] + ', " << ' +  templates[1] + ' << ">'
     else:
-        raise ValueError('[' + devname + '::' + opname + '] Invalid type "' + _type + '"')
+        return _type
+
+def format_ret_type(classname, operation):
+    if operation['ret_type'] in ['auto', 'auto&', 'auto &'] or is_std_array(operation['ret_type']):
+        decl_arg_list = []
+        for arg in operation.get('arguments', []):
+            decl_arg_list.append('std::declval<' + arg['type'] + '>()')
+        return '" << get_type_str<decltype(std::declval<' + classname + '>().' + operation['name'] + '(' + ' ,'.join(decl_arg_list) + '))>() << "'
+    else:
+        return operation['ret_type']
+
 
 # -----------------------------------------------------------------------------
 # Generate command call and send

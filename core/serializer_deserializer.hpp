@@ -281,7 +281,7 @@ namespace detail {
     inline std::enable_if_t<I < sizeof...(Tp), void>
     serialize(const std::tuple<Tp...>& t, unsigned char *buff)
     {
-        using type = typename std::tuple_element<I, std::tuple<Tp...>>::type;
+        using type = typename std::tuple_element_t<I, std::tuple<Tp...>>;
         append<type>(&buff[buff_pos], std::get<I>(t));
         serialize<buff_pos + size_of<type>, I + 1, Tp...>(t, &buff[0]);
     }

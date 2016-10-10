@@ -29,7 +29,7 @@ class WebSocket
     template<class T> int send(const T *data, unsigned int len);
 
     char* get_payload_no_copy() {return payload;}
-    unsigned int payload_size() const {return header.payload_size;}
+    int64_t payload_size() const {return header.payload_size;}
     
     bool is_closed() const {return connection_closed;}
 
@@ -55,7 +55,7 @@ class WebSocket
     struct {
         unsigned int header_size;
         int mask_offset;
-        unsigned int payload_size;
+        int64_t payload_size;
         bool fin;
         bool masked;
         unsigned char opcode;
@@ -98,7 +98,7 @@ class WebSocket
     int read_stream();
     int read_header();
     int check_opcode(unsigned int opcode);
-    int read_n_bytes(int bytes, int expected);
+    int read_n_bytes(int64_t bytes, int64_t expected);
 
     int set_send_header(unsigned char *bits, long long data_len,
                         unsigned int format);

@@ -10,6 +10,7 @@
 #include "kserver_session.hpp"
 #include "session_manager.hpp"
 #include "pubsub.tpp"
+#include "syslog.tpp"
 
 namespace kserver {
 
@@ -63,7 +64,7 @@ KSERVER_PARSE_ARG(GET_CMDS) {return 0;}
 
 KSERVER_EXECUTE_OP(GET_CMDS)
 {
-    return GET_SESSION.send_cstr(DEVICES_JSON);
+    return GET_SESSION.send(build_devices_json());
 }
 
 /////////////////////////////////////
@@ -159,14 +160,15 @@ KSERVER_EXECUTE_OP(GET_STATS)
     if ((bytes = GET_SESSION.send_cstr("EOKS\n")) < 0)
         return -1;
 
-    kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send+bytes);
-
+    kserver->syslog.print<SysLog::DEBUG>("[S] [%u bytes]\n", bytes_send + bytes);
     return 0;
 }
 
 /////////////////////////////////////
 // GET_DEV_STATUS
 // Send the status of each device
+
+// TODO: Remove
 
 KSERVER_STRUCT_ARGUMENTS(GET_DEV_STATUS) {};
 KSERVER_PARSE_ARG(GET_DEV_STATUS) {return 0;}
@@ -261,13 +263,12 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
     if ((bytes = GET_SESSION.send_cstr("EORS\n")) < 0)
         return -1;
 
-    kserver->syslog.print_dbg("[S] [%u bytes]\n", bytes_send + bytes);
-
+    kserver->syslog.print<SysLog::DEBUG>("[S] [%u bytes]\n", bytes_send + bytes);
     return 0;
 }
 
 /////////////////////////////////////
-// SUBSCRIBE_PÜBSUB
+// SUBSCRIBE_PUBSUB
 // Subscribe to a pubsub channel
 
 KSERVER_STRUCT_ARGUMENTS(SUBSCRIBE_PUBSUB)
