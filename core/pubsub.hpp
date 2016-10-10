@@ -14,6 +14,11 @@
 #include <algorithm>
 #include <type_traits>
 
+#if KSERVER_HAS_THREADS
+#  include <thread>
+#  include <mutex>
+#endif
+
 namespace kserver {
 
 class SessionManager;
@@ -64,6 +69,7 @@ class PubSub
   public:
     PubSub(SessionManager& session_manager_)
     : session_manager(session_manager_)
+    , emit_buffer(0)
     {}
 
     // Session sid subscribes to a channel
@@ -99,6 +105,11 @@ class PubSub
   private:
     SessionManager& session_manager;
     Subscribers<Channels> subscribers;
+    std::vector<unsigned char> emit_buffer;
+
+#if KSERVER_HAS_THREADS
+    std::mutex mutex;
+#endif
 };
 
 } // namespace kserver
