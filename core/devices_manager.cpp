@@ -5,7 +5,7 @@
 #include "devices_manager.hpp"
 #include "kserver.hpp"
 #include "commands.hpp"
-#include "kserver_syslog.tpp"
+#include "syslog.tpp"
 
 #if KSERVER_HAS_THREADS
 #  include <thread>

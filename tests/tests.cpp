@@ -52,6 +52,16 @@ std::vector<float>& Tests::send_std_vector()
     return data;
 }
 
+std::vector<uint32_t>& Tests::send_std_vector2()
+{
+    data_u.resize(20);
+
+    for (unsigned int i=0; i<data_u.size(); i++)
+        data_u[i] = i*i;
+
+    return data_u;
+}
+
 std::array<float, 10>& Tests::send_std_array()
 {    
     for (uint32_t i=0; i<data_std_array.size(); i++)
@@ -87,6 +97,14 @@ bool Tests::rcv_std_array3(const std::array<double, 8192>& arr)
     for (unsigned int i=0; i<8192; i++)
         if (fabs(arr[i] - sin(static_cast<double>(i))) > std::numeric_limits<double>::epsilon())
             return false;
+
+    return true;
+}
+
+bool Tests::rcv_std_array4(const std::array<uint32_t, calc_array_length(10)>& arr)
+{
+    for (unsigned int i=0; i<calc_array_length(10); i++)
+        if (arr[i] != i) return false;
 
     return true;
 }

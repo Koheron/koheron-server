@@ -22,7 +22,7 @@
 
 #include "kdevice.hpp"
 #include "devices_manager.hpp"
-#include "kserver_syslog.hpp"
+#include "syslog.hpp"
 #include "signal_handler.hpp"
 #include "peer_info.hpp"
 #include "session_manager.hpp"
@@ -133,7 +133,7 @@ class KServer : public KDevice<KServer, KSERVER>
 
     std::atomic<bool> exit_comm;
 
-    // Listeners    
+    // Listeners
 #if KSERVER_HAS_TCP
     ListeningChannel<TCP> tcp_listener;
 #endif

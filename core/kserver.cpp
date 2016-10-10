@@ -60,7 +60,7 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
         exit(EXIT_FAILURE);
 #else
     if (config->unixsock_worker_connections > 0)
-        syslog.print<SysLog::ERROR>( "Unix socket connections not supported\n");
+        syslog.print<SysLog::ERROR>("Unix socket connections not supported\n");
 #endif // KSERVER_HAS_UNIX_SOCKET
 }
 
@@ -107,15 +107,13 @@ int KServer::start_listeners_workers()
 
 void KServer::join_listeners_workers()
 {
-#if KSERVER_HAS_TCP && KSERVER_HAS_THREADS
+#if KSERVER_HAS_TCP
     tcp_listener.join_worker();
 #endif
-
-#if KSERVER_HAS_WEBSOCKET && KSERVER_HAS_THREADS
+#if KSERVER_HAS_WEBSOCKET
     websock_listener.join_worker();
 #endif
-
-#if KSERVER_HAS_UNIX_SOCKET && KSERVER_HAS_THREADS
+#if KSERVER_HAS_UNIX_SOCKET
     unix_listener.join_worker();
 #endif
 }

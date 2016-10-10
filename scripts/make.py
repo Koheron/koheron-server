@@ -5,6 +5,7 @@
 import os
 import sys
 import yaml
+import json
 import time
 import subprocess
 from distutils.dir_util import copy_tree
@@ -35,7 +36,11 @@ def main(argv):
                 else:
                     config[key] = value
 
-    if cmd == '--generate':
+    if cmd == '--config':
+        with open(os.path.join(tmp_dir, 'full_config.json'), 'w') as f:
+            json.dump(config, f)
+
+    elif cmd == '--generate':
         generate(get_devices(config), argv[2], tmp_dir)
 
     elif cmd == '--devices':
@@ -58,30 +63,10 @@ def main(argv):
             if 'dependencies' in config:
                 f.write(' '.join((os.path.join(argv[2], dep) for dep in config['dependencies'])))
 
-    elif cmd == '--cross-compile':
-        with open(os.path.join(tmp_dir, '.cross-compile'), 'w') as f:
-            f.write(config['cross-compile'])
-
-    elif cmd == '--server-name':
-        with open(os.path.join(tmp_dir, '.server-name'), 'w') as f:
-            f.write(config['server-name'])
-
-    elif cmd == '--arch-flags':
-        with open(os.path.join(tmp_dir, '.arch-flags'), 'w') as f:
-            f.write('-' + ' -'.join(config['arch_flags']))
-
-    elif cmd == '--optim-flags':
-        with open(os.path.join(tmp_dir, '.optim-flags'), 'w') as f:
-            f.write('-' + ' -'.join(config['optimization_flags']))
-
     elif cmd == '--debug-flags':
         with open(os.path.join(tmp_dir, '.debug-flags'), 'w') as f:
             if config['debug']['status']:
                 f.write('-' + ' -'.join(config['debug']['flags']))
-
-    elif cmd == '--defines':
-        with open(os.path.join(tmp_dir, '.defines'), 'w') as f:
-            f.write('-D' + ' -D'.join(config['defines']) + ' -DSHA=' + argv[4])
 
     else:
         raise ValueError('Unknown command')

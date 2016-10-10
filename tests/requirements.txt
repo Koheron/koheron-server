@@ -1,4 +1,0 @@
-wheel
-pytest
-numpy==1.11.0
-https://github.com/Koheron/koheron-python/zipball/master

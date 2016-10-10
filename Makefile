@@ -6,24 +6,29 @@ SHA=`git rev-parse --short HEAD`
 # Base directory for paths
 BASE_DIR=.
 CONFIG_PATH=$(BASE_DIR)/$(CONFIG)
+TMP = $(BASE_DIR)/tmp
 __PYTHON = $(shell bash scripts/get_python.sh $(PYTHON) $(BASE_DIR))
 
-TMP = $(BASE_DIR)/tmp
 CORE = core
 MAKE_PY = scripts/make.py
+DEVGEN_PY = scripts/devgen.py
 
+FULL_CFG = $(TMP)/full_config.json
+$(shell $(__PYTHON) $(MAKE_PY) --config $(CONFIG_PATH) $(BASE_DIR) $(TMP))
+
+TEMPLATES = $(shell find scripts/templates -name '*.hpp' -o -name '*.h' -o -name '*.tpp')
 CORE_HEADERS=$(shell find $(CORE) -name '*.hpp' -o -name '*.h' -o -name '*.tpp')
 CORE_SRC=$(shell find $(CORE) -name '*.cpp' -o -name '*.c')
 CORE_OBJ=$(subst .cpp,.o, $(addprefix $(TMP)/, $(notdir $(CORE_SRC))))
 
-ARCH_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --arch-flags $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.arch-flags)
-OPTIM_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --optim-flags $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.optim-flags)
+ARCH_FLAGS:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; cfg = json.load(sys.stdin); print '-' + ' -'.join(cfg['arch_flags'])")
+OPTIM_FLAGS:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; cfg = json.load(sys.stdin); print '-' + ' -'.join(cfg['optimization_flags'])")
 DEBUG_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --debug-flags $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.debug-flags)
-DEFINES:=$(shell $(__PYTHON) $(MAKE_PY) --defines $(CONFIG_PATH) $(BASE_DIR) $(TMP) $(SHA) && cat $(TMP)/.defines)
-CROSS_COMPILE:=$(shell $(__PYTHON) $(MAKE_PY) --cross-compile $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.cross-compile)
+DEFINES:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; cfg = json.load(sys.stdin); print '-D' + ' -D'.join(cfg['defines']) + ' -DSHA=' + '$(SHA)'")
+CROSS_COMPILE:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; print json.load(sys.stdin)['cross-compile']")
 DEVICES:=$(shell $(__PYTHON) $(MAKE_PY) --devices $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.devices)
 DEPENDENCIES:=$(shell $(__PYTHON) $(MAKE_PY) --dependencies $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.dependencies)
-SERVER:=$(shell $(__PYTHON) $(MAKE_PY) --server-name $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.server-name)
+SERVER:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; print json.load(sys.stdin)['server-name']")
 
 DEVICES_HPP=$(filter-out %.cpp,$(DEVICES))
 DEVICES_CPP=$(filter-out %.hpp,$(DEVICES))
@@ -100,12 +105,11 @@ debug:
 
 .PHONY: exec start_server stop_server
 
-# Track core dependencies
 # http://bruno.defraine.net/techtips/makefile-auto-dependencies-with-gcc/
 # http://scottmcpeak.com/autodepend/autodepend.html
 -include $(DEP)
 
-$(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(KS_DEVICES_CPP): $(DEVICES_HPP)
+$(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(KS_DEVICES_CPP): $(DEVICES_HPP) $(DEVGEN_PY) $(TEMPLATES)
 	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(TMP)
 
 $(TMP)/%.o: %.cpp
@@ -127,24 +131,21 @@ stop_server:
 	-pkill -SIGINT $(SERVER) # We ignore the error raised if the server is already stopped
 
 # ------------------------------------------------------------------------------------------------------------
-# Tests
+# Test python API
 # ------------------------------------------------------------------------------------------------------------
 
 .PHONY: test_python
 
-TESTS_VENV = venv
-PY2_ENV = $(TESTS_VENV)/py2
-PY3_ENV = $(TESTS_VENV)/py3
+KOHERON_PYTHON_URL = https://github.com/Koheron/koheron-python.git
+KOHERON_PYTHON_BRANCH = protocol
+KOHERON_PYTHON_DIR = $(TMP)/koheron-python
 
-$(PY2_ENV): tests/requirements.txt
-	test -d $(PY2_ENV) || (virtualenv $(PY2_ENV) && $(PY2_ENV)/bin/pip install -r tests/requirements.txt)
+$(KOHERON_PYTHON_DIR):
+	git clone $(KOHERON_PYTHON_URL) $(KOHERON_PYTHON_DIR)
+	cd $(KOHERON_PYTHON_DIR) && git checkout $(KOHERON_PYTHON_BRANCH)
 
-$(PY3_ENV): tests/requirements.txt
-	test -d $(PY2_ENV) || (virtualenv -p python3 $(PY3_ENV) && $(PY3_ENV)/bin/pip3 install -r tests/requirements.txt)
-
-test_python: $(PY2_ENV) $(PY3_ENV) start_server
-	PYTEST_UNIXSOCK=/tmp/kserver_local.sock $(PY2_ENV)/bin/python -m pytest -v tests/tests.py
-	PYTEST_UNIXSOCK=/tmp/kserver_local.sock $(PY3_ENV)/bin/python3 -m pytest -v tests/tests.py
+test_python: $(KOHERON_PYTHON_DIR) start_server
+	make -C $(KOHERON_PYTHON_DIR) test
 
 # ------------------------------------------------------------------------------------------------------------
 # Clean

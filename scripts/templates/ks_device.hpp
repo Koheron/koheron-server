@@ -48,7 +48,7 @@ class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device
 
     enum Operation {
         {% for operation in device.operations -%}
-        {{ operation['tag'] }},
+        {{ operation['tag'] }} = {{ operation['id'] }},
         {% endfor -%}        
         {{ device.tag|lower }}_op_num
     };
@@ -72,12 +72,10 @@ struct KDevice<{{ device.class_name }},{{ device.tag }}>::
             Argument<{{ device.class_name }}::{{ operation['tag'] }}>
 {
 {%- macro print_param_line(arg) %}
-        {{ arg["type"] }} {{ arg["name"]}}; ///< {{ arg["description"] }}
+        {{ arg["type"] }} {{ arg["name"]}};
 {%- endmacro -%}
 {% for arg in operation["arguments"] -%}
-{%   if arg.get("flag") != "CLIENT_ONLY" -%}
     {{ arg["type"] }} {{ arg["name"]}};
-{%   endif -%}
 {% endfor -%}
 };
 

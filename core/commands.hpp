@@ -22,7 +22,7 @@ struct Buffer
 
     constexpr size_t size() const {return len;}
 
-    void set()     {bzero(_data.data(), len);}
+    void set()     {_data.fill(0);}
     char* data()   {return _data.data();}
     char* begin()  {return &(_data.data())[position];}
 
@@ -69,8 +69,8 @@ struct Command
 
     SessID sess_id = -1;                    ///< ID of the session emitting the command  
     device_t device = NO_DEVICE;            ///< The device to control
-    uint32_t operation = -1;                ///< Operation ID
-    size_t payload_size;
+    int32_t operation = -1;                 ///< Operation ID
+    int64_t payload_size;
 
     Buffer<HEADER_SIZE> header;             ///< Raw data header
     Buffer<CMD_PAYLOAD_BUFFER_LEN> payload;
