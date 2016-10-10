@@ -153,8 +153,9 @@ int Session<WEBSOCK>::read_command(Command& cmd)
     uint32_t payload_size = std::get<2>(header_tuple);
 
     if (unlikely(payload_size > CMD_PAYLOAD_BUFFER_LEN)) {
-        session_manager.kserver.syslog.print<SysLog::DEBUG>(
-            "WebSocket: Command payload buffer size too small\n");
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
+            "WebSocket: Command payload buffer size too small [payload size: received = %u, max = %i\n",
+            payload_size, CMD_PAYLOAD_BUFFER_LEN);
         return -1;
     }
 
