@@ -12,15 +12,16 @@ void SysLog::print(const char *message, Tp... args)
 {
     auto msg = std::string(message);
     notify<severity>(msg, args...);
-
-    // We don't emit if connections are closed
-    if (! kserver->sig_handler.Interrupt())
-        emit_error<severity>(msg, args...);
+    emit_error<severity>(msg, args...);
 }
 
 template<unsigned int severity, typename... Tp>
-int SysLog::emit_error(const std::string& message, Tp... args)
+int SysLog::__emit_error(const std::string& message, Tp... args)
 {
+    // We don't emit if connections are closed
+    if (kserver->sig_handler.Interrupt())
+        return 0;
+
     int ret = snprintf(fmt_buffer, FMT_BUFF_LEN, message, args...);
 
     if (ret < 0) {
