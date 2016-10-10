@@ -33,7 +33,7 @@ void PubSub::emit_cstr(const char *str)
     emit_buffer.push_back('\0');
 
     for (auto const& sid : subscribers.get(channel))
-        session_manager.get_session(sid).write(emit_buffer.data(), emit_buffer.size());
+        session_manager.get_session(sid).send(emit_buffer);
 }
 
 } // namespace kserver
