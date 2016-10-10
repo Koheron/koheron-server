@@ -39,8 +39,7 @@ struct SysLog
     // This cannot be done in the destructor
     // since it is called after the "delete config"
     // at the end of the main()
-    void close()
-    {
+    void close() {
         assert(config != nullptr);
 
         if (config->syslog) {
@@ -90,22 +89,32 @@ private:
     // High severity (Panic, ..., Warning)
     template<unsigned int severity, typename... Tp>
     typename std::enable_if_t< severity <= WARNING, void >
-    print_msg(const str_const& severity_desc, const std::string& message, Tp... args)
-    {
+    print_msg(const str_const& severity_desc, const std::string& message, Tp... args) {
         fprintf(stderr, severity_desc.to_string() + ": " + message, args...);
     }
 
     // Low severity (Info, Debug)
     template<unsigned int severity, typename... Tp>
     typename std::enable_if_t< severity >= INFO, void >
-    print_msg(const str_const& severity_desc, const std::string& message, Tp... args)
-    {
+    print_msg(const str_const& severity_desc, const std::string& message, Tp... args) {
         if (config->verbose)
             printf(message, args...);
     }
 
     template<unsigned int severity, typename... Tp>
-    int emit_error(const std::string& message, Tp... args);
+    int __emit_error(const std::string& message, Tp... args);
+
+    template<unsigned int severity, typename... Tp>
+    typename std::enable_if_t< severity <= INFO, int >
+    emit_error(const std::string& message, Tp... args) {
+        return __emit_error<severity>(message, args...);
+    }
+
+    template<unsigned int severity, typename... Tp>
+    typename std::enable_if_t< severity >= DEBUG, int >
+    emit_error(const std::string& message, Tp... args) {
+        return 0;
+    }
 };
 
 } // namespace kserver

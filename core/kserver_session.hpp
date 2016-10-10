@@ -51,7 +51,7 @@ class SessionAbstract
     template<typename... Tp> int send(const std::tuple<Tp...>& t);
     template<typename T, size_t N> int send(const std::array<T, N>& vect);
     template<typename T> int send(const std::vector<T>& vect);
-    template<typename T> int send_array(const T* data, unsigned int len);
+    template<typename T> int write(const T* data, unsigned int len);
     template<class T> int send(const T& data);
 
     int kind;
@@ -100,7 +100,7 @@ class Session : public SessionAbstract
     template<typename T>
     int rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd);
 
-    template<typename T> int send_array(const T* data, unsigned int len);
+    template<typename T> int write(const T* data, unsigned int len);
     template<class T> int send_data_packet(const T *data, size_t len);
     template<class T> int send(const T& data);
 
@@ -252,7 +252,7 @@ int Session<sock_type>::send_data_packet(const T *data, size_t len)
     send_buffer.resize(0);
     send_buffer.insert(send_buffer.end(), array.begin(), array.end());
     send_buffer.insert(send_buffer.end(), bytes, bytes + n_bytes);
-    return send_array(send_buffer.data(), send_buffer.size());
+    return write(send_buffer.data(), send_buffer.size());
 }
 
 #define SEND_SPECIALIZE_IMPL(session_kind)                                            \
@@ -329,20 +329,20 @@ std::tuple<int, const std::array<T, N>&> Session<TCP>::extract_array(Command& cm
 
 template<>
 template<class T>
-int Session<TCP>::send_array(const T *data, unsigned int len)
+int Session<TCP>::write(const T *data, unsigned int len)
 {
     int bytes_send = sizeof(T) * len;
-    int n_bytes_send = write(comm_fd, (void*)data, bytes_send);
+    int n_bytes_send = ::write(comm_fd, (void*)data, bytes_send);
 
     if (unlikely(n_bytes_send < 0)) {
        session_manager.kserver.syslog.print<SysLog::ERROR>(
-          "TCPSocket::send_array: Can't write to client\n");
+          "TCPSocket::write: Can't write to client\n");
        return -1;
     }
 
     if (unlikely(n_bytes_send != bytes_send)) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
-            "TCPSocket::send_array: Some bytes have not been sent\n");
+            "TCPSocket::write: Some bytes have not been sent\n");
         return -1;
     }
 
@@ -408,7 +408,7 @@ std::tuple<int, const std::array<T, N>&> Session<WEBSOCK>::extract_array(Command
 
 template<>
 template<class T>
-inline int Session<WEBSOCK>::send_array(const T *data, unsigned int len)
+inline int Session<WEBSOCK>::write(const T *data, unsigned int len)
 {
     return websock.send(data, len);
 }
@@ -463,8 +463,8 @@ int SessionAbstract::send(const T& data) {
 }
 
 template<typename T> 
-int SessionAbstract::send_array(const T* data, unsigned int len) {
-    SWITCH_SOCK_TYPE(template send_array<T>(data, len))
+int SessionAbstract::write(const T* data, unsigned int len) {
+    SWITCH_SOCK_TYPE(template write<T>(data, len))
     return -1;
 }
 
