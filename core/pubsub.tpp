@@ -3,6 +3,11 @@
 #include "pubsub.hpp"
 #include "kserver_session.hpp"
 
+#if KSERVER_HAS_THREADS
+#  include <thread>
+#  include <mutex>
+#endif
+
 namespace kserver {
 
 template<uint32_t channel, uint32_t event, typename... Tp>
@@ -22,6 +27,11 @@ void PubSub::emit(Tp&&... args)
 template<uint32_t channel, uint32_t event>
 void PubSub::emit_cstr(const char *str)
 {
+    // Need a mutex: emit_buffer is shared memory
+#if KSERVER_HAS_THREADS
+    std::lock_guard<std::mutex> lock(mutex);
+#endif
+
     static_assert(channel < channels_count, "Invalid channel");
 
     auto string = std::string(str);
