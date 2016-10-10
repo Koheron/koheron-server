@@ -35,14 +35,14 @@ int Session<TCP>::read_command(Command& cmd)
     }
 
     auto header_tuple = cmd.header.deserialize<HEADER_TYPE_LIST>();
-    uint32_t payload_size = std::get<2>(header_tuple);
+    int64_t payload_size = std::get<2>(header_tuple);
 
     cmd.sess_id = id;
     cmd.device = static_cast<device_t>(std::get<0>(header_tuple));
     cmd.operation = std::get<1>(header_tuple);
     cmd.payload_size = payload_size;
 
-    if (payload_size > cmd.payload.size()) {
+    if (payload_size > static_cast<int64_t>(cmd.payload.size())) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
                   "TCPSocket: Command payload buffer size too small\n"
                   "payload_size = %u cmd.payload.size = %u\n",
@@ -150,12 +150,15 @@ int Session<WEBSOCK>::read_command(Command& cmd)
     }
 
     auto header_tuple = cmd.header.deserialize<HEADER_TYPE_LIST>();
-    uint32_t payload_size = std::get<2>(header_tuple);
+    device_t device = static_cast<device_t>(std::get<0>(header_tuple));
+    int32_t operation = std::get<1>(header_tuple);
+    int64_t payload_size = std::get<2>(header_tuple);
 
     if (unlikely(payload_size > CMD_PAYLOAD_BUFFER_LEN)) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
-            "WebSocket: Command payload buffer size too small [payload size: received = %u, max = %i\n",
-            payload_size, CMD_PAYLOAD_BUFFER_LEN);
+            "WebSocket: Command payload buffer size too small "
+            "[payload size: received = %u, max = %i] [device = %i, operation = %i]\n",
+            payload_size, CMD_PAYLOAD_BUFFER_LEN, device, operation);
         return -1;
     }
 
@@ -168,8 +171,8 @@ int Session<WEBSOCK>::read_command(Command& cmd)
     }
 
     cmd.sess_id = id;
-    cmd.device = static_cast<device_t>(std::get<0>(header_tuple));
-    cmd.operation = std::get<1>(header_tuple);
+    cmd.device = device;
+    cmd.operation = operation;
     cmd.payload_size = payload_size;
 
     return Command::HEADER_SIZE + payload_size;

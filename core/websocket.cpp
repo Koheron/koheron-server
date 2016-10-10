@@ -204,10 +204,10 @@ int WebSocket::decode_raw_stream_cmd(Command& cmd)
     char *mask = read_str + header.mask_offset;
     char *payload_ptr = read_str + header.mask_offset + 4;
 
-    for (unsigned long long i = 0; i < Command::HEADER_SIZE; ++i)
+    for (int64_t i = 0; i < Command::HEADER_SIZE; ++i)
         cmd.header.data()[i] = (payload_ptr[i] ^ mask[i % 4]);
 
-    for (unsigned long long i = Command::HEADER_SIZE; i < header.payload_size; ++i)
+    for (int64_t i = Command::HEADER_SIZE; i < header.payload_size; ++i)
         cmd.payload.data()[i - Command::HEADER_SIZE] = (payload_ptr[i] ^ mask[i % 4]);
 
     return 0;
@@ -221,7 +221,7 @@ int WebSocket::decode_raw_stream()
     char *mask = read_str + header.mask_offset;
     payload = read_str + header.mask_offset + 4;
 
-    for (unsigned long long i = 0; i < header.payload_size; ++i)
+    for (int64_t i = 0; i < header.payload_size; ++i)
         payload[i] = (payload[i] ^ mask[i % 4]);
 
     return 0;
@@ -363,10 +363,10 @@ int WebSocket::read_header()
     return 0;
 }
 
-int WebSocket::read_n_bytes(int bytes, int expected)
+int WebSocket::read_n_bytes(int64_t bytes, int64_t expected)
 {
-    int remaining = bytes;
-    int bytes_read = -1;
+    int64_t remaining = bytes;
+    int64_t bytes_read = -1;
 
     while (expected > 0) {
         while ((remaining > 0) && 
