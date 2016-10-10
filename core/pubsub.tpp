@@ -27,12 +27,13 @@ void PubSub::emit_cstr(const char *str)
     auto string = std::string(str);
     uint32_t len = string.size() + 1; // Including '\0'
     auto array = serialize(std::make_tuple(0U, channel, event, len));
-    std::vector<char> data(array.begin(), array.end());
-    std::copy(string.begin(), string.end(), std::back_inserter(data));
-    data.push_back('\0');
+    emit_buffer.resize(0);
+    emit_buffer.insert(emit_buffer.end(), array.begin(), array.end());
+    emit_buffer.insert(emit_buffer.end(), string.begin(), string.end());
+    emit_buffer.push_back('\0');
 
     for (auto const& sid : subscribers.get(channel))
-        session_manager.get_session(sid).write(data.data(), data.size());
+        session_manager.get_session(sid).write(emit_buffer.data(), emit_buffer.size());
 }
 
 } // namespace kserver

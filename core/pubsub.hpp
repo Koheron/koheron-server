@@ -64,6 +64,7 @@ class PubSub
   public:
     PubSub(SessionManager& session_manager_)
     : session_manager(session_manager_)
+    , emit_buffer(0)
     {}
 
     // Session sid subscribes to a channel
@@ -99,6 +100,7 @@ class PubSub
   private:
     SessionManager& session_manager;
     Subscribers<Channels> subscribers;
+    std::vector<unsigned char> emit_buffer;
 };
 
 } // namespace kserver
