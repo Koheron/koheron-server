@@ -5,6 +5,8 @@
 #ifndef __KSERVER_DEFS_HPP__
 #define __KSERVER_DEFS_HPP__
 
+#include <cstdint>
+
 namespace kserver {
 
 // Run KServer as a daemon process
@@ -101,7 +103,7 @@ namespace kserver {
 #define KSERVER_SIG_LEN 16384
 
 /// Command payload buffer length 
-#define CMD_PAYLOAD_BUFFER_LEN 16384 * 8
+constexpr int64_t CMD_PAYLOAD_BUFFER_LEN = 16384 * 8;
 
 /// Read string length
 #define KSERVER_READ_STR_LEN 16384
