@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-koheron_python_branch=protocol
-automation_branch=protocol
+koheron_python_branch=master
+automation_branch=master
 
 branch=$(git rev-parse --abbrev-ref HEAD)
 
