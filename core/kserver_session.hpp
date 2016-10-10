@@ -222,8 +222,12 @@ int Session<sock_type>::run()
 
         requests_num++;
 
-        if (unlikely(session_manager.dev_manager.Execute(cmd) < 0))
+        if (unlikely(session_manager.dev_manager.Execute(cmd) < 0)) {
+            session_manager.kserver.syslog.print<SysLog::ERROR>(
+                "Failed to execute command [device = %i, operation = %i]\n",
+                cmd.device, cmd.operation);
             errors_num++;
+        }
     }
 
     exit_session();
