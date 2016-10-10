@@ -22,7 +22,7 @@ struct Buffer
 
     constexpr size_t size() const {return len;}
 
-    void set()     {bzero(_data.data(), len);}
+    void set()     {_data.fill(0);}
     char* data()   {return _data.data();}
     char* begin()  {return &(_data.data())[position];}
 

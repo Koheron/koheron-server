@@ -78,7 +78,7 @@ template<>
 int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes)
 {
     int bytes_rcv = 0;
-    uint32_t bytes_read = 0;
+    uint64_t bytes_read = 0;
 
     while (bytes_read < n_bytes) {
         bytes_rcv = read(comm_fd, buffer + bytes_read, n_bytes - bytes_read);
@@ -134,8 +134,11 @@ template<> int Session<WEBSOCK>::exit_socket()
 template<>
 int Session<WEBSOCK>::read_command(Command& cmd)
 {
-    if (unlikely(websock.receive_cmd(cmd) < 0))
+    if (unlikely(websock.receive_cmd(cmd) < 0)) {
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
+            "WebSocket: Command reception failed\n");
         return -1;
+    }
 
     if (websock.is_closed())
         return 0;
