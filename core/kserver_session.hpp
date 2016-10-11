@@ -124,8 +124,7 @@ class Session : public SessionAbstract
 
     template<typename... Tp>
     int send(const std::tuple<Tp...>& t) {
-        const auto& arr = serialize(t);
-        return send_data_packet(arr.data(), arr.size());
+        return send(serialize(t));
     }
 
   private:
