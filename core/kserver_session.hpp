@@ -155,7 +155,7 @@ class Session : public SessionAbstract
 
     std::vector<unsigned char> send_buffer;
 
-    // Internal functions
+  private:
     int init_socket();
     int exit_socket();
 

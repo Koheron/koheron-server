@@ -8,14 +8,6 @@
 namespace kserver {
 
 template<unsigned int severity, typename... Tp>
-void SysLog::print(const char *message, Tp... args)
-{
-    auto msg = std::string(message);
-    notify<severity>(msg, args...);
-    emit_error<severity>(msg, args...);
-}
-
-template<unsigned int severity, typename... Tp>
 int SysLog::__emit_error(const std::string& message, Tp... args)
 {
     // We don't emit if connections are closed

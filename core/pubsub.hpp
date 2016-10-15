@@ -60,7 +60,7 @@ struct Subscribers
         }
     }
 
-    int count(uint32_t channel) {
+    int count(uint32_t channel) const {
         return _subscribers[channel].size();
     }
 

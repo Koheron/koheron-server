@@ -35,9 +35,9 @@ void PubSub::emit_cstr(const char *str)
         std::lock_guard<std::mutex> lock(mutex);
 #endif
 
-        auto string = std::string(str);
+        const auto& string = std::string(str);
         uint32_t len = string.size() + 1; // Including '\0'
-        auto array = serialize(std::make_tuple(0U, channel, event, len));
+        const auto& array = serialize(std::make_tuple(0U, channel, event, len));
         emit_buffer.resize(0);
         emit_buffer.insert(emit_buffer.end(), array.begin(), array.end());
         emit_buffer.insert(emit_buffer.end(), string.begin(), string.end());
