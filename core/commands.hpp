@@ -16,8 +16,8 @@ namespace kserver {
 template<size_t len>
 struct Buffer
 {
-    constexpr Buffer(size_t position_ = 0):
-    position(position_)
+    constexpr Buffer(size_t position_ = 0) noexcept
+    : position(position_)
     {};
 
     constexpr size_t size() const {return len;}
@@ -30,7 +30,7 @@ struct Buffer
     std::tuple<Tp...> deserialize() {
         static_assert(required_buffer_size<Tp...>() <= len, "Buffer size too small");
 
-        auto tup = kserver::deserialize<0, Tp...>(begin());
+        const auto tup = kserver::deserialize<0, Tp...>(begin());
         position += required_buffer_size<Tp...>();
         return tup;
     }
@@ -38,7 +38,7 @@ struct Buffer
     template<typename T, size_t N>
     const std::array<T, N>& extract_array() {
         // http://stackoverflow.com/questions/11205186/treat-c-cstyle-array-as-stdarray
-        auto p = reinterpret_cast<const std::array<T, N>*>(begin());
+        const auto p = reinterpret_cast<const std::array<T, N>*>(begin());
         assert(p->data() == (const T*)begin());
         position += size_of<T, N>;
         return *p;
@@ -46,15 +46,13 @@ struct Buffer
 
     template<typename T>
     void copy_to_vector(std::vector<T>& vec, uint64_t length) {
-        vec.resize(length);
-        memcpy(vec.data(), begin(), length * sizeof(T));
+        const auto b = reinterpret_cast<const T*>(begin());
+        vec.insert(vec.begin(), b, b + length);
         position += length * sizeof(T);
     }
 
     void copy_to_string(std::string& str, uint64_t length) {
-        str.resize(length);
         str.insert(str.begin(), begin(), begin() + length);
-        // memcpy(str.data(), begin(), length);
         position += length;
     }
 
@@ -65,7 +63,7 @@ struct Buffer
 
 struct Command
 {
-    Command()
+    Command() noexcept
     : header(HEADER_START)
     {}
 

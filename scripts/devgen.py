@@ -306,6 +306,15 @@ def parser_generator(device, operation):
             lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive vector.\\n");\n')
             lines.append('        return -1;\n')
             lines.append('    }\n\n')
+
+        elif pack['family'] == 'string':
+            before_vector = False
+
+            lines.append('    uint64_t length' + str(idx) + ' = std::get<0>(cmd.payload.deserialize<uint64_t>());\n\n')
+            lines.append('    if (RCV_STRING(args.' + pack['args']['name'] + ', length' + str(idx) + ', cmd) < 0) {\n')
+            lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive string.\\n");\n')
+            lines.append('        return -1;\n')
+            lines.append('    }\n\n')
         else:
             raise ValueError('Unknown argument family')
     return ''.join(lines)
@@ -356,12 +365,17 @@ def build_args_packs(lines, operation):
                 packs.append({'family': 'scalar', 'args': args_list})
                 args_list = []
             packs.append({'family': 'array', 'args': arg})
-        elif is_std_vector(arg['type']):
+        elif is_std_vector(arg['type']) or is_std_string(arg['type']):
             has_vector = True
             if len(args_list) > 0:
                 packs.append({'family': 'scalar', 'args': args_list})
                 args_list = []
-            packs.append({'family': 'vector', 'args': arg})
+            if is_std_vector(arg['type']):
+                packs.append({'family': 'vector', 'args': arg})
+            elif is_std_string(arg['type']):
+                packs.append({'family': 'string', 'args': arg})
+            else:
+                assert False
         else:
             args_list.append(arg)
     if len(args_list) > 0:
@@ -373,6 +387,9 @@ def is_std_array(arg_type):
 
 def is_std_vector(arg_type):
     return arg_type.split('<')[0].strip() == 'std::vector'
+
+def is_std_string(arg_type):
+    return arg_type.strip() == 'std::string'
 
 def get_std_array_params(arg_type):
     templates = arg_type.split('<')[1].split('>')[0].split(',')

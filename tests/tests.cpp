@@ -185,6 +185,11 @@ bool Tests::rcv_std_vector4(const std::vector<float>& vec, double d, int32_t i,
     return true;
 }
 
+bool Tests::rcv_std_string(const std::string& str)
+{
+    return str == "Hello World";
+}
+
 const char* Tests::get_cstr()
 {
     return "Hello !";
