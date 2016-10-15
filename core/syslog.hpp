@@ -60,22 +60,7 @@ struct SysLog
     };
 
     template<unsigned int severity, typename... Tp>
-    void print(const std::string& msg, Tp... args)
-    {
-        static constexpr std::array<std::tuple<int, str_const>, syslog_severity_num>
-        log_array = {{
-            std::make_tuple(LOG_ALERT, str_const("KSERVER PANIC")),
-            std::make_tuple(LOG_CRIT, str_const("KSERVER CRITICAL")),
-            std::make_tuple(LOG_ERR, str_const("KSERVER ERROR")),
-            std::make_tuple(LOG_WARNING, str_const("KSERVER WARNING")),
-            std::make_tuple(LOG_NOTICE, str_const("KSERVER INFO")),
-            std::make_tuple(LOG_DEBUG, str_const("KSERVER DEBUG"))
-        }};
-
-        print_msg<severity>(std::get<1>(log_array[severity]), msg, args...);
-        call_syslog<severity, std::get<0>(log_array[severity])>(msg, args...);
-        emit_error<severity>(msg, args...);
-    }
+    void print(const std::string& msg, Tp... args);
 
   private:
     std::shared_ptr<KServerConfig> config;
