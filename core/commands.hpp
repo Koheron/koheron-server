@@ -51,6 +51,13 @@ struct Buffer
         position += length * sizeof(T);
     }
 
+    void copy_to_string(std::string& str, uint64_t length) {
+        str.resize(length);
+        str.insert(str.begin(), begin(), begin() + length);
+        // memcpy(str.data(), begin(), length);
+        position += length;
+    }
+
   private:
     std::array<char, len> _data;
     size_t position; // Current position in the buffer
