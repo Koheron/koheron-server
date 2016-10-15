@@ -5,6 +5,8 @@
 
 #include "kserver.hpp"
 
+#include "syslog.hpp"
+
 namespace kserver {
 
 template<unsigned int severity, typename... Tp>
