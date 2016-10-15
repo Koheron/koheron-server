@@ -48,16 +48,20 @@ struct Subscribers
     }
 
     void unsubscribe(SessID sid) {
-        for (unsigned int channel = 0; channel < chan_count<channels>(); channel++) {
+        for (auto& s : _subscribers) {
             // http://stackoverflow.com/questions/39912/how-do-i-remove-an-item-from-a-stl-vector-with-a-certain-value
-            auto it = std::find(_subscribers[channel].begin(), _subscribers[channel].end(), sid);
+            auto it = std::find(s.begin(), s.end(), sid);
 
-            if (it != _subscribers[channel].end()) {
+            if (it != s.end()) {
                 using std::swap;
-                swap(*it, _subscribers[channel].back());
-                _subscribers[channel].pop_back();
+                swap(*it, s.back());
+                s.pop_back();
             }
         }
+    }
+
+    int count(uint32_t channel) {
+        return _subscribers[channel].size();
     }
 
   private:
