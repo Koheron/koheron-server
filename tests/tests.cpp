@@ -185,6 +185,25 @@ bool Tests::rcv_std_vector4(const std::vector<float>& vec, double d, int32_t i,
     return true;
 }
 
+bool Tests::rcv_std_vector5(const std::vector<float>& vec1, double d, int32_t i, const std::vector<float>& vec2)
+{
+    if (fabs(d - 0.4232747024077716) > std::numeric_limits<double>::epsilon()) return false;
+    if (i != 35591508) return false;
+
+    if (vec1.size() != 8192) return false;
+    if (vec2.size() != 16384) return false;
+
+    for (unsigned int i=0; i<vec1.size(); i++)
+        if (fabs(vec1[i] - tanh(static_cast<float>(i))) > std::numeric_limits<float>::epsilon())
+            return false;
+
+    for (unsigned int i=0; i<vec2.size(); i++)
+        if (fabs(vec2[i] - log2(static_cast<float>(i + 1))) > std::numeric_limits<float>::round_error())
+            return false;
+
+    return true;
+}
+
 bool Tests::rcv_std_string(const std::string& str)
 {
     return str == "Hello World";

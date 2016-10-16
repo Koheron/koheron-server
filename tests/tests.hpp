@@ -58,6 +58,7 @@ class Tests
     bool rcv_std_vector2(uint32_t u, float f, const std::vector<float>& vec, double d, int32_t i);
     bool rcv_std_vector3(const std::array<uint32_t, 8192>& arr, const std::vector<float>& vec, double d, int32_t i);
     bool rcv_std_vector4(const std::vector<float>& vec, double d, int32_t i, const std::array<uint32_t, 8192>& arr);
+    bool rcv_std_vector5(const std::vector<float>& vec1, double d, int32_t i, const std::vector<float>& vec2);
 
     // Receive string
     bool rcv_std_string(const std::string& str);
