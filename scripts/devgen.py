@@ -299,25 +299,36 @@ def parser_generator(device, operation):
                 lines.append('\n    args.' + pack['args']['name'] + ' = std::get<1>(tup' + str(idx)  + ');\n')
 
         elif pack['family'] == 'vector':
-            before_vector = False
-
-            lines.append('    uint64_t length' + str(idx) + ' = std::get<0>(cmd.payload.deserialize<uint64_t>());\n\n')
+            print_extract_vector_length(lines, before_vector, idx, device.name, operation['name'])
             lines.append('    if (RCV_VECTOR(args.' + pack['args']['name'] + ', length' + str(idx) + ', cmd) < 0) {\n')
             lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive vector.\\n");\n')
             lines.append('        return -1;\n')
             lines.append('    }\n\n')
 
-        elif pack['family'] == 'string':
             before_vector = False
 
-            lines.append('    uint64_t length' + str(idx) + ' = std::get<0>(cmd.payload.deserialize<uint64_t>());\n\n')
+        elif pack['family'] == 'string':
+            print_extract_vector_length(lines, before_vector, idx, device.name, operation['name'])
             lines.append('    if (RCV_STRING(args.' + pack['args']['name'] + ', length' + str(idx) + ', cmd) < 0) {\n')
             lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive string.\\n");\n')
             lines.append('        return -1;\n')
             lines.append('    }\n\n')
+
+            before_vector = False
         else:
             raise ValueError('Unknown argument family')
     return ''.join(lines)
+
+def print_extract_vector_length(lines, before_vector, idx, name, op):
+    if before_vector:
+        lines.append('    uint64_t length' + str(idx) + ' = std::get<0>(cmd.payload.deserialize<uint64_t>());\n\n')
+    else:
+        lines.append('\n    auto args_tuple' + str(idx)  + ' = DESERIALIZE<uint64_t>(cmd);\n\n')
+        lines.append('    if (std::get<0>(args_tuple' + str(idx)  + ') < 0) {\n')
+        lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + name + ' - ' + op + '] Failed to deserialize buffer.\\n");\n')
+        lines.append('        return -1;\n')
+        lines.append('    }\n')
+        lines.append('    uint64_t length' + str(idx) + ' = std::get<1>(args_tuple' + str(idx) + ');\n\n')
 
 def print_req_buff_size(lines, packs):
     lines.append('    constexpr size_t req_buff_size = ');

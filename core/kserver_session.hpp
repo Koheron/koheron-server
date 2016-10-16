@@ -319,7 +319,7 @@ inline int Session<TCP>::rcv_string(std::string& str, uint64_t length, Command& 
         return -1;
 
     str.insert(str.begin(), vec.begin(), vec.end());
-    return 0;
+    return length;
 }
 
 template<>
