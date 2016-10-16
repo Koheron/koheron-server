@@ -195,6 +195,27 @@ bool Tests::rcv_std_string1(const std::string& str)
     return str == "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur sodales ligula in libero. Sed dignissim lacinia nunc.";
 }
 
+bool Tests::rcv_std_string2(const std::string& str, const std::vector<float>& vec, double d, int32_t i)
+{
+    if (str != "At vero eos et accusamus et iusto odio dignissimos ducimus, qui blanditiis praesentium voluptatum deleniti atque corrupti")
+        return false;
+
+    if (vec.size() != 8192)
+        return false;
+
+    for (unsigned int i=0; i<vec.size(); i++)
+        if (fabs(vec[i] - sin(static_cast<float>(i))) > std::numeric_limits<float>::epsilon())
+            return false;
+
+    if (fabs(d - 0.80773675317454) > std::numeric_limits<double>::epsilon())
+        return false;
+
+    if (i != -361148845)
+        return false;
+
+    return true;
+}
+
 const char* Tests::get_cstr()
 {
     return "Hello !";
