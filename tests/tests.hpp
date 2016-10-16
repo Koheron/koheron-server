@@ -61,6 +61,7 @@ class Tests
 
     // Receive string
     bool rcv_std_string(const std::string& str);
+    bool rcv_std_string1(const std::string& str);
 
     // Send string
     const char* get_cstr();

@@ -12,6 +12,8 @@ namespace kserver {
 template<unsigned int severity, typename... Tp>
 void SysLog::print(const std::string& msg, Tp... args)
 {
+    static_assert(severity <= syslog_severity_num, "Invalid logging level");
+
     static constexpr std::array<std::tuple<int, str_const>, syslog_severity_num>
     log_array = {{
         std::make_tuple(LOG_ALERT, str_const("KSERVER PANIC")),
