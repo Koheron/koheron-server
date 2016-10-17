@@ -185,6 +185,80 @@ bool Tests::rcv_std_vector4(const std::vector<float>& vec, double d, int32_t i,
     return true;
 }
 
+bool Tests::rcv_std_vector5(const std::vector<float>& vec1, double d, int32_t i, const std::vector<float>& vec2)
+{
+    if (fabs(d - 0.4232747024077716) > std::numeric_limits<double>::epsilon()) return false;
+    if (i != 35591508) return false;
+
+    if (vec1.size() != 8192) return false;
+    if (vec2.size() != 16384) return false;
+
+    for (unsigned int i=0; i<vec1.size(); i++)
+        if (fabs(vec1[i] - tanh(static_cast<float>(i))) > std::numeric_limits<float>::epsilon())
+            return false;
+
+    for (unsigned int i=0; i<vec2.size(); i++)
+        if (fabs(vec2[i] - log2(static_cast<float>(i + 1))) > std::numeric_limits<float>::round_error())
+            return false;
+
+    return true;
+}
+
+bool Tests::rcv_std_string(const std::string& str)
+{
+    return str == "Hello World";
+}
+
+bool Tests::rcv_std_string1(const std::string& str)
+{
+    return str == "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur sodales ligula in libero. Sed dignissim lacinia nunc.";
+}
+
+bool Tests::rcv_std_string2(const std::string& str, const std::vector<float>& vec, double d, int32_t i)
+{
+    if (str != "At vero eos et accusamus et iusto odio dignissimos ducimus, qui blanditiis praesentium voluptatum deleniti atque corrupti")
+        return false;
+
+    if (vec.size() != 8192)
+        return false;
+
+    for (unsigned int i=0; i<vec.size(); i++)
+        if (fabs(vec[i] - sin(static_cast<float>(i))) > std::numeric_limits<float>::epsilon())
+            return false;
+
+    if (fabs(d - 0.80773675317454) > std::numeric_limits<double>::epsilon())
+        return false;
+
+    if (i != -361148845)
+        return false;
+
+    return true;
+}
+
+bool Tests::rcv_std_string3(const std::vector<float>& vec, double d, int32_t i, const std::string& str, const std::array<uint32_t, 8192>& arr)
+{
+    if (vec.size() != 8192)
+        return false;
+
+    for (unsigned int i=0; i<vec.size(); i++)
+        if (fabs(vec[i] - sqrt(static_cast<float>(i))) > std::numeric_limits<float>::round_error())
+            return false;
+
+    if (fabs(d - 0.4741953746153866) > std::numeric_limits<double>::epsilon())
+        return false;
+
+    if (i != -6093602)
+        return false;
+
+    if (str != "Erbium is a rare-earth element that, when excited, emits light around 1.54 micrometers - the low-loss wavelength for optical fibers used in DWDM. A weak signal enters the erbium-doped fiber, into which light at 980nm or 1480nm is injected using a pump laser. This injected light stimulates the erbium atoms to release their stored energy as additional 1550nm light. As this process continues down the fiber, the signal grows stronger. The spontaneous emissions in the EDFA also add noise to the signal; this determines the noise figure of an EDFA.")
+        return false;
+
+    for (unsigned int i=0; i<8192; i++)
+        if (arr[i] != i * i) return false;
+
+    return true;
+}
+
 const char* Tests::get_cstr()
 {
     return "Hello !";

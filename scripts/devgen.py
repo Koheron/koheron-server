@@ -299,16 +299,36 @@ def parser_generator(device, operation):
                 lines.append('\n    args.' + pack['args']['name'] + ' = std::get<1>(tup' + str(idx)  + ');\n')
 
         elif pack['family'] == 'vector':
-            before_vector = False
-
-            lines.append('    uint64_t length' + str(idx) + ' = std::get<0>(cmd.payload.deserialize<uint64_t>());\n\n')
+            print_extract_vector_length(lines, before_vector, idx, device.name, operation['name'])
             lines.append('    if (RCV_VECTOR(args.' + pack['args']['name'] + ', length' + str(idx) + ', cmd) < 0) {\n')
             lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive vector.\\n");\n')
             lines.append('        return -1;\n')
             lines.append('    }\n\n')
+
+            before_vector = False
+
+        elif pack['family'] == 'string':
+            print_extract_vector_length(lines, before_vector, idx, device.name, operation['name'])
+            lines.append('    if (RCV_STRING(args.' + pack['args']['name'] + ', length' + str(idx) + ', cmd) < 0) {\n')
+            lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive string.\\n");\n')
+            lines.append('        return -1;\n')
+            lines.append('    }\n\n')
+
+            before_vector = False
         else:
             raise ValueError('Unknown argument family')
     return ''.join(lines)
+
+def print_extract_vector_length(lines, before_vector, idx, name, op):
+    if before_vector:
+        lines.append('    uint64_t length' + str(idx) + ' = std::get<0>(cmd.payload.deserialize<uint64_t>());\n\n')
+    else:
+        lines.append('\n    auto args_tuple' + str(idx)  + ' = DESERIALIZE<uint64_t>(cmd);\n\n')
+        lines.append('    if (std::get<0>(args_tuple' + str(idx)  + ') < 0) {\n')
+        lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + name + ' - ' + op + '] Failed to deserialize buffer.\\n");\n')
+        lines.append('        return -1;\n')
+        lines.append('    }\n')
+        lines.append('    uint64_t length' + str(idx) + ' = std::get<1>(args_tuple' + str(idx) + ');\n\n')
 
 def print_req_buff_size(lines, packs):
     lines.append('    constexpr size_t req_buff_size = ');
@@ -356,12 +376,17 @@ def build_args_packs(lines, operation):
                 packs.append({'family': 'scalar', 'args': args_list})
                 args_list = []
             packs.append({'family': 'array', 'args': arg})
-        elif is_std_vector(arg['type']):
+        elif is_std_vector(arg['type']) or is_std_string(arg['type']):
             has_vector = True
             if len(args_list) > 0:
                 packs.append({'family': 'scalar', 'args': args_list})
                 args_list = []
-            packs.append({'family': 'vector', 'args': arg})
+            if is_std_vector(arg['type']):
+                packs.append({'family': 'vector', 'args': arg})
+            elif is_std_string(arg['type']):
+                packs.append({'family': 'string', 'args': arg})
+            else:
+                assert False
         else:
             args_list.append(arg)
     if len(args_list) > 0:
@@ -373,6 +398,9 @@ def is_std_array(arg_type):
 
 def is_std_vector(arg_type):
     return arg_type.split('<')[0].strip() == 'std::vector'
+
+def is_std_string(arg_type):
+    return arg_type.strip() == 'std::string'
 
 def get_std_array_params(arg_type):
     templates = arg_type.split('<')[1].split('>')[0].split(',')
