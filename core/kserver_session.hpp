@@ -48,6 +48,7 @@ class SessionAbstract
     template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd);
     template<typename T, size_t N> std::tuple<int, const std::array<T, N>&> extract_array(Command& cmd);
     template<typename T> int rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd);
+    int rcv_string(std::string& str, uint64_t length, Command& cmd);
     template<typename... Tp> int send(const std::tuple<Tp...>& t);
     template<typename T, size_t N> int send(const std::array<T, N>& vect);
     template<typename T> int send(const std::vector<T>& vect);
@@ -100,6 +101,8 @@ class Session : public SessionAbstract
     template<typename T>
     int rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd);
 
+    int rcv_string(std::string& str, uint64_t length, Command& cmd);
+
     template<typename T> int write(const T* data, unsigned int len);
     template<class T> int send_data_packet(const T *data, size_t len);
     template<class T> int send(const T& data);
@@ -124,8 +127,7 @@ class Session : public SessionAbstract
 
     template<typename... Tp>
     int send(const std::tuple<Tp...>& t) {
-        const auto& arr = serialize(t);
-        return send_data_packet(arr.data(), arr.size());
+        return send(serialize(t));
     }
 
   private:
@@ -156,7 +158,7 @@ class Session : public SessionAbstract
 
     std::vector<unsigned char> send_buffer;
 
-    // Internal functions
+  private:
     int init_socket();
     int exit_socket();
 
@@ -242,7 +244,7 @@ int Session<sock_type>::run()
 // RESERVED | LENGTH_BYTES | DATA ...
 template<int sock_type>
 template<class T>
-int Session<sock_type>::send_data_packet(const T *data, size_t len)
+inline int Session<sock_type>::send_data_packet(const T *data, size_t len)
 {
     const auto bytes = reinterpret_cast<const unsigned char*>(data);
     auto n_bytes = len * sizeof(T);
@@ -302,15 +304,27 @@ int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes);
 
 template<>
 template<typename T>
-int Session<TCP>::rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd)
+inline int Session<TCP>::rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd)
 {
     vec.resize(length);
     return rcv_n_bytes(reinterpret_cast<char *>(vec.data()), length * sizeof(T));
 }
 
 template<>
+inline int Session<TCP>::rcv_string(std::string& str, uint64_t length, Command& cmd)
+{
+    auto vec = std::vector<char>(length);
+
+    if (rcv_vector(vec, length, cmd) < 0)
+        return -1;
+
+    str.insert(str.begin(), vec.begin(), vec.end());
+    return length;
+}
+
+template<>
 template<typename... Tp>
-std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd)
+inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd)
 {
     Buffer<required_buffer_size<Tp...>()> buff;
     int err = rcv_n_bytes(buff.data(), required_buffer_size<Tp...>());
@@ -319,7 +333,7 @@ std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd)
 
 template<>
 template<typename T, size_t N>
-std::tuple<int, const std::array<T, N>&> Session<TCP>::extract_array(Command& cmd)
+inline std::tuple<int, const std::array<T, N>&> Session<TCP>::extract_array(Command& cmd)
 {
     Buffer<size_of<T, N>> buff;
     int err = rcv_n_bytes(buff.data(), size_of<T, N>);
@@ -329,7 +343,7 @@ std::tuple<int, const std::array<T, N>&> Session<TCP>::extract_array(Command& cm
 
 template<>
 template<class T>
-int Session<TCP>::write(const T *data, unsigned int len)
+inline int Session<TCP>::write(const T *data, unsigned int len)
 {
     int bytes_send = sizeof(T) * len;
     int n_bytes_send = ::write(comm_fd, (void*)data, bytes_send);
@@ -379,7 +393,7 @@ class Session<UNIX> : public Session<TCP>
 
 template<>
 template<typename T>
-int Session<WEBSOCK>::rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd)
+inline int Session<WEBSOCK>::rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd)
 {
     if (length * sizeof(T) > CMD_PAYLOAD_BUFFER_LEN) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
@@ -392,15 +406,28 @@ int Session<WEBSOCK>::rcv_vector(std::vector<T>& vec, uint64_t length, Command& 
 }
 
 template<>
+inline int Session<WEBSOCK>::rcv_string(std::string& str, uint64_t length, Command& cmd)
+{
+    if (length > CMD_PAYLOAD_BUFFER_LEN) {
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
+            "WebSocket::rcv_vector: Payload size overflow\n");
+        return -1;
+    }
+
+    cmd.payload.copy_to_string(str, length);
+    return 0;
+}
+
+template<>
 template<typename... Tp>
-std::tuple<int, Tp...> Session<WEBSOCK>::deserialize(Command& cmd)
+inline std::tuple<int, Tp...> Session<WEBSOCK>::deserialize(Command& cmd)
 {
     return std::tuple_cat(std::make_tuple(0), cmd.payload.deserialize<Tp...>());
 }
 
 template<>
 template<typename T, size_t N>
-std::tuple<int, const std::array<T, N>&> Session<WEBSOCK>::extract_array(Command& cmd)
+inline std::tuple<int, const std::array<T, N>&> Session<WEBSOCK>::extract_array(Command& cmd)
 {
     return std::tuple_cat(std::make_tuple(0),
                           std::forward_as_tuple(cmd.payload.extract_array<T, N>()));
@@ -504,6 +531,12 @@ template<typename T>
 inline int SessionAbstract::rcv_vector(std::vector<T>& vec,
                                        uint64_t length, Command& cmd) {
     SWITCH_SOCK_TYPE(rcv_vector(vec, length, cmd))
+    return -1;
+}
+
+inline int SessionAbstract::rcv_string(std::string& str,
+                                       uint64_t length, Command& cmd) {
+    SWITCH_SOCK_TYPE(rcv_string(str, length, cmd))
     return -1;
 }
 
