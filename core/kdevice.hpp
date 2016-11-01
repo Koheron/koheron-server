@@ -88,6 +88,7 @@ friend Dev;
 #define SEND kserver->session_manager.get_session(sess_id).send
 #define SEND_CSTR kserver->session_manager.get_session(sess_id).send_cstr
 #define RCV_VECTOR kserver->session_manager.get_session(sess_id).rcv_vector
+#define RCV_STRING kserver->session_manager.get_session(sess_id).rcv_string
 #define DESERIALIZE kserver->session_manager.get_session(sess_id).deserialize
 #define EXTRACT_ARRAY kserver->session_manager.get_session(sess_id).extract_array
 
