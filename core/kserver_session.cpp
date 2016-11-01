@@ -15,7 +15,7 @@ namespace kserver {
 template<> int Session<TCP>::init_socket() {return 0;}
 template<> int Session<TCP>::exit_socket() {return 0;}
 
-#define HEADER_TYPE_LIST uint16_t, uint16_t, uint32_t
+#define HEADER_TYPE_LIST uint16_t, uint16_t, uint64_t
 
 template<>
 int Session<TCP>::read_command(Command& cmd)
@@ -35,14 +35,14 @@ int Session<TCP>::read_command(Command& cmd)
     }
 
     auto header_tuple = cmd.header.deserialize<HEADER_TYPE_LIST>();
-    int64_t payload_size = std::get<2>(header_tuple);
+    uint64_t payload_size = std::get<2>(header_tuple);
 
     cmd.sess_id = id;
     cmd.device = static_cast<device_t>(std::get<0>(header_tuple));
     cmd.operation = std::get<1>(header_tuple);
     cmd.payload_size = payload_size;
 
-    if (payload_size > static_cast<int64_t>(cmd.payload.size())) {
+    if (payload_size > static_cast<uint64_t>(cmd.payload.size())) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
                   "TCPSocket: Command payload buffer size too small\n"
                   "payload_size = %u cmd.payload.size = %u\n",
