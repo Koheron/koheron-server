@@ -278,12 +278,7 @@ KSERVER_STRUCT_ARGUMENTS(SUBSCRIBE_PUBSUB)
 
 KSERVER_PARSE_ARG(SUBSCRIBE_PUBSUB)
 {
-    if (required_buffer_size<uint32_t>() != cmd.payload_size) {
-        kserver->syslog.print<SysLog::ERROR>("Invalid payload size\n");
-        return -1;
-    }
-
-    args.channel = std::get<0>(cmd.payload.deserialize<uint32_t>());
+    args.channel = std::get<0>(DESERIALIZE<uint32_t>(cmd));
     return 0;
 }
 

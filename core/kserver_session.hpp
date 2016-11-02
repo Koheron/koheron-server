@@ -352,7 +352,7 @@ inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd)
 
     if (length != pack_len) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
-            "TCPSocket: Scalar pack deserialization. Expected %lu bytes received %lu bytes\n",
+            "TCPSocket: Scalar pack deserialization failed. Expected %lu bytes received %lu bytes\n",
             pack_len, length);
 
         return std::tuple_cat(std::make_tuple(-1), std::tuple<Tp...>());
@@ -371,7 +371,7 @@ inline std::tuple<int, const std::array<T, N>&> Session<TCP>::extract_array(Comm
 
     if (length != size_of<T, N>) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
-            "TCPSocket: Array deserialization. Expected %lu bytes received %lu bytes\n",
+            "TCPSocket: Array extraction failed. Expected %lu bytes received %lu bytes\n",
             size_of<T, N>, length);
 
         return std::tuple_cat(std::make_tuple(-1),std::forward_as_tuple(std::array<T, N>()));
@@ -439,13 +439,13 @@ inline int Session<WEBSOCK>::rcv_vector(std::vector<T>& vec, Command& cmd)
 {
     auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
 
-    if (length * sizeof(T) > CMD_PAYLOAD_BUFFER_LEN) {
+    if (length > CMD_PAYLOAD_BUFFER_LEN) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
             "WebSocket::rcv_vector: Payload size overflow\n");
         return -1;
     }
 
-    cmd.payload.copy_to_vector(vec, length);
+    cmd.payload.copy_to_vector(vec, length / sizeof(T));
     return 0;
 }
 
@@ -468,8 +468,16 @@ template<>
 template<typename... Tp>
 inline std::tuple<int, Tp...> Session<WEBSOCK>::deserialize(Command& cmd)
 {
-    if (std::get<0>(cmd.payload.deserialize<uint64_t>()) != required_buffer_size<Tp...>())
+    auto constexpr pack_len = required_buffer_size<Tp...>();
+    auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
+
+    if (length != pack_len) {
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
+            "WebSocket: Scalar pack deserialization failed. Expected %lu bytes received %lu bytes\n",
+            pack_len, length);
+
         return std::tuple_cat(std::make_tuple(-1), std::tuple<Tp...>());
+    }
 
     return std::tuple_cat(std::make_tuple(0), cmd.payload.deserialize<Tp...>());
 }
