@@ -137,7 +137,7 @@ stop_server:
 .PHONY: test_python
 
 KOHERON_PYTHON_URL = https://github.com/Koheron/koheron-python.git
-KOHERON_PYTHON_BRANCH = master
+KOHERON_PYTHON_BRANCH = v0.11
 KOHERON_PYTHON_DIR = $(TMP)/koheron-python
 
 $(KOHERON_PYTHON_DIR):
