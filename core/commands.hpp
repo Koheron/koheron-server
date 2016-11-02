@@ -26,6 +26,8 @@ struct Buffer
     char* data()   {return _data.data();}
     char* begin()  {return &(_data.data())[position];}
 
+    // These functions are used by Websocket
+
     template<typename... Tp>
     std::tuple<Tp...> deserialize() {
         static_assert(required_buffer_size<Tp...>() <= len, "Buffer size too small");
@@ -68,7 +70,7 @@ struct Command
     {}
 
     enum Header : uint32_t {
-        HEADER_SIZE = 16,
+        HEADER_SIZE = 8,
         HEADER_START = 4  // First 4 bytes are reserved
     };
 
