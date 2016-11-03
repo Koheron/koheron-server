@@ -358,13 +358,15 @@ def build_args_packs(lines, operation):
     return packs, has_vector
 
 def is_std_array(arg_type):
-    return arg_type.split('<')[0].strip() == 'std::array'
+    container_type = arg_type.split('<')[0].strip()
+    return  container_type in ['std::array', 'const std::array']
 
 def is_std_vector(arg_type):
-    return arg_type.split('<')[0].strip() == 'std::vector'
+    container_type = arg_type.split('<')[0].strip()
+    return  container_type in ['std::vector', 'const std::vector']
 
 def is_std_string(arg_type):
-    return arg_type.strip() == 'std::string'
+    return arg_type.strip() in ['std::string', 'const std::string']
 
 def get_std_array_params(arg_type):
     templates = arg_type.split('<')[1].split('>')[0].split(',')
