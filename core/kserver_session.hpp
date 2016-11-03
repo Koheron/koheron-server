@@ -108,11 +108,11 @@ class Session : public SessionAbstract
     template<class T> int send(const T& data);
 
     int send_string(const std::string& str) {
-        return send_data_packet(str.data(), str.size() + 1);
+        return send_data_packet(str.data(), str.size());
     }
 
     int send_cstr(const char* string) {
-        return send_data_packet(string, std::strlen(string) + 1);
+        return send_data_packet(string, std::strlen(string));
     }
 
     template<typename T>
