@@ -330,15 +330,12 @@ template<>
 inline int Session<TCP>::rcv_string(std::string& str, Command& cmd)
 {
     auto length = get_pack_length();
-    auto vec = std::vector<char>(length);
-    auto err = rcv_n_bytes(vec.data(), length);
+    str.resize(length);
+    auto err = rcv_n_bytes(const_cast<char*>(str.data()), length);
 
-    if (err >= 0) {
-        str.insert(str.begin(), vec.begin(), vec.end());
-
+    if (err >= 0)
         session_manager.kserver.syslog.print<SysLog::DEBUG>(
             "TCPSocket: Received a string of %lu bytes\n", length);
-    }
 
     return err;
 }
