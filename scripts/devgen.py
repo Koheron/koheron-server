@@ -25,6 +25,7 @@ def generate(devices_list, base_dir, build_dir):
             render_device('.cpp', device, build_dir)
             devices.append(device)
     render_device_table(devices, build_dir)
+    render_ids(devices, build_dir)
 
 class Device:
     def __init__(self, path, base_dir):
@@ -121,6 +122,13 @@ def render_device_table(devices, build_dir):
 
     output_filename = os.path.join(build_dir, 'devices.hpp')
     fill_template(devices, 'devices.hpp', output_filename)
+
+def render_ids(devices, build_dir):
+    template = get_renderer().get_template(os.path.join('scripts/templates', 'device_ids.hpp'))
+    with open(os.path.join(build_dir, 'device_ids.hpp'), 'w') as output:
+        output.write(template.render(devices=devices,
+                                     max_op_num=get_max_op_num(devices),
+                                     json=get_json(devices)))
 
 # -----------------------------------------------------------------------------
 # Parse device C++ header
