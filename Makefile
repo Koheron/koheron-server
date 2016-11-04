@@ -50,6 +50,7 @@ KS_DEVICES_CPP=$(addprefix $(TMP)/,$(subst .hpp,.cpp,$(KS_DEVICES_HPP)))
 KS_DEVICES_OBJ=$(addprefix $(TMP)/,$(subst .hpp,.o,$(KS_DEVICES_HPP)))
 TMP_DEVICE_TABLE_HPP=$(TMP)/devices_table.hpp
 TMP_DEVICES_HPP=$(TMP)/devices.hpp
+TMP_OPERATIONS_HPP=$(TMP)/operations.hpp
 
 VPATH=core:core/crypto:$(DEVICES_PATHS)
 OBJ = $(CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ) $(DEPENDENCIES_OBJ)
@@ -103,13 +104,13 @@ debug:
 # Build, start, stop
 # ------------------------------------------------------------------------------------------------------------
 
-.PHONY: exec start_server stop_server
+.PHONY: exec start_server stop_server operations_hpp
 
 # http://bruno.defraine.net/techtips/makefile-auto-dependencies-with-gcc/
 # http://scottmcpeak.com/autodepend/autodepend.html
 -include $(DEP)
 
-$(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(KS_DEVICES_CPP): $(DEVICES_HPP) $(DEVGEN_PY) $(TEMPLATES)
+$(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(TMP_OPERATIONS_HPP) $(KS_DEVICES_CPP): $(DEVICES_HPP) $(DEVGEN_PY) $(TEMPLATES)
 	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(TMP)
 
 $(TMP)/%.o: %.cpp
@@ -129,6 +130,8 @@ start_server: exec stop_server
 
 stop_server:
 	-pkill -SIGINT $(SERVER) # We ignore the error raised if the server is already stopped
+
+operations_hpp: $(TMP_OPERATIONS_HPP)
 
 # ------------------------------------------------------------------------------------------------------------
 # Test python API
