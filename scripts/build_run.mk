@@ -31,7 +31,7 @@ $(KOHERON_SERVER_VENV): $(KOHERON_SERVER_DIR)/requirements.txt
 $(KOHERON_SERVER_BIN): $(KOHERON_SERVER_VENV)
 	make -C $(KOHERON_SERVER_DIR) CONFIG=config/config_local.yaml PYTHON=koheron_server_venv/bin/python
 
-operations_hpp:
+operations_hpp: $(KOHERON_SERVER_VENV)
 	make -C $(KOHERON_SERVER_DIR) PYTHON=koheron_server_venv/bin/python operations_hpp
 
 start_koheron_server: $(KOHERON_SERVER_BIN)
