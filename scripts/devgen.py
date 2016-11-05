@@ -19,6 +19,7 @@ def generate(devices_list, base_dir, build_dir):
         if path.endswith('.hpp') or path.endswith('.h'):
             device = Device(path, base_dir)
             device.id = dev_id
+            device.calls = cmd_calls(device.raw, dev_id)
             dev_id +=1
             print('Generating ' + device.name + '...')
             render_device('.hpp', device, build_dir)
@@ -31,8 +32,9 @@ class Device:
     def __init__(self, path, base_dir):
         print 'Parsing and analysing ' + path + '...'
         dev = parse_header(os.path.join(base_dir, path))[0]
+        self.raw = dev
         self.header_path = os.path.dirname(path)
-        self.calls = cmd_calls(dev)
+        # self.calls = cmd_calls(dev)
 
         self.path = path
         self.operations = dev['operations']
@@ -42,6 +44,7 @@ class Device:
         self.objects = dev['objects']
         self.includes = dev['includes']
         self.id = None
+        self.calls = None
 
 def render_device(extension, device, build_dir):
     template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device' + extension))
@@ -227,21 +230,26 @@ def format_ret_type(classname, operation):
 # Generate command call and send
 # -----------------------------------------------------------------------------
 
-def cmd_calls(device):
+def cmd_calls(device, dev_id):
     calls = {}
     for op in device['operations']:
-        calls[op['tag']] = generate_call(device, op)
+        calls[op['tag']] = generate_call(device, dev_id, op)
     return calls
 
-def generate_call(device, operation):
+def generate_call(device, dev_id, operation):
     lines = []
+    # if operation['io_type'] == 'WRITE':
+    #     lines.append('    ' + build_func_call(device, operation) + ';\n')
+    #     lines.append('    return 0;\n')
+    # elif operation['io_type'] == 'READ':
+    #     lines.append('    return SEND(' + build_func_call(device, operation) + ');\n')
+    # elif operation['io_type'] == 'READ_CSTR':
+    #     lines.append('    return SEND_CSTR(' + build_func_call(device, operation) + ');\n')
     if operation['io_type'] == 'WRITE':
         lines.append('    ' + build_func_call(device, operation) + ';\n')
         lines.append('    return 0;\n')
     elif operation['io_type'] == 'READ':
-        lines.append('    return SEND(' + build_func_call(device, operation) + ');\n')
-    elif operation['io_type'] == 'READ_CSTR':
-        lines.append('    return SEND_CSTR(' + build_func_call(device, operation) + ');\n')
+        lines.append('    return SEND__<' + str(dev_id) + ', ' + str(operation['id']) + '>(' + build_func_call(device, operation) + ');\n')
     return ''.join(lines)
 
 def build_func_call(device, operation):

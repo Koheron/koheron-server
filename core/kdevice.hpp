@@ -92,6 +92,8 @@ friend Dev;
 #define DESERIALIZE kserver->session_manager.get_session(sess_id).deserialize
 #define EXTRACT_ARRAY kserver->session_manager.get_session(sess_id).extract_array
 
+#define SEND__ kserver->session_manager.get_session(sess_id).send__
+
 } // namespace kserver
 
 #endif // __KDEVICE_HPP__

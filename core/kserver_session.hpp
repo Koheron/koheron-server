@@ -55,6 +55,9 @@ class SessionAbstract
     template<typename T> int write(const T* data, unsigned int len);
     template<class T> int send(const T& data);
 
+    template<uint16_t class_id, uint16_t func_id, typename... Args>
+    int send__(Args... args);
+
     int kind;
 };
 
@@ -128,6 +131,13 @@ class Session : public SessionAbstract
     template<typename... Tp>
     int send(const std::tuple<Tp...>& t) {
         return send(serialize(t));
+    }
+
+    // TODO rename
+    template<uint16_t class_id, uint16_t func_id, typename... Args>
+    int send__(Args... args) {
+        command_serializer<class_id, func_id>(send_buffer, args...);
+        return write(send_buffer.data(), send_buffer.size());
     }
 
   private:
@@ -597,6 +607,12 @@ inline int SessionAbstract::rcv_string(std::string& str, Command& cmd) {
 
 inline int SessionAbstract::send_cstr(const char *string) {
     SWITCH_SOCK_TYPE(send_cstr(string))
+    return -1;
+}
+
+template<uint16_t class_id, uint16_t func_id, typename... Args>
+inline int SessionAbstract::send__(Args... args) {
+    SWITCH_SOCK_TYPE(send__<class_id, func_id>(args...))
     return -1;
 }
 

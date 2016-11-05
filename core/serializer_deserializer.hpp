@@ -303,6 +303,157 @@ serialize(Tp... t)
     return serialize<Tp...>(std::make_tuple(t...));
 }
 
+// ---------------------------
+// Commands serializer
+// ---------------------------
+
+namespace detail {
+
+    // Scalars
+
+    inline void dump_size_to_buffer(std::vector<unsigned char>& buffer, uint64_t size) {
+        if (size > 0) {
+            buffer.resize(buffer.size() + size_of<uint64_t>);
+            append(buffer.data() + buffer.size() - size_of<uint64_t>, size);
+        }
+    }
+
+    struct ScalarPack {
+        static constexpr size_t SCALAR_PACK_LEN = 1024;
+        std::array<unsigned char, SCALAR_PACK_LEN> data;
+        uint64_t size = 0;
+
+        template<typename T>
+        void append(T t) {
+            kserver::append<T>(&data[size], t);
+            size += size_of<T>;
+        }
+
+        void dump_to_buffer(std::vector<unsigned char>& buffer) {
+            if (size > 0) {
+                dump_size_to_buffer(buffer, size);
+                buffer.insert(buffer.end(), data.data(), data.data() + size);
+                size = 0;
+            }
+        }
+    };
+
+    template<typename Tp0, typename... Tp>
+    inline std::enable_if_t<0 == sizeof...(Tp) &&
+                            std::is_scalar<
+                                typename std::remove_reference<Tp0>::type
+                            >::value, void>
+    command_serializer(std::vector<unsigned char>& buffer,
+                       ScalarPack& scal_pack, Tp0 t, Tp... args)
+    {
+        scal_pack.append(t);
+    }
+
+
+    template <typename Tp0, typename... Tp>
+    inline std::enable_if_t<0 < sizeof...(Tp) &&
+                            std::is_scalar<
+                                typename std::remove_reference<Tp0>::type
+                            >::value, void>
+    command_serializer(std::vector<unsigned char>& buffer,
+                       ScalarPack& scal_pack, Tp0 t, Tp... args)
+    {
+        scal_pack.append(t);
+        command_serializer(buffer, scal_pack, args...);
+    }
+
+    // Tuples
+
+    // TODO
+
+    // Containers (array, vector, string)
+
+    // http://stackoverflow.com/questions/12042824/how-to-write-a-type-trait-is-container-or-is-vector
+    template<typename T, typename _ = void>
+    struct is_container : std::false_type {};
+
+    template<typename... Ts>
+    struct is_container_helper {};
+
+    template<typename T>
+    struct is_container<
+            T,
+            std::conditional_t<
+                false,
+                is_container_helper<
+                    typename T::value_type,
+                    typename T::size_type,
+                    // typename T::allocator_type, std::array don't have an allocator
+                    typename T::iterator,
+                    typename T::const_iterator,
+                    decltype(std::declval<T>().size()),
+                    decltype(std::declval<T>().data()),
+                    decltype(std::declval<T>().begin()),
+                    decltype(std::declval<T>().end()),
+                    decltype(std::declval<T>().cbegin()),
+                    decltype(std::declval<T>().cend())
+                    >,
+                void
+                >
+            > : public std::true_type {};
+
+    template<typename Container>
+    inline void dump_container_to_buffer(std::vector<unsigned char>& buffer,
+                                  const Container& container)
+    {
+        auto n_bytes = container.size() * sizeof(typename Container::value_type);
+        dump_size_to_buffer(buffer, n_bytes);
+        const auto bytes = reinterpret_cast<const unsigned char*>(container.data());
+        buffer.insert(buffer.end(), bytes, bytes + n_bytes);
+    }
+
+    template<typename Tp0, typename... Tp>
+    inline std::enable_if_t<0 == sizeof...(Tp) &&
+                            is_container<
+                                typename std::remove_reference<Tp0>::type
+                            >::value, void>
+    command_serializer(std::vector<unsigned char>& buffer,
+                       ScalarPack& scal_pack, Tp0 t, Tp... args)
+    {
+        scal_pack.dump_to_buffer(buffer);
+        dump_container_to_buffer(buffer, t);
+    }
+
+    template <typename Tp0, typename... Tp>
+    inline std::enable_if_t<0 < sizeof...(Tp) &&
+                            is_container<
+                                typename std::remove_reference<Tp0>::type
+                            >::value, void>
+    command_serializer(std::vector<unsigned char>& buffer,
+                       ScalarPack& scal_pack, Tp0 t, Tp... args)
+    {
+        scal_pack.dump_to_buffer(buffer);
+        dump_container_to_buffer(buffer, t);
+        command_serializer(buffer, scal_pack, args...);
+    }
+}
+
+template<uint16_t class_id, uint16_t func_id, typename... Args>
+inline std::enable_if_t< 0 < sizeof...(Args), void >
+command_serializer(std::vector<unsigned char>& buffer, Args... args)
+{
+    const auto& header = serialize(0U, class_id, func_id);
+    buffer.resize(header.size());
+    std::copy(header.begin(), header.end(), buffer.begin());
+    auto scal_pack = detail::ScalarPack{};
+    detail::command_serializer(buffer, scal_pack, args...);
+    scal_pack.dump_to_buffer(buffer);
+}
+
+template<uint16_t class_id, uint16_t func_id, typename... Args>
+inline std::enable_if_t< 0 == sizeof...(Args), void >
+command_serializer(std::vector<unsigned char>& buffer, Args... args)
+{
+    const auto& header = serialize(0U, class_id, func_id, 0UL);
+    buffer.resize(header.size());
+    std::copy(header.begin(), header.end(), buffer.begin());
+}
+
 } // namespace kserver
 
 #endif // __SERIALIZER_DESERIALIZER_HPP__
