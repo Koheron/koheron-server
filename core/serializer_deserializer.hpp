@@ -491,14 +491,14 @@ template<uint16_t class_id, uint16_t func_id,
          std::size_t... I, typename... Args>
 inline void call_command_serializer(std::vector<unsigned char>& buffer,
                                     std::index_sequence<I...>,
-                                    std::tuple<Args...>& tup_args)
+                                    const std::tuple<Args...>& tup_args)
 {
     command_serializer<class_id, func_id>(buffer, std::get<I>(tup_args)...);
 }
 
 template<uint16_t class_id, uint16_t func_id, typename... Args>
 inline void command_serializer(std::vector<unsigned char>& buffer,
-                        std::tuple<Args...>& tup_args)
+                               const std::tuple<Args...>& tup_args)
 {
     call_command_serializer<class_id, func_id>(buffer,
             std::index_sequence_for<Args...>{}, tup_args);
