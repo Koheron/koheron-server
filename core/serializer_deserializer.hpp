@@ -464,19 +464,24 @@ namespace detail {
     }
 }
 
-template<uint16_t class_id, uint16_t func_id, typename = void, typename... Args>
-inline std::enable_if_t< 0 < sizeof...(Args), void >
-command_serializer(std::vector<unsigned char>& buffer, Args... args)
+template <typename T>
+struct is_std_tuple : std::false_type {};;
+template <typename... Args>
+struct is_std_tuple<std::tuple<Args...>> : std::true_type {};
+
+template<uint16_t class_id, uint16_t func_id, typename Tp0, typename... Args>
+inline std::enable_if_t< 0 <= sizeof...(Args) && !is_std_tuple<Tp0>::value, void >
+command_serializer(std::vector<unsigned char>& buffer, Tp0 arg0, Args... args)
 {
     const auto& header = serialize(0U, class_id, func_id);
     buffer.resize(header.size());
     std::copy(header.begin(), header.end(), buffer.begin());
     auto scal_pack = detail::ScalarPack{};
-    detail::command_serializer(buffer, scal_pack, args...);
+    detail::command_serializer(buffer, scal_pack, arg0, args...);
     scal_pack.dump_to_buffer(buffer);
 }
 
-template<uint16_t class_id, uint16_t func_id, typename = void, typename... Args>
+template<uint16_t class_id, uint16_t func_id, typename... Args>
 inline std::enable_if_t< 0 == sizeof...(Args), void >
 command_serializer(std::vector<unsigned char>& buffer, Args... args)
 {
@@ -496,7 +501,7 @@ inline void call_command_serializer(std::vector<unsigned char>& buffer,
     command_serializer<class_id, func_id>(buffer, std::get<I>(tup_args)...);
 }
 
-template<uint16_t class_id, uint16_t func_id, typename = bool, typename... Args>
+template<uint16_t class_id, uint16_t func_id, typename... Args>
 inline void command_serializer(std::vector<unsigned char>& buffer,
                                const std::tuple<Args...>& tup_args)
 {
