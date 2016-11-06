@@ -171,14 +171,6 @@ def parse_header_operation(devname, method):
     operation['ret_type'] = method['rtnType']
     check_type(operation['ret_type'], devname, operation['name'])
 
-    operation['io_type'] = {}
-    if operation['ret_type'] == 'void':
-        operation['io_type'] = 'WRITE'
-    # elif operation['ret_type'] in ["char *", "char*", "const char *", "const char*"]:
-    #     operation["io_type"] = 'READ_CSTR'
-    else:
-        operation["io_type"] = 'READ'
-
     if len(method['parameters']) > 0:
         operation['arguments'] = [] # Use for code generation
         operation['args_client'] = [] # Send to client
@@ -237,25 +229,18 @@ def cmd_calls(device, dev_id):
     return calls
 
 def generate_call(device, dev_id, operation):
-    lines = []
-    # if operation['io_type'] == 'WRITE':
-    #     lines.append('    ' + build_func_call(device, operation) + ';\n')
-    #     lines.append('    return 0;\n')
-    # elif operation['io_type'] == 'READ':
-    #     lines.append('    return SEND(' + build_func_call(device, operation) + ');\n')
-    # elif operation['io_type'] == 'READ_CSTR':
-    #     lines.append('    return SEND_CSTR(' + build_func_call(device, operation) + ');\n')
-    if operation['io_type'] == 'WRITE':
-        lines.append('    ' + build_func_call(device, operation) + ';\n')
-        lines.append('    return 0;\n')
-    elif operation['io_type'] == 'READ':
-        lines.append('    return SEND__<' + str(dev_id) + ', ' + str(operation['id']) + '>(' + build_func_call(device, operation) + ');\n')
-    return ''.join(lines)
+    def build_func_call(device, operation):
+        call = 'THIS->' + device['objects'][0]['name'] + '.' + operation['name'] + '('
+        call += ', '.join('args.' + arg['name'] for arg in operation.get('arguments', []))
+        return call + ')'
 
-def build_func_call(device, operation):
-    call = 'THIS->' + device['objects'][0]['name'] + '.' + operation['name'] + '('
-    call += ', '.join('args.' + arg['name'] for arg in operation.get('arguments', []))
-    return call + ')'
+    lines = []
+    if operation['ret_type'] == 'void':
+        lines.append('    {};\n'.format(build_func_call(device, operation)))
+        lines.append('    return 0;\n')
+    else:
+        lines.append('    return SEND<{}, {}>({});\n'.format(dev_id, operation['id'], build_func_call(device, operation)))
+    return ''.join(lines)
 
 # -----------------------------------------------------------
 # Parse command arguments

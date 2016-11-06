@@ -352,7 +352,6 @@ namespace detail {
         scal_pack.append(t);
     }
 
-
     template <typename Tp0, typename... Tp>
     inline std::enable_if_t<0 < sizeof...(Tp) &&
                             std::is_scalar<

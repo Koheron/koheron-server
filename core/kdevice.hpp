@@ -84,15 +84,13 @@ friend class DeviceManager;
 friend Dev;
 };
 
-/// Macros to simplify edition of operations 
-#define SEND kserver->session_manager.get_session(sess_id).send
-#define SEND_CSTR kserver->session_manager.get_session(sess_id).send_cstr
+/// Macros to simplify edition of operations
 #define RCV_VECTOR kserver->session_manager.get_session(sess_id).rcv_vector
 #define RCV_STRING kserver->session_manager.get_session(sess_id).rcv_string
 #define DESERIALIZE kserver->session_manager.get_session(sess_id).deserialize
 #define EXTRACT_ARRAY kserver->session_manager.get_session(sess_id).extract_array
 
-#define SEND__ kserver->session_manager.get_session(sess_id).send__
+#define SEND kserver->session_manager.get_session(sess_id).send
 
 } // namespace kserver
 

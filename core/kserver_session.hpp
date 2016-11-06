@@ -44,19 +44,13 @@ class SessionAbstract
     SessionAbstract(int sock_type_)
     : kind(sock_type_) {}
 
-    int send_cstr(const char *string);
     template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd);
     template<typename T, size_t N> std::tuple<int, const std::array<T, N>&> extract_array(Command& cmd);
     template<typename T> int rcv_vector(std::vector<T>& vec, Command& cmd);
     int rcv_string(std::string& str, Command& cmd);
-    template<typename... Tp> int send(const std::tuple<Tp...>& t);
-    template<typename T, size_t N> int send(const std::array<T, N>& vect);
-    template<typename T> int send(const std::vector<T>& vect);
-    template<typename T> int write(const T* data, unsigned int len);
-    template<class T> int send(const T& data);
 
     template<uint16_t class_id, uint16_t func_id, typename... Args>
-    int send__(Args... args);
+    int send(Args... args);
 
     int kind;
 };
@@ -106,36 +100,9 @@ class Session : public SessionAbstract
 
     int rcv_string(std::string& str, Command& cmd);
 
-    template<typename T> int write(const T* data, unsigned int len);
-    template<class T> int send_data_packet(const T *data, size_t len);
-    template<class T> int send(const T& data);
-
-    int send_string(const std::string& str) {
-        return send_data_packet(str.data(), str.size());
-    }
-
-    int send_cstr(const char* string) {
-        return send_data_packet(string, std::strlen(string));
-    }
-
-    template<typename T>
-    int send(const std::vector<T>& vect) {
-        return send_data_packet(vect.data(), vect.size());
-    }
-
-    template<typename T, size_t N>
-    int send(const std::array<T, N>& vect) {
-        return send_data_packet(vect.data(), N);
-    }
-
-    template<typename... Tp>
-    int send(const std::tuple<Tp...>& t) {
-        return send(serialize(t));
-    }
-
     // TODO rename
     template<uint16_t class_id, uint16_t func_id, typename... Args>
-    int send__(Args... args) {
+    int send(Args... args) {
         command_serializer<class_id, func_id>(send_buffer, args...);
         return write(send_buffer.data(), send_buffer.size());
     }
@@ -196,6 +163,8 @@ class Session : public SessionAbstract
         return std::get<0>(buff.deserialize<uint64_t>());
     }
 
+    template<class T> int write(const T *data, unsigned int len);
+
 friend class SessionManager;
 };
 
@@ -254,63 +223,6 @@ int Session<sock_type>::run()
     exit_session();
     return 0;
 }
-
-// TODO Specialize the implementation for each socket type
-// to minize copies
-
-// Data packet:
-//  4 bytes |    8 bytes   |
-// RESERVED | LENGTH_BYTES | DATA ...
-template<int sock_type>
-template<class T>
-inline int Session<sock_type>::send_data_packet(const T *data, size_t len)
-{
-    const auto bytes = reinterpret_cast<const unsigned char*>(data);
-    auto n_bytes = len * sizeof(T);
-    const auto& array = serialize<uint32_t, uint64_t>(0U, n_bytes);
-
-    // http://stackoverflow.com/questions/259297/how-do-you-copy-the-contents-of-an-array-to-a-stdvector-in-c-without-looping
-    send_buffer.resize(0);
-    send_buffer.insert(send_buffer.end(), array.begin(), array.end());
-    send_buffer.insert(send_buffer.end(), bytes, bytes + n_bytes);
-    return write(send_buffer.data(), send_buffer.size());
-}
-
-#define SEND_SPECIALIZE_IMPL(session_kind)                                            \
-    template<> template<>                                                             \
-    inline int session_kind::send<std::string>(const std::string& str) {              \
-        return send_string(str);                                                      \
-    }                                                                                 \
-                                                                                      \
-    template<> template<>                                                             \
-    inline int session_kind::send<uint32_t>(const uint32_t& val) {                    \
-        return send_data_packet(&val, 1);                                             \
-    }                                                                                 \
-                                                                                      \
-    template<> template<>                                                             \
-    inline int session_kind::send<bool>(const bool& val) {                            \
-        return send<uint32_t>(val);                                                   \
-    }                                                                                 \
-                                                                                      \
-    template<> template<>                                                             \
-    inline int session_kind::send<int>(const int& val) {                              \
-        return send<uint32_t>(val);                                                   \
-    }                                                                                 \
-                                                                                      \
-    template<> template<>                                                             \
-    inline int session_kind::send<uint64_t>(const uint64_t& val) {                    \
-        return send_data_packet(&val, 1);                                             \
-    }                                                                                 \
-                                                                                      \
-    template<> template<>                                                             \
-    inline int session_kind::send<float>(const float& val) {                          \
-        return send_data_packet(&val, 1);                                             \
-    }                                                                                 \
-                                                                                      \
-    template<> template<>                                                             \
-    inline int session_kind::send<double>(const double& val) {                        \
-        return send_data_packet(&val, 1);                                             \
-    }
 
 // -----------------------------------------------
 // TCP
@@ -413,8 +325,6 @@ inline int Session<TCP>::write(const T *data, unsigned int len)
     return bytes_send;
 }
 
-SEND_SPECIALIZE_IMPL(Session<TCP>)
-
 #endif // KSERVER_HAS_TCP
 
 // -----------------------------------------------
@@ -507,8 +417,6 @@ inline int Session<WEBSOCK>::write(const T *data, unsigned int len)
     return websock.send(data, len);
 }
 
-SEND_SPECIALIZE_IMPL(Session<WEBSOCK>)
-
 #endif // KSERVER_HAS_WEBSOCKET
 
 // -----------------------------------------------
@@ -550,36 +458,6 @@ SEND_SPECIALIZE_IMPL(Session<WEBSOCK>)
 // For the template in the middle, see:
 // http://stackoverflow.com/questions/1682844/templates-template-function-not-playing-well-with-classs-template-member-funct/1682885#1682885
 
-template<class T>
-int SessionAbstract::send(const T& data) {
-    SWITCH_SOCK_TYPE(template send<T>(data))
-    return -1;
-}
-
-template<typename T> 
-int SessionAbstract::write(const T* data, unsigned int len) {
-    SWITCH_SOCK_TYPE(template write<T>(data, len))
-    return -1;
-}
-
-template<typename T>
-int SessionAbstract::send(const std::vector<T>& vect) {
-    SWITCH_SOCK_TYPE(template send<T>(vect));
-    return -1;
-}
-
-template<typename T, size_t N>
-int SessionAbstract::send(const std::array<T, N>& vect) {
-    SWITCH_SOCK_TYPE(template send<T, N>(vect))
-    return -1;
-}
-
-template<typename... Tp>
-int SessionAbstract::send(const std::tuple<Tp...>& t) {
-    SWITCH_SOCK_TYPE(template send<Tp...>(t))
-    return -1;
-}
-
 template<typename... Tp>
 inline std::tuple<int, Tp...> SessionAbstract::deserialize(Command& cmd) {
     SWITCH_SOCK_TYPE(template deserialize<Tp...>(cmd))
@@ -605,14 +483,9 @@ inline int SessionAbstract::rcv_string(std::string& str, Command& cmd) {
     return -1;
 }
 
-inline int SessionAbstract::send_cstr(const char *string) {
-    SWITCH_SOCK_TYPE(send_cstr(string))
-    return -1;
-}
-
 template<uint16_t class_id, uint16_t func_id, typename... Args>
-inline int SessionAbstract::send__(Args... args) {
-    SWITCH_SOCK_TYPE(send__<class_id, func_id>(args...))
+inline int SessionAbstract::send(Args... args) {
+    SWITCH_SOCK_TYPE(send<class_id, func_id>(args...))
     return -1;
 }
 

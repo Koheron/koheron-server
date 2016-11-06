@@ -52,7 +52,7 @@ KSERVER_PARSE_ARG(GET_VERSION) {return 0;}
 
 KSERVER_EXECUTE_OP(GET_VERSION)
 {
-    return GET_SESSION.send__<1, KServer::GET_VERSION>(xstr(SHA));
+    return GET_SESSION.send<1, KServer::GET_VERSION>(xstr(SHA));
 }
 
 /////////////////////////////////////
@@ -64,7 +64,7 @@ KSERVER_PARSE_ARG(GET_CMDS) {return 0;}
 
 KSERVER_EXECUTE_OP(GET_CMDS)
 {
-    return GET_SESSION.send__<1, KServer::GET_CMDS>(build_devices_json());
+    return GET_SESSION.send<1, KServer::GET_CMDS>(build_devices_json());
 }
 
 /////////////////////////////////////
@@ -100,7 +100,7 @@ int send_listener_stats(SessID sess_id, KServer *kserver,
         return -1;
     }
 
-    if ((bytes_send = GET_SESSION.send__<1, KServer::GET_STATS>(send_str)) < 0)
+    if ((bytes_send = GET_SESSION.send<1, KServer::GET_STATS>(send_str)) < 0)
         return -1;
 
     return bytes_send;
@@ -129,7 +129,7 @@ KSERVER_EXECUTE_OP(GET_STATS)
         return -1;
     }
 
-    if ((bytes = GET_SESSION.send__<1, KServer::GET_STATS>(send_str)) < 0)
+    if ((bytes = GET_SESSION.send<1, KServer::GET_STATS>(send_str)) < 0)
         return -1;
 
     bytes_send += bytes;
@@ -157,7 +157,7 @@ KSERVER_EXECUTE_OP(GET_STATS)
 #endif
 
     // Send EORS (End Of KServer Stats)
-    if ((bytes = GET_SESSION.send__<1, KServer::GET_STATS>("EOKS\n")) < 0)
+    if ((bytes = GET_SESSION.send<1, KServer::GET_STATS>("EOKS\n")) < 0)
         return -1;
 
     kserver->syslog.print<SysLog::DEBUG>("[S] [%u bytes]\n", bytes_send + bytes);
@@ -253,14 +253,14 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
             return -1;
         }
 
-        if ((bytes = GET_SESSION.send__<1, KServer::GET_RUNNING_SESSIONS>(send_str)) < 0)
+        if ((bytes = GET_SESSION.send<1, KServer::GET_RUNNING_SESSIONS>(send_str)) < 0)
             return -1;
 
         bytes_send += bytes;
     }
 
     // Send EORS (End Of Running Sessions)
-    if ((bytes = GET_SESSION.send__<1, KServer::GET_RUNNING_SESSIONS>("EORS\n")) < 0)
+    if ((bytes = GET_SESSION.send<1, KServer::GET_RUNNING_SESSIONS>("EORS\n")) < 0)
         return -1;
 
     kserver->syslog.print<SysLog::DEBUG>("[S] [%u bytes]\n", bytes_send + bytes);
