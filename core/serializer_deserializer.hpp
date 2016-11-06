@@ -464,6 +464,19 @@ namespace detail {
     }
 }
 
+template<uint16_t class_id, uint16_t func_id, std::size_t... I, typename... Args>
+inline void call_command_serializer(std::vector<unsigned char>& buffer,
+                                    std::index_sequence<I...>,
+                                    const std::tuple<Args...>& tup_args);
+
+template<uint16_t class_id, uint16_t func_id, typename... Args>
+inline void command_serializer(std::vector<unsigned char>& buffer,
+                               const std::tuple<Args...>& tup_args)
+{
+    call_command_serializer<class_id, func_id>(buffer,
+            std::index_sequence_for<Args...>{}, tup_args);
+}
+
 template<uint16_t class_id, uint16_t func_id, typename... Args>
 inline std::enable_if_t< 0 < sizeof...(Args), void >
 command_serializer(std::vector<unsigned char>& buffer, Args... args)
@@ -494,14 +507,6 @@ inline void call_command_serializer(std::vector<unsigned char>& buffer,
                                     const std::tuple<Args...>& tup_args)
 {
     command_serializer<class_id, func_id>(buffer, std::get<I>(tup_args)...);
-}
-
-template<uint16_t class_id, uint16_t func_id, typename... Args>
-inline void command_serializer(std::vector<unsigned char>& buffer,
-                               const std::tuple<Args...>& tup_args)
-{
-    call_command_serializer<class_id, func_id>(buffer,
-            std::index_sequence_for<Args...>{}, tup_args);
 }
 
 } // namespace kserver
