@@ -259,10 +259,10 @@ bool Tests::rcv_std_string3(const std::vector<float>& vec, double d, int32_t i, 
     return true;
 }
 
-// const char* Tests::get_cstr()
-// {
-//     return "Hello !";
-// }
+const char* Tests::get_cstr()
+{
+    return "Hello !";
+}
 
 std::string Tests::get_std_string()
 {

@@ -174,8 +174,8 @@ def parse_header_operation(devname, method):
     operation['io_type'] = {}
     if operation['ret_type'] == 'void':
         operation['io_type'] = 'WRITE'
-    elif operation['ret_type'] in ["char *", "char*", "const char *", "const char*"]:
-        operation["io_type"] = 'READ_CSTR'
+    # elif operation['ret_type'] in ["char *", "char*", "const char *", "const char*"]:
+    #     operation["io_type"] = 'READ_CSTR'
     else:
         operation["io_type"] = 'READ'
 

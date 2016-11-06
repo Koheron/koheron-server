@@ -74,7 +74,7 @@ class Tests
     bool rcv_std_string3(const std::vector<float>& vec, double d, int32_t i, const std::string& str, const std::array<uint32_t, 8192>& arr);
 
     // Send string
-    // const char* get_cstr();
+    const char* get_cstr();
     std::string get_std_string();
     std::string get_json();
     std::string get_json2();

@@ -342,6 +342,9 @@ namespace detail {
     inline std::enable_if_t<0 == sizeof...(Tp) &&
                             std::is_scalar<
                                 typename std::remove_reference<Tp0>::type
+                            >::value &&
+                            !std::is_pointer<
+                                typename std::remove_reference<Tp0>::type
                             >::value, void>
     command_serializer(std::vector<unsigned char>& buffer,
                        ScalarPack& scal_pack, Tp0 t, Tp... args)
@@ -354,6 +357,9 @@ namespace detail {
     inline std::enable_if_t<0 < sizeof...(Tp) &&
                             std::is_scalar<
                                 typename std::remove_reference<Tp0>::type
+                            >::value &&
+                            !std::is_pointer<
+                                typename std::remove_reference<Tp0>::type
                             >::value, void>
     command_serializer(std::vector<unsigned char>& buffer,
                        ScalarPack& scal_pack, Tp0 t, Tp... args)
@@ -361,10 +367,6 @@ namespace detail {
         scal_pack.append(t);
         command_serializer(buffer, scal_pack, args...);
     }
-
-    // Tuples
-
-    // TODO
 
     // Containers (array, vector, string)
 
@@ -399,7 +401,7 @@ namespace detail {
 
     template<typename Container>
     inline void dump_container_to_buffer(std::vector<unsigned char>& buffer,
-                                  const Container& container)
+                                         const Container& container)
     {
         auto n_bytes = container.size() * sizeof(typename Container::value_type);
         dump_size_to_buffer(buffer, n_bytes);
@@ -431,6 +433,35 @@ namespace detail {
         dump_container_to_buffer(buffer, t);
         command_serializer(buffer, scal_pack, args...);
     }
+
+    // C strings
+
+    // http://stackoverflow.com/questions/8097534/type-trait-for-strings
+    template <typename T>
+    struct is_c_string : public
+    std::integral_constant<bool,
+            std::is_same<char*, typename std::remove_reference<T>::type>::value ||
+            std::is_same<const char*, typename std::remove_reference<T>::type>::value
+    >{};
+
+    template<typename Tp0, typename... Tp>
+    inline std::enable_if_t<0 == sizeof...(Tp) && is_c_string<Tp0>::value, void>
+    command_serializer(std::vector<unsigned char>& buffer,
+                       ScalarPack& scal_pack, Tp0 t, Tp... args)
+    {
+        scal_pack.dump_to_buffer(buffer);
+        dump_container_to_buffer(buffer, std::string(t));
+    }
+
+    template <typename Tp0, typename... Tp>
+    inline std::enable_if_t<0 < sizeof...(Tp) && is_c_string<Tp0>::value, void>
+    command_serializer(std::vector<unsigned char>& buffer,
+                       ScalarPack& scal_pack, Tp0 t, Tp... args)
+    {
+        scal_pack.dump_to_buffer(buffer);
+        dump_container_to_buffer(buffer, std::string(t));
+        command_serializer(buffer, scal_pack, args...);
+    }
 }
 
 template<uint16_t class_id, uint16_t func_id, typename... Args>
@@ -452,6 +483,25 @@ command_serializer(std::vector<unsigned char>& buffer, Args... args)
     const auto& header = serialize(0U, class_id, func_id, 0UL);
     buffer.resize(header.size());
     std::copy(header.begin(), header.end(), buffer.begin());
+}
+
+// Tuples are unpacked before serialization
+
+template<uint16_t class_id, uint16_t func_id,
+         std::size_t... I, typename... Args>
+inline void call_command_serializer(std::vector<unsigned char>& buffer,
+                                    std::index_sequence<I...>,
+                                    std::tuple<Args...>& tup_args)
+{
+    command_serializer<class_id, func_id>(buffer, std::get<I>(tup_args)...);
+}
+
+template<uint16_t class_id, uint16_t func_id, typename... Args>
+inline void command_serializer(std::vector<unsigned char>& buffer,
+                        std::tuple<Args...>& tup_args)
+{
+    call_command_serializer<class_id, func_id>(buffer,
+            std::index_sequence_for<Args...>{}, tup_args);
 }
 
 } // namespace kserver
