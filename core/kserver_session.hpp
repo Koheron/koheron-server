@@ -48,9 +48,7 @@ class SessionAbstract
     template<typename T, size_t N> std::tuple<int, const std::array<T, N>&> extract_array(Command& cmd);
     template<typename T> int rcv_vector(std::vector<T>& vec, Command& cmd);
     int rcv_string(std::string& str, Command& cmd);
-
-    template<uint16_t class_id, uint16_t func_id, typename... Args>
-    int send(Args... args);
+    template<uint16_t class_id, uint16_t func_id, typename... Args> int send(Args... args);
 
     int kind;
 };
@@ -100,7 +98,6 @@ class Session : public SessionAbstract
 
     int rcv_string(std::string& str, Command& cmd);
 
-    // TODO rename
     template<uint16_t class_id, uint16_t func_id, typename... Args>
     int send(Args... args) {
         command_serializer<class_id, func_id>(send_buffer, args...);

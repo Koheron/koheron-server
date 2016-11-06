@@ -224,6 +224,13 @@ inline void append<bool>(unsigned char *buff, bool value)
 // ------------------------
 
 namespace detail {
+    template<size_t position, typename... Tp>
+    inline std::enable_if_t<0 == sizeof...(Tp), std::tuple<Tp...>>
+    deserialize(const char *buff)
+    {
+        return std::make_tuple();
+    }
+
     template<size_t position, typename Tp0, typename... Tp>
     inline std::enable_if_t<0 == sizeof...(Tp), std::tuple<Tp0, Tp...>>
     deserialize(const char *buff)
@@ -240,17 +247,21 @@ namespace detail {
     }
 
     // Required buffer size
+    template<typename... Tp>
+    constexpr std::enable_if_t<0 == sizeof...(Tp), size_t>
+    required_buffer_size() {
+        return 0;
+    }
+
     template<typename Tp0, typename... Tp>
     constexpr std::enable_if_t<0 == sizeof...(Tp), size_t>
-    required_buffer_size()
-    {
+    required_buffer_size() {
         return size_of<Tp0>;
     }
 
     template<typename Tp0, typename... Tp>
     constexpr std::enable_if_t<0 < sizeof...(Tp), size_t>
-    required_buffer_size()
-    {
+    required_buffer_size() {
         return size_of<Tp0> + required_buffer_size<Tp...>();
     }
 }

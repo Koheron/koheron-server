@@ -23,8 +23,6 @@ namespace kserver {
 
 class SessionManager;
 
-#define EMIT_BUFF_SIZE 4096
-
 // http://stackoverflow.com/questions/12927951/array-indexing-converting-to-integer-with-scoped-enumeration
 template<class channels>
 constexpr size_t chan_count() noexcept {
