@@ -46,8 +46,7 @@ class SessionAbstract
 
     template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd);
     template<typename T, size_t N> std::tuple<int, const std::array<T, N>&> extract_array(Command& cmd);
-    template<typename T> int rcv_vector(std::vector<T>& vec, Command& cmd);
-    int rcv_string(std::string& str, Command& cmd);
+    template<typename Tp> int recv(Tp& container, Command& cmd);
     template<uint16_t class_id, uint16_t func_id, typename... Args> int send(Args... args);
 
     int kind;
@@ -92,11 +91,9 @@ class Session : public SessionAbstract
     // are stored into it. This implies that the whole vector is already stored on
     // the stack which might not be a good thing.
     //
-    //The TCP won't use it as it reads directly the TCP buffer.
-    template<typename T>
-    int rcv_vector(std::vector<T>& vec, Command& cmd);
-
-    int rcv_string(std::string& str, Command& cmd);
+    // TCP sockets won't use it as it reads directly the TCP buffer.
+    template<typename Tp>
+    int recv(Tp& container, Command& cmd);
 
     template<uint16_t class_id, uint16_t func_id, typename... Args>
     int send(Args... args) {
@@ -231,12 +228,13 @@ template<>
 int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes);
 
 template<>
-template<typename T>
-inline int Session<TCP>::rcv_vector(std::vector<T>& vec, Command& cmd)
+template<typename Tp>
+inline std::enable_if_t<std::is_same<Tp, std::vector<typename Tp::value_type>>::value, int>
+Session<TCP>::recv(Tp& vec, Command& cmd)
 {
-    uint64_t length = get_pack_length() / sizeof(T);
+    uint64_t length = get_pack_length() / sizeof(typename Tp::value_type);
     vec.resize(length);
-    auto err = rcv_n_bytes(reinterpret_cast<char *>(vec.data()), length * sizeof(T));
+    auto err = rcv_n_bytes(reinterpret_cast<char *>(vec.data()), length * sizeof(typename Tp::value_type));
 
     if (err >= 0)
         session_manager.kserver.syslog.print<SysLog::DEBUG>(
@@ -246,7 +244,8 @@ inline int Session<TCP>::rcv_vector(std::vector<T>& vec, Command& cmd)
 }
 
 template<>
-inline int Session<TCP>::rcv_string(std::string& str, Command& cmd)
+template<>
+inline int Session<TCP>::recv(std::string& str, Command& cmd)
 {
     auto length = get_pack_length();
     str.resize(length);
@@ -348,8 +347,9 @@ class Session<UNIX> : public Session<TCP>
 #if KSERVER_HAS_WEBSOCKET
 
 template<>
-template<typename T>
-inline int Session<WEBSOCK>::rcv_vector(std::vector<T>& vec, Command& cmd)
+template<typename Tp>
+inline std::enable_if_t<std::is_same<Tp, std::vector<typename Tp::value_type>>::value, int>
+Session<WEBSOCK>::recv(Tp& vec, Command& cmd)
 {
     auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
 
@@ -359,12 +359,13 @@ inline int Session<WEBSOCK>::rcv_vector(std::vector<T>& vec, Command& cmd)
         return -1;
     }
 
-    cmd.payload.copy_to_vector(vec, length / sizeof(T));
+    cmd.payload.copy_to_vector(vec, length / sizeof(typename Tp::value_type));
     return 0;
 }
 
 template<>
-inline int Session<WEBSOCK>::rcv_string(std::string& str, Command& cmd)
+template<>
+inline int Session<WEBSOCK>::recv(std::string& str, Command& cmd)
 {
     auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
 
@@ -469,14 +470,9 @@ SessionAbstract::extract_array(Command& cmd) {
                           std::forward_as_tuple(std::array<T, N>()));
 }
 
-template<typename T>
-inline int SessionAbstract::rcv_vector(std::vector<T>& vec, Command& cmd) {
-    SWITCH_SOCK_TYPE(rcv_vector(vec, cmd))
-    return -1;
-}
-
-inline int SessionAbstract::rcv_string(std::string& str, Command& cmd) {
-    SWITCH_SOCK_TYPE(rcv_string(str, cmd))
+template<typename Tp>
+inline int SessionAbstract::recv(Tp& container, Command& cmd) {
+    SWITCH_SOCK_TYPE(recv(container, cmd))
     return -1;
 }
 

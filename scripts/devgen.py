@@ -287,13 +287,13 @@ def parser_generator(device, operation):
             lines.append('\n    args.' + pack['args']['name'] + ' = std::get<1>(tup' + str(idx)  + ');\n')
         elif pack['family'] == 'vector':
             # print_extract_vector_length(lines, before_vector, idx, device.name, operation['name'])
-            lines.append('    if (RCV_VECTOR(args.' + pack['args']['name'] + ', cmd) < 0) {\n')
+            lines.append('    if (RECV(args.' + pack['args']['name'] + ', cmd) < 0) {\n')
             lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive vector.\\n");\n')
             lines.append('        return -1;\n')
             lines.append('    }\n\n')
         elif pack['family'] == 'string':
             # print_extract_vector_length(lines, before_vector, idx, device.name, operation['name'])
-            lines.append('    if (RCV_STRING(args.' + pack['args']['name'] + ', cmd) < 0) {\n')
+            lines.append('    if (RECV(args.' + pack['args']['name'] + ', cmd) < 0) {\n')
             lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive string.\\n");\n')
             lines.append('        return -1;\n')
             lines.append('    }\n\n')

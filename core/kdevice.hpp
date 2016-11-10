@@ -85,8 +85,7 @@ friend Dev;
 };
 
 /// Macros to simplify edition of operations
-#define RCV_VECTOR kserver->session_manager.get_session(sess_id).rcv_vector
-#define RCV_STRING kserver->session_manager.get_session(sess_id).rcv_string
+#define RECV kserver->session_manager.get_session(sess_id).recv
 #define DESERIALIZE kserver->session_manager.get_session(sess_id).deserialize
 #define EXTRACT_ARRAY kserver->session_manager.get_session(sess_id).extract_array
 
