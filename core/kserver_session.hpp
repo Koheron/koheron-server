@@ -95,6 +95,12 @@ class Session : public SessionAbstract
     template<typename Tp>
     int recv(Tp& container, Command& cmd);
 
+    template<typename T, size_t N>
+    int recv(std::array<T, N>& arr, Command& cmd);
+
+    template<typename T>
+    int recv(std::vector<T>& vec, Command& cmd);
+
     template<uint16_t class_id, uint16_t func_id, typename... Args>
     int send(Args... args) {
         command_serializer<class_id, func_id>(send_buffer, args...);
@@ -228,13 +234,35 @@ template<>
 int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes);
 
 template<>
-template<typename Tp>
-inline std::enable_if_t<std::is_same<Tp, std::vector<typename Tp::value_type>>::value, int>
-Session<TCP>::recv(Tp& vec, Command& cmd)
+template<typename T, size_t N>
+inline int Session<TCP>::recv(std::array<T, N>& arr, Command& cmd)
 {
-    uint64_t length = get_pack_length() / sizeof(typename Tp::value_type);
+    auto length = get_pack_length();
+
+    if (length != size_of<T, N>) {
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
+            "TCPSocket: Array extraction failed. Expected %lu bytes received %lu bytes\n",
+            size_of<T, N>, length);
+        return -1;
+    }
+
+    Buffer<size_of<T, N>> buff;
+    auto err = rcv_n_bytes(buff.data(), size_of<T, N>);
+
+    if (err < 0)
+        return err;
+
+    arr = buff.extract_array<T, N>();
+    return 0;
+}
+
+template<>
+template<typename T>
+inline int Session<TCP>::recv(std::vector<T>& vec, Command& cmd)
+{
+    uint64_t length = get_pack_length() / sizeof(T);
     vec.resize(length);
-    auto err = rcv_n_bytes(reinterpret_cast<char *>(vec.data()), length * sizeof(typename Tp::value_type));
+    auto err = rcv_n_bytes(reinterpret_cast<char *>(vec.data()), length * sizeof(T));
 
     if (err >= 0)
         session_manager.kserver.syslog.print<SysLog::DEBUG>(
@@ -276,26 +304,6 @@ inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd)
     Buffer<pack_len> buff;
     int err = rcv_n_bytes(buff.data(), pack_len);
     return std::tuple_cat(std::make_tuple(err), buff.deserialize<Tp...>());
-}
-
-template<>
-template<typename T, size_t N>
-inline std::tuple<int, const std::array<T, N>&> Session<TCP>::extract_array(Command& cmd)
-{
-    auto length = get_pack_length();
-
-    if (length != size_of<T, N>) {
-        session_manager.kserver.syslog.print<SysLog::ERROR>(
-            "TCPSocket: Array extraction failed. Expected %lu bytes received %lu bytes\n",
-            size_of<T, N>, length);
-
-        return std::tuple_cat(std::make_tuple(-1),std::forward_as_tuple(std::array<T, N>()));
-    }
-
-    Buffer<size_of<T, N>> buff;
-    int err = rcv_n_bytes(buff.data(), size_of<T, N>);
-    return std::tuple_cat(std::make_tuple(err),
-                          std::forward_as_tuple(buff.extract_array<T, N>()));
 }
 
 template<>
@@ -347,9 +355,25 @@ class Session<UNIX> : public Session<TCP>
 #if KSERVER_HAS_WEBSOCKET
 
 template<>
-template<typename Tp>
-inline std::enable_if_t<std::is_same<Tp, std::vector<typename Tp::value_type>>::value, int>
-Session<WEBSOCK>::recv(Tp& vec, Command& cmd)
+template<typename T, size_t N>
+inline int Session<WEBSOCK>::recv(std::array<T, N>& arr, Command& cmd)
+{
+    auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
+
+    if (length != size_of<T, N>) {
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
+            "TCPSocket: Array extraction failed. Expected %lu bytes received %lu bytes\n",
+            size_of<T, N>, length);
+        return -1;
+    }
+
+    arr = cmd.payload.extract_array<T, N>();
+    return 0;
+}
+
+template<>
+template<typename T>
+inline int Session<WEBSOCK>::recv(std::vector<T>& vec, Command& cmd)
 {
     auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
 
@@ -359,7 +383,7 @@ Session<WEBSOCK>::recv(Tp& vec, Command& cmd)
         return -1;
     }
 
-    cmd.payload.copy_to_vector(vec, length / sizeof(typename Tp::value_type));
+    cmd.payload.copy_to_vector(vec, length / sizeof(T));
     return 0;
 }
 
@@ -395,17 +419,6 @@ inline std::tuple<int, Tp...> Session<WEBSOCK>::deserialize(Command& cmd)
     }
 
     return std::tuple_cat(std::make_tuple(0), cmd.payload.deserialize<Tp...>());
-}
-
-template<>
-template<typename T, size_t N>
-inline std::tuple<int, const std::array<T, N>&> Session<WEBSOCK>::extract_array(Command& cmd)
-{
-    if (std::get<0>(cmd.payload.deserialize<uint64_t>()) != size_of<T, N>)
-        return std::tuple_cat(std::make_tuple(-1),std::forward_as_tuple(std::array<T, N>()));
-
-    return std::tuple_cat(std::make_tuple(0),
-                          std::forward_as_tuple(cmd.payload.extract_array<T, N>()));
 }
 
 template<>

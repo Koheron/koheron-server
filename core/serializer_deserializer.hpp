@@ -475,7 +475,7 @@ namespace detail {
 }
 
 template <typename T>
-struct is_std_tuple : std::false_type {};;
+struct is_std_tuple : std::false_type {};
 template <typename... Args>
 struct is_std_tuple<std::tuple<Args...>> : std::true_type {};
 

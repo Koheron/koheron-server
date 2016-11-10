@@ -275,26 +275,9 @@ def parser_generator(device, operation):
             for i, arg in enumerate(pack['args']):
                 lines.append('    args.' + arg["name"] + ' = ' + 'std::get<' + str(i + 1) + '>(args_tuple' + str(idx) + ');\n');
 
-        elif pack['family'] == 'array':
-            array_params = get_std_array_params(pack['args']['type'])
-
-            lines.append('\n    auto tup' + str(idx)  + ' = EXTRACT_ARRAY<' + array_params['T'] + ', ' + array_params['N'] + '>(cmd);\n')
-            lines.append('    if (std::get<0>(tup' + str(idx)  + ') < 0) {\n')
-            lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to extract array.\\n");\n')
-            lines.append('        return -1;\n')
-            lines.append('    }\n')
-
-            lines.append('\n    args.' + pack['args']['name'] + ' = std::get<1>(tup' + str(idx)  + ');\n')
-        elif pack['family'] == 'vector':
-            # print_extract_vector_length(lines, before_vector, idx, device.name, operation['name'])
+        elif pack['family'] in ['vector', 'string', 'array']:
             lines.append('    if (RECV(args.' + pack['args']['name'] + ', cmd) < 0) {\n')
-            lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive vector.\\n");\n')
-            lines.append('        return -1;\n')
-            lines.append('    }\n\n')
-        elif pack['family'] == 'string':
-            # print_extract_vector_length(lines, before_vector, idx, device.name, operation['name'])
-            lines.append('    if (RECV(args.' + pack['args']['name'] + ', cmd) < 0) {\n')
-            lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive string.\\n");\n')
+            lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive '+ pack['family'] +'.\\n");\n')
             lines.append('        return -1;\n')
             lines.append('    }\n\n')
         else:
