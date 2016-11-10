@@ -77,7 +77,6 @@ struct Command
     SessID sess_id = -1;                    ///< ID of the session emitting the command  
     device_t device = NO_DEVICE;            ///< The device to control
     int32_t operation = -1;                 ///< Operation ID
-    uint64_t payload_size;
 
     Buffer<HEADER_SIZE> header;             ///< Raw data header
     Buffer<CMD_PAYLOAD_BUFFER_LEN> payload;

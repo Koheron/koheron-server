@@ -45,7 +45,6 @@ class SessionAbstract
     : kind(sock_type_) {}
 
     template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd);
-    template<typename T, size_t N> std::tuple<int, const std::array<T, N>&> extract_array(Command& cmd);
     template<typename Tp> int recv(Tp& container, Command& cmd);
     template<uint16_t class_id, uint16_t func_id, typename... Args> int send(Args... args);
 
@@ -473,14 +472,6 @@ template<typename... Tp>
 inline std::tuple<int, Tp...> SessionAbstract::deserialize(Command& cmd) {
     SWITCH_SOCK_TYPE(template deserialize<Tp...>(cmd))
     return std::tuple_cat(std::make_tuple(-1), std::tuple<Tp...>());
-}
-
-template<typename T, size_t N>
-inline std::tuple<int, const std::array<T, N>&>
-SessionAbstract::extract_array(Command& cmd) {
-    SWITCH_SOCK_TYPE(template extract_array<T, N>(cmd))
-    return std::tuple_cat(std::make_tuple(-1),
-                          std::forward_as_tuple(std::array<T, N>()));
 }
 
 template<typename Tp>
