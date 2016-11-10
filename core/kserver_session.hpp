@@ -153,11 +153,15 @@ class Session : public SessionAbstract
 
     int read_command(Command& cmd);
 
-    uint64_t get_pack_length() {
+    int64_t get_pack_length() {
         Buffer<sizeof(uint64_t)> buff;
-        rcv_n_bytes(buff.data(), sizeof(uint64_t));
+        auto err = rcv_n_bytes(buff.data(), sizeof(uint64_t));
 
-        // TODO Handle reception failure
+        if (err < 0) {
+            session_manager.kserver.syslog.print<SysLog::ERROR>(
+            "Cannot read pack length\n");
+            return -1;
+        }
 
         return std::get<0>(buff.deserialize<uint64_t>());
     }
@@ -238,6 +242,9 @@ inline int Session<TCP>::recv(std::array<T, N>& arr, Command& cmd)
 {
     auto length = get_pack_length();
 
+    if (length < 0)
+        return -1;
+
     if (length != size_of<T, N>) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
             "TCPSocket: Array extraction failed. Expected %lu bytes received %lu bytes\n",
@@ -259,7 +266,11 @@ template<>
 template<typename T>
 inline int Session<TCP>::recv(std::vector<T>& vec, Command& cmd)
 {
-    uint64_t length = get_pack_length() / sizeof(T);
+    auto length = get_pack_length() / sizeof(T);
+
+    if (length < 0)
+        return -1;
+
     vec.resize(length);
     auto err = rcv_n_bytes(reinterpret_cast<char *>(vec.data()), length * sizeof(T));
 
@@ -275,6 +286,10 @@ template<>
 inline int Session<TCP>::recv(std::string& str, Command& cmd)
 {
     auto length = get_pack_length();
+
+    if (length < 0)
+        return -1;
+
     str.resize(length);
     auto err = rcv_n_bytes(const_cast<char*>(str.data()), length);
 
@@ -291,6 +306,9 @@ inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd)
 {
     auto constexpr pack_len = required_buffer_size<Tp...>();
     auto length = get_pack_length();
+
+    if (length < 0)
+        return std::tuple_cat(std::make_tuple(-1), std::tuple<Tp...>());
 
     if (length != pack_len) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
@@ -361,7 +379,7 @@ inline int Session<WEBSOCK>::recv(std::array<T, N>& arr, Command& cmd)
 
     if (length != size_of<T, N>) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
-            "TCPSocket: Array extraction failed. Expected %lu bytes received %lu bytes\n",
+            "WebSocket: Array extraction failed. Expected %lu bytes received %lu bytes\n",
             size_of<T, N>, length);
         return -1;
     }
@@ -378,7 +396,7 @@ inline int Session<WEBSOCK>::recv(std::vector<T>& vec, Command& cmd)
 
     if (length > CMD_PAYLOAD_BUFFER_LEN) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
-            "WebSocket::rcv_vector: Payload size overflow\n");
+            "WebSocket: Payload size overflow during buffer reception\n");
         return -1;
     }
 
