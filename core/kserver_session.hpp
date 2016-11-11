@@ -83,6 +83,7 @@ class Session : public SessionAbstract
 
     template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd);
 
+    // XXX Error when removing this !
     template<typename T, size_t N>
     std::tuple<int, const std::array<T, N>&> extract_array(Command& cmd);
 

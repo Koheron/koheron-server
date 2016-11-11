@@ -27,10 +27,10 @@ debug:
 
 optimization_flags:
   - O3
-  - finline-limit=150
 
 devices:
     - tests/tests.hpp
+    - tests/benchmarks.hpp
     # - tests/eigen_tests.hpp
     - tests/exception_tests.hpp
     # - tests/maths.hpp
