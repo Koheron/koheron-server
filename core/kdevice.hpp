@@ -52,9 +52,6 @@ template<class Dev, device_t dev_kind>
 class KDevice : public KDeviceAbstract
 {
   public:
-    /// Contains the arguments of the operation op
-    template <int op> struct Argument;
-
     KDevice(KServer *kserver_)
     : KDeviceAbstract(dev_kind),
       kserver(kserver_)
@@ -68,26 +65,16 @@ class KDevice : public KDeviceAbstract
     KServer* kserver;
 
   protected:
-    /// Parse the buffer of a command
-    /// @cmd The Command to be parsed
-    /// @args The arguments resulting of the parsing
-    template<int op>
-    int parse_arg(Command& cmd, Argument<op>& args, SessID sess_id);
-
-    /// Execute an operation
-    /// @args The arguments of the operation provided by @parse_arg
-    /// @sess_id ID of the session executing the operation
-    template<int op>
-    int execute_op(const Argument<op>& args, SessID sess_id);
+    template<int op> int execute_op(Command& cmd);
 
 friend class DeviceManager;
 friend Dev;
 };
 
 /// Macros to simplify edition of operations
-#define RECV kserver->session_manager.get_session(sess_id).recv
-#define DESERIALIZE kserver->session_manager.get_session(sess_id).deserialize
-#define SEND kserver->session_manager.get_session(sess_id).send
+#define RECV kserver->session_manager.get_session(cmd.sess_id).recv
+#define DESERIALIZE kserver->session_manager.get_session(cmd.sess_id).deserialize
+#define SEND kserver->session_manager.get_session(cmd.sess_id).send
 
 } // namespace kserver
 

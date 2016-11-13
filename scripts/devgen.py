@@ -231,7 +231,7 @@ def cmd_calls(device, dev_id):
 def generate_call(device, dev_id, operation):
     def build_func_call(device, operation):
         call = 'THIS->' + device['objects'][0]['name'] + '.' + operation['name'] + '('
-        call += ', '.join('args.' + arg['name'] for arg in operation.get('arguments', []))
+        call += ', '.join('THIS->args_' + operation['name'] + '.' + arg['name'] for arg in operation.get('arguments', []))
         return call + ')'
 
     lines = []
@@ -273,10 +273,10 @@ def parser_generator(device, operation):
             lines.append('    }\n')
 
             for i, arg in enumerate(pack['args']):
-                lines.append('    args.' + arg["name"] + ' = ' + 'std::get<' + str(i + 1) + '>(args_tuple' + str(idx) + ');\n');
+                lines.append('    THIS->args_' + operation['name'] + '.' + arg["name"] + ' = ' + 'std::get<' + str(i + 1) + '>(args_tuple' + str(idx) + ');\n');
 
         elif pack['family'] in ['vector', 'string', 'array']:
-            lines.append('    if (RECV(args.' + pack['args']['name'] + ', cmd) < 0) {\n')
+            lines.append('    if (RECV(THIS->args_' + operation['name'] + '.' + pack['args']['name'] + ', cmd) < 0) {\n')
             lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive '+ pack['family'] +'.\\n");\n')
             lines.append('        return -1;\n')
             lines.append('    }\n\n')
