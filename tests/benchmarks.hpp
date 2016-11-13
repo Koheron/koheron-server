@@ -15,16 +15,20 @@ class Benchmarks
         array_u.fill(0);
     }
 
-    const auto& std_vector_u32() {
+    const auto& std_vector_u32_to_client() {
         return vector_u;
     }
 
-    const auto& std_vector_f() {
+    const auto& std_vector_f_to_client() {
         return vector_f;
     }
 
-    const auto& std_array_u32() {
+    const auto& std_array_u32_to_client() {
         return array_u;
+    }
+
+    bool std_vector_u32_from_client(const std::vector<uint32_t>& vec) {
+        return vec.size() == 16384;
     }
 
   private:

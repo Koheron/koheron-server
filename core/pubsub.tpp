@@ -17,7 +17,7 @@ void PubSub::emit(Tp&&... args)
 
     for (auto const& sid : subscribers.get(channel))
         session_manager.get_session(sid).send<channel, event>(
-            std::make_tuple(args...)
+            std::make_tuple(std::forward<Tp>(args)...)
         );
 }
 

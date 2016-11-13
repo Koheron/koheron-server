@@ -358,9 +358,9 @@ namespace detail {
                                 typename std::remove_reference<Tp0>::type
                             >::value, void>
     command_serializer(std::vector<unsigned char>& buffer,
-                       ScalarPack& scal_pack, Tp0 t, Tp... args)
+                       ScalarPack& scal_pack, Tp0&& t, Tp&&... args)
     {
-        scal_pack.append(t);
+        scal_pack.append(std::forward<Tp0>(t));
     }
 
     template <typename Tp0, typename... Tp>
@@ -372,10 +372,10 @@ namespace detail {
                                 typename std::remove_reference<Tp0>::type
                             >::value, void>
     command_serializer(std::vector<unsigned char>& buffer,
-                       ScalarPack& scal_pack, Tp0 t, Tp... args)
+                       ScalarPack& scal_pack, Tp0&& t, Tp&&... args)
     {
-        scal_pack.append(t);
-        command_serializer(buffer, scal_pack, args...);
+        scal_pack.append(std::forward<Tp0>(t));
+        command_serializer(buffer, scal_pack, std::forward<Tp>(args)...);
     }
 
     // Containers (array, vector, string)
@@ -409,6 +409,11 @@ namespace detail {
                 >
             > : public std::true_type {};
 
+    static_assert(is_container<std::vector<float>>::value, "");
+    static_assert(is_container<std::array<float, 10>>::value, "");
+    static_assert(is_container<std::string>::value, "");
+    static_assert(!is_container<float>::value, "");
+
     template<typename Container>
     inline void dump_container_to_buffer(std::vector<unsigned char>& buffer,
                                          const Container& container)
@@ -425,10 +430,10 @@ namespace detail {
                                 typename std::remove_reference<Tp0>::type
                             >::value, void>
     command_serializer(std::vector<unsigned char>& buffer,
-                       ScalarPack& scal_pack, Tp0 t, Tp... args)
+                       ScalarPack& scal_pack, Tp0&& t, Tp&&... args)
     {
         scal_pack.dump_to_buffer(buffer);
-        dump_container_to_buffer(buffer, t);
+        dump_container_to_buffer(buffer, std::forward<Tp0>(t));
     }
 
     template <typename Tp0, typename... Tp>
@@ -437,11 +442,11 @@ namespace detail {
                                 typename std::remove_reference<Tp0>::type
                             >::value, void>
     command_serializer(std::vector<unsigned char>& buffer,
-                       ScalarPack& scal_pack, Tp0 t, Tp... args)
+                       ScalarPack& scal_pack, Tp0&& t, Tp&&... args)
     {
         scal_pack.dump_to_buffer(buffer);
-        dump_container_to_buffer(buffer, t);
-        command_serializer(buffer, scal_pack, args...);
+        dump_container_to_buffer(buffer, std::forward<Tp0>(t));
+        command_serializer(buffer, scal_pack, std::forward<Tp>(args)...);
     }
 
     // C strings
@@ -450,27 +455,31 @@ namespace detail {
     template <typename T>
     struct is_c_string : public
     std::integral_constant<bool,
-            std::is_same<char*, typename std::remove_reference<T>::type>::value ||
-            std::is_same<const char*, typename std::remove_reference<T>::type>::value
+        std::is_same<char*, typename std::remove_reference<T>::type>::value ||
+        std::is_same<const char*, typename std::remove_reference<T>::type>::value
     >{};
+
+    static_assert(is_c_string<char*>::value, "");
+    static_assert(is_c_string<const char*>::value, "");
+    static_assert(!is_c_string<std::string>::value, "");
 
     template<typename Tp0, typename... Tp>
     inline std::enable_if_t<0 == sizeof...(Tp) && is_c_string<Tp0>::value, void>
     command_serializer(std::vector<unsigned char>& buffer,
-                       ScalarPack& scal_pack, Tp0 t, Tp... args)
+                       ScalarPack& scal_pack, Tp0&& t, Tp&&... args)
     {
         scal_pack.dump_to_buffer(buffer);
-        dump_container_to_buffer(buffer, std::string(t));
+        dump_container_to_buffer(buffer, std::string(std::forward<Tp0>(t)));
     }
 
     template <typename Tp0, typename... Tp>
     inline std::enable_if_t<0 < sizeof...(Tp) && is_c_string<Tp0>::value, void>
     command_serializer(std::vector<unsigned char>& buffer,
-                       ScalarPack& scal_pack, Tp0 t, Tp... args)
+                       ScalarPack& scal_pack, Tp0&& t, Tp&&... args)
     {
         scal_pack.dump_to_buffer(buffer);
-        dump_container_to_buffer(buffer, std::string(t));
-        command_serializer(buffer, scal_pack, args...);
+        dump_container_to_buffer(buffer, std::string(std::forward<Tp0>(t)));
+        command_serializer(buffer, scal_pack, std::forward<Tp>(args)...);
     }
 }
 
@@ -479,21 +488,28 @@ struct is_std_tuple : std::false_type {};
 template <typename... Args>
 struct is_std_tuple<std::tuple<Args...>> : std::true_type {};
 
+static_assert(is_std_tuple<std::tuple<uint32_t, float>>::value, "");
+static_assert(!is_std_tuple<uint32_t>::value, "");
+
 template<uint16_t class_id, uint16_t func_id, typename Tp0, typename... Args>
-inline std::enable_if_t< 0 <= sizeof...(Args) && !is_std_tuple<Tp0>::value, void >
-command_serializer(std::vector<unsigned char>& buffer, Tp0 arg0, Args... args)
+inline std::enable_if_t<0 <= sizeof...(Args) &&
+                        !is_std_tuple<
+                            typename std::remove_reference<Tp0>::type
+                        >::value, void>
+command_serializer(std::vector<unsigned char>& buffer, Tp0&& arg0, Args&&... args)
 {
     const auto& header = serialize(0U, class_id, func_id);
     buffer.resize(header.size());
     std::copy(header.begin(), header.end(), buffer.begin());
     auto scal_pack = detail::ScalarPack{};
-    detail::command_serializer(buffer, scal_pack, arg0, args...);
+    detail::command_serializer(buffer, scal_pack, std::forward<Tp0>(arg0),
+                               std::forward<Args>(args)...);
     scal_pack.dump_to_buffer(buffer);
 }
 
 template<uint16_t class_id, uint16_t func_id, typename... Args>
 inline std::enable_if_t< 0 == sizeof...(Args), void >
-command_serializer(std::vector<unsigned char>& buffer, Args... args)
+command_serializer(std::vector<unsigned char>& buffer, Args&&... args)
 {
     const auto& header = serialize(0U, class_id, func_id, 0UL);
     buffer.resize(header.size());
@@ -506,18 +522,19 @@ template<uint16_t class_id, uint16_t func_id,
          std::size_t... I, typename... Args>
 inline void call_command_serializer(std::vector<unsigned char>& buffer,
                                     std::index_sequence<I...>,
-                                    const std::tuple<Args...>& tup_args)
+                                    std::tuple<Args...> tup_args)
 {
     command_serializer<class_id, func_id>(buffer, std::get<I>(tup_args)...);
 }
 
 template<uint16_t class_id, uint16_t func_id, typename... Args>
 inline void command_serializer(std::vector<unsigned char>& buffer,
-                               const std::tuple<Args...>& tup_args)
+                               std::tuple<Args...> tup_args)
 {
     call_command_serializer<class_id, func_id>(buffer,
             std::index_sequence_for<Args...>{}, tup_args);
 }
+
 
 } // namespace kserver
 
