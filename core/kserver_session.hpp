@@ -44,16 +44,9 @@ class SessionAbstract
     SessionAbstract(int sock_type_)
     : kind(sock_type_) {}
 
-    int send_cstr(const char *string);
     template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd);
-    template<typename T, size_t N> std::tuple<int, const std::array<T, N>&> extract_array(Command& cmd);
-    template<typename T> int rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd);
-    int rcv_string(std::string& str, uint64_t length, Command& cmd);
-    template<typename... Tp> int send(const std::tuple<Tp...>& t);
-    template<typename T, size_t N> int send(const std::array<T, N>& vect);
-    template<typename T> int send(const std::vector<T>& vect);
-    template<typename T> int write(const T* data, unsigned int len);
-    template<class T> int send(const T& data);
+    template<typename Tp> int recv(Tp& container, Command& cmd);
+    template<uint16_t class_id, uint16_t func_id, typename... Args> int send(Args... args);
 
     int kind;
 };
@@ -90,6 +83,7 @@ class Session : public SessionAbstract
 
     template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd);
 
+    // XXX Error when removing this !
     template<typename T, size_t N>
     std::tuple<int, const std::array<T, N>&> extract_array(Command& cmd);
 
@@ -97,37 +91,20 @@ class Session : public SessionAbstract
     // are stored into it. This implies that the whole vector is already stored on
     // the stack which might not be a good thing.
     //
-    //The TCP won't use it as it reads directly the TCP buffer.
-    template<typename T>
-    int rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd);
-
-    int rcv_string(std::string& str, uint64_t length, Command& cmd);
-
-    template<typename T> int write(const T* data, unsigned int len);
-    template<class T> int send_data_packet(const T *data, size_t len);
-    template<class T> int send(const T& data);
-
-    int send_string(const std::string& str) {
-        return send_data_packet(str.data(), str.size() + 1);
-    }
-
-    int send_cstr(const char* string) {
-        return send_data_packet(string, std::strlen(string) + 1);
-    }
-
-    template<typename T>
-    int send(const std::vector<T>& vect) {
-        return send_data_packet(vect.data(), vect.size());
-    }
+    // TCP sockets won't use it as it reads directly the TCP buffer.
+    template<typename Tp>
+    int recv(Tp& container, Command& cmd);
 
     template<typename T, size_t N>
-    int send(const std::array<T, N>& vect) {
-        return send_data_packet(vect.data(), N);
-    }
+    int recv(std::array<T, N>& arr, Command& cmd);
 
-    template<typename... Tp>
-    int send(const std::tuple<Tp...>& t) {
-        return send(serialize(t));
+    template<typename T>
+    int recv(std::vector<T>& vec, Command& cmd);
+
+    template<uint16_t class_id, uint16_t func_id, typename... Args>
+    int send(Args... args) {
+        dyn_ser.build_command<class_id, func_id>(send_buffer, args...);
+        return write(send_buffer.data(), send_buffer.size());
     }
 
   private:
@@ -157,6 +134,7 @@ class Session : public SessionAbstract
     std::time_t start_time;    ///< Starting time of the session
 
     std::vector<unsigned char> send_buffer;
+    DynamicSerializer dyn_ser;
 
   private:
     int init_socket();
@@ -176,6 +154,21 @@ class Session : public SessionAbstract
     }
 
     int read_command(Command& cmd);
+
+    int64_t get_pack_length() {
+        Buffer<sizeof(uint64_t)> buff;
+        auto err = rcv_n_bytes(buff.data(), sizeof(uint64_t));
+
+        if (err < 0) {
+            session_manager.kserver.syslog.print<SysLog::ERROR>(
+            "Cannot read pack length\n");
+            return -1;
+        }
+
+        return std::get<0>(buff.deserialize<uint64_t>());
+    }
+
+    template<class T> int write(const T *data, unsigned int len);
 
 friend class SessionManager;
 };
@@ -236,63 +229,6 @@ int Session<sock_type>::run()
     return 0;
 }
 
-// TODO Specialize the implementation for each socket type
-// to minize copies
-
-// Data packet:
-//  4 bytes |    8 bytes   |
-// RESERVED | LENGTH_BYTES | DATA ...
-template<int sock_type>
-template<class T>
-inline int Session<sock_type>::send_data_packet(const T *data, size_t len)
-{
-    const auto bytes = reinterpret_cast<const unsigned char*>(data);
-    auto n_bytes = len * sizeof(T);
-    const auto& array = serialize<uint32_t, uint64_t>(0U, n_bytes);
-
-    // http://stackoverflow.com/questions/259297/how-do-you-copy-the-contents-of-an-array-to-a-stdvector-in-c-without-looping
-    send_buffer.resize(0);
-    send_buffer.insert(send_buffer.end(), array.begin(), array.end());
-    send_buffer.insert(send_buffer.end(), bytes, bytes + n_bytes);
-    return write(send_buffer.data(), send_buffer.size());
-}
-
-#define SEND_SPECIALIZE_IMPL(session_kind)                                            \
-    template<> template<>                                                             \
-    inline int session_kind::send<std::string>(const std::string& str) {              \
-        return send_string(str);                                                      \
-    }                                                                                 \
-                                                                                      \
-    template<> template<>                                                             \
-    inline int session_kind::send<uint32_t>(const uint32_t& val) {                    \
-        return send_data_packet(&val, 1);                                             \
-    }                                                                                 \
-                                                                                      \
-    template<> template<>                                                             \
-    inline int session_kind::send<bool>(const bool& val) {                            \
-        return send<uint32_t>(val);                                                   \
-    }                                                                                 \
-                                                                                      \
-    template<> template<>                                                             \
-    inline int session_kind::send<int>(const int& val) {                              \
-        return send<uint32_t>(val);                                                   \
-    }                                                                                 \
-                                                                                      \
-    template<> template<>                                                             \
-    inline int session_kind::send<uint64_t>(const uint64_t& val) {                    \
-        return send_data_packet(&val, 1);                                             \
-    }                                                                                 \
-                                                                                      \
-    template<> template<>                                                             \
-    inline int session_kind::send<float>(const float& val) {                          \
-        return send_data_packet(&val, 1);                                             \
-    }                                                                                 \
-                                                                                      \
-    template<> template<>                                                             \
-    inline int session_kind::send<double>(const double& val) {                        \
-        return send_data_packet(&val, 1);                                             \
-    }
-
 // -----------------------------------------------
 // TCP
 // -----------------------------------------------
@@ -303,42 +239,90 @@ template<>
 int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes);
 
 template<>
-template<typename T>
-inline int Session<TCP>::rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd)
+template<typename T, size_t N>
+inline int Session<TCP>::recv(std::array<T, N>& arr, Command& cmd)
 {
-    vec.resize(length);
-    return rcv_n_bytes(reinterpret_cast<char *>(vec.data()), length * sizeof(T));
+    auto length = get_pack_length();
+
+    if (length < 0)
+        return -1;
+
+    if (length != size_of<T, N>) {
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
+            "TCPSocket: Array extraction failed. Expected %lu bytes received %lu bytes\n",
+            size_of<T, N>, length);
+        return -1;
+    }
+
+    Buffer<size_of<T, N>> buff;
+    auto err = rcv_n_bytes(buff.data(), size_of<T, N>);
+
+    if (err < 0)
+        return err;
+
+    arr = buff.extract_array<T, N>();
+    return 0;
 }
 
 template<>
-inline int Session<TCP>::rcv_string(std::string& str, uint64_t length, Command& cmd)
+template<typename T>
+inline int Session<TCP>::recv(std::vector<T>& vec, Command& cmd)
 {
-    auto vec = std::vector<char>(length);
+    auto length = get_pack_length() / sizeof(T);
 
-    if (rcv_vector(vec, length, cmd) < 0)
+    if (length < 0)
         return -1;
 
-    str.insert(str.begin(), vec.begin(), vec.end());
-    return length;
+    vec.resize(length);
+    auto err = rcv_n_bytes(reinterpret_cast<char *>(vec.data()), length * sizeof(T));
+
+    if (err >= 0)
+        session_manager.kserver.syslog.print<SysLog::DEBUG>(
+            "TCPSocket: Received a vector of %lu bytes\n", length);
+
+    return err;
+}
+
+template<>
+template<>
+inline int Session<TCP>::recv(std::string& str, Command& cmd)
+{
+    auto length = get_pack_length();
+
+    if (length < 0)
+        return -1;
+
+    str.resize(length);
+    auto err = rcv_n_bytes(const_cast<char*>(str.data()), length);
+
+    if (err >= 0)
+        session_manager.kserver.syslog.print<SysLog::DEBUG>(
+            "TCPSocket: Received a string of %lu bytes\n", length);
+
+    return err;
 }
 
 template<>
 template<typename... Tp>
 inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd)
 {
-    Buffer<required_buffer_size<Tp...>()> buff;
-    int err = rcv_n_bytes(buff.data(), required_buffer_size<Tp...>());
-    return std::tuple_cat(std::make_tuple(err), buff.deserialize<Tp...>());
-}
+    auto constexpr pack_len = required_buffer_size<Tp...>();
+    auto length = get_pack_length();
 
-template<>
-template<typename T, size_t N>
-inline std::tuple<int, const std::array<T, N>&> Session<TCP>::extract_array(Command& cmd)
-{
-    Buffer<size_of<T, N>> buff;
-    int err = rcv_n_bytes(buff.data(), size_of<T, N>);
-    return std::tuple_cat(std::make_tuple(err),
-                          std::forward_as_tuple(buff.extract_array<T, N>()));
+    if (length < 0)
+        return std::tuple_cat(std::make_tuple(-1), std::tuple<Tp...>());
+
+    if (length != pack_len) {
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
+            "TCPSocket: Scalar pack deserialization failed. Expected %lu bytes received %lu bytes\n",
+            pack_len, length);
+
+        return std::tuple_cat(std::make_tuple(-1), std::tuple<Tp...>());
+    }
+
+    Buffer<pack_len> buff;
+    int err = rcv_n_bytes(buff.data(), pack_len);
+    return std::tuple_cat(std::make_tuple(err), buff.deserialize<Tp...>());
 }
 
 template<>
@@ -363,8 +347,6 @@ inline int Session<TCP>::write(const T *data, unsigned int len)
     session_manager.kserver.syslog.print<SysLog::DEBUG>("[S] [%u bytes]\n", bytes_send);
     return bytes_send;
 }
-
-SEND_SPECIALIZE_IMPL(Session<TCP>)
 
 #endif // KSERVER_HAS_TCP
 
@@ -392,22 +374,44 @@ class Session<UNIX> : public Session<TCP>
 #if KSERVER_HAS_WEBSOCKET
 
 template<>
-template<typename T>
-inline int Session<WEBSOCK>::rcv_vector(std::vector<T>& vec, uint64_t length, Command& cmd)
+template<typename T, size_t N>
+inline int Session<WEBSOCK>::recv(std::array<T, N>& arr, Command& cmd)
 {
-    if (length * sizeof(T) > CMD_PAYLOAD_BUFFER_LEN) {
+    auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
+
+    if (length != size_of<T, N>) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
-            "WebSocket::rcv_vector: Payload size overflow\n");
+            "WebSocket: Array extraction failed. Expected %lu bytes received %lu bytes\n",
+            size_of<T, N>, length);
         return -1;
     }
 
-    cmd.payload.copy_to_vector(vec, length);
+    arr = cmd.payload.extract_array<T, N>();
     return 0;
 }
 
 template<>
-inline int Session<WEBSOCK>::rcv_string(std::string& str, uint64_t length, Command& cmd)
+template<typename T>
+inline int Session<WEBSOCK>::recv(std::vector<T>& vec, Command& cmd)
 {
+    auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
+
+    if (length > CMD_PAYLOAD_BUFFER_LEN) {
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
+            "WebSocket: Payload size overflow during buffer reception\n");
+        return -1;
+    }
+
+    cmd.payload.copy_to_vector(vec, length / sizeof(T));
+    return 0;
+}
+
+template<>
+template<>
+inline int Session<WEBSOCK>::recv(std::string& str, Command& cmd)
+{
+    auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
+
     if (length > CMD_PAYLOAD_BUFFER_LEN) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
             "WebSocket::rcv_vector: Payload size overflow\n");
@@ -422,15 +426,18 @@ template<>
 template<typename... Tp>
 inline std::tuple<int, Tp...> Session<WEBSOCK>::deserialize(Command& cmd)
 {
-    return std::tuple_cat(std::make_tuple(0), cmd.payload.deserialize<Tp...>());
-}
+    auto constexpr pack_len = required_buffer_size<Tp...>();
+    auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
 
-template<>
-template<typename T, size_t N>
-inline std::tuple<int, const std::array<T, N>&> Session<WEBSOCK>::extract_array(Command& cmd)
-{
-    return std::tuple_cat(std::make_tuple(0),
-                          std::forward_as_tuple(cmd.payload.extract_array<T, N>()));
+    if (length != pack_len) {
+        session_manager.kserver.syslog.print<SysLog::ERROR>(
+            "WebSocket: Scalar pack deserialization failed. Expected %lu bytes received %lu bytes\n",
+            pack_len, length);
+
+        return std::tuple_cat(std::make_tuple(-1), std::tuple<Tp...>());
+    }
+
+    return std::tuple_cat(std::make_tuple(0), cmd.payload.deserialize<Tp...>());
 }
 
 template<>
@@ -439,8 +446,6 @@ inline int Session<WEBSOCK>::write(const T *data, unsigned int len)
 {
     return websock.send(data, len);
 }
-
-SEND_SPECIALIZE_IMPL(Session<WEBSOCK>)
 
 #endif // KSERVER_HAS_WEBSOCKET
 
@@ -483,65 +488,21 @@ SEND_SPECIALIZE_IMPL(Session<WEBSOCK>)
 // For the template in the middle, see:
 // http://stackoverflow.com/questions/1682844/templates-template-function-not-playing-well-with-classs-template-member-funct/1682885#1682885
 
-template<class T>
-int SessionAbstract::send(const T& data) {
-    SWITCH_SOCK_TYPE(template send<T>(data))
-    return -1;
-}
-
-template<typename T> 
-int SessionAbstract::write(const T* data, unsigned int len) {
-    SWITCH_SOCK_TYPE(template write<T>(data, len))
-    return -1;
-}
-
-template<typename T>
-int SessionAbstract::send(const std::vector<T>& vect) {
-    SWITCH_SOCK_TYPE(template send<T>(vect));
-    return -1;
-}
-
-template<typename T, size_t N>
-int SessionAbstract::send(const std::array<T, N>& vect) {
-    SWITCH_SOCK_TYPE(template send<T, N>(vect))
-    return -1;
-}
-
-template<typename... Tp>
-int SessionAbstract::send(const std::tuple<Tp...>& t) {
-    SWITCH_SOCK_TYPE(template send<Tp...>(t))
-    return -1;
-}
-
 template<typename... Tp>
 inline std::tuple<int, Tp...> SessionAbstract::deserialize(Command& cmd) {
     SWITCH_SOCK_TYPE(template deserialize<Tp...>(cmd))
     return std::tuple_cat(std::make_tuple(-1), std::tuple<Tp...>());
 }
 
-template<typename T, size_t N>
-inline std::tuple<int, const std::array<T, N>&>
-SessionAbstract::extract_array(Command& cmd) {
-    SWITCH_SOCK_TYPE(template extract_array<T, N>(cmd))
-    return std::tuple_cat(std::make_tuple(-1),
-                          std::forward_as_tuple(std::array<T, N>()));
-}
-
-template<typename T>
-inline int SessionAbstract::rcv_vector(std::vector<T>& vec,
-                                       uint64_t length, Command& cmd) {
-    SWITCH_SOCK_TYPE(rcv_vector(vec, length, cmd))
+template<typename Tp>
+inline int SessionAbstract::recv(Tp& container, Command& cmd) {
+    SWITCH_SOCK_TYPE(recv(container, cmd))
     return -1;
 }
 
-inline int SessionAbstract::rcv_string(std::string& str,
-                                       uint64_t length, Command& cmd) {
-    SWITCH_SOCK_TYPE(rcv_string(str, length, cmd))
-    return -1;
-}
-
-inline int SessionAbstract::send_cstr(const char *string) {
-    SWITCH_SOCK_TYPE(send_cstr(string))
+template<uint16_t class_id, uint16_t func_id, typename... Args>
+inline int SessionAbstract::send(Args... args) {
+    SWITCH_SOCK_TYPE(send<class_id, func_id>(args...))
     return -1;
 }
 

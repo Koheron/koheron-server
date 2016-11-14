@@ -16,53 +16,53 @@ namespace kserver {
 // printf
 template<typename... Tp>
 typename std::enable_if_t< 0 < sizeof...(Tp), void >
-printf(const std::string& fmt, Tp... args) {
-    std::printf(fmt.c_str(), args...);
+printf(const char *fmt, Tp... args) {
+    std::printf(fmt, args...);
 }
 
 template<typename... Tp>
 typename std::enable_if_t< 0 == sizeof...(Tp), void >
-printf(const std::string& fmt, Tp... args) {
-    std::printf("%s", fmt.c_str());
+printf(const char *fmt, Tp... args) {
+    std::printf("%s", fmt);
 }
 
 // fprintf
 template<typename... Tp>
 typename std::enable_if_t< 0 < sizeof...(Tp), void >
-fprintf(FILE *stream, const std::string& fmt, Tp... args) {
-    std::fprintf(stream, fmt.c_str(), args...);
+fprintf(FILE *stream, const char *fmt, Tp... args) {
+    std::fprintf(stream, fmt, args...);
 }
 
 template<typename... Tp>
 typename std::enable_if_t< 0 == sizeof...(Tp), void >
-fprintf(FILE *stream, const std::string& fmt, Tp... args) {
-    std::fprintf(stream, "%s", fmt.c_str());
+fprintf(FILE *stream, const char *fmt, Tp... args) {
+    std::fprintf(stream, "%s", fmt);
 }
 
 // snprintf
 template<typename... Tp>
 typename std::enable_if_t< 0 < sizeof...(Tp), int >
-snprintf(char *s, size_t n, const std::string& fmt, Tp... args) {
-    return std::snprintf(s, n, fmt.c_str(), args...);
+snprintf(char *s, size_t n, const char *fmt, Tp... args) {
+    return std::snprintf(s, n, fmt, args...);
 }
 
 template<typename... Tp>
 typename std::enable_if_t< 0 == sizeof...(Tp), int >
-snprintf(char *s, size_t n, const std::string& fmt, Tp... args) {
-    return std::snprintf(s, n, "%s", fmt.c_str());
+snprintf(char *s, size_t n, const char *fmt, Tp... args) {
+    return std::snprintf(s, n, "%s", fmt);
 }
 
 // syslog
 template<int priority, typename... Tp>
 typename std::enable_if_t< 0 < sizeof...(Tp), void >
-syslog(const std::string& fmt, Tp... args) {
-    ::syslog(priority, fmt.c_str(), args...);
+syslog(const char *fmt, Tp... args) {
+    ::syslog(priority, fmt, args...);
 }
 
 template<int priority, typename... Tp>
 typename std::enable_if_t< 0 == sizeof...(Tp), void >
-syslog(const std::string& fmt, Tp... args) {
-    ::syslog(priority, "%s", fmt.c_str());
+syslog(const char *fmt, Tp... args) {
+    ::syslog(priority, "%s", fmt);
 }
 
 // -------------------------------------------------------------------------

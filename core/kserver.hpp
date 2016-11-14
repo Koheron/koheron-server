@@ -118,13 +118,13 @@ class KServer : public KDevice<KServer, KSERVER>
 
     /// Operations associated to the device
     enum Operation {
-        GET_VERSION,            ///< Send th version of the server
-        GET_CMDS,               ///< Send the commands numbers
-        GET_STATS,              ///< Get KServer listeners statistics
-        GET_DEV_STATUS,         ///< Send the devices status
-        GET_RUNNING_SESSIONS,   ///< Send the running sessions
-        SUBSCRIBE_PUBSUB,       ///< Subscribe to a broadcast channel
-        PUBSUB_PING,            ///< Emit a ping to server broadcast subscribers
+        GET_VERSION = 0,            ///< Send th version of the server
+        GET_CMDS = 1,               ///< Send the commands numbers
+        GET_STATS = 2,              ///< Get KServer listeners statistics
+        GET_DEV_STATUS = 3,         ///< Send the devices status
+        GET_RUNNING_SESSIONS = 4,   ///< Send the running sessions
+        SUBSCRIBE_PUBSUB = 5,       ///< Subscribe to a broadcast channel
+        PUBSUB_PING = 6,            ///< Emit a ping to server broadcast subscribers
         kserver_op_num
     };
 

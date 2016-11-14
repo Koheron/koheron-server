@@ -10,41 +10,25 @@
 
 namespace kserver {
 
-template<uint32_t channel, uint32_t event, typename... Tp>
+template<uint16_t channel, uint16_t event, typename... Tp>
 void PubSub::emit(Tp&&... args)
 {
     static_assert(channel < channels_count, "Invalid channel");
 
     for (auto const& sid : subscribers.get(channel))
-        session_manager.get_session(sid).send(
-            std::make_tuple(0U,   // RESERVED
-                            channel,
-                            event,
-                            args...)
+        session_manager.get_session(sid).send<channel, event>(
+            std::make_tuple(std::forward<Tp>(args)...)
         );
 }
 
-template<uint32_t channel, uint32_t event>
+template<uint16_t channel, uint16_t event>
 void PubSub::emit_cstr(const char *str)
 {
     static_assert(channel < channels_count, "Invalid channel");
 
     if (subscribers.count(channel) > 0) {
-        // Need a mutex: emit_buffer is shared memory
-#if KSERVER_HAS_THREADS
-        std::lock_guard<std::mutex> lock(mutex);
-#endif
-
-        const auto& string = std::string(str);
-        uint32_t len = string.size() + 1; // Including '\0'
-        const auto& array = serialize(std::make_tuple(0U, channel, event, len));
-        emit_buffer.resize(0);
-        emit_buffer.insert(emit_buffer.end(), array.begin(), array.end());
-        emit_buffer.insert(emit_buffer.end(), string.begin(), string.end());
-        emit_buffer.push_back('\0');
-
         for (auto const& sid : subscribers.get(channel))
-            session_manager.get_session(sid).send(emit_buffer);
+            session_manager.get_session(sid).send<channel, event>(str);
     }
 }
 

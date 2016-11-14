@@ -63,23 +63,20 @@ class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device
     {% for object in device.objects -%}
     {{ object["type"] }} {{ object["name"] }};
     {% endfor -%}
-}; // class KS_{{ device.tag|capitalize }}
 
 {% for operation in device.operations -%}
-template<>
-template<>
-struct KDevice<{{ device.class_name }},{{ device.tag }}>::
-            Argument<{{ device.class_name }}::{{ operation['tag'] }}>
-{
+struct Argument_{{ operation['name'] }} {
 {%- macro print_param_line(arg) %}
         {{ arg["type"] }} {{ arg["name"]}};
 {%- endmacro -%}
 {% for arg in operation["arguments"] -%}
     {{ arg["type"] }} {{ arg["name"]}};
 {% endfor -%}
-};
+} args_{{ operation['name'] }};
 
 {% endfor -%}
+
+}; // class KS_{{ device.tag|capitalize }}
 
 } // namespace kserver
 

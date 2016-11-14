@@ -2,6 +2,8 @@ CONFIG=config/config_local.yaml
 PYTHON=/usr/bin/python
 
 SHA=`git rev-parse --short HEAD`
+TAG=0.11.0
+KOHERON_SERVER_VERSION=$(TAG).$(SHA)
 
 # Base directory for paths
 BASE_DIR=.
@@ -24,7 +26,7 @@ CORE_OBJ=$(subst .cpp,.o, $(addprefix $(TMP)/, $(notdir $(CORE_SRC))))
 ARCH_FLAGS:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; cfg = json.load(sys.stdin); print '-' + ' -'.join(cfg['arch_flags'])")
 OPTIM_FLAGS:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; cfg = json.load(sys.stdin); print '-' + ' -'.join(cfg['optimization_flags'])")
 DEBUG_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --debug-flags $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.debug-flags)
-DEFINES:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; cfg = json.load(sys.stdin); print '-D' + ' -D'.join(cfg['defines']) + ' -DSHA=' + '$(SHA)'")
+DEFINES:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; cfg = json.load(sys.stdin); print '-D' + ' -D'.join(cfg['defines']) + ' -DKOHERON_SERVER_VERSION=' + '$(KOHERON_SERVER_VERSION)'")
 CROSS_COMPILE:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; print json.load(sys.stdin)['cross-compile']")
 DEVICES:=$(shell $(__PYTHON) $(MAKE_PY) --devices $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.devices)
 DEPENDENCIES:=$(shell $(__PYTHON) $(MAKE_PY) --dependencies $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.dependencies)
@@ -50,6 +52,7 @@ KS_DEVICES_CPP=$(addprefix $(TMP)/,$(subst .hpp,.cpp,$(KS_DEVICES_HPP)))
 KS_DEVICES_OBJ=$(addprefix $(TMP)/,$(subst .hpp,.o,$(KS_DEVICES_HPP)))
 TMP_DEVICE_TABLE_HPP=$(TMP)/devices_table.hpp
 TMP_DEVICES_HPP=$(TMP)/devices.hpp
+TMP_OPERATIONS_HPP=$(TMP)/operations.hpp
 
 VPATH=core:core/crypto:$(DEVICES_PATHS)
 OBJ = $(CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ) $(DEPENDENCIES_OBJ)
@@ -103,13 +106,13 @@ debug:
 # Build, start, stop
 # ------------------------------------------------------------------------------------------------------------
 
-.PHONY: exec start_server stop_server
+.PHONY: exec start_server stop_server operations_hpp
 
 # http://bruno.defraine.net/techtips/makefile-auto-dependencies-with-gcc/
 # http://scottmcpeak.com/autodepend/autodepend.html
 -include $(DEP)
 
-$(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(KS_DEVICES_CPP): $(DEVICES_HPP) $(DEVGEN_PY) $(TEMPLATES)
+$(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(TMP_OPERATIONS_HPP) $(KS_DEVICES_CPP): $(DEVICES_HPP) $(DEVGEN_PY) $(TEMPLATES)
 	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(TMP)
 
 $(TMP)/%.o: %.cpp
@@ -130,6 +133,8 @@ start_server: exec stop_server
 stop_server:
 	-pkill -SIGINT $(SERVER) # We ignore the error raised if the server is already stopped
 
+operations_hpp: $(TMP_OPERATIONS_HPP)
+
 # ------------------------------------------------------------------------------------------------------------
 # Test python API
 # ------------------------------------------------------------------------------------------------------------
@@ -137,7 +142,7 @@ stop_server:
 .PHONY: test_python
 
 KOHERON_PYTHON_URL = https://github.com/Koheron/koheron-python.git
-KOHERON_PYTHON_BRANCH = master
+KOHERON_PYTHON_BRANCH = v0.11
 KOHERON_PYTHON_DIR = $(TMP)/koheron-python
 
 $(KOHERON_PYTHON_DIR):

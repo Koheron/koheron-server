@@ -16,66 +16,42 @@ namespace kserver {
 
 #define KS_DEV_WRITE_STR_LEN 1024
 
-#define GET_SESSION kserver->session_manager.get_session(sess_id)
+#define GET_SESSION kserver->session_manager.get_session(cmd.sess_id)
 #define GET_CMD_LOG GET_SESSION.GetCmdLog()
-
-#define KSERVER_STRUCT_ARGUMENTS(cmd_name)                          \
-  template<>                                                        \
-  template<>                                                        \
-  struct KDevice<KServer, KSERVER>::Argument<KServer::cmd_name>
-
-#define KSERVER_PARSE_ARG(cmd_name)                                 \
-  template<>                                                        \
-  template<>                                                        \
-  int KDevice<KServer, KSERVER>::                                   \
-          parse_arg<KServer::cmd_name>(Command& cmd,                \
-                        KDevice<KServer, KSERVER>::                 \
-                            Argument<KServer::cmd_name>& args,      \
-                            SessID sess_id)
 
 #define KSERVER_EXECUTE_OP(cmd_name)                                \
   template<>                                                        \
   template<>                                                        \
   int KDevice<KServer, KSERVER>::                                   \
-      execute_op<KServer::cmd_name>                                 \
-          (const Argument<KServer::cmd_name>& args, SessID sess_id)
+      execute_op<KServer::cmd_name>(Command& cmd)
 
 /////////////////////////////////////
 // GET_VERSION
 // Send the server commit version
-
-KSERVER_STRUCT_ARGUMENTS(GET_VERSION) {};
-KSERVER_PARSE_ARG(GET_VERSION) {return 0;}
 
 #define xstr(s) str(s)
 #define str(s) #s
 
 KSERVER_EXECUTE_OP(GET_VERSION)
 {
-    return GET_SESSION.send_cstr(xstr(SHA));
+    return GET_SESSION.send<1, KServer::GET_VERSION>(xstr(KOHERON_SERVER_VERSION));
 }
 
 /////////////////////////////////////
 // GET_CMDS
 // Send the commands numbers
 
-KSERVER_STRUCT_ARGUMENTS(GET_CMDS) {};
-KSERVER_PARSE_ARG(GET_CMDS) {return 0;}
-
 KSERVER_EXECUTE_OP(GET_CMDS)
 {
-    return GET_SESSION.send(build_devices_json());
+    return GET_SESSION.send<1, KServer::GET_CMDS>(build_devices_json());
 }
 
 /////////////////////////////////////
 // GET_STATS
 // Get listeners statistics
 
-KSERVER_STRUCT_ARGUMENTS(GET_STATS) {};
-KSERVER_PARSE_ARG(GET_STATS) {return 0;}
-
 template<int sock_type>
-int send_listener_stats(SessID sess_id, KServer *kserver,
+int send_listener_stats(Command& cmd, KServer *kserver,
                         ListeningChannel<sock_type> *listener)
 {
     char send_str[KS_DEV_WRITE_STR_LEN];
@@ -100,7 +76,7 @@ int send_listener_stats(SessID sess_id, KServer *kserver,
         return -1;
     }
 
-    if ((bytes_send = GET_SESSION.send_cstr(send_str)) < 0)
+    if ((bytes_send = GET_SESSION.send<1, KServer::GET_STATS>(send_str)) < 0)
         return -1;
 
     return bytes_send;
@@ -129,27 +105,27 @@ KSERVER_EXECUTE_OP(GET_STATS)
         return -1;
     }
 
-    if ((bytes = GET_SESSION.send_cstr(send_str)) < 0)
+    if ((bytes = GET_SESSION.send<1, KServer::GET_STATS>(send_str)) < 0)
         return -1;
 
     bytes_send += bytes;
 
 #if KSERVER_HAS_TCP
-    if ((bytes = send_listener_stats<TCP>(sess_id, kserver,
+    if ((bytes = send_listener_stats<TCP>(cmd, kserver,
                     &(kserver->tcp_listener))) < 0)
         return -1;
 
     bytes_send += bytes;
 #endif
 #if KSERVER_HAS_WEBSOCKET
-    if ((bytes = send_listener_stats<WEBSOCK>(sess_id, kserver,
+    if ((bytes = send_listener_stats<WEBSOCK>(cmd, kserver,
                     &(kserver->websock_listener))) < 0)
         return -1;
 
     bytes_send += bytes;
 #endif
 #if KSERVER_HAS_UNIX_SOCKET
-    if ((bytes = send_listener_stats<UNIX>(sess_id, kserver,
+    if ((bytes = send_listener_stats<UNIX>(cmd, kserver,
                     &(kserver->unix_listener))) < 0)
         return -1;
 
@@ -157,7 +133,7 @@ KSERVER_EXECUTE_OP(GET_STATS)
 #endif
 
     // Send EORS (End Of KServer Stats)
-    if ((bytes = GET_SESSION.send_cstr("EOKS\n")) < 0)
+    if ((bytes = GET_SESSION.send<1, KServer::GET_STATS>("EOKS\n")) < 0)
         return -1;
 
     kserver->syslog.print<SysLog::DEBUG>("[S] [%u bytes]\n", bytes_send + bytes);
@@ -170,16 +146,11 @@ KSERVER_EXECUTE_OP(GET_STATS)
 
 // TODO: Remove
 
-KSERVER_STRUCT_ARGUMENTS(GET_DEV_STATUS) {};
-KSERVER_PARSE_ARG(GET_DEV_STATUS) {return 0;}
 KSERVER_EXECUTE_OP(GET_DEV_STATUS) {return 0;}
 
 /////////////////////////////////////
 // GET_RUNNING_SESSIONS
 // Send the running sessions
-
-KSERVER_STRUCT_ARGUMENTS(GET_RUNNING_SESSIONS) {};
-KSERVER_PARSE_ARG(GET_RUNNING_SESSIONS) {return 0;}
 
 #define SET_SESSION_PARAMS(sock_type)                                             \
     case sock_type:                                                               \
@@ -253,14 +224,14 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
             return -1;
         }
 
-        if ((bytes = GET_SESSION.send_cstr(send_str)) < 0)
+        if ((bytes = GET_SESSION.send<1, KServer::GET_RUNNING_SESSIONS>(send_str)) < 0)
             return -1;
 
         bytes_send += bytes;
     }
 
     // Send EORS (End Of Running Sessions)
-    if ((bytes = GET_SESSION.send_cstr("EORS\n")) < 0)
+    if ((bytes = GET_SESSION.send<1, KServer::GET_RUNNING_SESSIONS>("EORS\n")) < 0)
         return -1;
 
     kserver->syslog.print<SysLog::DEBUG>("[S] [%u bytes]\n", bytes_send + bytes);
@@ -271,52 +242,22 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
 // SUBSCRIBE_PUBSUB
 // Subscribe to a pubsub channel
 
-KSERVER_STRUCT_ARGUMENTS(SUBSCRIBE_PUBSUB)
-{
-    uint32_t channel;
-};
-
-KSERVER_PARSE_ARG(SUBSCRIBE_PUBSUB)
-{
-    if (required_buffer_size<uint32_t>() != cmd.payload_size) {
-        kserver->syslog.print<SysLog::ERROR>("Invalid payload size\n");
-        return -1;
-    }
-
-    args.channel = std::get<0>(cmd.payload.deserialize<uint32_t>());
-    return 0;
-}
-
 KSERVER_EXECUTE_OP(SUBSCRIBE_PUBSUB)
 {
-    return kserver->pubsub.subscribe(args.channel, sess_id);
+    return kserver->pubsub.subscribe(std::get<0>(DESERIALIZE<uint32_t>(cmd)), cmd.sess_id);
 }
 
 /////////////////////////////////////
 // BROADCAST_PING
 // Trigger broadcast emission on a given channel
 
-KSERVER_STRUCT_ARGUMENTS(PUBSUB_PING) {};
-KSERVER_PARSE_ARG(PUBSUB_PING) {return 0;}
-
 KSERVER_EXECUTE_OP(PUBSUB_PING)
 {
-    kserver->pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::PING>(static_cast<uint32_t>(sess_id));
+    kserver->pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::PING>(static_cast<uint32_t>(cmd.sess_id));
     return 0;
 }
 
 ////////////////////////////////////////////////
-
-#define KSERVER_EXECUTE_CMD(cmd_name)                               \
-  {                                                                 \
-      Argument<KServer::cmd_name> args;                             \
-                                                                    \
-      if (parse_arg<KServer::cmd_name>(cmd, args, cmd.sess_id) < 0) \
-          return -1;                                                \
-                                                                    \
-      err = execute_op<KServer::cmd_name>(args, cmd.sess_id);       \
-      return err;                                                   \
-  }
 
 template<>
 int KDevice<KServer, KSERVER>::execute(Command& cmd)
@@ -325,23 +266,21 @@ int KDevice<KServer, KSERVER>::execute(Command& cmd)
     std::lock_guard<std::mutex> lock(static_cast<KServer*>(this)->ks_mutex);
 #endif
 
-    int err;
-
     switch (cmd.operation) {
       case KServer::GET_VERSION:
-        KSERVER_EXECUTE_CMD(GET_VERSION)
+        return execute_op<KServer::GET_VERSION>(cmd);
       case KServer::GET_CMDS:
-        KSERVER_EXECUTE_CMD(GET_CMDS)
+        return execute_op<KServer::GET_CMDS>(cmd);
       case KServer::GET_STATS:
-        KSERVER_EXECUTE_CMD(GET_STATS)
+        return execute_op<KServer::GET_STATS>(cmd);
       case KServer::GET_DEV_STATUS:
-        KSERVER_EXECUTE_CMD(GET_DEV_STATUS)
+        return execute_op<KServer::GET_DEV_STATUS>(cmd);
       case KServer::GET_RUNNING_SESSIONS:
-        KSERVER_EXECUTE_CMD(GET_RUNNING_SESSIONS)
+        return execute_op<KServer::GET_RUNNING_SESSIONS>(cmd);
       case KServer::SUBSCRIBE_PUBSUB:
-        KSERVER_EXECUTE_CMD(SUBSCRIBE_PUBSUB)
+        return execute_op<KServer::SUBSCRIBE_PUBSUB>(cmd);
       case KServer::PUBSUB_PING:
-        KSERVER_EXECUTE_CMD(PUBSUB_PING)
+        return execute_op<KServer::PUBSUB_PING>(cmd);
       case KServer::kserver_op_num:
       default:
         kserver->syslog.print<SysLog::ERROR>(

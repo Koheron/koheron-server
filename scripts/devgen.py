@@ -19,19 +19,22 @@ def generate(devices_list, base_dir, build_dir):
         if path.endswith('.hpp') or path.endswith('.h'):
             device = Device(path, base_dir)
             device.id = dev_id
+            device.calls = cmd_calls(device.raw, dev_id)
             dev_id +=1
             print('Generating ' + device.name + '...')
             render_device('.hpp', device, build_dir)
             render_device('.cpp', device, build_dir)
             devices.append(device)
     render_device_table(devices, build_dir)
+    render_ids(devices, build_dir)
 
 class Device:
     def __init__(self, path, base_dir):
         print 'Parsing and analysing ' + path + '...'
         dev = parse_header(os.path.join(base_dir, path))[0]
+        self.raw = dev
         self.header_path = os.path.dirname(path)
-        self.calls = cmd_calls(dev)
+        # self.calls = cmd_calls(dev)
 
         self.path = path
         self.operations = dev['operations']
@@ -41,6 +44,7 @@ class Device:
         self.objects = dev['objects']
         self.includes = dev['includes']
         self.id = None
+        self.calls = None
 
 def render_device(extension, device, build_dir):
     template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device' + extension))
@@ -122,6 +126,13 @@ def render_device_table(devices, build_dir):
     output_filename = os.path.join(build_dir, 'devices.hpp')
     fill_template(devices, 'devices.hpp', output_filename)
 
+def render_ids(devices, build_dir):
+    template = get_renderer().get_template(os.path.join('scripts/templates', 'operations.hpp'))
+    with open(os.path.join(build_dir, 'operations.hpp'), 'w') as output:
+        output.write(template.render(devices=devices,
+                                     max_op_num=get_max_op_num(devices),
+                                     json=get_json(devices)))
+
 # -----------------------------------------------------------------------------
 # Parse device C++ header
 # -----------------------------------------------------------------------------
@@ -159,14 +170,6 @@ def parse_header_operation(devname, method):
     operation['name'] = method['name']
     operation['ret_type'] = method['rtnType']
     check_type(operation['ret_type'], devname, operation['name'])
-
-    operation['io_type'] = {}
-    if operation['ret_type'] == 'void':
-        operation['io_type'] = 'WRITE'
-    elif operation['ret_type'] in ["char *", "char*", "const char *", "const char*"]:
-        operation["io_type"] = 'READ_CSTR'
-    else:
-        operation["io_type"] = 'READ'
 
     if len(method['parameters']) > 0:
         operation['arguments'] = [] # Use for code generation
@@ -219,27 +222,25 @@ def format_ret_type(classname, operation):
 # Generate command call and send
 # -----------------------------------------------------------------------------
 
-def cmd_calls(device):
+def cmd_calls(device, dev_id):
     calls = {}
     for op in device['operations']:
-        calls[op['tag']] = generate_call(device, op)
+        calls[op['tag']] = generate_call(device, dev_id, op)
     return calls
 
-def generate_call(device, operation):
-    lines = []
-    if operation['io_type'] == 'WRITE':
-        lines.append('    ' + build_func_call(device, operation) + ';\n')
-        lines.append('    return 0;\n')
-    elif operation['io_type'] == 'READ':
-        lines.append('    return SEND(' + build_func_call(device, operation) + ');\n')
-    elif operation['io_type'] == 'READ_CSTR':
-        lines.append('    return SEND_CSTR(' + build_func_call(device, operation) + ');\n')
-    return ''.join(lines)
+def generate_call(device, dev_id, operation):
+    def build_func_call(device, operation):
+        call = 'THIS->' + device['objects'][0]['name'] + '.' + operation['name'] + '('
+        call += ', '.join('THIS->args_' + operation['name'] + '.' + arg['name'] for arg in operation.get('arguments', []))
+        return call + ')'
 
-def build_func_call(device, operation):
-    call = 'THIS->' + device['objects'][0]['name'] + '.' + operation['name'] + '('
-    call += ', '.join('args.' + arg['name'] for arg in operation.get('arguments', []))
-    return call + ')'
+    lines = []
+    if operation['ret_type'] == 'void':
+        lines.append('    {};\n'.format(build_func_call(device, operation)))
+        lines.append('    return 0;\n')
+    else:
+        lines.append('    return SEND<{}, {}>({});\n'.format(dev_id, operation['id'], build_func_call(device, operation)))
+    return ''.join(lines)
 
 # -----------------------------------------------------------
 # Parse command arguments
@@ -248,87 +249,40 @@ def build_func_call(device, operation):
 def parser_generator(device, operation): 
     lines = []   
     if operation.get('arguments') is None:
-        return ''
+        lines.append('\n    auto args_tuple = DESERIALIZE<>(cmd);\n')
+        lines.append('    if (std::get<0>(args_tuple) < 0) {\n')
+        lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to deserialize buffer.\\n");\n')
+        lines.append('        return -1;\n')
+        lines.append('    }\n')
+        return ''.join(lines)
 
     packs, has_vector = build_args_packs(lines, operation)
 
     if not has_vector:
         print_req_buff_size(lines, packs)
-
         lines.append('    static_assert(req_buff_size <= cmd.payload.size(), "Buffer size too small");\n\n');
-        lines.append('    if (req_buff_size != cmd.payload_size) {\n')
-        lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Invalid payload size. Expected %zu bytes. Received %zu bytes.\\n\", req_buff_size, cmd.payload_size);\n')
-        lines.append('        return -1;\n')
-        lines.append('    }\n\n')
-
-    before_vector = True
 
     for idx, pack in enumerate(packs):
         if pack['family'] == 'scalar':
-            if before_vector:
-                lines.append('    auto args_tuple' + str(idx) + ' = cmd.payload.deserialize<')
-                print_type_list_pack(lines, pack)
-                lines.append('>();\n')
+            lines.append('\n    auto args_tuple' + str(idx)  + ' = DESERIALIZE<')
+            print_type_list_pack(lines, pack)
+            lines.append('>(cmd);\n')
+            lines.append('    if (std::get<0>(args_tuple' + str(idx)  + ') < 0) {\n')
+            lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to deserialize buffer.\\n");\n')
+            lines.append('        return -1;\n')
+            lines.append('    }\n')
 
-                for i, arg in enumerate(pack['args']):
-                    lines.append('    args.' + arg["name"] + ' = ' + 'std::get<' + str(i) + '>(args_tuple' + str(idx) + ');\n');
-            else: # After vector need to reload a buffer
-                lines.append('\n    auto args_tuple' + str(idx)  + ' = DESERIALIZE<')
-                print_type_list_pack(lines, pack)
-                lines.append('>(cmd);\n')
-                lines.append('    if (std::get<0>(args_tuple' + str(idx)  + ') < 0) {\n')
-                lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to deserialize buffer.\\n");\n')
-                lines.append('        return -1;\n')
-                lines.append('    }\n')
+            for i, arg in enumerate(pack['args']):
+                lines.append('    THIS->args_' + operation['name'] + '.' + arg["name"] + ' = ' + 'std::get<' + str(i + 1) + '>(args_tuple' + str(idx) + ');\n');
 
-                for i, arg in enumerate(pack['args']):
-                    lines.append('    args.' + arg["name"] + ' = ' + 'std::get<' + str(i + 1) + '>(args_tuple' + str(idx) + ');\n');
-
-        elif pack['family'] == 'array':
-            array_params = get_std_array_params(pack['args']['type'])
-
-            if before_vector:
-                lines.append('    args.' + pack['args']['name'] + ' = cmd.payload.extract_array<' + array_params['T'] + ', ' + array_params['N'] + '>();\n')
-            else: # After vector need to reload a buffer
-                lines.append('\n    auto tup' + str(idx)  + ' = EXTRACT_ARRAY<' + array_params['T'] + ', ' + array_params['N'] + '>(cmd);\n')
-                lines.append('    if (std::get<0>(tup' + str(idx)  + ') < 0) {\n')
-                lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to extract array.\\n");\n')
-                lines.append('        return -1;\n')
-                lines.append('    }\n')
-
-                lines.append('\n    args.' + pack['args']['name'] + ' = std::get<1>(tup' + str(idx)  + ');\n')
-
-        elif pack['family'] == 'vector':
-            print_extract_vector_length(lines, before_vector, idx, device.name, operation['name'])
-            lines.append('    if (RCV_VECTOR(args.' + pack['args']['name'] + ', length' + str(idx) + ', cmd) < 0) {\n')
-            lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive vector.\\n");\n')
+        elif pack['family'] in ['vector', 'string', 'array']:
+            lines.append('    if (RECV(THIS->args_' + operation['name'] + '.' + pack['args']['name'] + ', cmd) < 0) {\n')
+            lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive '+ pack['family'] +'.\\n");\n')
             lines.append('        return -1;\n')
             lines.append('    }\n\n')
-
-            before_vector = False
-
-        elif pack['family'] == 'string':
-            print_extract_vector_length(lines, before_vector, idx, device.name, operation['name'])
-            lines.append('    if (RCV_STRING(args.' + pack['args']['name'] + ', length' + str(idx) + ', cmd) < 0) {\n')
-            lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive string.\\n");\n')
-            lines.append('        return -1;\n')
-            lines.append('    }\n\n')
-
-            before_vector = False
         else:
             raise ValueError('Unknown argument family')
     return ''.join(lines)
-
-def print_extract_vector_length(lines, before_vector, idx, name, op):
-    if before_vector:
-        lines.append('    uint64_t length' + str(idx) + ' = std::get<0>(cmd.payload.deserialize<uint64_t>());\n\n')
-    else:
-        lines.append('\n    auto args_tuple' + str(idx)  + ' = DESERIALIZE<uint64_t>(cmd);\n\n')
-        lines.append('    if (std::get<0>(args_tuple' + str(idx)  + ') < 0) {\n')
-        lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + name + ' - ' + op + '] Failed to deserialize buffer.\\n");\n')
-        lines.append('        return -1;\n')
-        lines.append('    }\n')
-        lines.append('    uint64_t length' + str(idx) + ' = std::get<1>(args_tuple' + str(idx) + ');\n\n')
 
 def print_req_buff_size(lines, packs):
     lines.append('    constexpr size_t req_buff_size = ');
@@ -355,7 +309,6 @@ def print_req_buff_size(lines, packs):
                 lines.append('\n')
             else:
                 lines.append(';\n')
-    lines.append('\n')
 
 def print_type_list_pack(lines, pack):
     for idx, arg in enumerate(pack['args']):
@@ -394,13 +347,15 @@ def build_args_packs(lines, operation):
     return packs, has_vector
 
 def is_std_array(arg_type):
-    return arg_type.split('<')[0].strip() == 'std::array'
+    container_type = arg_type.split('<')[0].strip()
+    return  container_type in ['std::array', 'const std::array']
 
 def is_std_vector(arg_type):
-    return arg_type.split('<')[0].strip() == 'std::vector'
+    container_type = arg_type.split('<')[0].strip()
+    return  container_type in ['std::vector', 'const std::vector']
 
 def is_std_string(arg_type):
-    return arg_type.strip() == 'std::string'
+    return arg_type.strip() in ['std::string', 'const std::string']
 
 def get_std_array_params(arg_type):
     templates = arg_type.split('<')[1].split('>')[0].split(',')

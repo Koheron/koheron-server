@@ -47,6 +47,13 @@ class Tests
         return data_std_array3;
     }
 
+    const std::array<uint32_t, 2 * HALF_ARRAY_LEN>& send_std_array4(uint32_t add) {
+        for (uint32_t i=0; i<data_std_array3.size(); i++)
+            data_std_array3[i] = add + 2 * i;
+
+        return data_std_array3;
+    }
+
     bool rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 8192>& arr, double d, int32_t i);
     bool rcv_std_array2(const std::array<float, 8192>& arr);
     bool rcv_std_array3(const std::array<double, 8192>& arr);
