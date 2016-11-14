@@ -142,7 +142,7 @@ inline uint64_t extract<uint64_t>(const char *buff)
 {
     uint32_t u1 = extract<uint32_t>(buff);
     uint32_t u2 = extract<uint32_t>(buff + size_of<uint32_t>);
-    return static_cast<uint64_t>(u1) + (static_cast<uint64_t>(u2) << 32);
+    return static_cast<uint64_t>(u2) + (static_cast<uint64_t>(u1) << 32);
 }
 
 template<>
