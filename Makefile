@@ -3,7 +3,7 @@ PYTHON=/usr/bin/python
 
 SHA=`git rev-parse --short HEAD`
 TAG=0.11.0
-KOHERON_SERVER_VERSION=$(TAG)-$(VERSION)
+KOHERON_SERVER_VERSION=$(TAG).$(VERSION)
 
 # Base directory for paths
 BASE_DIR=.
