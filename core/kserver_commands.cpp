@@ -34,7 +34,7 @@ namespace kserver {
 
 KSERVER_EXECUTE_OP(GET_VERSION)
 {
-    return GET_SESSION.send<1, KServer::GET_VERSION>(xstr(SHA));
+    return GET_SESSION.send<1, KServer::GET_VERSION>(xstr(KOHERON_SERVER_VERSION));
 }
 
 /////////////////////////////////////
