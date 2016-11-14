@@ -10,7 +10,7 @@
 namespace kserver {
 
 template<unsigned int severity, typename... Tp>
-void SysLog::print(const std::string& msg, Tp... args)
+void SysLog::print(const char *msg, Tp... args)
 {
     static_assert(severity <= syslog_severity_num, "Invalid logging level");
 
@@ -30,7 +30,7 @@ void SysLog::print(const std::string& msg, Tp... args)
 }
 
 template<unsigned int severity, typename... Tp>
-int SysLog::__emit_error(const std::string& message, Tp... args)
+int SysLog::__emit_error(const char *message, Tp... args)
 {
     // We don't emit if connections are closed
     if (kserver->sig_handler.Interrupt())

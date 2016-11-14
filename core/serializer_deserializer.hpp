@@ -323,10 +323,8 @@ namespace detail {
     // Scalars
 
     inline void dump_size_to_buffer(std::vector<unsigned char>& buffer, uint64_t size) {
-        if (size > 0) {
-            buffer.resize(buffer.size() + size_of<uint64_t>);
-            append(buffer.data() + buffer.size() - size_of<uint64_t>, size);
-        }
+        buffer.resize(buffer.size() + size_of<uint64_t>);
+        append(buffer.data() + buffer.size() - size_of<uint64_t>, size);
     }
 
     struct ScalarPack {
@@ -343,6 +341,7 @@ namespace detail {
         void dump_to_buffer(std::vector<unsigned char>& buffer) {
             if (size > 0) {
                 dump_size_to_buffer(buffer, size);
+                buffer.reserve(buffer.size() + size);
                 buffer.insert(buffer.end(), data.data(), data.data() + size);
                 size = 0;
             }
@@ -420,8 +419,11 @@ namespace detail {
     {
         auto n_bytes = container.size() * sizeof(typename Container::value_type);
         dump_size_to_buffer(buffer, n_bytes);
-        const auto bytes = reinterpret_cast<const unsigned char*>(container.data());
-        buffer.insert(buffer.end(), bytes, bytes + n_bytes);
+
+        if (n_bytes > 0) {
+            const auto bytes = reinterpret_cast<const unsigned char*>(container.data());
+            buffer.insert(buffer.end(), bytes, bytes + n_bytes);
+        }
     }
 
     template<typename Tp0, typename... Tp>
@@ -534,7 +536,6 @@ inline void command_serializer(std::vector<unsigned char>& buffer,
     call_command_serializer<class_id, func_id>(buffer,
             std::index_sequence_for<Args...>{}, tup_args);
 }
-
 
 } // namespace kserver
 
