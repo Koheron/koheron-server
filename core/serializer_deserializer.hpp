@@ -318,35 +318,92 @@ serialize(Tp... t)
 // Commands serializer
 // ---------------------------
 
-namespace detail {
+class DynamicSerializer {
+  private:
+    // http://stackoverflow.com/questions/12042824/how-to-write-a-type-trait-is-container-or-is-vector
+    template<typename T, typename _ = void>
+    struct is_container : std::false_type {};
+
+    template<typename... Ts>
+    struct is_container_helper {};
+
+    template<typename T>
+    struct is_container<
+        T,
+        std::conditional_t<
+            false,
+            is_container_helper<
+                typename T::value_type,
+                typename T::size_type,
+                // typename T::allocator_type, std::array don't have an allocator
+                typename T::iterator,
+                typename T::const_iterator,
+                decltype(std::declval<T>().size()),
+                decltype(std::declval<T>().data()),
+                decltype(std::declval<T>().begin()),
+                decltype(std::declval<T>().end()),
+                decltype(std::declval<T>().cbegin()),
+                decltype(std::declval<T>().cend())
+                >,
+            void
+            >
+        > : public std::true_type {};
+
+    template<typename T>
+    static constexpr bool is_container_v = is_container<T>::value;
+
+    static_assert(is_container_v<std::vector<float>>, "");
+    static_assert(is_container_v<std::array<float, 10>>, "");
+    static_assert(is_container_v<std::string>, "");
+    static_assert(!is_container_v<float>, "");
+
+    template <typename T>
+    struct is_std_tuple : std::false_type {};
+    template <typename... Args>
+    struct is_std_tuple<std::tuple<Args...>> : std::true_type {};
+
+    template<typename T>
+    static constexpr bool is_std_tuple_v = is_std_tuple<T>::value;
+
+    static_assert(is_std_tuple_v<std::tuple<uint32_t, float>>, "");
+    static_assert(!is_std_tuple_v<uint32_t>, "");
+
+    // http://stackoverflow.com/questions/8097534/type-trait-for-strings
+    template <typename T>
+    struct is_c_string : public
+    std::integral_constant<bool,
+        std::is_same<char*, typename std::remove_reference<T>::type>::value ||
+        std::is_same<const char*, typename std::remove_reference<T>::type>::value
+    >{};
+
+    template<typename T>
+    static constexpr bool is_c_string_v = is_c_string<T>::value;
+
+    static_assert(is_c_string_v<char*>, "");
+    static_assert(is_c_string_v<const char*>, "");
+    static_assert(!is_c_string_v<std::string>, "");
 
     // Scalars
 
-    inline void dump_size_to_buffer(std::vector<unsigned char>& buffer, uint64_t size) {
+    void dump_size_to_buffer(std::vector<unsigned char>& buffer, uint64_t size) {
         buffer.resize(buffer.size() + size_of<uint64_t>);
-        append(buffer.data() + buffer.size() - size_of<uint64_t>, size);
+        kserver::append(buffer.data() + buffer.size() - size_of<uint64_t>, size);
     }
 
-    struct ScalarPack {
-        static constexpr size_t SCALAR_PACK_LEN = 1024;
-        std::array<unsigned char, SCALAR_PACK_LEN> data;
-        uint64_t size = 0;
+    template<typename T>
+    void append(T t) {
+        kserver::append<T>(&scal_data[scal_size], t);
+        scal_size += size_of<T>;
+    }
 
-        template<typename T>
-        void append(T t) {
-            kserver::append<T>(&data[size], t);
-            size += size_of<T>;
+    void dump_scalar_pack(std::vector<unsigned char>& buffer) {
+        if (scal_size > 0) {
+            dump_size_to_buffer(buffer, scal_size);
+            buffer.reserve(buffer.size() + scal_size);
+            buffer.insert(buffer.end(), scal_data.data(), scal_data.data() + scal_size);
+            scal_size = 0;
         }
-
-        void dump_to_buffer(std::vector<unsigned char>& buffer) {
-            if (size > 0) {
-                dump_size_to_buffer(buffer, size);
-                buffer.reserve(buffer.size() + size);
-                buffer.insert(buffer.end(), data.data(), data.data() + size);
-                size = 0;
-            }
-        }
-    };
+    }
 
     template<typename Tp0, typename... Tp>
     inline std::enable_if_t<0 == sizeof...(Tp) &&
@@ -356,10 +413,8 @@ namespace detail {
                             !std::is_pointer<
                                 typename std::remove_reference<Tp0>::type
                             >::value, void>
-    command_serializer(std::vector<unsigned char>& buffer,
-                       ScalarPack& scal_pack, Tp0&& t, Tp&&... args)
-    {
-        scal_pack.append(std::forward<Tp0>(t));
+    command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
+        append(std::forward<Tp0>(t));
     }
 
     template <typename Tp0, typename... Tp>
@@ -370,53 +425,18 @@ namespace detail {
                             !std::is_pointer<
                                 typename std::remove_reference<Tp0>::type
                             >::value, void>
-    command_serializer(std::vector<unsigned char>& buffer,
-                       ScalarPack& scal_pack, Tp0&& t, Tp&&... args)
-    {
-        scal_pack.append(std::forward<Tp0>(t));
-        command_serializer(buffer, scal_pack, std::forward<Tp>(args)...);
+    command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
+        append(std::forward<Tp0>(t));
+        command_serializer(buffer, std::forward<Tp>(args)...);
     }
 
     // Containers (array, vector, string)
 
-    // http://stackoverflow.com/questions/12042824/how-to-write-a-type-trait-is-container-or-is-vector
-    template<typename T, typename _ = void>
-    struct is_container : std::false_type {};
-
-    template<typename... Ts>
-    struct is_container_helper {};
-
-    template<typename T>
-    struct is_container<
-            T,
-            std::conditional_t<
-                false,
-                is_container_helper<
-                    typename T::value_type,
-                    typename T::size_type,
-                    // typename T::allocator_type, std::array don't have an allocator
-                    typename T::iterator,
-                    typename T::const_iterator,
-                    decltype(std::declval<T>().size()),
-                    decltype(std::declval<T>().data()),
-                    decltype(std::declval<T>().begin()),
-                    decltype(std::declval<T>().end()),
-                    decltype(std::declval<T>().cbegin()),
-                    decltype(std::declval<T>().cend())
-                    >,
-                void
-                >
-            > : public std::true_type {};
-
-    static_assert(is_container<std::vector<float>>::value, "");
-    static_assert(is_container<std::array<float, 10>>::value, "");
-    static_assert(is_container<std::string>::value, "");
-    static_assert(!is_container<float>::value, "");
-
     template<typename Container>
-    inline void dump_container_to_buffer(std::vector<unsigned char>& buffer,
-                                         const Container& container)
-    {
+    void dump_container_to_buffer(std::vector<unsigned char>& buffer,
+                                  const Container& container) {
+        static_assert(is_container_v<Container>, "");
+
         auto n_bytes = container.size() * sizeof(typename Container::value_type);
         dump_size_to_buffer(buffer, n_bytes);
 
@@ -427,115 +447,89 @@ namespace detail {
     }
 
     template<typename Tp0, typename... Tp>
-    inline std::enable_if_t<0 == sizeof...(Tp) &&
-                            is_container<
-                                typename std::remove_reference<Tp0>::type
-                            >::value, void>
-    command_serializer(std::vector<unsigned char>& buffer,
-                       ScalarPack& scal_pack, Tp0&& t, Tp&&... args)
-    {
-        scal_pack.dump_to_buffer(buffer);
+    std::enable_if_t<0 == sizeof...(Tp) &&
+                     is_container_v<
+                         typename std::remove_reference<Tp0>::type
+                    >, void>
+    command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
+        dump_scalar_pack(buffer);
         dump_container_to_buffer(buffer, std::forward<Tp0>(t));
     }
 
     template <typename Tp0, typename... Tp>
-    inline std::enable_if_t<0 < sizeof...(Tp) &&
-                            is_container<
-                                typename std::remove_reference<Tp0>::type
-                            >::value, void>
-    command_serializer(std::vector<unsigned char>& buffer,
-                       ScalarPack& scal_pack, Tp0&& t, Tp&&... args)
-    {
-        scal_pack.dump_to_buffer(buffer);
+    std::enable_if_t<0 < sizeof...(Tp) &&
+                     is_container_v<
+                         typename std::remove_reference<Tp0>::type
+                    >, void>
+    command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
+        dump_scalar_pack(buffer);
         dump_container_to_buffer(buffer, std::forward<Tp0>(t));
-        command_serializer(buffer, scal_pack, std::forward<Tp>(args)...);
+        command_serializer(buffer, std::forward<Tp>(args)...);
     }
 
     // C strings
 
-    // http://stackoverflow.com/questions/8097534/type-trait-for-strings
-    template <typename T>
-    struct is_c_string : public
-    std::integral_constant<bool,
-        std::is_same<char*, typename std::remove_reference<T>::type>::value ||
-        std::is_same<const char*, typename std::remove_reference<T>::type>::value
-    >{};
-
-    static_assert(is_c_string<char*>::value, "");
-    static_assert(is_c_string<const char*>::value, "");
-    static_assert(!is_c_string<std::string>::value, "");
-
     template<typename Tp0, typename... Tp>
-    inline std::enable_if_t<0 == sizeof...(Tp) && is_c_string<Tp0>::value, void>
-    command_serializer(std::vector<unsigned char>& buffer,
-                       ScalarPack& scal_pack, Tp0&& t, Tp&&... args)
-    {
-        scal_pack.dump_to_buffer(buffer);
+    std::enable_if_t<0 == sizeof...(Tp) && is_c_string_v<Tp0>, void>
+    command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
+        dump_scalar_pack(buffer);
         dump_container_to_buffer(buffer, std::string(std::forward<Tp0>(t)));
     }
 
     template <typename Tp0, typename... Tp>
-    inline std::enable_if_t<0 < sizeof...(Tp) && is_c_string<Tp0>::value, void>
-    command_serializer(std::vector<unsigned char>& buffer,
-                       ScalarPack& scal_pack, Tp0&& t, Tp&&... args)
-    {
-        scal_pack.dump_to_buffer(buffer);
+    std::enable_if_t<0 < sizeof...(Tp) && is_c_string_v<Tp0>, void>
+    command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
+        dump_scalar_pack(buffer);
         dump_container_to_buffer(buffer, std::string(std::forward<Tp0>(t)));
-        command_serializer(buffer, scal_pack, std::forward<Tp>(args)...);
+        command_serializer(buffer, std::forward<Tp>(args)...);
     }
-}
 
-template <typename T>
-struct is_std_tuple : std::false_type {};
-template <typename... Args>
-struct is_std_tuple<std::tuple<Args...>> : std::true_type {};
+    // Tuples are unpacked before serialization
 
-static_assert(is_std_tuple<std::tuple<uint32_t, float>>::value, "");
-static_assert(!is_std_tuple<uint32_t>::value, "");
+    template<uint16_t class_id, uint16_t func_id,
+             std::size_t... I, typename... Args>
+    void call_command_serializer(std::vector<unsigned char>& buffer,
+                                 std::index_sequence<I...>,
+                                 std::tuple<Args...> tup_args) {
+        build_command<class_id, func_id>(buffer, std::get<I>(tup_args)...);
+    }
 
-template<uint16_t class_id, uint16_t func_id, typename Tp0, typename... Args>
-inline std::enable_if_t<0 <= sizeof...(Args) &&
-                        !is_std_tuple<
-                            typename std::remove_reference<Tp0>::type
-                        >::value, void>
-command_serializer(std::vector<unsigned char>& buffer, Tp0&& arg0, Args&&... args)
-{
-    const auto& header = serialize(0U, class_id, func_id);
-    buffer.resize(header.size());
-    std::copy(header.begin(), header.end(), buffer.begin());
-    auto scal_pack = detail::ScalarPack{};
-    detail::command_serializer(buffer, scal_pack, std::forward<Tp0>(arg0),
-                               std::forward<Args>(args)...);
-    scal_pack.dump_to_buffer(buffer);
-}
+  public:
+    template<uint16_t class_id, uint16_t func_id, typename Tp0, typename... Args>
+    std::enable_if_t<0 <= sizeof...(Args) &&
+                     !is_std_tuple_v<
+                         typename std::remove_reference<Tp0>::type
+                     >, void>
+    build_command(std::vector<unsigned char>& buffer, Tp0&& arg0, Args&&... args) {
+        const auto& header = serialize(0U, class_id, func_id);
+        buffer.resize(header.size());
+        std::copy(header.begin(), header.end(), buffer.begin());
+        scal_size = 0;
+        command_serializer(buffer, std::forward<Tp0>(arg0),
+                           std::forward<Args>(args)...);
+        dump_scalar_pack(buffer);
+    }
 
-template<uint16_t class_id, uint16_t func_id, typename... Args>
-inline std::enable_if_t< 0 == sizeof...(Args), void >
-command_serializer(std::vector<unsigned char>& buffer, Args&&... args)
-{
-    const auto& header = serialize(0U, class_id, func_id, 0UL);
-    buffer.resize(header.size());
-    std::copy(header.begin(), header.end(), buffer.begin());
-}
+    template<uint16_t class_id, uint16_t func_id, typename... Args>
+    std::enable_if_t< 0 == sizeof...(Args), void >
+    build_command(std::vector<unsigned char>& buffer, Args&&... args) {
+        const auto& header = serialize(0U, class_id, func_id, 0UL);
+        buffer.resize(header.size());
+        std::copy(header.begin(), header.end(), buffer.begin());
+    }
 
-// Tuples are unpacked before serialization
+    template<uint16_t class_id, uint16_t func_id, typename... Args>
+    void build_command(std::vector<unsigned char>& buffer,
+                       std::tuple<Args...> tup_args) {
+        call_command_serializer<class_id, func_id>(buffer,
+                std::index_sequence_for<Args...>{}, tup_args);
+    }
 
-template<uint16_t class_id, uint16_t func_id,
-         std::size_t... I, typename... Args>
-inline void call_command_serializer(std::vector<unsigned char>& buffer,
-                                    std::index_sequence<I...>,
-                                    std::tuple<Args...> tup_args)
-{
-    command_serializer<class_id, func_id>(buffer, std::get<I>(tup_args)...);
-}
-
-template<uint16_t class_id, uint16_t func_id, typename... Args>
-inline void command_serializer(std::vector<unsigned char>& buffer,
-                               std::tuple<Args...> tup_args)
-{
-    call_command_serializer<class_id, func_id>(buffer,
-            std::index_sequence_for<Args...>{}, tup_args);
-}
+  private:
+    static constexpr size_t SCALAR_PACK_LEN = 1024;
+    std::array<unsigned char, SCALAR_PACK_LEN> scal_data;
+    uint64_t scal_size = 0;
+};
 
 } // namespace kserver
 

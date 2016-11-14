@@ -103,7 +103,7 @@ class Session : public SessionAbstract
 
     template<uint16_t class_id, uint16_t func_id, typename... Args>
     int send(Args... args) {
-        command_serializer<class_id, func_id>(send_buffer, args...);
+        dyn_ser.build_command<class_id, func_id>(send_buffer, args...);
         return write(send_buffer.data(), send_buffer.size());
     }
 
@@ -134,6 +134,7 @@ class Session : public SessionAbstract
     std::time_t start_time;    ///< Starting time of the session
 
     std::vector<unsigned char> send_buffer;
+    DynamicSerializer dyn_ser;
 
   private:
     int init_socket();
