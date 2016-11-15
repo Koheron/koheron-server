@@ -52,7 +52,7 @@ KSERVER_PARSE_ARG(GET_VERSION) {return 0;}
 
 KSERVER_EXECUTE_OP(GET_VERSION)
 {
-    return GET_SESSION.send_cstr(xstr(SHA));
+    return GET_SESSION.send_cstr(xstr(KOHERON_SERVER_VERSION));
 }
 
 /////////////////////////////////////
