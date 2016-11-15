@@ -25,6 +25,13 @@ namespace kserver {
   int KDevice<KServer, KSERVER>::                                   \
       execute_op<KServer::cmd_name>(Command& cmd)
 
+#define NO_PARAM(cmd_name)                                                                              \
+    auto args_tuple = DESERIALIZE(cmd);                                                                 \
+    if (std::get<0>(args_tuple) < 0) {                                                                  \
+        kserver->syslog.print<SysLog::ERROR>("[Kserver - ##cmd_name] Failed to deserialize buffer.\n"); \
+        return -1;                                                                                      \
+    }
+
 /////////////////////////////////////
 // GET_VERSION
 // Send the server commit version
@@ -34,6 +41,7 @@ namespace kserver {
 
 KSERVER_EXECUTE_OP(GET_VERSION)
 {
+    NO_PARAM(GET_VERSION)
     return GET_SESSION.send<1, KServer::GET_VERSION>(xstr(KOHERON_SERVER_VERSION));
 }
 
@@ -43,6 +51,7 @@ KSERVER_EXECUTE_OP(GET_VERSION)
 
 KSERVER_EXECUTE_OP(GET_CMDS)
 {
+    NO_PARAM(GET_CMDS)
     return GET_SESSION.send<1, KServer::GET_CMDS>(build_devices_json());
 }
 
@@ -84,6 +93,8 @@ int send_listener_stats(Command& cmd, KServer *kserver,
 
 KSERVER_EXECUTE_OP(GET_STATS)
 {
+    NO_PARAM(GET_STATS)
+
     char send_str[KS_DEV_WRITE_STR_LEN];
     unsigned int bytes = 0;
     unsigned int bytes_send = 0;
@@ -165,6 +176,8 @@ KSERVER_EXECUTE_OP(GET_DEV_STATUS) {return 0;}
 
 KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
 {
+    NO_PARAM(GET_RUNNING_SESSIONS)
+
     char send_str[KS_DEV_WRITE_STR_LEN];
     unsigned int bytes = 0;
     unsigned int bytes_send = 0;
@@ -253,6 +266,7 @@ KSERVER_EXECUTE_OP(SUBSCRIBE_PUBSUB)
 
 KSERVER_EXECUTE_OP(PUBSUB_PING)
 {
+    NO_PARAM(PUBSUB_PING)
     kserver->pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::PING>(static_cast<uint32_t>(cmd.sess_id));
     return 0;
 }
