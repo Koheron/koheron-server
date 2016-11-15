@@ -81,7 +81,8 @@ class Session : public SessionAbstract
     // TODO Move in Session<TCP> specialization
     int rcv_n_bytes(char *buffer, uint64_t n_bytes);
 
-    template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd);
+    template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd, std::false_type);
+    template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd, std::true_type);
 
     // XXX Error when removing this !
     template<typename T, size_t N>
@@ -304,7 +305,19 @@ inline int Session<TCP>::recv(std::string& str, Command& cmd)
 
 template<>
 template<typename... Tp>
-inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd)
+inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd, std::false_type)
+{
+    auto length = get_pack_length();
+
+    if (length != 0)
+        return std::make_tuple(-1);
+
+    return std::make_tuple(0);
+}
+
+template<>
+template<typename... Tp>
+inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd, std::true_type)
 {
     auto constexpr pack_len = required_buffer_size<Tp...>();
     auto length = get_pack_length();
@@ -424,7 +437,19 @@ inline int Session<WEBSOCK>::recv(std::string& str, Command& cmd)
 
 template<>
 template<typename... Tp>
-inline std::tuple<int, Tp...> Session<WEBSOCK>::deserialize(Command& cmd)
+inline std::tuple<int, Tp...> Session<WEBSOCK>::deserialize(Command& cmd, std::false_type)
+{
+    auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
+
+    if (length != 0)
+        return std::make_tuple(-1);
+
+    return std::make_tuple(0);
+}
+
+template<>
+template<typename... Tp>
+inline std::tuple<int, Tp...> Session<WEBSOCK>::deserialize(Command& cmd, std::true_type)
 {
     auto constexpr pack_len = required_buffer_size<Tp...>();
     auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
@@ -490,7 +515,7 @@ inline int Session<WEBSOCK>::write(const T *data, unsigned int len)
 
 template<typename... Tp>
 inline std::tuple<int, Tp...> SessionAbstract::deserialize(Command& cmd) {
-    SWITCH_SOCK_TYPE(template deserialize<Tp...>(cmd))
+    SWITCH_SOCK_TYPE(template deserialize<Tp...>(cmd, std::integral_constant<bool, 0 < sizeof...(Tp)>()))
     return std::tuple_cat(std::make_tuple(-1), std::tuple<Tp...>());
 }
 

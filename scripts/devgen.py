@@ -249,7 +249,7 @@ def generate_call(device, dev_id, operation):
 def parser_generator(device, operation): 
     lines = []   
     if operation.get('arguments') is None:
-        lines.append('\n    auto args_tuple = DESERIALIZE<>(cmd);\n')
+        lines.append('\n    auto args_tuple = DESERIALIZE(cmd);\n')
         lines.append('    if (std::get<0>(args_tuple) < 0) {\n')
         lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to deserialize buffer.\\n");\n')
         lines.append('        return -1;\n')
