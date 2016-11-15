@@ -2,6 +2,8 @@ CONFIG=config/config_local.yaml
 PYTHON=/usr/bin/python
 
 SHA=`git rev-parse --short HEAD`
+TAG=0.11.0
+KOHERON_SERVER_VERSION=$(TAG).$(SHA)
 
 # Base directory for paths
 BASE_DIR=.
@@ -24,7 +26,7 @@ CORE_OBJ=$(subst .cpp,.o, $(addprefix $(TMP)/, $(notdir $(CORE_SRC))))
 ARCH_FLAGS:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; cfg = json.load(sys.stdin); print '-' + ' -'.join(cfg['arch_flags'])")
 OPTIM_FLAGS:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; cfg = json.load(sys.stdin); print '-' + ' -'.join(cfg['optimization_flags'])")
 DEBUG_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --debug-flags $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.debug-flags)
-DEFINES:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; cfg = json.load(sys.stdin); print '-D' + ' -D'.join(cfg['defines']) + ' -DSHA=' + '$(SHA)'")
+DEFINES:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; cfg = json.load(sys.stdin); print '-D' + ' -D'.join(cfg['defines']) + ' -DKOHERON_SERVER_VERSION=' + '$(KOHERON_SERVER_VERSION)'")
 CROSS_COMPILE:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; print json.load(sys.stdin)['cross-compile']")
 DEVICES:=$(shell $(__PYTHON) $(MAKE_PY) --devices $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.devices)
 DEPENDENCIES:=$(shell $(__PYTHON) $(MAKE_PY) --dependencies $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.dependencies)
