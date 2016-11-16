@@ -100,6 +100,7 @@ class PubSub
 
     enum ServerChanEvents {
         PING,                   ///< For tests
+        PING_TEXT,              ///< For tests
         server_chan_events_num
     };
 

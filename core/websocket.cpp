@@ -408,6 +408,9 @@ int WebSocket::send_request(const std::string& request)
 
 int WebSocket::send_request(const unsigned char *bits, long long len)
 {
+    if (connection_closed)
+        return 0;
+
     int bytes_send = 0;
     int remaining = len;
     int offset = 0;
@@ -419,15 +422,17 @@ int WebSocket::send_request(const unsigned char *bits, long long len)
             remaining -= bytes_send;
         }
         else if (bytes_send == 0) {
-            kserver->syslog.print<SysLog::ERROR>(
-                                  "WebSocket: Cannot send request\n");
-            return -1;
+            connection_closed = true;
+            kserver->syslog.print<SysLog::INFO>(
+                              "WebSocket: Connection closed by client\n");
+            return 0;
         }
     }
 
     if (unlikely(bytes_send < 0)) {
+        connection_closed = true;
         kserver->syslog.print<SysLog::ERROR>(
-                              "WebSocket: Cannot send request. Error #%u\n",
+                              "WebSocket: Cannot send request. Error %i\n",
                               bytes_send);
         return -1;
     }

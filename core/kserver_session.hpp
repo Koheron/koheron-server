@@ -105,7 +105,12 @@ class Session : public SessionAbstract
     template<uint16_t class_id, uint16_t func_id, typename... Args>
     int send(Args... args) {
         dyn_ser.build_command<class_id, func_id>(send_buffer, args...);
-        return write(send_buffer.data(), send_buffer.size());
+        auto bytes_send = write(send_buffer.data(), send_buffer.size());
+
+        if (bytes_send == 0)
+            status = CLOSED;
+
+        return bytes_send;
     }
 
   private:
@@ -136,6 +141,9 @@ class Session : public SessionAbstract
 
     std::vector<unsigned char> send_buffer;
     DynamicSerializer dyn_ser;
+
+    enum {CLOSED, OPENED};
+    int status;
 
   private:
     int init_socket();
@@ -193,6 +201,7 @@ Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
 , errors_num(0)
 , start_time(0)
 , send_buffer(0)
+, status(OPENED)
 {}
 
 template<int sock_type>
@@ -224,6 +233,9 @@ int Session<sock_type>::run()
                 cmd.device, cmd.operation);
             errors_num++;
         }
+
+        if (status == CLOSED)
+            break;
     }
 
     exit_session();
@@ -344,6 +356,12 @@ inline int Session<TCP>::write(const T *data, unsigned int len)
 {
     int bytes_send = sizeof(T) * len;
     int n_bytes_send = ::write(comm_fd, (void*)data, bytes_send);
+
+    if (n_bytes_send == 0) {
+       session_manager.kserver.syslog.print<SysLog::ERROR>(
+          "TCPSocket::write: Connection closed by client\n");
+       return 0;
+    }
 
     if (unlikely(n_bytes_send < 0)) {
        session_manager.kserver.syslog.print<SysLog::ERROR>(

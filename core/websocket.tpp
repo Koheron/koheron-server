@@ -10,6 +10,9 @@ namespace kserver {
 template<class T>
 int WebSocket::send(const T *data, unsigned int len)
 {
+	if (connection_closed)
+        return 0;
+
     long unsigned int char_data_len = len * sizeof(T) / sizeof(char);
 
     if (char_data_len + 10 > WEBSOCK_SEND_BUF_LEN) {
