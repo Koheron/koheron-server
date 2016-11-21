@@ -6,7 +6,7 @@
 #define __DEVICES_MANAGER_HPP__
 
 #include <array>
-#include <bitset>
+#include <memory>
 #include <assert.h>
 
 #include "kdevice.hpp"
@@ -24,14 +24,13 @@ class DeviceManager
 {
   public:
     DeviceManager(KServer *kserver_);
-
-    ~DeviceManager();
     
     int Init();
     int Execute(Command &cmd);
 
   private:
-    std::vector<KDeviceAbstract*> device_list;
+    // Store devices (except KServer) as unique_ptr
+    std::array<std::unique_ptr<KDeviceAbstract>, device_num - 2> device_list;
     KServer *kserver;
 
 #if KSERVER_HAS_DEVMEM
