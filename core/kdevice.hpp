@@ -25,21 +25,12 @@ template<class Dev, device_t dev_kind> class KDevice;
 class KServer;
 DEVICES_TABLE(EXPAND_AS_CLASS_LIST) // X-macro
 
-/// @brief Abstract class for KDevice
 class KDeviceAbstract {
 public:
     KDeviceAbstract(device_t kind_)
     :kind(kind_) {}
 
     device_t kind = NO_DEVICE;
-
-    template<class Dev, device_t dev_kind>
-    KDevice<Dev, dev_kind>* cast() {
-        if (Dev::__kind != kind)
-            return NULL;
-        else
-            return static_cast<KDevice<Dev, dev_kind>*>(this);
-    }
 };
 
 struct Command;
@@ -60,9 +51,7 @@ class KDevice : public KDeviceAbstract
     int execute(Command& cmd);
 
   private:
-    /// Each device knows the KServer class,
-    /// which itself knows every body else
-    KServer* kserver;
+    KServer *kserver;
 
   protected:
     template<int op> int execute_op(Command& cmd);
