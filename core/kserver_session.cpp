@@ -23,7 +23,7 @@ int Session<TCP>::read_command(Command& cmd)
     // Read and decode header
     // |      RESERVED     | dev_id  |  op_id  |             payload_size              |   payload
     // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | ...
-    int header_bytes = rcv_n_bytes(cmd.header.data(), Command::HEADER_SIZE);
+    const int header_bytes = rcv_n_bytes(cmd.header.data(), Command::HEADER_SIZE);
 
     if (header_bytes == 0)
         return header_bytes;
@@ -34,7 +34,7 @@ int Session<TCP>::read_command(Command& cmd)
         return header_bytes;
     }
 
-    auto header_tuple = cmd.header.deserialize<HEADER_TYPE_LIST>();
+    const auto header_tuple = cmd.header.deserialize<HEADER_TYPE_LIST>();
     cmd.sess_id = id;
     cmd.device = static_cast<device_t>(std::get<0>(header_tuple));
     cmd.operation = std::get<1>(header_tuple);
@@ -122,12 +122,10 @@ int Session<WEBSOCK>::read_command(Command& cmd)
         return -1;
     }
 
-    auto header_tuple = cmd.header.deserialize<HEADER_TYPE_LIST>();
-    device_t device = static_cast<device_t>(std::get<0>(header_tuple));
-    int32_t operation = std::get<1>(header_tuple);
+    const auto header_tuple = cmd.header.deserialize<HEADER_TYPE_LIST>();
     cmd.sess_id = id;
-    cmd.device = device;
-    cmd.operation = operation;
+    cmd.device = static_cast<device_t>(std::get<0>(header_tuple));
+    cmd.operation = std::get<1>(header_tuple);
 
     return Command::HEADER_SIZE;
 }

@@ -105,7 +105,7 @@ class Session : public SessionAbstract
     template<uint16_t class_id, uint16_t func_id, typename... Args>
     int send(Args... args) {
         dyn_ser.build_command<class_id, func_id>(send_buffer, args...);
-        auto bytes_send = write(send_buffer.data(), send_buffer.size());
+        const auto bytes_send = write(send_buffer.data(), send_buffer.size());
 
         if (bytes_send == 0)
             status = CLOSED;
@@ -140,7 +140,7 @@ class Session : public SessionAbstract
     std::time_t start_time;    ///< Starting time of the session
 
     std::vector<unsigned char> send_buffer;
-    DynamicSerializer dyn_ser;
+    DynamicSerializer<1024> dyn_ser;
 
     enum {CLOSED, OPENED};
     int status;
@@ -166,7 +166,7 @@ class Session : public SessionAbstract
 
     int64_t get_pack_length() {
         Buffer<sizeof(uint64_t)> buff;
-        auto err = rcv_n_bytes(buff.data(), sizeof(uint64_t));
+        const auto err = rcv_n_bytes(buff.data(), sizeof(uint64_t));
 
         if (err < 0) {
             session_manager.kserver.syslog.print<SysLog::ERROR>(
@@ -212,7 +212,7 @@ int Session<sock_type>::run()
 
     while (!session_manager.kserver.exit_comm.load()) {
         Command cmd;
-        int nb_bytes_rcvd = read_command(cmd);
+        const int nb_bytes_rcvd = read_command(cmd);
 
         if (session_manager.kserver.exit_comm.load())
             break;
@@ -255,7 +255,7 @@ template<>
 template<typename T, size_t N>
 inline int Session<TCP>::recv(std::array<T, N>& arr, Command& cmd)
 {
-    auto length = get_pack_length();
+    const auto length = get_pack_length();
 
     if (length < 0)
         return -1;
@@ -268,7 +268,7 @@ inline int Session<TCP>::recv(std::array<T, N>& arr, Command& cmd)
     }
 
     Buffer<size_of<T, N>> buff;
-    auto err = rcv_n_bytes(buff.data(), size_of<T, N>);
+    const auto err = rcv_n_bytes(buff.data(), size_of<T, N>);
 
     if (err < 0)
         return err;
@@ -281,13 +281,13 @@ template<>
 template<typename T>
 inline int Session<TCP>::recv(std::vector<T>& vec, Command& cmd)
 {
-    auto length = get_pack_length() / sizeof(T);
+    const auto length = get_pack_length() / sizeof(T);
 
     if (length < 0)
         return -1;
 
     vec.resize(length);
-    auto err = rcv_n_bytes(reinterpret_cast<char *>(vec.data()), length * sizeof(T));
+    const auto err = rcv_n_bytes(reinterpret_cast<char *>(vec.data()), length * sizeof(T));
 
     if (err >= 0)
         session_manager.kserver.syslog.print<SysLog::DEBUG>(
@@ -300,13 +300,13 @@ template<>
 template<>
 inline int Session<TCP>::recv(std::string& str, Command& cmd)
 {
-    auto length = get_pack_length();
+    const auto length = get_pack_length();
 
     if (length < 0)
         return -1;
 
     str.resize(length);
-    auto err = rcv_n_bytes(const_cast<char*>(str.data()), length);
+    const auto err = rcv_n_bytes(const_cast<char*>(str.data()), length);
 
     if (err >= 0)
         session_manager.kserver.syslog.print<SysLog::DEBUG>(
@@ -319,7 +319,7 @@ template<>
 template<typename... Tp>
 inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd, std::false_type)
 {
-    auto length = get_pack_length();
+    const auto length = get_pack_length();
 
     if (length != 0)
         return std::make_tuple(-1);
@@ -331,8 +331,8 @@ template<>
 template<typename... Tp>
 inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd, std::true_type)
 {
-    auto constexpr pack_len = required_buffer_size<Tp...>();
-    auto length = get_pack_length();
+    constexpr auto pack_len = required_buffer_size<Tp...>();
+    const auto length = get_pack_length();
 
     if (length < 0)
         return std::tuple_cat(std::make_tuple(-1), std::tuple<Tp...>());
@@ -346,7 +346,7 @@ inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd, std::true_
     }
 
     Buffer<pack_len> buff;
-    int err = rcv_n_bytes(buff.data(), pack_len);
+    const int err = rcv_n_bytes(buff.data(), pack_len);
     return std::tuple_cat(std::make_tuple(err), buff.deserialize<Tp...>());
 }
 
@@ -354,8 +354,8 @@ template<>
 template<class T>
 inline int Session<TCP>::write(const T *data, unsigned int len)
 {
-    int bytes_send = sizeof(T) * len;
-    int n_bytes_send = ::write(comm_fd, (void*)data, bytes_send);
+    const int bytes_send = sizeof(T) * len;
+    const int n_bytes_send = ::write(comm_fd, (void*)data, bytes_send);
 
     if (n_bytes_send == 0) {
        session_manager.kserver.syslog.print<SysLog::ERROR>(
@@ -408,7 +408,7 @@ template<>
 template<typename T, size_t N>
 inline int Session<WEBSOCK>::recv(std::array<T, N>& arr, Command& cmd)
 {
-    auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
+    const auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
 
     if (length != size_of<T, N>) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
@@ -425,7 +425,7 @@ template<>
 template<typename T>
 inline int Session<WEBSOCK>::recv(std::vector<T>& vec, Command& cmd)
 {
-    auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
+    const auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
 
     if (length > CMD_PAYLOAD_BUFFER_LEN) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
@@ -441,7 +441,7 @@ template<>
 template<>
 inline int Session<WEBSOCK>::recv(std::string& str, Command& cmd)
 {
-    auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
+    const auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
 
     if (length > CMD_PAYLOAD_BUFFER_LEN) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(
@@ -457,7 +457,7 @@ template<>
 template<typename... Tp>
 inline std::tuple<int, Tp...> Session<WEBSOCK>::deserialize(Command& cmd, std::false_type)
 {
-    auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
+    const auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
 
     if (length != 0)
         return std::make_tuple(-1);
@@ -469,8 +469,8 @@ template<>
 template<typename... Tp>
 inline std::tuple<int, Tp...> Session<WEBSOCK>::deserialize(Command& cmd, std::true_type)
 {
-    auto constexpr pack_len = required_buffer_size<Tp...>();
-    auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
+    constexpr auto pack_len = required_buffer_size<Tp...>();
+    const auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
 
     if (length != pack_len) {
         session_manager.kserver.syslog.print<SysLog::ERROR>(

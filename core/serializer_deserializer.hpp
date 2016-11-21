@@ -318,6 +318,7 @@ serialize(Tp... t)
 // Commands serializer
 // ---------------------------
 
+template<size_t SCALAR_PACK_LEN>
 class DynamicSerializer {
   private:
     // http://stackoverflow.com/questions/12042824/how-to-write-a-type-trait-is-container-or-is-vector
@@ -526,7 +527,6 @@ class DynamicSerializer {
     }
 
   private:
-    static constexpr size_t SCALAR_PACK_LEN = 1024;
     std::array<unsigned char, SCALAR_PACK_LEN> scal_data;
     uint64_t scal_size = 0;
 };
