@@ -219,7 +219,7 @@ def generate_call(device, dev_id, operation):
         lines.append('    {};\n'.format(build_func_call(device, operation)))
         lines.append('    return 0;\n')
     else:
-        lines.append('    return SEND<{}, {}>({});\n'.format(dev_id, operation['id'], build_func_call(device, operation)))
+        lines.append('    return cmd.sess->send<{}, {}>({});\n'.format(dev_id, operation['id'], build_func_call(device, operation)))
     return ''.join(lines)
 
 # -----------------------------------------------------------
@@ -229,7 +229,7 @@ def generate_call(device, dev_id, operation):
 def parser_generator(device, operation): 
     lines = []   
     if operation.get('arguments') is None:
-        lines.append('\n    auto args_tuple = DESERIALIZE(cmd);\n')
+        lines.append('\n    auto args_tuple = cmd.sess->deserialize(cmd);\n')
         lines.append('    if (std::get<0>(args_tuple) < 0) {\n')
         lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[{} - {}] Failed to deserialize buffer.\\n");\n'.format(device.name, operation['name']))
         lines.append('        return -1;\n')
@@ -244,7 +244,7 @@ def parser_generator(device, operation):
 
     for idx, pack in enumerate(packs):
         if pack['family'] == 'scalar':
-            lines.append('\n    auto args_tuple' + str(idx)  + ' = DESERIALIZE<')
+            lines.append('\n    auto args_tuple' + str(idx)  + ' = cmd.sess->deserialize<')
             print_type_list_pack(lines, pack)
             lines.append('>(cmd);\n')
             lines.append('    if (std::get<0>(args_tuple' + str(idx)  + ') < 0) {\n')
@@ -256,7 +256,7 @@ def parser_generator(device, operation):
                 lines.append('    THIS->args_' + operation['name'] + '.' + arg["name"] + ' = ' + 'std::get<' + str(i + 1) + '>(args_tuple' + str(idx) + ');\n');
 
         elif pack['family'] in ['vector', 'string', 'array']:
-            lines.append('    if (RECV(THIS->args_' + operation['name'] + '.' + pack['args']['name'] + ', cmd) < 0) {\n')
+            lines.append('    if (cmd.sess->recv(THIS->args_' + operation['name'] + '.' + pack['args']['name'] + ', cmd) < 0) {\n')
             lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive '+ pack['family'] +'.\\n");\n')
             lines.append('        return -1;\n')
             lines.append('    }\n\n')

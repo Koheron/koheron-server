@@ -26,7 +26,7 @@ namespace kserver {
       execute_op<KServer::cmd_name>(Command& cmd)
 
 #define NO_PARAM(cmd_name)                                                                 \
-    auto args_tuple = DESERIALIZE(cmd);                                                    \
+    auto args_tuple = cmd.sess->deserialize(cmd);                                          \
     if (std::get<0>(args_tuple) < 0) {                                                     \
         kserver->syslog.print<SysLog::ERROR>("[Kserver] Failed to deserialize buffer.\n"); \
         return -1;                                                                         \
@@ -257,7 +257,7 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
 
 KSERVER_EXECUTE_OP(SUBSCRIBE_PUBSUB)
 {
-    return kserver->pubsub.subscribe(std::get<1>(DESERIALIZE<uint32_t>(cmd)), cmd.sess_id);
+    return kserver->pubsub.subscribe(std::get<1>(cmd.sess->deserialize<uint32_t>(cmd)), cmd.sess_id);
 }
 
 /////////////////////////////////////

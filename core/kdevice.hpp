@@ -44,11 +44,6 @@ class KDevice : public KDeviceAbstract
 friend class DeviceManager;
 };
 
-/// Macros to simplify edition of operations
-#define RECV kserver->session_manager.get_session(cmd.sess_id).recv
-#define DESERIALIZE kserver->session_manager.get_session(cmd.sess_id).deserialize
-#define SEND kserver->session_manager.get_session(cmd.sess_id).send
-
 } // namespace kserver
 
 #endif // __KDEVICE_HPP__

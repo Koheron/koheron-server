@@ -31,6 +31,10 @@ class Benchmarks
         return vec.size() == 16384;
     }
 
+    bool std_array_u32_from_client(const std::array<uint32_t, 5000>& arr) {
+        return true;
+    }
+
   private:
     std::vector<uint32_t> vector_u;
     std::vector<float> vector_f;
