@@ -426,7 +426,7 @@ inline int Session<WEBSOCK>::recv(std::vector<T>& vec, Command& cmd)
         return -1;
     }
 
-    cmd.payload.copy_to_vector(vec, length / sizeof(T));
+    cmd.payload.to_vector(vec, length / sizeof(T));
     return 0;
 }
 
@@ -442,7 +442,7 @@ inline int Session<WEBSOCK>::recv(std::string& str, Command& cmd)
         return -1;
     }
 
-    cmd.payload.copy_to_string(str, length);
+    cmd.payload.to_string(str, length);
     return 0;
 }
 
