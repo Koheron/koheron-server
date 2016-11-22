@@ -19,10 +19,10 @@ namespace kserver {
 #define GET_SESSION kserver->session_manager.get_session(cmd.sess_id)
 #define GET_CMD_LOG GET_SESSION.GetCmdLog()
 
-#define KSERVER_EXECUTE_OP(cmd_name)                                \
-  template<>                                                        \
-  template<>                                                        \
-  int KDevice<KServer, KSERVER>::                                   \
+#define KSERVER_EXECUTE_OP(cmd_name)                       \
+  template<>                                               \
+  template<>                                               \
+  int KDevice<KSERVER>::                                   \
       execute_op<KServer::cmd_name>(Command& cmd)
 
 #define NO_PARAM(cmd_name)                                                                 \
@@ -276,7 +276,7 @@ KSERVER_EXECUTE_OP(PUBSUB_PING)
 ////////////////////////////////////////////////
 
 template<>
-int KDevice<KServer, KSERVER>::execute(Command& cmd)
+int KDevice<KSERVER>::execute(Command& cmd)
 {
 #if KSERVER_HAS_THREADS
     std::lock_guard<std::mutex> lock(static_cast<KServer*>(this)->ks_mutex);

@@ -27,10 +27,7 @@ DeviceManager::DeviceManager(KServer *kserver_)
 #if KSERVER_HAS_DEVMEM
 ,  dev_mem()
 #endif
-{
-    // Start all devices
-    DEVICES_TABLE(EXPAND_AS_START_DEVICE)
-}
+{}
 
 int DeviceManager::Init()
 {
@@ -42,34 +39,55 @@ int DeviceManager::Init()
     }
 #endif
 
+    DEVICES_TABLE(EXPAND_AS_START_DEVICE) // Start all devices
     return 0;
 }
 
-// X Macro: Execute device
-#define EXPAND_AS_EXECUTE_DEVICE(num, name, operations ...)               \
-    case num: {                                                           \
-        error = static_cast<KDevice<name, num>*>(dev_abs)->execute(cmd);  \
-        break;                                                            \
-    }
+template<device_t dev0, device_t... devs>
+std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, int>
+execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd)
+{
+    static_assert(dev0 < device_num, "");
+    static_assert(dev0 >= 2, "");
+    return static_cast<KDevice<dev0>*>(dev_abs)->execute(cmd);
+}
+
+template<device_t dev0, device_t... devs>
+std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, int>
+execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd)
+{
+    static_assert(dev0 < device_num, "");
+    static_assert(dev0 >= 2, "");
+
+    return dev_abs->kind == dev0 ? static_cast<KDevice<dev0>*>(dev_abs)->execute(cmd)
+                                 : execute_dev_impl<devs...>(dev_abs, cmd);
+}
+
+template<device_t dev0, device_t... devs>
+std::enable_if_t<dev0 == 0 || dev0 == 1, int> // Cases NO_DEVICE and KSERVER
+execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd)
+{
+    return execute_dev_impl<devs...>(dev_abs, cmd);
+}
+
+template<device_t... devs>
+int execute_dev(KDeviceAbstract *dev_abs, Command& cmd, std::index_sequence<devs...>)
+{
+    static_assert(sizeof...(devs) == device_num, "");
+    return execute_dev_impl<devs...>(dev_abs, cmd);
+}
 
 int DeviceManager::Execute(Command& cmd)
 {
     assert(cmd.device < device_num);
-    int error = 0;
 
-    if (cmd.device == 0) return 0;
-    if (cmd.device == 1) return kserver->execute(cmd);
-
-    KDeviceAbstract *dev_abs = device_list[cmd.device - 2].get();
-
-    switch (dev_abs->kind) {
-      DEVICES_TABLE(EXPAND_AS_EXECUTE_DEVICE) // X-Macro
-
-      case device_num:
-      default: assert(false);
-    }
-
-    return error; 
+    if (cmd.device == 0)
+        return 0;
+    else if (cmd.device == 1)
+        return kserver->execute(cmd);
+    else
+        return execute_dev(device_list[cmd.device - 2].get(), cmd,
+                           std::make_index_sequence<device_num>());
 }
 
 } // namespace kserver

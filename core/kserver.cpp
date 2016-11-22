@@ -13,7 +13,7 @@
 namespace kserver {
 
 KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
-: KDevice<KServer, KSERVER>(this),
+: KDevice<KSERVER>(this),
   config(config_),
   sig_handler(),
 #if KSERVER_HAS_TCP

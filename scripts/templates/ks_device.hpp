@@ -21,7 +21,7 @@
 
 namespace kserver {
 
-class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device.tag }}>
+class {{ device.class_name }} : public KDevice<{{ device.tag }}>
 {
   public:
     const device_t kind = {{ device.tag }};
@@ -33,7 +33,7 @@ class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device
 #else
     {{ device.class_name }}(KServer* kserver)
 #endif
-    : KDevice<{{ device.class_name }},{{ device.tag }}>(kserver)
+    : KDevice<{{ device.tag }}>(kserver)
 #if KSERVER_HAS_DEVMEM
     , dev_mem(dev_mem_)
 #endif
