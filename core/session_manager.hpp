@@ -39,7 +39,7 @@ class SessionManager
 
     template<int sock_type>
     SessID create_session(const std::shared_ptr<KServerConfig>& config_,
-                          int comm_fd, PeerInfo peer_info);
+                          int comm_fd);
 
     std::vector<SessID> get_current_ids();
 

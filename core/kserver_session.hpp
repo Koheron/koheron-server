@@ -63,7 +63,7 @@ class Session : public SessionAbstract
 {
   public:
     Session(const std::shared_ptr<KServerConfig>& config_,
-            int comm_fd, SessID id_, PeerInfo peer_info,
+            int comm_fd, SessID id_,
             SessionManager& session_manager_);
 
     int run();
@@ -118,7 +118,7 @@ class Session : public SessionAbstract
     int comm_fd;  ///< Socket file descriptor
     SessID id;
     SysLog *syslog_ptr;
-    PeerInfo peer_info;
+    PeerInfo<sock_type> peer_info;
     SessionManager& session_manager;
     SessionPermissions permissions;
 
@@ -184,14 +184,14 @@ friend class SessionManager;
 
 template<int sock_type>
 Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
-                            int comm_fd_, SessID id_, PeerInfo peer_info_,
+                            int comm_fd_, SessID id_,
                             SessionManager& session_manager_)
 : SessionAbstract(sock_type)
 , config(config_)
 , comm_fd(comm_fd_)
 , id(id_)
 , syslog_ptr(&session_manager_.kserver.syslog)
-, peer_info(peer_info_)
+, peer_info(PeerInfo<sock_type>(comm_fd_))
 , session_manager(session_manager_)
 , permissions()
 #if KSERVER_HAS_WEBSOCKET
@@ -385,9 +385,9 @@ class Session<UNIX> : public Session<TCP>
 {
   public:
     Session<UNIX>(const std::shared_ptr<KServerConfig>& config_,
-                  int comm_fd_, SessID id_, PeerInfo peer_info_,
+                  int comm_fd_, SessID id_,
                   SessionManager& session_manager_)
-    : Session<TCP>(config_, comm_fd_, id_, peer_info_, session_manager_) {}
+    : Session<TCP>(config_, comm_fd_, id_, session_manager_) {}
 };
 #endif // KSERVER_HAS_UNIX_SOCKET
 

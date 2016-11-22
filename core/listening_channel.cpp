@@ -130,15 +130,14 @@ int open_tcp_communication(int listen_fd, SysLog *syslog,
 }
 
 template<int sock_type>
-void session_thread_call(int comm_fd, PeerInfo peer_info,
-                         ListeningChannel<sock_type> *listener)
+void session_thread_call(int comm_fd, ListeningChannel<sock_type> *listener)
 {
     listener->inc_thread_num();
     listener->stats.opened_sessions_num++;
     listener->stats.total_sessions_num++;
 
     SessID sid = listener->kserver->session_manager. template create_session<sock_type>(
-                            listener->kserver->config, comm_fd, peer_info);
+                            listener->kserver->config, comm_fd);
 
     auto session = static_cast<Session<sock_type>*>(
                         &listener->kserver->session_manager.get_session(sid));
@@ -168,8 +167,6 @@ template<int sock_type>
 void comm_thread_call(ListeningChannel<sock_type> *listener)
 {
     while (!listener->kserver->exit_comm.load()) {
-        PeerInfo peer_info;
-
         int comm_fd = listener->open_communication();
 
         if (listener->kserver->exit_comm.load())
@@ -181,16 +178,6 @@ void comm_thread_call(ListeningChannel<sock_type> *listener)
             continue;
         }
 
-#if KSERVER_HAS_TCP
-        if (sock_type == TCP)
-            peer_info = PeerInfo(comm_fd);
-#endif
-
-#if KSERVER_HAS_WEBSOCKET
-        if (sock_type == WEBSOCK)
-            peer_info = PeerInfo(comm_fd);
-#endif
-
 #if KSERVER_HAS_THREADS
         if (listener->is_max_threads()) {
             listener->kserver->syslog. template print<SysLog::WARNING>(
@@ -198,11 +185,10 @@ void comm_thread_call(ListeningChannel<sock_type> *listener)
             continue;
         }
 
-        std::thread sess_thread(session_thread_call<sock_type>,
-                                comm_fd, peer_info, listener);
+        std::thread sess_thread(session_thread_call<sock_type>, comm_fd, listener);
         sess_thread.detach();
 #else
-        session_thread_call<sock_type>(comm_fd, peer_info, listener);
+        session_thread_call<sock_type>(comm_fd, listener);
 #endif
     }
 

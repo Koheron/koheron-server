@@ -165,9 +165,6 @@ class KServer : public KDevice<KSERVER>
     void join_listeners_workers();
     void close_listeners();
 
-    template<int sock_type>
-    void save_session_logs(Session<sock_type> *session, PeerInfo peer_info);
-
 template<int sock_type> friend class ListeningChannel;
 };
 

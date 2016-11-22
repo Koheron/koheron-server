@@ -12,7 +12,7 @@ namespace kserver {
 
 template<int sock_type>
 SessID SessionManager::create_session(const std::shared_ptr<KServerConfig>& config_,
-                                      int comm_fd, PeerInfo peer_info)
+                                      int comm_fd)
 {
 #if KSERVER_HAS_THREADS
     std::lock_guard<std::mutex> lock(mutex);
@@ -30,7 +30,7 @@ SessID SessionManager::create_session(const std::shared_ptr<KServerConfig>& conf
     }
 
     auto session = std::make_unique<Session<sock_type>>(
-                            config_, comm_fd, new_id, peer_info, (*this));
+                            config_, comm_fd, new_id, (*this));
     assert(session != nullptr);
     apply_permissions(session);
 
