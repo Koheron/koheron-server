@@ -179,12 +179,12 @@ FORBIDDEN_INTS = ['short', 'int', 'unsigned', 'long', 'unsigned short', 'short u
 
 def check_type(_type, devname, opname):
     if _type in FORBIDDEN_INTS:
-        raise ValueError('[' + devname + '::' + opname + '] Invalid type "' + _type + '": Only integers with exact width (e.g. uint32_t) are supported (http://en.cppreference.com/w/cpp/header/cstdint).')
+        raise ValueError('[{}::{}] Invalid type "{}": Only integers with exact width (e.g. uint32_t) are supported (http://en.cppreference.com/w/cpp/header/cstdint).'.format(devname, opname, _type))
 
 def format_type(_type):
     if is_std_array(_type):
         templates = _type.split('<')[1].split('>')[0].split(',')
-        return 'std::array<' + templates[0] + ', " << ' +  templates[1] + ' << ">'
+        return 'std::array<{}, " << {} << ">'.format(templates[0], templates[1])
     else:
         return _type
 
@@ -192,8 +192,8 @@ def format_ret_type(classname, operation):
     if operation['ret_type'] in ['auto', 'auto&', 'auto &'] or is_std_array(operation['ret_type']):
         decl_arg_list = []
         for arg in operation.get('arguments', []):
-            decl_arg_list.append('std::declval<' + arg['type'] + '>()')
-        return '" << get_type_str<decltype(std::declval<' + classname + '>().' + operation['name'] + '(' + ' ,'.join(decl_arg_list) + '))>() << "'
+            decl_arg_list.append('std::declval<{}>()'.format(arg['type']))
+        return '" << get_type_str<decltype(std::declval<{}>().{}({}))>() << "'.format(classname, operation['name'], ' ,'.join(decl_arg_list))
     else:
         return operation['ret_type']
 
@@ -231,7 +231,7 @@ def parser_generator(device, operation):
     if operation.get('arguments') is None:
         lines.append('\n    auto args_tuple = DESERIALIZE(cmd);\n')
         lines.append('    if (std::get<0>(args_tuple) < 0) {\n')
-        lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to deserialize buffer.\\n");\n')
+        lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[{} - {}] Failed to deserialize buffer.\\n");\n'.format(device.name, operation['name']))
         lines.append('        return -1;\n')
         lines.append('    }\n')
         return ''.join(lines)
@@ -248,7 +248,7 @@ def parser_generator(device, operation):
             print_type_list_pack(lines, pack)
             lines.append('>(cmd);\n')
             lines.append('    if (std::get<0>(args_tuple' + str(idx)  + ') < 0) {\n')
-            lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to deserialize buffer.\\n");\n')
+            lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[{} - {}] Failed to deserialize buffer.\\n");\n'.format(device.name, operation['name']))
             lines.append('        return -1;\n')
             lines.append('    }\n')
 
