@@ -13,21 +13,21 @@
 
 namespace kserver {
 
-// X Macro: Start new device
-#if KSERVER_HAS_DEVMEM
-#define EXPAND_AS_START_DEVICE(num, name, operations ...)            \
-    device_list[num - 2] = std::make_unique<name>(kserver, dev_mem);
-#else
-#define EXPAND_AS_START_DEVICE(num, name, operations ...)            \
-    device_list[num - 2] = std::make_unique<name>(kserver);
-#endif
-
 DeviceManager::DeviceManager(KServer *kserver_)
 : kserver(kserver_)
 #if KSERVER_HAS_DEVMEM
 ,  dev_mem()
 #endif
 {}
+
+// X Macro: Start new device
+#if KSERVER_HAS_DEVMEM
+#define EXPAND_AS_START_DEVICE(num, name)            \
+    device_list[num - 2] = std::make_unique<name>(kserver, dev_mem);
+#else
+#define EXPAND_AS_START_DEVICE(num, name)            \
+    device_list[num - 2] = std::make_unique<name>(kserver);
+#endif
 
 int DeviceManager::init()
 {
@@ -45,8 +45,7 @@ int DeviceManager::init()
 
 template<device_t dev0, device_t... devs>
 std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, int>
-execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd)
-{
+execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd) {
     static_assert(dev0 < device_num, "");
     static_assert(dev0 >= 2, "");
     return static_cast<KDevice<dev0>*>(dev_abs)->execute(cmd);
@@ -54,8 +53,7 @@ execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd)
 
 template<device_t dev0, device_t... devs>
 std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, int>
-execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd)
-{
+execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd) {
     static_assert(dev0 < device_num, "");
     static_assert(dev0 >= 2, "");
 
@@ -65,14 +63,13 @@ execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd)
 
 template<device_t dev0, device_t... devs>
 std::enable_if_t<dev0 == 0 || dev0 == 1, int> // Cases NO_DEVICE and KSERVER
-execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd)
-{
+execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd) {
     return execute_dev_impl<devs...>(dev_abs, cmd);
 }
 
 template<device_t... devs>
-int execute_dev(KDeviceAbstract *dev_abs, Command& cmd, std::index_sequence<devs...>)
-{
+int execute_dev(KDeviceAbstract *dev_abs, Command& cmd,
+                std::index_sequence<devs...>) {
     static_assert(sizeof...(devs) == device_num, "");
     return execute_dev_impl<devs...>(dev_abs, cmd);
 }

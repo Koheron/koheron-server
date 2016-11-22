@@ -21,16 +21,13 @@
 #define DEVICES_TABLE(ENTRY) \
 {% for device in devices -%}
     {% if not loop.last -%}
-        ENTRY( {{device.tag}}, {{device.class_name}}, {{ device | list_operations(max_op_num) }} ) \
+        ENTRY( {{device.tag}}, {{device.class_name}} ) \
     {% else -%}
-        ENTRY( {{device.tag}}, {{device.class_name}}, {{ device | list_operations(max_op_num) }} )
+        ENTRY( {{device.tag}}, {{device.class_name}} )
     {% endif -%}
 {% endfor %}
 
-/// Maximum number of operations
-#define MAX_OP_NUM {{max_op_num}}
-
-/// Devices #
+/// Device IDs
 
 constexpr std::size_t NO_DEVICE = 0;
 constexpr std::size_t KSERVER = 1;

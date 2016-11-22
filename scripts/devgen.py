@@ -51,15 +51,6 @@ def render_device(extension, device, build_dir):
     with open(os.path.join(build_dir, 'ks_' + device.tag.lower() + extension), 'w') as output:
         output.write(template.render(device=device))
 
-# Number of operation in the KServer device
-KSERVER_OP_NUM = 7
-
-def get_max_op_num(devices):
-    ''' Return the maximum number of operations '''
-    def device_length(device):
-        return max(len(device.operations), KSERVER_OP_NUM)
-    return max(device_length(d) for d in devices)
-
 def get_json(devices):
     data = [{
         'class': 'KServer',
@@ -93,19 +84,12 @@ def get_renderer():
       loader = jinja2.FileSystemLoader(os.path.abspath('.'))
     )
 
-    def list_operations(device, max_op_num):
-        list_ = map(lambda x: x['name'], device.operations)
-        list_ = ['"%s"' % element for element in list_]
-        empty_ops = ['""'] * (max_op_num - len(list_))
-        return ','.join(list_ + empty_ops)
-
     def get_fragment(operation, device):
         return device.calls[operation['tag']]
 
     def get_parser(operation, device):
         return parser_generator(device, operation)
 
-    renderer.filters['list_operations'] = list_operations
     renderer.filters['get_fragment'] = get_fragment
     renderer.filters['get_parser'] = get_parser
     return renderer
@@ -119,9 +103,7 @@ def render_device_table(devices, build_dir):
     print('Generate device table')
     template = get_renderer().get_template(os.path.join('scripts/templates', 'devices_table.hpp'))
     with open(os.path.join(build_dir, 'devices_table.hpp'), 'w') as output:
-        output.write(template.render(devices=devices,
-                                     max_op_num=get_max_op_num(devices),
-                                     json=get_json(devices)))
+        output.write(template.render(devices=devices, json=get_json(devices)))
 
     output_filename = os.path.join(build_dir, 'devices.hpp')
     fill_template(devices, 'devices.hpp', output_filename)
@@ -129,9 +111,7 @@ def render_device_table(devices, build_dir):
 def render_ids(devices, build_dir):
     template = get_renderer().get_template(os.path.join('scripts/templates', 'operations.hpp'))
     with open(os.path.join(build_dir, 'operations.hpp'), 'w') as output:
-        output.write(template.render(devices=devices,
-                                     max_op_num=get_max_op_num(devices),
-                                     json=get_json(devices)))
+        output.write(template.render(devices=devices, json=get_json(devices)))
 
 # -----------------------------------------------------------------------------
 # Parse device C++ header
