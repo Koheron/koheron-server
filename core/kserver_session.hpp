@@ -267,14 +267,7 @@ inline int Session<TCP>::recv(std::array<T, N>& arr, Command& cmd)
         return -1;
     }
 
-    Buffer<size_of<T, N>> buff;
-    const auto err = rcv_n_bytes(buff.data(), size_of<T, N>);
-
-    if (err < 0)
-        return err;
-
-    arr = buff.extract_array<T, N>();
-    return 0;
+    return rcv_n_bytes(reinterpret_cast<char*>(arr.data()), size_of<T, N>);
 }
 
 template<>
