@@ -25,8 +25,8 @@ class DeviceManager
   public:
     DeviceManager(KServer *kserver_);
     
-    int Init();
-    int Execute(Command &cmd);
+    int init();
+    int execute(Command &cmd);
 
   private:
     // Store devices (except KServer) as unique_ptr

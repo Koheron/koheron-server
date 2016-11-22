@@ -12,18 +12,7 @@
 
 namespace kserver {
 
-// ---------------------------------------------
-// KDevice
-// ---------------------------------------------
-
-template<device_t dev_kind> class KDevice;
-
-// X Macro: Device class list
-#define EXPAND_AS_CLASS_LIST(num, name, operations ...)     \
-        class name;
-
 class KServer;
-DEVICES_TABLE(EXPAND_AS_CLASS_LIST) // X-macro
 
 class KDeviceAbstract {
 public:

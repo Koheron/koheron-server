@@ -29,7 +29,7 @@ DeviceManager::DeviceManager(KServer *kserver_)
 #endif
 {}
 
-int DeviceManager::Init()
+int DeviceManager::init()
 {
 #if KSERVER_HAS_DEVMEM
     if (dev_mem.open() < 0) {
@@ -77,7 +77,7 @@ int execute_dev(KDeviceAbstract *dev_abs, Command& cmd, std::index_sequence<devs
     return execute_dev_impl<devs...>(dev_abs, cmd);
 }
 
-int DeviceManager::Execute(Command& cmd)
+int DeviceManager::execute(Command& cmd)
 {
     assert(cmd.device < device_num);
 
