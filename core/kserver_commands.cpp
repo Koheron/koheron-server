@@ -166,7 +166,6 @@ KSERVER_EXECUTE_OP(GET_DEV_STATUS) {return 0;}
 #define SET_SESSION_PARAMS(sock_type)                                             \
     case sock_type:                                                               \
       sock_type_name = #sock_type;                                                \
-      perms = static_cast<Session<sock_type>*>(&session)->get_permissions();      \
       ip = static_cast<Session<sock_type>*>(&session)->get_client_ip();           \
       port = static_cast<Session<sock_type>*>(&session)->get_client_port();       \
       req_num = static_cast<Session<sock_type>*>(&session)->request_num();        \
@@ -181,7 +180,6 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
     char send_str[KS_DEV_WRITE_STR_LEN];
     unsigned int bytes = 0;
     unsigned int bytes_send = 0;
-    const SessionPermissions* perms;
 
     const auto& ids = kserver->session_manager.get_current_ids();
 
@@ -206,24 +204,11 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
           default: assert(false);
         }
 
-        // Permissions
-        const char *perms_str;
-
-        if (perms->write && perms->read)
-            perms_str = "WR";
-        else if (perms->write && !perms->read)
-            perms_str = "W";
-        else if (!perms->write && perms->read)
-            perms_str = "R";
-        else
-            perms_str = "";
-
         int ret = snprintf(send_str, KS_DEV_WRITE_STR_LEN,
                            "%u:%s:%s:%u:%u:%u:%li:%s\n",
                            id, sock_type_name,
                            ip, port, req_num, err_num,
-                           std::time(nullptr) - start_time,
-                           perms_str);
+                           std::time(nullptr) - start_time);
 
         if (ret < 0) {
             kserver->syslog.print<SysLog::ERROR>(

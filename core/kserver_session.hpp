@@ -27,15 +27,6 @@
 
 namespace kserver {
 
-/// Stores the permissions of a session
-struct SessionPermissions
-{
-    /// True if the session can write into a device
-    bool write = DFLT_WRITE_PERM;
-    /// True if the session can read from a device
-    bool read = DFLT_READ_PERM;
-};
-
 class SessionManager;
 
 class SessionAbstract
@@ -74,7 +65,6 @@ class Session : public SessionAbstract
     const char* get_client_ip() const {return peer_info.ip_str;}
     int get_client_port() const {return peer_info.port;}
     std::time_t get_start_time() const {return start_time;}
-    const SessionPermissions* get_permissions() const {return &permissions;}
 
     // Receive - Send
 
@@ -120,7 +110,6 @@ class Session : public SessionAbstract
     SysLog *syslog_ptr;
     PeerInfo<sock_type> peer_info;
     SessionManager& session_manager;
-    SessionPermissions permissions;
 
     struct EmptyBuffer {};
     std::conditional_t<sock_type == TCP || sock_type == UNIX,
@@ -193,7 +182,6 @@ Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
 , syslog_ptr(&session_manager_.kserver.syslog)
 , peer_info(PeerInfo<sock_type>(comm_fd_))
 , session_manager(session_manager_)
-, permissions()
 #if KSERVER_HAS_WEBSOCKET
 , websock(config_, &session_manager_.kserver)
 #endif

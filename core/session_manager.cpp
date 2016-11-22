@@ -17,13 +17,9 @@
 
 namespace kserver {
 
-SessionManager::SessionManager(KServer& kserver_, DeviceManager& dev_manager_,
-                               int perm_policy_)
+SessionManager::SessionManager(KServer& kserver_, DeviceManager& dev_manager_)
 : kserver(kserver_),
   dev_manager(dev_manager_),
-  perm_policy(perm_policy_),
-  fcfs_id(-1),
-  lclf_lifo(),
   session_pool(),
   reusable_ids(0)
 {}
@@ -78,52 +74,6 @@ std::vector<SessID> SessionManager::get_current_ids()
     return res;
 }
 
-void SessionManager::reset_permissions(SessID id)
-{
-    switch (perm_policy) {
-      case FCFS:
-        // We reset the flag to indicate that the next 
-        // opening session will have write permission.
-        if(id == fcfs_id)
-            fcfs_id = -1;
-      case LCFS:
-        // We remove from the LIFO the deleted session and
-        // give back the writing rights to the previous
-        // session holding them.
-        if (id == lclf_lifo.top()) {
-            lclf_lifo.pop();
-
-            // Remove all the invalid IDs on the top of the LIFO
-            while (lclf_lifo.size() > 0 && !is_current_id(lclf_lifo.top()))
-                lclf_lifo.pop();
-
-            if (lclf_lifo.size() > 0) {
-                switch(session_pool[lclf_lifo.top()]->kind) {
-#if KSERVER_HAS_TCP
-                  case TCP:
-                    cast_to_session<TCP>(session_pool[lclf_lifo.top()])
-                                        ->permissions.write = true;
-                    break;
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
-                  case UNIX:
-                    cast_to_session<UNIX>(session_pool[lclf_lifo.top()])
-                                        ->permissions.write = true;
-                    break;
-#endif
-#if KSERVER_HAS_WEBSOCKET
-                  case WEBSOCK:
-                    cast_to_session<WEBSOCK>(session_pool[lclf_lifo.top()])
-                                        ->permissions.write = true;
-                    break;
-#endif
-                  default: assert(false);
-                }
-            }
-        }
-    }
-}
-
 void SessionManager::delete_session(SessID id)
 {
 #if KSERVER_HAS_THREADS
@@ -167,7 +117,6 @@ void SessionManager::delete_session(SessID id)
         close(sess_fd);
     }
 
-    reset_permissions(id);
     session_pool.erase(id);
     reusable_ids.push_back(id);
     num_sess--;
