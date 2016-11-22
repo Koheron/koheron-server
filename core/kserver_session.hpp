@@ -227,7 +227,7 @@ int Session<sock_type>::run()
 
         requests_num++;
 
-        if (unlikely(session_manager.dev_manager.Execute(cmd) < 0)) {
+        if (unlikely(session_manager.dev_manager.execute(cmd) < 0)) {
             session_manager.kserver.syslog.print<SysLog::ERROR>(
                 "Failed to execute command [device = %i, operation = %i]\n",
                 cmd.device, cmd.operation);
@@ -267,14 +267,7 @@ inline int Session<TCP>::recv(std::array<T, N>& arr, Command& cmd)
         return -1;
     }
 
-    Buffer<size_of<T, N>> buff;
-    const auto err = rcv_n_bytes(buff.data(), size_of<T, N>);
-
-    if (err < 0)
-        return err;
-
-    arr = buff.extract_array<T, N>();
-    return 0;
+    return rcv_n_bytes(reinterpret_cast<char*>(arr.data()), size_of<T, N>);
 }
 
 template<>
@@ -433,7 +426,7 @@ inline int Session<WEBSOCK>::recv(std::vector<T>& vec, Command& cmd)
         return -1;
     }
 
-    cmd.payload.copy_to_vector(vec, length / sizeof(T));
+    cmd.payload.to_vector(vec, length / sizeof(T));
     return 0;
 }
 
@@ -449,7 +442,7 @@ inline int Session<WEBSOCK>::recv(std::string& str, Command& cmd)
         return -1;
     }
 
-    cmd.payload.copy_to_string(str, length);
+    cmd.payload.to_string(str, length);
     return 0;
 }
 

@@ -21,24 +21,22 @@
 #define DEVICES_TABLE(ENTRY) \
 {% for device in devices -%}
     {% if not loop.last -%}
-        ENTRY( {{device.tag}}, {{device.class_name}}, {{ device | list_operations(max_op_num) }} ) \
+        ENTRY( {{device.tag}}, {{device.class_name}} ) \
     {% else -%}
-        ENTRY( {{device.tag}}, {{device.class_name}}, {{ device | list_operations(max_op_num) }} )
+        ENTRY( {{device.tag}}, {{device.class_name}} )
     {% endif -%}
 {% endfor %}
 
-/// Maximum number of operations
-#define MAX_OP_NUM {{max_op_num}}
+/// Device IDs
 
-/// Devices #
-typedef enum {
-    NO_DEVICE = 0,
-    KSERVER = 1,
+constexpr std::size_t NO_DEVICE = 0;
+constexpr std::size_t KSERVER = 1;
     {% for device in devices -%}
-    {{ device.tag | upper }} = {{ device.id }},
+constexpr std::size_t {{ device.tag | upper }} = {{ device.id }};
     {% endfor -%}
-    device_num
-} device_t;
+constexpr std::size_t device_num = {{ devices|length + 2 }};
+
+using device_t = std::size_t;
 
 // http://stackoverflow.com/questions/4484982/how-to-convert-typename-t-to-string-in-c
 template<typename T>

@@ -105,7 +105,7 @@ void ListeningChannel<sock_type>::join_worker()
 ///
 /// Derived from KDevice, therefore it is seen as 
 /// a device from the client stand point.
-class KServer : public KDevice<KServer, KSERVER>
+class KServer : public KDevice<KSERVER>
 {
   public:
     const device_t kind = KSERVER;

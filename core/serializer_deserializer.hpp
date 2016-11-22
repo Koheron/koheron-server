@@ -503,8 +503,8 @@ class DynamicSerializer {
                      >, void>
     build_command(std::vector<unsigned char>& buffer, Tp0&& arg0, Args&&... args) {
         const auto& header = serialize(0U, class_id, func_id);
-        buffer.resize(header.size());
-        std::copy(header.begin(), header.end(), buffer.begin());
+        buffer.resize(required_buffer_size<uint32_t, uint16_t, uint16_t>());
+        std::move(header.begin(), header.end(), buffer.begin());
         scal_size = 0;
         command_serializer(buffer, std::forward<Tp0>(arg0),
                            std::forward<Args>(args)...);
@@ -515,8 +515,8 @@ class DynamicSerializer {
     std::enable_if_t< 0 == sizeof...(Args), void >
     build_command(std::vector<unsigned char>& buffer, Args&&... args) {
         const auto& header = serialize(0U, class_id, func_id, 0UL);
-        buffer.resize(header.size());
-        std::copy(header.begin(), header.end(), buffer.begin());
+        buffer.resize(required_buffer_size<uint32_t, uint16_t, uint16_t, uint64_t>());
+        std::move(header.begin(), header.end(), buffer.begin());
     }
 
     template<uint16_t class_id, uint16_t func_id, typename... Args>

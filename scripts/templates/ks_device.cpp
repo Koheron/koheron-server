@@ -24,7 +24,7 @@ namespace kserver {
 
 template<>
 template<>
-int KDevice<{{ device.class_name }}, {{ device.tag }}>::
+int KDevice<{{ device.tag }}>::
         execute_op<{{ device.class_name }}::{{ operation['tag'] }}>(Command& cmd)
 {
     {{ operation | get_parser(device) }}
@@ -35,8 +35,7 @@ int KDevice<{{ device.class_name }}, {{ device.tag }}>::
 
 
 template<>
-int KDevice<{{ device.class_name }}, {{ device.tag }}>::
-        execute(Command& cmd)
+int KDevice<{{ device.tag }}>::execute(Command& cmd)
 {
 #if KSERVER_HAS_THREADS
     std::lock_guard<std::mutex> lock(THIS->mutex);

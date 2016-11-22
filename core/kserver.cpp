@@ -13,7 +13,7 @@
 namespace kserver {
 
 KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
-: KDevice<KServer, KSERVER>(this),
+: KDevice<KSERVER>(this),
   config(config_),
   sig_handler(),
 #if KSERVER_HAS_TCP
@@ -34,7 +34,7 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
     if (sig_handler.init(this) < 0)
         exit(EXIT_FAILURE);
 
-    if (dev_manager.Init() < 0)
+    if (dev_manager.init() < 0)
         exit (EXIT_FAILURE);
 
     exit_comm.store(false);
