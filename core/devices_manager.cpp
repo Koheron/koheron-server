@@ -61,17 +61,26 @@ execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd) {
                                  : execute_dev_impl<devs...>(dev_abs, cmd);
 }
 
-template<device_t dev0, device_t... devs>
-std::enable_if_t<dev0 == 0 || dev0 == 1, int> // Cases NO_DEVICE and KSERVER
-execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd) {
-    return execute_dev_impl<devs...>(dev_abs, cmd);
-}
-
 template<device_t... devs>
 int execute_dev(KDeviceAbstract *dev_abs, Command& cmd,
                 std::index_sequence<devs...>) {
-    static_assert(sizeof...(devs) == device_num, "");
+    static_assert(sizeof...(devs) == device_num - 2, "");
     return execute_dev_impl<devs...>(dev_abs, cmd);
+}
+
+// http://stackoverflow.com/questions/35625079/offset-for-variadic-template-integer-sequence
+template <std::size_t O, std::size_t ... Is>
+std::index_sequence<(O + Is)...> add_offset(std::index_sequence<Is...>)
+{ return {}; }
+
+template <std::size_t O, std::size_t N>
+auto make_index_sequence_with_offset() {
+    return add_offset<O>(std::make_index_sequence<N>{});
+}
+
+template <std::size_t First, std::size_t Last>
+auto make_index_sequence_in_range() {
+    return make_index_sequence_with_offset<First, Last - First>();
 }
 
 int DeviceManager::execute(Command& cmd)
@@ -84,7 +93,7 @@ int DeviceManager::execute(Command& cmd)
         return kserver->execute(cmd);
     else
         return execute_dev(device_list[cmd.device - 2].get(), cmd,
-                           std::make_index_sequence<device_num>());
+                           make_index_sequence_in_range<2, device_num>());
 }
 
 } // namespace kserver
