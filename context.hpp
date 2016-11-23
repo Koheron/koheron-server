@@ -7,6 +7,7 @@
 
 #if KSERVER_HAS_DEVMEM
 #include <drivers/lib/memory_manager.hpp>
+#include <drivers/memory.hpp>
 #endif
 
 struct Context {
