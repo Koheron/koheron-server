@@ -10,7 +10,19 @@
 #include <drivers/memory.hpp>
 #endif
 
+namespace kserver { class DeviceManager; }
+
 struct Context {
+
+#if KSERVER_HAS_DEVMEM
+    MemoryManager mm;
+#endif
+
+  private:
+
+    // Constructor and initilization are private:
+    // Only the DeviceManager can call them.
+
     Context()
 #if KSERVER_HAS_DEVMEM
     : mm()
@@ -25,9 +37,7 @@ struct Context {
         return 0;
     }
 
-#if KSERVER_HAS_DEVMEM
-    MemoryManager mm;
-#endif
+friend class kserver::DeviceManager;
 };
 
 #endif // __CONTEXT_HPP__

@@ -33,3 +33,4 @@ devices:
     - tests/benchmarks.hpp
     # - tests/eigen_tests.hpp
     - tests/exception_tests.hpp
+    - tests/uses_context.hpp

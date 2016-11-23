@@ -60,7 +60,7 @@ int execute_dev(KDeviceAbstract *dev_abs, Command& cmd,
 }
 
 // http://stackoverflow.com/questions/35625079/offset-for-variadic-template-integer-sequence
-template <std::size_t O, std::size_t ... Is>
+template <std::size_t O, std::size_t... Is>
 std::index_sequence<(O + Is)...> add_offset(std::index_sequence<Is...>)
 { return {}; }
 
