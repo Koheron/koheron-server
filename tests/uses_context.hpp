@@ -6,7 +6,10 @@
 class UsesContext
 {
   public:
-	UsesContext(Context& ct) {}
+	UsesContext(Context& ct)
+	{
+		ct.dm.get<2>();
+	}
 
 };
 

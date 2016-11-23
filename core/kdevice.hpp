@@ -5,7 +5,7 @@
 #ifndef __KDEVICE_HPP__
 #define __KDEVICE_HPP__
 
-#include <cstring> 
+#include <cstring>
 
 #include "kserver_defs.hpp"
 #include "dev_definitions.hpp"
@@ -20,6 +20,14 @@ public:
     : kind(kind_) {}
 
     device_t kind = NO_DEVICE;
+
+  int execute(Command& cmd);
+
+  private:
+    KServer *kserver;
+
+  protected:
+    template<int op> int execute_op(Command& cmd);
 };
 
 struct Command;
@@ -32,6 +40,8 @@ class KDevice : public KDeviceAbstract
     : KDeviceAbstract(dev_kind),
       kserver(kserver_)
     {}
+
+    // Move into KDevice abstract
 
     int execute(Command& cmd);
 

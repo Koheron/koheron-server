@@ -12,12 +12,6 @@
 #include <typeinfo>
 #include <cxxabi.h>
 
-{% for device in devices -%}
-{% for include in device.includes -%}
-#include "{{ include }}"
-{% endfor -%}
-{% endfor %}
-
 #define DEVICES_TABLE(ENTRY) \
 {% for device in devices -%}
     {% if not loop.last -%}
@@ -37,30 +31,5 @@ constexpr std::size_t {{ device.tag | upper }} = {{ device.id }};
 constexpr std::size_t device_num = {{ devices|length + 2 }};
 
 using device_t = std::size_t;
-
-// http://stackoverflow.com/questions/4484982/how-to-convert-typename-t-to-string-in-c
-template<typename T>
-inline auto get_type_str()
-{
-    std::string res;
-    char *name = nullptr;
-    int status;
-    name = abi::__cxa_demangle(typeid(T).name(), 0, 0, &status);
-
-    if (name != nullptr)
-        res = std::string(name);
-    else
-        res = std::string(typeid(T).name());
-
-    free(name);
-    return res;
-}
-
-inline auto build_devices_json()
-{
-    std::stringstream ss;
-    ss << "{{ json }}";
-    return ss.str();
-}
 
 #endif // __DEVICES_TABLE_HPP__

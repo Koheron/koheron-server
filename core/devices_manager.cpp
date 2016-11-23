@@ -7,6 +7,8 @@
 #include "commands.hpp"
 #include "syslog.tpp"
 
+#include <devices.hpp>
+
 #if KSERVER_HAS_THREADS
 #  include <thread>
 #endif
@@ -15,16 +17,15 @@ namespace kserver {
 
 DeviceManager::DeviceManager(KServer *kserver_)
 : kserver(kserver_)
-, ct()
 {}
 
 // X Macro: Start new device
 #define EXPAND_AS_START_DEVICE(num, name)            \
-    device_list[num - 2] = std::make_unique<name>(kserver, ct);
+    std::get<num - 2>(device_list) = std::make_unique<KDevice<num>>(kserver);
 
 int DeviceManager::init()
 {
-    if (ct.init() < 0) {
+    if (kserver->ct.init() < 0) {
         kserver->syslog.print<SysLog::CRITICAL>(
                 "Context initialization failed\n");
         return -1;

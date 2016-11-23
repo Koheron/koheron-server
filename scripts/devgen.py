@@ -105,6 +105,11 @@ def render_device_table(devices, build_dir):
     with open(os.path.join(build_dir, 'devices_table.hpp'), 'w') as output:
         output.write(template.render(devices=devices, json=get_json(devices)))
 
+    print('Generate device json')
+    template = get_renderer().get_template(os.path.join('scripts/templates', 'devices_json.hpp'))
+    with open(os.path.join(build_dir, 'devices_json.hpp'), 'w') as output:
+        output.write(template.render(devices=devices, json=get_json(devices)))
+
     output_filename = os.path.join(build_dir, 'devices.hpp')
     fill_template(devices, 'devices.hpp', output_filename)
 

@@ -8,12 +8,13 @@
 #ifndef __{{ device.class_name|upper }}_HPP__
 #define __{{ device.class_name|upper }}_HPP__
 
+#include <core/kdevice.hpp>
+
 {% for include in device.includes -%}
 #include "{{ include }}"
 {% endfor -%}
 
-#include <core/kdevice.hpp>
-#include <core/devices_manager.hpp>
+// #include <core/devices_manager.hpp>
 
 #if KSERVER_HAS_THREADS
 #include <mutex>
@@ -21,19 +22,19 @@
 
 namespace kserver {
 
-class {{ device.class_name }} : public KDevice<{{ device.tag }}>
+template<>
+class KDevice<{{ device.tag }}> : public KDeviceAbstract
 {
   public:
     const device_t kind = {{ device.tag }};
     enum { __kind = {{ device.tag }} };
 
   public:
-    {{ device.class_name }}(KServer* kserver, Context& ct)
-    : KDevice<{{ device.tag }}>(kserver)
-    {% for object in device.objects -%}
-    , {{ object["name"] }}(ct)
-    {% endfor -%}
-    {}
+    KDevice<{{ device.tag }}>(KServer *kserver);
+
+    const {{ device.objects[0]["type"] }}& get_device() const {
+        return {{ device.objects[0]["name"] }};
+    }
 
     enum Operation {
         {% for operation in device.operations -%}

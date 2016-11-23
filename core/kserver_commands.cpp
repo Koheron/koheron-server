@@ -12,6 +12,8 @@
 #include "pubsub.tpp"
 #include "syslog.tpp"
 
+#include <devices_json.hpp>
+
 namespace kserver {
 
 #define KS_DEV_WRITE_STR_LEN 1024

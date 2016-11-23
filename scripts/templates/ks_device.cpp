@@ -16,7 +16,23 @@
 #endif
 namespace kserver {
 
-#define THIS (static_cast<{{ device.class_name }}*>(this))
+// #define THIS (static_cast<{{ device.class_name }}*>(this))
+#define THIS this
+
+template<>
+template<>
+KDevice<{{ device.tag }}>::KDevice<{{ device.tag }}>(KServer *kserver)
+  : KDevice<{{ device.tag }}>(kserver)
+  {% for object in device.objects -%}
+  , {{ object["name"] }}(kserver->ct)  // Must be initialized later
+  {% endfor -%}
+  {}
+
+// template<>
+// const {{ device.objects[0]["type"] }}& KDevice<{{ device.tag }}>::get_device() const
+// {
+//     return static_cast<const {{ device.class_name }}*>(this)->{{ device.objects[0]["name"] }};
+// }
 
 {% for operation in device.operations -%}
 /////////////////////////////////////

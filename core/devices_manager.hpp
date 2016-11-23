@@ -9,7 +9,6 @@
 #include <memory>
 #include <assert.h>
 
-#include <context.hpp>
 #include "kdevice.hpp"
 
 namespace kserver {
@@ -25,17 +24,17 @@ class DeviceManager
     int init();
     int execute(Command &cmd);
 
+    template<device_t dev>
+    const auto& get() const {
+        return static_cast<KDevice<dev>*>(std::get<dev - 2>(device_list).get())->get_device();
+    }
+
   private:
     // Store devices (except KServer) as unique_ptr
     std::array<std::unique_ptr<KDeviceAbstract>, device_num - 2> device_list;
     KServer *kserver;
-
-    Context ct;
 };
 
 } // namespace kserver
 
-#include <devices.hpp>
-
 #endif // __DEVICES_MANAGER_HPP__
-
