@@ -205,7 +205,7 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
         }
 
         int ret = snprintf(send_str, KS_DEV_WRITE_STR_LEN,
-                           "%u:%s:%s:%u:%u:%u:%li:%s\n",
+                           "%u:%s:%s:%u:%u:%u:%li\n",
                            id, sock_type_name,
                            ip, port, req_num, err_num,
                            std::time(nullptr) - start_time);
