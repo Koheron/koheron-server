@@ -34,9 +34,6 @@ class {{ device.class_name }} : public KDevice<{{ device.tag }}>
     {{ device.class_name }}(KServer* kserver)
 #endif
     : KDevice<{{ device.tag }}>(kserver)
-#if KSERVER_HAS_DEVMEM
-    , dev_mem(dev_mem_)
-#endif
     {% for object in device.objects -%}
 #if KSERVER_HAS_DEVMEM
     , {{ object["name"] }}(dev_mem_)
@@ -57,9 +54,6 @@ class {{ device.class_name }} : public KDevice<{{ device.tag }}>
     std::mutex mutex;
 #endif
 
-#if KSERVER_HAS_DEVMEM
-    MemoryManager& dev_mem;
-#endif
     {% for object in device.objects -%}
     {{ object["type"] }} {{ object["name"] }};
     {% endfor -%}
