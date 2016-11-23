@@ -3,6 +3,8 @@
 #ifndef __CONTEXT_HPP__
 #define __CONTEXT_HPP__
 
+#include <core/kserver_defs.hpp>
+
 #if KSERVER_HAS_DEVMEM
 #include <drivers/lib/memory_manager.hpp>
 #endif
