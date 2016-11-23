@@ -9,11 +9,8 @@
 #include <memory>
 #include <assert.h>
 
+#include <context.hpp>
 #include "kdevice.hpp"
-
-#if KSERVER_HAS_DEVMEM
-#include <drivers/lib/memory_manager.hpp>
-#endif
 
 namespace kserver {
 
@@ -33,9 +30,7 @@ class DeviceManager
     std::array<std::unique_ptr<KDeviceAbstract>, device_num - 2> device_list;
     KServer *kserver;
 
-#if KSERVER_HAS_DEVMEM
-    MemoryManager dev_mem;
-#endif
+    Context ct;
 };
 
 } // namespace kserver

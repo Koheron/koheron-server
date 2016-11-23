@@ -15,29 +15,20 @@ namespace kserver {
 
 DeviceManager::DeviceManager(KServer *kserver_)
 : kserver(kserver_)
-#if KSERVER_HAS_DEVMEM
-,  dev_mem()
-#endif
+, ct()
 {}
 
 // X Macro: Start new device
-#if KSERVER_HAS_DEVMEM
 #define EXPAND_AS_START_DEVICE(num, name)            \
-    device_list[num - 2] = std::make_unique<name>(kserver, dev_mem);
-#else
-#define EXPAND_AS_START_DEVICE(num, name)            \
-    device_list[num - 2] = std::make_unique<name>(kserver);
-#endif
+    device_list[num - 2] = std::make_unique<name>(kserver, ct);
 
 int DeviceManager::init()
 {
-#if KSERVER_HAS_DEVMEM
-    if (dev_mem.open() < 0) {
+    if (ct.init() < 0) {
         kserver->syslog.print<SysLog::CRITICAL>(
-                              "Can't start MemoryManager\n");
+                "Context initialization failed\n");
         return -1;
     }
-#endif
 
     DEVICES_TABLE(EXPAND_AS_START_DEVICE) // Start all devices
     return 0;

@@ -5,9 +5,13 @@
 #include <vector>
 #include <tuple>
 
+#include <context.hpp>
+
 class ExceptionTests
 {
   public:
+    ExceptionTests(Context& ct) {}
+
     auto ret_type_exception() {
         return true;
     }

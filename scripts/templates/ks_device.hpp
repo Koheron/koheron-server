@@ -12,12 +12,12 @@
 #include "{{ include }}"
 {% endfor -%}
 
+#include <core/kdevice.hpp>
+#include <core/devices_manager.hpp>
+
 #if KSERVER_HAS_THREADS
 #include <mutex>
 #endif
-
-#include <core/kdevice.hpp>
-#include <core/devices_manager.hpp>
 
 namespace kserver {
 
@@ -28,18 +28,10 @@ class {{ device.class_name }} : public KDevice<{{ device.tag }}>
     enum { __kind = {{ device.tag }} };
 
   public:
-#if KSERVER_HAS_DEVMEM
-    {{ device.class_name }}(KServer* kserver, MemoryManager& dev_mem_)
-#else
-    {{ device.class_name }}(KServer* kserver)
-#endif
+    {{ device.class_name }}(KServer* kserver, Context& ct)
     : KDevice<{{ device.tag }}>(kserver)
     {% for object in device.objects -%}
-#if KSERVER_HAS_DEVMEM
-    , {{ object["name"] }}(dev_mem_)
-#else
-    , {{ object["name"] }}()
-#endif
+    , {{ object["name"] }}(ct)
     {% endfor -%}
     {}
 
