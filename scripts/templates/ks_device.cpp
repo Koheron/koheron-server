@@ -19,14 +19,12 @@ namespace kserver {
 // #define THIS (static_cast<{{ device.class_name }}*>(this))
 #define THIS this
 
-template<>
-template<>
-KDevice<{{ device.tag }}>::KDevice<{{ device.tag }}>(KServer *kserver)
-  : KDevice<{{ device.tag }}>(kserver)
+void KDevice<{{ device.tag }}>::init()
+{
   {% for object in device.objects -%}
-  , {{ object["name"] }}(kserver->ct)  // Must be initialized later
+  {{ object["name"] }} = std::make_unique<{{ object["type"] }}>(kserver->ct);
   {% endfor -%}
-  {}
+}
 
 // template<>
 // const {{ device.objects[0]["type"] }}& KDevice<{{ device.tag }}>::get_device() const
@@ -39,9 +37,8 @@ KDevice<{{ device.tag }}>::KDevice<{{ device.tag }}>(KServer *kserver)
 // {{ operation['name'] }}
 
 template<>
-template<>
 int KDevice<{{ device.tag }}>::
-        execute_op<{{ device.class_name }}::{{ operation['tag'] }}>(Command& cmd)
+        execute_op<KDevice<{{ device.tag }}>::{{ operation['tag'] }}>(Command& cmd)
 {
     {{ operation | get_parser(device) }}
     {{ operation | get_fragment(device) }}
@@ -49,8 +46,6 @@ int KDevice<{{ device.tag }}>::
 
 {% endfor %}
 
-
-template<>
 int KDevice<{{ device.tag }}>::execute(Command& cmd)
 {
 #if KSERVER_HAS_THREADS
@@ -59,11 +54,11 @@ int KDevice<{{ device.tag }}>::execute(Command& cmd)
 
     switch(cmd.operation) {
 {% for operation in device.operations -%}
-      case {{ device.class_name }}::{{ operation['tag'] }}: {
-        return execute_op<{{ device.class_name }}::{{ operation['tag'] }}>(cmd);
+      case {{ operation['tag'] }}: {
+        return execute_op<{{ operation['tag'] }}>(cmd);
       }
 {% endfor %}
-      case {{ device.class_name }}::{{ device.tag | lower }}_op_num:
+      case {{ device.tag | lower }}_op_num:
       default:
           kserver->syslog.print<SysLog::ERROR>("{{ device.class_name }}: Unknown operation\n");
           return -1;

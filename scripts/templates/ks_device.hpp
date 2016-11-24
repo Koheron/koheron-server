@@ -23,17 +23,26 @@
 namespace kserver {
 
 template<>
-class KDevice<{{ device.tag }}> : public KDeviceAbstract
+class KDevice<{{ device.tag }}> : public KDeviceBase<{{ device.tag }}>
 {
   public:
     const device_t kind = {{ device.tag }};
     enum { __kind = {{ device.tag }} };
 
   public:
-    KDevice<{{ device.tag }}>(KServer *kserver);
+    int execute(Command& cmd);
+    template<int op> int execute_op(Command& cmd);
+
+    KDevice(KServer *kserver)
+    : KDeviceBase<{{ device.tag }}>(kserver)
+    {
+        init();
+    }
+
+    void init();
 
     const {{ device.objects[0]["type"] }}& get_device() const {
-        return {{ device.objects[0]["name"] }};
+        return *{{ device.objects[0]["name"] }}.get();
     }
 
     enum Operation {
@@ -48,7 +57,7 @@ class KDevice<{{ device.tag }}> : public KDeviceAbstract
 #endif
 
     {% for object in device.objects -%}
-    {{ object["type"] }} {{ object["name"] }};
+    std::unique_ptr<{{ object["type"] }}> {{ object["name"] }};
     {% endfor -%}
 
 {% for operation in device.operations -%}

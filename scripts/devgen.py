@@ -215,7 +215,7 @@ def cmd_calls(device, dev_id):
 
 def generate_call(device, dev_id, operation):
     def build_func_call(device, operation):
-        call = 'THIS->' + device['objects'][0]['name'] + '.' + operation['name'] + '('
+        call = 'THIS->' + device['objects'][0]['name'] + '->' + operation['name'] + '('
         call += ', '.join('THIS->args_' + operation['name'] + '.' + arg['name'] for arg in operation.get('arguments', []))
         return call + ')'
 
