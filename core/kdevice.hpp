@@ -8,7 +8,8 @@
 #include <cstring>
 
 #include "kserver_defs.hpp"
-#include "dev_definitions.hpp"
+
+#include <devices_table.hpp>
 
 namespace kserver {
 

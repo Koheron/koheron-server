@@ -8,13 +8,13 @@
 
 #include <array>
 
-constexpr std::size_t NO_DEVICE = 0;
-constexpr std::size_t KSERVER = 1;
-    {% for device in devices -%}
-constexpr std::size_t {{ device.tag | upper }} = {{ device.id }};
-    {% endfor -%}
-constexpr std::size_t device_num = {{ devices|length + 2 }};
-
 using device_t = std::size_t;
+
+constexpr device_t NO_DEVICE = 0;
+constexpr device_t KSERVER = 1;
+    {% for device in devices -%}
+constexpr device_t {{ device.tag | upper }} = {{ device.id }};
+    {% endfor -%}
+constexpr device_t device_num = {{ devices|length + 2 }};
 
 #endif // __DEVICES_TABLE_HPP__

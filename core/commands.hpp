@@ -7,8 +7,9 @@
 
 #include <array>
 
+#include <devices_table.hpp>
+
 #include "session_manager.hpp"
-#include "dev_definitions.hpp"
 #include "serializer_deserializer.hpp"
 
 namespace kserver {

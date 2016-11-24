@@ -15,23 +15,6 @@
 
 namespace kserver {
 
-// Range integer sequence
-
-// http://stackoverflow.com/questions/35625079/offset-for-variadic-template-integer-sequence
-template <std::size_t O, std::size_t... Is>
-std::index_sequence<(O + Is)...> add_offset(std::index_sequence<Is...>)
-{ return {}; }
-
-template <std::size_t O, std::size_t N>
-auto make_index_sequence_with_offset() {
-    return add_offset<O>(std::make_index_sequence<N>{});
-}
-
-template <std::size_t First, std::size_t Last>
-auto make_index_sequence_in_range() {
-    return make_index_sequence_with_offset<First, Last - First>();
-}
-
 DeviceManager::DeviceManager(KServer *kserver_)
 : kserver(kserver_)
 , dev_cont(kserver->ct)
@@ -78,6 +61,23 @@ int execute_dev(KDeviceAbstract *dev_abs, Command& cmd,
                 std::index_sequence<devs...>) {
     static_assert(sizeof...(devs) == device_num - 2, "");
     return execute_dev_impl<devs...>(dev_abs, cmd);
+}
+
+// Range integer sequence
+
+// http://stackoverflow.com/questions/35625079/offset-for-variadic-template-integer-sequence
+template <std::size_t O, std::size_t... Is>
+std::index_sequence<(O + Is)...> add_offset(std::index_sequence<Is...>)
+{ return {}; }
+
+template <std::size_t O, std::size_t N>
+auto make_index_sequence_with_offset() {
+    return add_offset<O>(std::make_index_sequence<N>{});
+}
+
+template <std::size_t First, std::size_t Last>
+auto make_index_sequence_in_range() {
+    return make_index_sequence_with_offset<First, Last - First>();
 }
 
 int DeviceManager::execute(Command& cmd)
