@@ -11,11 +11,12 @@
 using device_t = std::size_t;
 
 namespace drv {
+
 constexpr device_t no_device = 0;
 constexpr device_t Kserver = 1;
-    {% for device in devices -%}
+{% for device in devices -%}
 constexpr device_t {{ device.objects[0]["type"] }} = {{ device.id }};
-    {% endfor -%}
+{% endfor -%}
 }
 
 constexpr device_t device_num = {{ devices|length + 2 }};

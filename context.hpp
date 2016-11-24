@@ -21,7 +21,7 @@ struct Context {
 #endif
 
     // TODO Make it const
-    template<std::size_t dev, class Dev>
+    template<class Dev>
     Dev& get();
 
   private:
