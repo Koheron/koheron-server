@@ -9,7 +9,7 @@ class UsesContext
 {
   public:
     UsesContext(Context& ctx)
-    : tests(ctx.get<2, Tests>())
+    : tests(ctx.get<drv::Tests, Tests>())
     {}
 
   private:

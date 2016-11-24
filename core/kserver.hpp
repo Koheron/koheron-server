@@ -110,8 +110,8 @@ void ListeningChannel<sock_type>::join_worker()
 class KServer
 {
   public:
-    const device_t kind = KSERVER;
-    enum { __kind = KSERVER };
+    const device_t kind = drv::Kserver;
+    enum { __kind = drv::Kserver };
 
   public:
     KServer(std::shared_ptr<kserver::KServerConfig> config_);

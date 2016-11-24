@@ -8,7 +8,6 @@
 #include <cstring>
 
 #include "kserver_defs.hpp"
-
 #include <devices_table.hpp>
 
 namespace kserver {
@@ -23,21 +22,13 @@ class KDeviceAbstract {
     , kserver(kserver_)
     {}
 
-    device_t kind = NO_DEVICE;
+    device_t kind = drv::no_device;
     KServer *kserver;
 friend class DeviceManager;
 };
 
 template<device_t dev_kind>
-class KDevice : public KDeviceAbstract {
-  public:
-    KDevice(KServer *kserver_);
-
-    int execute(Command& cmd);
-
-    // XXX Can we do something less ugly that void* for type erasure
-    const void* get_device_ptr() const;
-};
+class KDevice : public KDeviceAbstract {};
 
 } // namespace kserver
 

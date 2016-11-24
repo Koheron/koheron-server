@@ -10,11 +10,14 @@
 
 using device_t = std::size_t;
 
-constexpr device_t NO_DEVICE = 0;
-constexpr device_t KSERVER = 1;
+namespace drv {
+constexpr device_t no_device = 0;
+constexpr device_t Kserver = 1;
     {% for device in devices -%}
-constexpr device_t {{ device.tag | upper }} = {{ device.id }};
+constexpr device_t {{ device.objects[0]["type"] }} = {{ device.id }};
     {% endfor -%}
+}
+
 constexpr device_t device_num = {{ devices|length + 2 }};
 
 #endif // __DEVICES_TABLE_HPP__

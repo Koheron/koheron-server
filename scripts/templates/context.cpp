@@ -8,6 +8,6 @@ Dev& Context::get() {
 
 {%- for device in devices -%}
 {% for object in device.objects %}
-template {{ device.objects[0]['type'] }}& Context::get<{{device.tag}}, {{ device.objects[0]['type'] }}>();
+template {{ device.objects[0]['type'] }}& Context::get<drv::{{ device.objects[0]["type"] }}, {{ device.objects[0]['type'] }}>();
 {% endfor -%}
 {%- endfor -%}
