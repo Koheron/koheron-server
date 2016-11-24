@@ -33,6 +33,7 @@ class Tests
     // Send arrays
     std::vector<float>& send_std_vector();
     std::vector<uint32_t>& send_std_vector2();
+    std::vector<int32_t>& send_std_vector3();
     std::array<float, 10>& send_std_array();
 
     auto& send_std_array2(uint32_t mul) {
@@ -102,6 +103,7 @@ class Tests
 
     std::vector<float> data;
     std::vector<uint32_t> data_u;
+    std::vector<int32_t> data_i;
 
   private:
     std::vector<uint32_t> buffer;
