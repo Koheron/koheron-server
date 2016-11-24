@@ -49,7 +49,7 @@ DEVICES_PATHS=$(subst $(space),$(semicolon),$(_DEVICES_PATHS))
 # Generated source files
 KS_DEVICES_HPP=$(addprefix ks_,$(notdir $(DEVICES_HPP)))
 KS_DEVICES_CPP=$(addprefix $(TMP)/,$(subst .hpp,.cpp,$(KS_DEVICES_HPP)))
-KS_DEVICES_OBJ=$(addprefix $(TMP)/,$(subst .hpp,.o,$(KS_DEVICES_HPP)))
+KS_DEVICES_OBJ=$(addprefix $(TMP)/,$(subst .hpp,.o,$(KS_DEVICES_HPP))) $(TMP)/context.o
 TMP_DEVICE_TABLE_HPP=$(TMP)/devices_table.hpp
 TMP_DEVICES_HPP=$(TMP)/devices.hpp
 TMP_OPERATIONS_HPP=$(TMP)/operations.hpp
@@ -118,7 +118,7 @@ $(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(TMP_OPERATIONS_HPP) $(KS_DEVICES_CP
 $(TMP)/%.o: %.cpp
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
 
-$(TMP)/ks_%.o: $(TMP)/ks_%.cpp
+$(TMP)/%.o: $(TMP)/%.cpp
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
 
 $(EXECUTABLE): $(OBJ)

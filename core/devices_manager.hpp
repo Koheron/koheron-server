@@ -11,6 +11,8 @@
 
 #include "kdevice.hpp"
 
+#include <devices_container.hpp>
+
 namespace kserver {
 
 class KServer;
@@ -20,19 +22,20 @@ class DeviceManager
 {
   public:
     DeviceManager(KServer *kserver_);
-    
+
     int init();
     int execute(Command &cmd);
 
     template<device_t dev>
-    const auto& get() const {
-        return static_cast<KDevice<dev>*>(std::get<dev - 2>(device_list).get())->get_device();
+    auto& get() {
+        return dev_cont.get<dev>();
     }
 
   private:
     // Store devices (except KServer) as unique_ptr
     std::array<std::unique_ptr<KDeviceAbstract>, device_num - 2> device_list;
     KServer *kserver;
+    DevicesContainer dev_cont;
 };
 
 } // namespace kserver

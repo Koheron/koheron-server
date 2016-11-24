@@ -17,11 +17,12 @@ namespace kserver {
 
 DeviceManager::DeviceManager(KServer *kserver_)
 : kserver(kserver_)
+, dev_cont(kserver->ct)
 {}
 
 // X Macro: Start new device
 #define EXPAND_AS_START_DEVICE(num, name)            \
-    std::get<num - 2>(device_list) = std::make_unique<KDevice<num>>(kserver);
+    std::get<num - 2>(device_list) = std::make_unique<KDevice<num>>(kserver, dev_cont.get<num>());
 
 int DeviceManager::init()
 {

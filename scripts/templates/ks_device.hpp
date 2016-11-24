@@ -14,8 +14,7 @@
 #include "{{ include }}"
 {% endfor -%}
 
-// #include <core/devices_manager.hpp>
-
+#include <memory>
 #if KSERVER_HAS_THREADS
 #include <mutex>
 #endif
@@ -23,7 +22,7 @@
 namespace kserver {
 
 template<>
-class KDevice<{{ device.tag }}> : public KDeviceBase<{{ device.tag }}>
+class KDevice<{{ device.tag }}> : public KDeviceAbstract
 {
   public:
     const device_t kind = {{ device.tag }};
@@ -33,22 +32,15 @@ class KDevice<{{ device.tag }}> : public KDeviceBase<{{ device.tag }}>
     int execute(Command& cmd);
     template<int op> int execute_op(Command& cmd);
 
-    KDevice(KServer *kserver)
-    : KDeviceBase<{{ device.tag }}>(kserver)
-    {
-        init();
-    }
-
-    void init();
-
-    const {{ device.objects[0]["type"] }}& get_device() const {
-        return *{{ device.objects[0]["name"] }}.get();
-    }
+    KDevice(KServer *kserver, {{ device.objects[0]["type"] }}& {{ device.objects[0]["name"] }}_)
+    : KDeviceAbstract({{ device.tag }}, kserver)
+    , {{ device.objects[0]["name"] }}({{ device.objects[0]["name"] }}_)
+    {}
 
     enum Operation {
         {% for operation in device.operations -%}
         {{ operation['tag'] }} = {{ operation['id'] }},
-        {% endfor -%}        
+        {% endfor -%}
         {{ device.tag|lower }}_op_num
     };
 
@@ -56,9 +48,7 @@ class KDevice<{{ device.tag }}> : public KDeviceBase<{{ device.tag }}>
     std::mutex mutex;
 #endif
 
-    {% for object in device.objects -%}
-    std::unique_ptr<{{ object["type"] }}> {{ object["name"] }};
-    {% endfor -%}
+    {{ device.objects[0]["type"] }}& {{ device.objects[0]["name"] }};
 
 {% for operation in device.operations -%}
 struct Argument_{{ operation['name'] }} {

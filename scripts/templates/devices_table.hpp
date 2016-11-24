@@ -7,10 +7,6 @@
 #define __DEVICES_TABLE_HPP__
 
 #include <array>
-#include <sstream>
-#include <string>
-#include <typeinfo>
-#include <cxxabi.h>
 
 #define DEVICES_TABLE(ENTRY) \
 {% for device in devices -%}

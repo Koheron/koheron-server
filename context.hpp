@@ -10,22 +10,23 @@
 #include <drivers/memory.hpp>
 #endif
 
-#include <core/devices_manager.hpp>
-
 namespace kserver {
-    // class DeviceManager;
+    class DeviceManager;
     class KServer;
 }
 
 struct Context {
-    kserver::DeviceManager& dm;
-
 #if KSERVER_HAS_DEVMEM
     MemoryManager mm;
 #endif
 
+    // TODO Make it const
+    template<std::size_t dev, class Dev>
+    Dev& get();
+
   private:
-    
+    kserver::DeviceManager& dm;
+
     // Constructor and initilization are private:
     // Devices cannot call them.
 
@@ -47,5 +48,9 @@ struct Context {
 friend class kserver::DeviceManager;
 friend class kserver::KServer;
 };
+
+// #include <devices_container.hpp>
+
+// #include <core/devices_manager.hpp>
 
 #endif // __CONTEXT_HPP__

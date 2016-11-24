@@ -14,23 +14,10 @@
 #if KSERVER_HAS_DEVMEM
 #include <drivers/lib/memory_manager.hpp>
 #endif
+
 namespace kserver {
 
-// #define THIS (static_cast<{{ device.class_name }}*>(this))
 #define THIS this
-
-void KDevice<{{ device.tag }}>::init()
-{
-  {% for object in device.objects -%}
-  {{ object["name"] }} = std::make_unique<{{ object["type"] }}>(kserver->ct);
-  {% endfor -%}
-}
-
-// template<>
-// const {{ device.objects[0]["type"] }}& KDevice<{{ device.tag }}>::get_device() const
-// {
-//     return static_cast<const {{ device.class_name }}*>(this)->{{ device.objects[0]["name"] }};
-// }
 
 {% for operation in device.operations -%}
 /////////////////////////////////////

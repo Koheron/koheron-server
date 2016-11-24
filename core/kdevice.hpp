@@ -24,28 +24,19 @@ class KDeviceAbstract {
 
     device_t kind = NO_DEVICE;
     KServer *kserver;
-};
-
-// template<device_t dev_kind> class KDevice ;
-
-template<device_t dev_kind>
-class KDeviceBase : public KDeviceAbstract
-{
-  public:
-    KDeviceBase(KServer *kserver_)
-    : KDeviceAbstract(dev_kind, kserver)
-    {}
-
-    int execute(Command& cmd);
-
-  protected:
-    template<int op> int execute_op(Command& cmd);
-
 friend class DeviceManager;
 };
 
 template<device_t dev_kind>
-class KDevice : public KDeviceBase<dev_kind> {};
+class KDevice : public KDeviceAbstract {
+  public:
+    KDevice(KServer *kserver_);
+
+    int execute(Command& cmd);
+
+    // XXX Can we do something less ugly that void* for type erasure
+    const void* get_device_ptr() const;
+};
 
 } // namespace kserver
 

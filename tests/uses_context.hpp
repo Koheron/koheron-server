@@ -3,13 +3,15 @@
 
 #include <context.hpp>
 
+#include "tests.hpp"
+
 class UsesContext
 {
   public:
-	UsesContext(Context& ct)
-	{
-		ct.dm.get<2>();
-	}
+    UsesContext(Context& ctx)
+    {
+        ctx.get<2, Tests>();
+    }
 
 };
 
