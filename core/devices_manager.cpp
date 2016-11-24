@@ -15,14 +15,33 @@
 
 namespace kserver {
 
+// Range integer sequence
+
+// http://stackoverflow.com/questions/35625079/offset-for-variadic-template-integer-sequence
+template <std::size_t O, std::size_t... Is>
+std::index_sequence<(O + Is)...> add_offset(std::index_sequence<Is...>)
+{ return {}; }
+
+template <std::size_t O, std::size_t N>
+auto make_index_sequence_with_offset() {
+    return add_offset<O>(std::make_index_sequence<N>{});
+}
+
+template <std::size_t First, std::size_t Last>
+auto make_index_sequence_in_range() {
+    return make_index_sequence_with_offset<First, Last - First>();
+}
+
 DeviceManager::DeviceManager(KServer *kserver_)
 : kserver(kserver_)
 , dev_cont(kserver->ct)
 {}
 
-// X Macro: Start new device
-#define EXPAND_AS_START_DEVICE(num, name)            \
-    std::get<num - 2>(device_list) = std::make_unique<KDevice<num>>(kserver, dev_cont.get<num>());
+template<std::size_t dev>
+void DeviceManager::alloc_device() {
+    std::get<dev - 2>(device_list)
+        = std::make_unique<KDevice<dev>>(kserver, dev_cont.get<dev>());
+}
 
 int DeviceManager::init()
 {
@@ -32,7 +51,7 @@ int DeviceManager::init()
         return -1;
     }
 
-    DEVICES_TABLE(EXPAND_AS_START_DEVICE) // Start all devices
+    open_devices<device_num - 1>();
     return 0;
 }
 
@@ -59,21 +78,6 @@ int execute_dev(KDeviceAbstract *dev_abs, Command& cmd,
                 std::index_sequence<devs...>) {
     static_assert(sizeof...(devs) == device_num - 2, "");
     return execute_dev_impl<devs...>(dev_abs, cmd);
-}
-
-// http://stackoverflow.com/questions/35625079/offset-for-variadic-template-integer-sequence
-template <std::size_t O, std::size_t... Is>
-std::index_sequence<(O + Is)...> add_offset(std::index_sequence<Is...>)
-{ return {}; }
-
-template <std::size_t O, std::size_t N>
-auto make_index_sequence_with_offset() {
-    return add_offset<O>(std::make_index_sequence<N>{});
-}
-
-template <std::size_t First, std::size_t Last>
-auto make_index_sequence_in_range() {
-    return make_index_sequence_with_offset<First, Last - First>();
 }
 
 int DeviceManager::execute(Command& cmd)

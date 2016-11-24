@@ -9,10 +9,11 @@ class UsesContext
 {
   public:
     UsesContext(Context& ctx)
-    {
-        ctx.get<2, Tests>();
-    }
+    : tests(ctx.get<2, Tests>())
+    {}
 
+  private:
+    Tests& tests;
 };
 
 #endif // __USES_CONTEXT_HPP__

@@ -49,8 +49,4 @@ friend class kserver::DeviceManager;
 friend class kserver::KServer;
 };
 
-// #include <devices_container.hpp>
-
-// #include <core/devices_manager.hpp>
-
 #endif // __CONTEXT_HPP__

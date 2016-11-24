@@ -17,8 +17,6 @@
 
 namespace kserver {
 
-#define THIS this
-
 {% for operation in device.operations -%}
 /////////////////////////////////////
 // {{ operation['name'] }}
@@ -36,7 +34,7 @@ int KDevice<{{ device.tag }}>::
 int KDevice<{{ device.tag }}>::execute(Command& cmd)
 {
 #if KSERVER_HAS_THREADS
-    std::lock_guard<std::mutex> lock(THIS->mutex);
+    std::lock_guard<std::mutex> lock(mutex);
 #endif
 
     switch(cmd.operation) {

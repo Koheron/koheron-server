@@ -11,4 +11,3 @@ Dev& Context::get() {
 template {{ device.objects[0]['type'] }}& Context::get<{{device.tag}}, {{ device.objects[0]['type'] }}>();
 {% endfor -%}
 {%- endfor -%}
-

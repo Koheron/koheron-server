@@ -36,6 +36,19 @@ class DeviceManager
     std::array<std::unique_ptr<KDeviceAbstract>, device_num - 2> device_list;
     KServer *kserver;
     DevicesContainer dev_cont;
+
+    template<std::size_t dev> void alloc_device();
+
+    template<std::size_t num>
+    std::enable_if_t<num < 2, void>
+    open_devices() {}
+
+    template<std::size_t num>
+    std::enable_if_t<num >= 2, void>
+    open_devices() {
+        alloc_device<num>();
+        open_devices<num - 1>();
+    }
 };
 
 } // namespace kserver

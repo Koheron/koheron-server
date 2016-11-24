@@ -8,17 +8,6 @@
 
 #include <array>
 
-#define DEVICES_TABLE(ENTRY) \
-{% for device in devices -%}
-    {% if not loop.last -%}
-        ENTRY( {{device.tag}}, {{device.class_name}} ) \
-    {% else -%}
-        ENTRY( {{device.tag}}, {{device.class_name}} )
-    {% endif -%}
-{% endfor %}
-
-/// Device IDs
-
 constexpr std::size_t NO_DEVICE = 0;
 constexpr std::size_t KSERVER = 1;
     {% for device in devices -%}
