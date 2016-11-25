@@ -34,6 +34,7 @@ int DeviceManager::init()
         return -1;
     }
 
+    dev_cont.init();
     open_devices<device_num - 1>();
     return 0;
 }
