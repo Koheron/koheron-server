@@ -15,18 +15,19 @@ namespace kserver {
     class KServer;
 }
 
-struct Context {
+class Context {
+  private:
+    kserver::DeviceManager& dm;
+
+  public:
 #if KSERVER_HAS_DEVMEM
     MemoryManager mm;
 #endif
 
-    // TODO Make it const
     template<class Dev>
     Dev& get() const;
 
   private:
-    kserver::DeviceManager& dm;
-
     // Constructor and initilization are private:
     // Devices cannot call them.
 
