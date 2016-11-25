@@ -22,8 +22,8 @@ namespace kserver {
 // {{ operation['name'] }}
 
 template<>
-int KDevice<drv::{{ device.objects[0]["type"] }}>::
-        execute_op<KDevice<drv::{{ device.objects[0]["type"] }}>::{{ operation['tag'] }}>(Command& cmd)
+int KDevice<dev_id_of<{{ device.objects[0]["type"] }}>>::
+        execute_op<KDevice<dev_id_of<{{ device.objects[0]["type"] }}>>::{{ operation['tag'] }}>(Command& cmd)
 {
     {{ operation | get_parser(device) }}
     {{ operation | get_fragment(device) }}
@@ -31,7 +31,7 @@ int KDevice<drv::{{ device.objects[0]["type"] }}>::
 
 {% endfor %}
 
-int KDevice<drv::{{ device.objects[0]["type"] }}>::execute(Command& cmd)
+int KDevice<dev_id_of<{{ device.objects[0]["type"] }}>>::execute(Command& cmd)
 {
 #if KSERVER_HAS_THREADS
     std::lock_guard<std::mutex> lock(mutex);

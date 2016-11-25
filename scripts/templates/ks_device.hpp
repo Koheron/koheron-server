@@ -22,18 +22,14 @@
 namespace kserver {
 
 template<>
-class KDevice<drv::{{ device.objects[0]["type"] }}> : public KDeviceAbstract
+class KDevice<dev_id_of<{{ device.objects[0]["type"] }}>> : public KDeviceAbstract
 {
-  public:
-    const device_t kind = drv::{{ device.objects[0]["type"] }};
-    enum { __kind = drv::{{ device.objects[0]["type"] }} };
-
   public:
     int execute(Command& cmd);
     template<int op> int execute_op(Command& cmd);
 
     KDevice(KServer *kserver, {{ device.objects[0]["type"] }}& {{ device.objects[0]["name"] }}_)
-    : KDeviceAbstract(drv::{{ device.objects[0]["type"] }}, kserver)
+    : KDeviceAbstract(dev_id_of<{{ device.objects[0]["type"] }}>, kserver)
     , {{ device.objects[0]["name"] }}({{ device.objects[0]["name"] }}_)
     {}
 

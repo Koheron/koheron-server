@@ -37,7 +37,7 @@ class SessionAbstract
 
     template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd);
     template<typename Tp> int recv(Tp& container, Command& cmd);
-    template<uint16_t class_id, uint16_t func_id, typename... Args> int send(Args... args);
+    template<uint16_t class_id, uint16_t func_id, typename... Args> int send(Args&&... args);
 
     int kind;
 };
@@ -92,6 +92,7 @@ class Session : public SessionAbstract
     template<typename T>
     int recv(std::vector<T>& vec, Command& cmd);
 
+    // TODO Use perfect forwarding
     template<uint16_t class_id, uint16_t func_id, typename... Args>
     int send(Args... args) {
         dyn_ser.build_command<class_id, func_id>(send_buffer, args...);
@@ -525,8 +526,8 @@ inline int SessionAbstract::recv(Tp& container, Command& cmd) {
 }
 
 template<uint16_t class_id, uint16_t func_id, typename... Args>
-inline int SessionAbstract::send(Args... args) {
-    SWITCH_SOCK_TYPE(send<class_id, func_id>(args...))
+inline int SessionAbstract::send(Args&&... args) {
+    SWITCH_SOCK_TYPE(send<class_id, func_id>(std::forward<Args>(args)...))
     return -1;
 }
 

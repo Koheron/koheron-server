@@ -22,7 +22,7 @@ class KDeviceAbstract {
     , kserver(kserver_)
     {}
 
-    device_t kind = drv::no_device;
+    device_t kind = dev_id_of<NoDevice>;
     KServer *kserver;
 friend class DeviceManager;
 };

@@ -10,14 +10,17 @@
 
 using device_t = std::size_t;
 
-namespace drv {
+template<class Dev> constexpr device_t dev_id_of;
 
-constexpr device_t no_device = 0;
-constexpr device_t Kserver = 1;
-{% for device in devices -%}
-constexpr device_t {{ device.objects[0]["type"] }} = {{ device.id }};
+class NoDevice;
+template<> constexpr device_t dev_id_of<NoDevice> = 0;
+
+class KServer;
+template<> constexpr device_t dev_id_of<KServer> = 1;
+{% for device in devices %}
+class {{ device.objects[0]["type"] }};
+template<> constexpr device_t dev_id_of<{{ device.objects[0]["type"] }}> = {{ device.id }};
 {% endfor -%}
-}
 
 constexpr device_t device_num = {{ devices|length + 2 }};
 
