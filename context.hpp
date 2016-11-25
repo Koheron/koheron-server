@@ -22,7 +22,7 @@ struct Context {
 
     // TODO Make it const
     template<class Dev>
-    Dev& get();
+    Dev& get() const;
 
   private:
     kserver::DeviceManager& dm;
