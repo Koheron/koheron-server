@@ -100,9 +100,24 @@ def fill_template(devices, template_filename, output_filename):
         output.write(template.render(devices=devices))
 
 def render_device_table(devices, build_dir):
-    print('Generate device table')
+    print('Generate devices table')
     template = get_renderer().get_template(os.path.join('scripts/templates', 'devices_table.hpp'))
     with open(os.path.join(build_dir, 'devices_table.hpp'), 'w') as output:
+        output.write(template.render(devices=devices, json=get_json(devices)))
+
+    print('Generate devices json')
+    template = get_renderer().get_template(os.path.join('scripts/templates', 'devices_json.hpp'))
+    with open(os.path.join(build_dir, 'devices_json.hpp'), 'w') as output:
+        output.write(template.render(devices=devices, json=get_json(devices)))
+
+    print('Generate devices container')
+    template = get_renderer().get_template(os.path.join('scripts/templates', 'devices_container.hpp'))
+    with open(os.path.join(build_dir, 'devices_container.hpp'), 'w') as output:
+        output.write(template.render(devices=devices, json=get_json(devices)))
+
+    print('Generate context.cpp')
+    template = get_renderer().get_template(os.path.join('scripts/templates', 'context.cpp'))
+    with open(os.path.join(build_dir, 'context.cpp'), 'w') as output:
         output.write(template.render(devices=devices, json=get_json(devices)))
 
     output_filename = os.path.join(build_dir, 'devices.hpp')
@@ -210,8 +225,8 @@ def cmd_calls(device, dev_id):
 
 def generate_call(device, dev_id, operation):
     def build_func_call(device, operation):
-        call = 'THIS->' + device['objects'][0]['name'] + '.' + operation['name'] + '('
-        call += ', '.join('THIS->args_' + operation['name'] + '.' + arg['name'] for arg in operation.get('arguments', []))
+        call = device['objects'][0]['name'] + '.' + operation['name'] + '('
+        call += ', '.join('args_' + operation['name'] + '.' + arg['name'] for arg in operation.get('arguments', []))
         return call + ')'
 
     lines = []
@@ -253,10 +268,10 @@ def parser_generator(device, operation):
             lines.append('    }\n')
 
             for i, arg in enumerate(pack['args']):
-                lines.append('    THIS->args_' + operation['name'] + '.' + arg["name"] + ' = ' + 'std::get<' + str(i + 1) + '>(args_tuple' + str(idx) + ');\n');
+                lines.append('    args_' + operation['name'] + '.' + arg["name"] + ' = ' + 'std::get<' + str(i + 1) + '>(args_tuple' + str(idx) + ');\n');
 
         elif pack['family'] in ['vector', 'string', 'array']:
-            lines.append('    if (cmd.sess->recv(THIS->args_' + operation['name'] + '.' + pack['args']['name'] + ', cmd) < 0) {\n')
+            lines.append('    if (cmd.sess->recv(args_' + operation['name'] + '.' + pack['args']['name'] + ', cmd) < 0) {\n')
             lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive '+ pack['family'] +'.\\n");\n')
             lines.append('        return -1;\n')
             lines.append('    }\n\n')

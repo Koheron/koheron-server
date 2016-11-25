@@ -7,6 +7,8 @@
 #include "commands.hpp"
 #include "syslog.tpp"
 
+#include <devices.hpp>
+
 #if KSERVER_HAS_THREADS
 #  include <thread>
 #endif
@@ -15,31 +17,24 @@ namespace kserver {
 
 DeviceManager::DeviceManager(KServer *kserver_)
 : kserver(kserver_)
-#if KSERVER_HAS_DEVMEM
-,  dev_mem()
-#endif
+, dev_cont(kserver->ct)
 {}
 
-// X Macro: Start new device
-#if KSERVER_HAS_DEVMEM
-#define EXPAND_AS_START_DEVICE(num, name)            \
-    device_list[num - 2] = std::make_unique<name>(kserver, dev_mem);
-#else
-#define EXPAND_AS_START_DEVICE(num, name)            \
-    device_list[num - 2] = std::make_unique<name>(kserver);
-#endif
+template<std::size_t dev>
+void DeviceManager::alloc_device() {
+    std::get<dev - 2>(device_list)
+        = std::make_unique<KDevice<dev>>(kserver, dev_cont.get<dev>());
+}
 
 int DeviceManager::init()
 {
-#if KSERVER_HAS_DEVMEM
-    if (dev_mem.open() < 0) {
+    if (kserver->ct.init() < 0) {
         kserver->syslog.print<SysLog::CRITICAL>(
-                              "Can't start MemoryManager\n");
+                "Context initialization failed\n");
         return -1;
     }
-#endif
 
-    DEVICES_TABLE(EXPAND_AS_START_DEVICE) // Start all devices
+    open_devices<device_num - 1>();
     return 0;
 }
 
@@ -68,8 +63,10 @@ int execute_dev(KDeviceAbstract *dev_abs, Command& cmd,
     return execute_dev_impl<devs...>(dev_abs, cmd);
 }
 
+// Range integer sequence
+
 // http://stackoverflow.com/questions/35625079/offset-for-variadic-template-integer-sequence
-template <std::size_t O, std::size_t ... Is>
+template <std::size_t O, std::size_t... Is>
 std::index_sequence<(O + Is)...> add_offset(std::index_sequence<Is...>)
 { return {}; }
 

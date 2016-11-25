@@ -7,60 +7,21 @@
 #define __DEVICES_TABLE_HPP__
 
 #include <array>
-#include <sstream>
-#include <string>
-#include <typeinfo>
-#include <cxxabi.h>
-
-{% for device in devices -%}
-{% for include in device.includes -%}
-#include "{{ include }}"
-{% endfor -%}
-{% endfor %}
-
-#define DEVICES_TABLE(ENTRY) \
-{% for device in devices -%}
-    {% if not loop.last -%}
-        ENTRY( {{device.tag}}, {{device.class_name}} ) \
-    {% else -%}
-        ENTRY( {{device.tag}}, {{device.class_name}} )
-    {% endif -%}
-{% endfor %}
-
-/// Device IDs
-
-constexpr std::size_t NO_DEVICE = 0;
-constexpr std::size_t KSERVER = 1;
-    {% for device in devices -%}
-constexpr std::size_t {{ device.tag | upper }} = {{ device.id }};
-    {% endfor -%}
-constexpr std::size_t device_num = {{ devices|length + 2 }};
 
 using device_t = std::size_t;
 
-// http://stackoverflow.com/questions/4484982/how-to-convert-typename-t-to-string-in-c
-template<typename T>
-inline auto get_type_str()
-{
-    std::string res;
-    char *name = nullptr;
-    int status;
-    name = abi::__cxa_demangle(typeid(T).name(), 0, 0, &status);
+template<class Dev> constexpr device_t dev_id_of;
 
-    if (name != nullptr)
-        res = std::string(name);
-    else
-        res = std::string(typeid(T).name());
+class NoDevice;
+template<> constexpr device_t dev_id_of<NoDevice> = 0;
 
-    free(name);
-    return res;
-}
+class KServer;
+template<> constexpr device_t dev_id_of<KServer> = 1;
+{% for device in devices %}
+class {{ device.objects[0]["type"] }};
+template<> constexpr device_t dev_id_of<{{ device.objects[0]["type"] }}> = {{ device.id }};
+{% endfor -%}
 
-inline auto build_devices_json()
-{
-    std::stringstream ss;
-    ss << "{{ json }}";
-    return ss.str();
-}
+constexpr device_t device_num = {{ devices|length + 2 }};
 
 #endif // __DEVICES_TABLE_HPP__

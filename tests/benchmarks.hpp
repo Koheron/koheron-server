@@ -5,10 +5,12 @@
 #include <array>
 #include <cstdint>
 
+#include <context.hpp>
+
 class Benchmarks
 {
   public:
-    Benchmarks()
+    Benchmarks(Context& ct)
     : vector_u(16384)
     , vector_f(1048576)
     {

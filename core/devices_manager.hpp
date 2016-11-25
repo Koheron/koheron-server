@@ -11,9 +11,7 @@
 
 #include "kdevice.hpp"
 
-#if KSERVER_HAS_DEVMEM
-#include <drivers/lib/memory_manager.hpp>
-#endif
+#include <devices_container.hpp>
 
 namespace kserver {
 
@@ -24,23 +22,35 @@ class DeviceManager
 {
   public:
     DeviceManager(KServer *kserver_);
-    
+
     int init();
     int execute(Command &cmd);
+
+    template<device_t dev>
+    auto& get() {
+        return dev_cont.get<dev>();
+    }
 
   private:
     // Store devices (except KServer) as unique_ptr
     std::array<std::unique_ptr<KDeviceAbstract>, device_num - 2> device_list;
     KServer *kserver;
+    DevicesContainer dev_cont;
 
-#if KSERVER_HAS_DEVMEM
-    MemoryManager dev_mem;
-#endif
+    template<std::size_t dev> void alloc_device();
+
+    template<std::size_t num>
+    std::enable_if_t<num < 2, void>
+    open_devices() {}
+
+    template<std::size_t num>
+    std::enable_if_t<num >= 2, void>
+    open_devices() {
+        alloc_device<num>();
+        open_devices<num - 1>();
+    }
 };
 
 } // namespace kserver
 
-#include <devices.hpp>
-
 #endif // __DEVICES_MANAGER_HPP__
-

@@ -5,44 +5,30 @@
 #ifndef __KDEVICE_HPP__
 #define __KDEVICE_HPP__
 
-#include <cstring> 
+#include <cstring>
 
 #include "kserver_defs.hpp"
-#include "dev_definitions.hpp"
+#include <devices_table.hpp>
 
 namespace kserver {
 
 class KServer;
-
-class KDeviceAbstract {
-public:
-    KDeviceAbstract(device_t kind_)
-    : kind(kind_) {}
-
-    device_t kind = NO_DEVICE;
-};
-
 struct Command;
 
-template<device_t dev_kind>
-class KDevice : public KDeviceAbstract
-{
+class KDeviceAbstract {
   public:
-    KDevice(KServer *kserver_)
-    : KDeviceAbstract(dev_kind),
-      kserver(kserver_)
+    KDeviceAbstract(device_t kind_, KServer *kserver_)
+    : kind(kind_)
+    , kserver(kserver_)
     {}
 
-    int execute(Command& cmd);
-
-  private:
+    device_t kind = dev_id_of<NoDevice>;
     KServer *kserver;
-
-  protected:
-    template<int op> int execute_op(Command& cmd);
-
 friend class DeviceManager;
 };
+
+template<device_t dev_kind>
+class KDevice : public KDeviceAbstract {};
 
 } // namespace kserver
 

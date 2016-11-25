@@ -20,13 +20,14 @@
 #include <ctime>
 #include <utility>
 
-#include "kdevice.hpp"
+// #include "kdevice.hpp"
 #include "devices_manager.hpp"
 #include "syslog.hpp"
 #include "signal_handler.hpp"
-#include "peer_info.hpp"
+// #include "peer_info.hpp"
 #include "session_manager.hpp"
 #include "pubsub.hpp"
+#include <context.hpp>
 
 namespace kserver {
 
@@ -105,12 +106,9 @@ void ListeningChannel<sock_type>::join_worker()
 ///
 /// Derived from KDevice, therefore it is seen as 
 /// a device from the client stand point.
-class KServer : public KDevice<KSERVER>
-{
-  public:
-    const device_t kind = KSERVER;
-    enum { __kind = KSERVER };
 
+class KServer
+{
   public:
     KServer(std::shared_ptr<kserver::KServerConfig> config_);
 
@@ -157,6 +155,11 @@ class KServer : public KDevice<KSERVER>
 #if KSERVER_HAS_THREADS
     std::mutex ks_mutex;
 #endif
+
+    Context ct;
+
+    int execute(Command& cmd);
+    template<int op> int execute_op(Command& cmd);
 
   private:
     // Internal functions
