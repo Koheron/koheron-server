@@ -23,14 +23,12 @@ class DevicesContainer
     : ctx(ctx_)
     {
         is_started.fill(false);
-        is_started.fill(false);
+        is_starting.fill(false);
     }
 
     template<device_t dev>
     auto& get() {
-        if (! std::get<dev - 2>(is_started))
-            alloc<dev>(); // May fail. How to return failure ?
-
+        assert(std::get<dev - 2>(is_started));
         return *std::get<dev - 2>(devtup).get();
     }
 

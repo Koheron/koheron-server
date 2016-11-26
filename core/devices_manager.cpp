@@ -44,6 +44,7 @@ int DeviceManager::alloc_device() {
     dev_cont.alloc<dev>(); // May fail
     std::get<dev - 2>(device_list)
         = std::make_unique<KDevice<dev>>(kserver, dev_cont.get<dev>());
+    std::get<dev - 2>(is_started) = true;
     return 0;
 }
 
@@ -65,7 +66,6 @@ DeviceManager::start_impl(device_t dev)
 
     if (dev == dev0) {
         alloc_device<dev0>();
-        std::get<dev0 - 2>(is_started) = true;
         return 0;
     } else {
         return start_impl<devs...>(dev);
