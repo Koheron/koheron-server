@@ -35,8 +35,8 @@ class KServer;
 
 struct SysLog
 {
-    template<unsigned int severity, typename... Tp>
-    void print(const char *msg, Tp... args);
+    template<unsigned int severity, typename... Args>
+    void print(const char *msg, Args&&... args);
 
   private:
     std::shared_ptr<KServerConfig> config;
@@ -69,46 +69,47 @@ struct SysLog
     }
 
     // High severity (Panic, ..., Warning)
-    template<unsigned int severity, typename... Tp>
+    template<unsigned int severity, typename... Args>
     std::enable_if_t< severity <= WARNING, void >
-    print_msg(const str_const& severity_desc, const char *message, Tp... args) {
-        kserver::fprintf(stderr, (severity_desc.to_string() + ": " + std::string(message)).c_str(), args...);
+    print_msg(const str_const& severity_desc, const char *message, Args... args) {
+        kserver::fprintf(stderr, (severity_desc.to_string() + ": " + std::string(message)).c_str(),
+                         std::forward<Args>(args)...);
     }
 
     // Low severity (Info, Debug)
-    template<unsigned int severity, typename... Tp>
+    template<unsigned int severity, typename... Args>
     std::enable_if_t< severity >= INFO, void >
-    print_msg(const str_const& severity_desc, const char *message, Tp... args) {
+    print_msg(const str_const& severity_desc, const char *message, Args&&... args) {
         if (config->verbose)
-            kserver::printf(message, args...);
+            kserver::printf(message, std::forward<Args>(args)...);
     }
 
-    template<unsigned int severity, int priority, typename... Tp>
+    template<unsigned int severity, int priority, typename... Args>
     std::enable_if_t< severity <= INFO, void >
-    call_syslog(const char *message, Tp... args) {
+    call_syslog(const char *message, Args&&... args) {
         if (config->syslog)
-            syslog<priority>(message, args...);;
+            syslog<priority>(message, std::forward<Args>(args)...);
     }
 
     // We don't send debug messages to the system log
-    template<unsigned int severity, int priority, typename... Tp>
+    template<unsigned int severity, int priority, typename... Args>
     std::enable_if_t< severity >= DEBUG, int >
-    call_syslog(const char *message, Tp... args) {
+    call_syslog(const char *message, Args&&... args) {
         return 0;
     }
 
-    template<unsigned int severity, typename... Tp>
-    int __emit_error(const char *message, Tp... args);
+    template<unsigned int severity, typename... Args>
+    int __emit_error(const char *message, Args&&... args);
 
-    template<unsigned int severity, typename... Tp>
+    template<unsigned int severity, typename... Args>
     std::enable_if_t< severity <= INFO, int >
-    emit_error(const char *message, Tp... args) {
-        return __emit_error<severity>(message, args...);
+    emit_error(const char *message, Args&&... args) {
+        return __emit_error<severity>(message, std::forward<Args>(args)...);
     }
 
-    template<unsigned int severity, typename... Tp>
+    template<unsigned int severity, typename... Args>
     std::enable_if_t< severity >= DEBUG, int >
-    emit_error(const char *message, Tp... args) {
+    emit_error(const char *message, Args... args) {
         return 0;
     }
 
