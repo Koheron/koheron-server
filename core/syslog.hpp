@@ -16,6 +16,17 @@
 
 #include "string_utils.hpp"
 
+/// Severity of the message
+enum severity {
+    PANIC,    ///< When KServer is not functionnal anymore
+    CRITICAL, ///< When an error results in session crash
+    ERROR,    ///< Typically when a command execution failed
+    WARNING,
+    INFO,
+    DEBUG, // Special print function for debug
+    syslog_severity_num
+};
+
 namespace kserver {
 
 class KServer;
@@ -24,6 +35,26 @@ class KServer;
 
 struct SysLog
 {
+    /// Severity of the message
+    enum severity {
+        PANIC,    ///< When KServer is not functionnal anymore
+        CRITICAL, ///< When an error results in session crash
+        ERROR,    ///< Typically when a command execution failed
+        WARNING,
+        INFO,
+        DEBUG, // Special print function for debug
+        syslog_severity_num
+    };
+
+    template<unsigned int severity, typename... Tp>
+    void print(const char *msg, Tp... args);
+
+  private:
+    std::shared_ptr<KServerConfig> config;
+    char fmt_buffer[FMT_BUFF_LEN];
+    KServer *kserver;
+
+  private:
     SysLog(std::shared_ptr<KServerConfig> config_, KServer *kserver_)
     : config(config_)
     , kserver(kserver_)
@@ -48,26 +79,6 @@ struct SysLog
         }
     }
 
-    /// Severity of the message
-    enum severity {
-        PANIC,    ///< When KServer is not functionnal anymore
-        CRITICAL, ///< When an error results in session crash
-        ERROR,    ///< Typically when a command execution failed
-        WARNING,
-        INFO,
-        DEBUG, // Special print function for debug
-        syslog_severity_num
-    };
-
-    template<unsigned int severity, typename... Tp>
-    void print(const char *msg, Tp... args);
-
-  private:
-    std::shared_ptr<KServerConfig> config;
-    char fmt_buffer[FMT_BUFF_LEN];
-    KServer *kserver;
-
-  private:
     // High severity (Panic, ..., Warning)
     template<unsigned int severity, typename... Tp>
     std::enable_if_t< severity <= WARNING, void >
@@ -111,6 +122,8 @@ struct SysLog
     emit_error(const char *message, Tp... args) {
         return 0;
     }
+
+friend class KServer;
 };
 
 } // namespace kserver

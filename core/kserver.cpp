@@ -29,7 +29,7 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
   syslog(config_, this),
   start_time(0),
   pubsub(session_manager),
-  ct(dev_manager)
+  ct(dev_manager, syslog)
 {
     if (sig_handler.init(this) < 0)
         exit(EXIT_FAILURE);

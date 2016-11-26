@@ -4,6 +4,7 @@
 #define __CONTEXT_HPP__
 
 #include <core/kserver_defs.hpp>
+#include <core/syslog.hpp>
 
 #if KSERVER_HAS_DEVMEM
 #include <drivers/lib/memory_manager.hpp>
@@ -24,6 +25,8 @@ class Context {
     MemoryManager mm;
 #endif
 
+    kserver::SysLog& log;
+
     template<class Dev>
     Dev& get() const;
 
@@ -31,8 +34,10 @@ class Context {
     // Constructor and initilization are private:
     // Devices cannot call them.
 
-    Context(kserver::DeviceManager& dm_)
+    Context(kserver::DeviceManager& dm_,
+            kserver::SysLog& log_)
     : dm(dm_)
+    , log(log_)
 #if KSERVER_HAS_DEVMEM
     , mm()
 #endif

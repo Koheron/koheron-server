@@ -129,6 +129,10 @@ int Session<WEBSOCK>::read_command(Command& cmd)
     cmd.device = static_cast<device_t>(std::get<0>(header_tuple));
     cmd.operation = std::get<1>(header_tuple);
 
+    session_manager.kserver.syslog.print<SysLog::DEBUG>(
+        "WebSocket: Receive command for device %u, operation %u\n",
+        cmd.device, cmd.operation);
+
     return Command::HEADER_SIZE;
 }
 
