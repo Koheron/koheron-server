@@ -33,6 +33,20 @@ class KServer;
 
 #define FMT_BUFF_LEN 512
 
+static constexpr auto log_array = kserver::make_array(
+    std::make_tuple(LOG_ALERT, str_const("KSERVER PANIC")),
+    std::make_tuple(LOG_CRIT, str_const("KSERVER CRITICAL")),
+    std::make_tuple(LOG_ERR, str_const("KSERVER ERROR")),
+    std::make_tuple(LOG_WARNING, str_const("KSERVER WARNING")),
+    std::make_tuple(LOG_NOTICE, str_const("KSERVER INFO")),
+    std::make_tuple(LOG_DEBUG, str_const("KSERVER DEBUG"))
+);
+
+template<unsigned int severity>
+constexpr int to_priority() {
+    return std::get<0>(std::get<severity>(log_array));
+}
+
 struct SysLog
 {
     template<unsigned int severity, typename... Args>
@@ -84,15 +98,15 @@ struct SysLog
             kserver::printf(message, std::forward<Args>(args)...);
     }
 
-    template<unsigned int severity, int priority, typename... Args>
+    template<unsigned int severity, typename... Args>
     std::enable_if_t< severity <= INFO, void >
     call_syslog(const char *message, Args&&... args) {
         if (config->syslog)
-            syslog<priority>(message, std::forward<Args>(args)...);
+            syslog<to_priority<severity>()>(message, std::forward<Args>(args)...);
     }
 
     // We don't send debug messages to the system log
-    template<unsigned int severity, int priority, typename... Args>
+    template<unsigned int severity, typename... Args>
     std::enable_if_t< severity >= DEBUG, int >
     call_syslog(const char *message, Args&&... args) {
         return 0;
