@@ -45,7 +45,7 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
         exit(EXIT_FAILURE);
 #else
     if (config->tcp_worker_connections > 0)
-        syslog.print<SysLog::ERROR>("TCP connections not supported\n");
+        syslog.print<ERROR>("TCP connections not supported\n");
 #endif // KSERVER_HAS_TCP
 
 #if KSERVER_HAS_WEBSOCKET
@@ -53,7 +53,7 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
         exit(EXIT_FAILURE);
 #else
     if (config->websock_worker_connections > 0)
-        syslog.print<SysLog::ERROR>("Websocket connections not supported\n");
+        syslog.print<ERROR>("Websocket connections not supported\n");
 #endif // KSERVER_HAS_WEBSOCKET
 
 #if KSERVER_HAS_UNIX_SOCKET
@@ -61,7 +61,7 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
         exit(EXIT_FAILURE);
 #else
     if (config->unixsock_worker_connections > 0)
-        syslog.print<SysLog::ERROR>("Unix socket connections not supported\n");
+        syslog.print<ERROR>("Unix socket connections not supported\n");
 #endif // KSERVER_HAS_UNIX_SOCKET
 }
 
@@ -128,7 +128,7 @@ int KServer::run()
 
     while (1) {
         if (sig_handler.interrupt() || exit_all) {
-            syslog.print<SysLog::INFO>("Interrupt received, killing KServer ...\n");
+            syslog.print<INFO>("Interrupt received, killing KServer ...\n");
             session_manager.delete_all();
             close_listeners();
             syslog.close();

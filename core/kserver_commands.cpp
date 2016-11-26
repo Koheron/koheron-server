@@ -27,7 +27,7 @@ namespace kserver {
 #define NO_PARAM(cmd_name)                                                        \
     auto args_tuple = cmd.sess->deserialize(cmd);                                 \
     if (std::get<0>(args_tuple) < 0) {                                            \
-        syslog.print<SysLog::ERROR>("[Kserver] Failed to deserialize buffer.\n"); \
+        syslog.print<ERROR>("[Kserver] Failed to deserialize buffer.\n"); \
         return -1;                                                                \
     }
 
@@ -73,13 +73,13 @@ int send_listener_stats(Command& cmd, KServer *kserver,
                     listener->stats.total_requests_num);
 
     if (ret < 0) {
-        kserver->syslog.print<SysLog::ERROR>(
+        kserver->syslog.print<ERROR>(
                               "KServer::GET_STATS Format error\n");
         return -1;
     }
 
     if (ret >= KS_DEV_WRITE_STR_LEN) {
-        kserver->syslog.print<SysLog::ERROR>(
+        kserver->syslog.print<ERROR>(
                               "KServer::GET_STATS Buffer overflow\n");
         return -1;
     }
@@ -104,13 +104,13 @@ KSERVER_EXECUTE_OP(GET_STATS)
                     std::time(nullptr) - start_time);
 
     if (ret < 0) {
-        syslog.print<SysLog::ERROR>(
+        syslog.print<ERROR>(
                       "KServer::GET_STATS Format error\n");
         return -1;
     }
 
     if (ret >= KS_DEV_WRITE_STR_LEN) {
-        syslog.print<SysLog::ERROR>(
+        syslog.print<ERROR>(
                       "KServer::GET_STATS Buffer overflow\n");
         return -1;
     }
@@ -143,7 +143,7 @@ KSERVER_EXECUTE_OP(GET_STATS)
     if ((bytes = GET_SESSION.send<1, KServer::GET_STATS>("EOKS\n")) < 0)
         return -1;
 
-    syslog.print<SysLog::DEBUG>("[S] [%u bytes]\n", bytes_send + bytes);
+    syslog.print<DEBUG>("[S] [%u bytes]\n", bytes_send + bytes);
     return 0;
 }
 
@@ -207,13 +207,13 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
                            std::time(nullptr) - start_time);
 
         if (ret < 0) {
-            syslog.print<SysLog::ERROR>(
+            syslog.print<ERROR>(
                   "KServer::GET_RUNNING_SESSIONS Format error\n");
             return -1;
         }
 
         if (ret >= KS_DEV_WRITE_STR_LEN) {
-            syslog.print<SysLog::ERROR>(
+            syslog.print<ERROR>(
                   "KServer::GET_RUNNING_SESSIONS Buffer overflow\n");
             return -1;
         }
@@ -228,7 +228,7 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
     if ((bytes = GET_SESSION.send<1, KServer::GET_RUNNING_SESSIONS>("EORS\n")) < 0)
         return -1;
 
-    syslog.print<SysLog::DEBUG>("[S] [%u bytes]\n", bytes_send + bytes);
+    syslog.print<DEBUG>("[S] [%u bytes]\n", bytes_send + bytes);
     return 0;
 }
 
@@ -250,7 +250,7 @@ KSERVER_EXECUTE_OP(PUBSUB_PING)
     NO_PARAM(PUBSUB_PING)
     pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::PING>(static_cast<uint32_t>(cmd.sess_id));
     pubsub.emit_cstr<PubSub::SERVER_CHANNEL, PubSub::PING_TEXT>("Ping from server\n");
-    syslog.print<SysLog::INFO>("Pubsub test triggered\n");
+    syslog.print<INFO>("Pubsub test triggered\n");
     return 0;
 }
 
@@ -279,7 +279,7 @@ int KServer::execute(Command& cmd)
         return execute_op<KServer::PUBSUB_PING>(cmd);
       case KServer::kserver_op_num:
       default:
-        syslog.print<SysLog::ERROR>("KServer::execute unknown operation\n");
+        syslog.print<ERROR>("KServer::execute unknown operation\n");
         return -1;
     }
 }

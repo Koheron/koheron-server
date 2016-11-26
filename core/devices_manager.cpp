@@ -42,12 +42,12 @@ void DeviceManager::alloc_device()
     std::lock_guard<std::recursive_mutex> lock(mutex);
 #endif
 
-    kserver->syslog.print<SysLog::INFO>(
+    kserver->syslog.print<INFO>(
         "Device Manager: Starting device [%u] %s...\n",
         dev, std::get<dev>(devices_names).data());
 
     if (dev_cont.alloc<dev>() < 0) {
-        kserver->syslog.print<SysLog::CRITICAL>(
+        kserver->syslog.print<CRITICAL>(
             "Failed to allocate device [%u] %s. Exiting server...\n",
             dev, std::get<dev>(devices_names).data());
 
@@ -91,7 +91,7 @@ void DeviceManager::start(device_t dev, std::index_sequence<devs...>)
 int DeviceManager::init()
 {
     if (kserver->ct.init() < 0) {
-        kserver->syslog.print<SysLog::CRITICAL>(
+        kserver->syslog.print<CRITICAL>(
                 "Context initialization failed\n");
         return -1;
     }

@@ -246,7 +246,7 @@ def parser_generator(device, operation):
     if operation.get('arguments') is None:
         lines.append('\n    auto args_tuple = cmd.sess->deserialize(cmd);\n')
         lines.append('    if (std::get<0>(args_tuple) < 0) {\n')
-        lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[{} - {}] Failed to deserialize buffer.\\n");\n'.format(device.name, operation['name']))
+        lines.append('        kserver->syslog.print<ERROR>(\"[{} - {}] Failed to deserialize buffer.\\n");\n'.format(device.name, operation['name']))
         lines.append('        return -1;\n')
         lines.append('    }\n')
         return ''.join(lines)
@@ -263,7 +263,7 @@ def parser_generator(device, operation):
             print_type_list_pack(lines, pack)
             lines.append('>(cmd);\n')
             lines.append('    if (std::get<0>(args_tuple' + str(idx)  + ') < 0) {\n')
-            lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[{} - {}] Failed to deserialize buffer.\\n");\n'.format(device.name, operation['name']))
+            lines.append('        kserver->syslog.print<ERROR>(\"[{} - {}] Failed to deserialize buffer.\\n");\n'.format(device.name, operation['name']))
             lines.append('        return -1;\n')
             lines.append('    }\n')
 
@@ -272,7 +272,7 @@ def parser_generator(device, operation):
 
         elif pack['family'] in ['vector', 'string', 'array']:
             lines.append('    if (cmd.sess->recv(args_' + operation['name'] + '.' + pack['args']['name'] + ', cmd) < 0) {\n')
-            lines.append('        kserver->syslog.print<SysLog::ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive '+ pack['family'] +'.\\n");\n')
+            lines.append('        kserver->syslog.print<ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive '+ pack['family'] +'.\\n");\n')
             lines.append('        return -1;\n')
             lines.append('    }\n\n')
         else:

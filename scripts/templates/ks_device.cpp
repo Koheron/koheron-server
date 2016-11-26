@@ -45,7 +45,7 @@ int KDevice<dev_id_of<{{ device.objects[0]["type"] }}>>::execute(Command& cmd)
 {% endfor %}
       case {{ device.tag | lower }}_op_num:
       default:
-          kserver->syslog.print<SysLog::ERROR>("{{ device.class_name }}: Unknown operation\n");
+          kserver->syslog.print<ERROR>("{{ device.class_name }}: Unknown operation\n");
           return -1;
     }
 }

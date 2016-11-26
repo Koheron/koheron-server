@@ -29,7 +29,7 @@ int Session<TCP>::read_command(Command& cmd)
         return header_bytes;
 
     if (unlikely(header_bytes < 0)) {
-        session_manager.kserver.syslog.print<SysLog::ERROR>(
+        session_manager.kserver.syslog.print<ERROR>(
             "TCPSocket: Cannot read header\n");
         return header_bytes;
     }
@@ -40,7 +40,7 @@ int Session<TCP>::read_command(Command& cmd)
     cmd.device = static_cast<device_t>(std::get<0>(header_tuple));
     cmd.operation = std::get<1>(header_tuple);
 
-    session_manager.kserver.syslog.print<SysLog::DEBUG>(
+    session_manager.kserver.syslog.print<DEBUG>(
         "TCPSocket: Receive command for device %u, operation %u\n",
         cmd.device, cmd.operation);
 
@@ -58,13 +58,13 @@ int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes)
         bytes_rcv = read(comm_fd, buffer + bytes_read, n_bytes - bytes_read);
 
         if (bytes_rcv == 0) {
-            session_manager.kserver.syslog.print<SysLog::INFO>(
+            session_manager.kserver.syslog.print<INFO>(
                 "TCPSocket: Connection closed by client\n");
             return 0;
         }
 
         if (unlikely(bytes_rcv < 0)) {
-            session_manager.kserver.syslog.print<SysLog::ERROR>(
+            session_manager.kserver.syslog.print<ERROR>(
                 "TCPSocket: Can't receive data\n");
             return -1;
         }
@@ -73,7 +73,7 @@ int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes)
     }
 
     assert(bytes_read == n_bytes);
-    session_manager.kserver.syslog.print<SysLog::DEBUG>("[R@%u] [%u bytes]\n",
+    session_manager.kserver.syslog.print<DEBUG>("[R@%u] [%u bytes]\n",
                                                         id, bytes_read);
     return bytes_read;
 }
@@ -92,7 +92,7 @@ int Session<WEBSOCK>::init_socket()
     websock.set_id(comm_fd);
 
     if (websock.authenticate() < 0) {
-        session_manager.kserver.syslog.print<SysLog::CRITICAL>(
+        session_manager.kserver.syslog.print<CRITICAL>(
                               "Cannot connect websocket to client\n");
         return -1;
     }
@@ -109,7 +109,7 @@ template<>
 int Session<WEBSOCK>::read_command(Command& cmd)
 {
     if (unlikely(websock.receive_cmd(cmd) < 0)) {
-        session_manager.kserver.syslog.print<SysLog::ERROR>(
+        session_manager.kserver.syslog.print<ERROR>(
             "WebSocket: Command reception failed\n");
         return -1;
     }
@@ -118,7 +118,7 @@ int Session<WEBSOCK>::read_command(Command& cmd)
         return 0;
 
     if (websock.payload_size() < Command::HEADER_SIZE) {
-        session_manager.kserver.syslog.print<SysLog::ERROR>(
+        session_manager.kserver.syslog.print<ERROR>(
             "WebSocket: Command too small\n");
         return -1;
     }
@@ -129,7 +129,7 @@ int Session<WEBSOCK>::read_command(Command& cmd)
     cmd.device = static_cast<device_t>(std::get<0>(header_tuple));
     cmd.operation = std::get<1>(header_tuple);
 
-    session_manager.kserver.syslog.print<SysLog::DEBUG>(
+    session_manager.kserver.syslog.print<DEBUG>(
         "WebSocket: Receive command for device %u, operation %u\n",
         cmd.device, cmd.operation);
 

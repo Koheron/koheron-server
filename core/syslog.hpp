@@ -35,17 +35,6 @@ class KServer;
 
 struct SysLog
 {
-    /// Severity of the message
-    enum severity {
-        PANIC,    ///< When KServer is not functionnal anymore
-        CRITICAL, ///< When an error results in session crash
-        ERROR,    ///< Typically when a command execution failed
-        WARNING,
-        INFO,
-        DEBUG, // Special print function for debug
-        syslog_severity_num
-    };
-
     template<unsigned int severity, typename... Tp>
     void print(const char *msg, Tp... args);
 

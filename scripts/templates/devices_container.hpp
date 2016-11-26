@@ -40,7 +40,7 @@ class DevicesContainer
             return 0;
 
         if (std::get<dev - 2>(is_starting)) {
-            syslog.print<SysLog::CRITICAL>(
+            syslog.print<CRITICAL>(
                 "Circular dependency detected while initializing device [%u] %s\n",
                 dev, std::get<dev>(devices_names).data());
 

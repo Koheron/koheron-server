@@ -35,7 +35,7 @@ int create_tcp_listening(unsigned int port, SysLog *syslog,
     int listen_fd_ = socket(AF_INET, SOCK_STREAM, 0);
 
     if (listen_fd_ < 0) {
-        syslog->print<SysLog::PANIC>("Can't open socket\n");
+        syslog->print<PANIC>("Can't open socket\n");
         return -1;
     }
 
@@ -45,7 +45,7 @@ int create_tcp_listening(unsigned int port, SysLog *syslog,
 
     if (setsockopt(listen_fd_, SOL_SOCKET, SO_REUSEADDR,
                   &yes, sizeof(int))==-1) {
-        syslog->print<SysLog::CRITICAL>("Cannot set SO_REUSEADDR\n");
+        syslog->print<CRITICAL>("Cannot set SO_REUSEADDR\n");
     }
 
 #if KSERVER_HAS_TCP_NODELAY
@@ -57,7 +57,7 @@ int create_tcp_listening(unsigned int port, SysLog *syslog,
             // This is only considered critical since it is performance
             // related but this doesn't prevent to use the socket
             // so only log the error and keep going ...
-            syslog->print<SysLog::CRITICAL>("Cannot set TCP_NODELAY\n");
+            syslog->print<CRITICAL>("Cannot set TCP_NODELAY\n");
         }
     }
 #endif
@@ -70,7 +70,7 @@ int create_tcp_listening(unsigned int port, SysLog *syslog,
 
     // Assign name (address) to socket
     if (bind(listen_fd_, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
-        syslog->print<SysLog::PANIC>("Binding error\n");
+        syslog->print<PANIC>("Binding error\n");
         close(listen_fd_);
         return -1;
     }
@@ -85,7 +85,7 @@ int set_comm_sock_opts(int comm_fd, SysLog *syslog,
 
     if (setsockopt(comm_fd, SOL_SOCKET, SO_SNDBUF,
                   &sndbuf_len, sizeof(sndbuf_len)) < 0) {
-        syslog->print<SysLog::CRITICAL>("Cannot set socket send options\n");
+        syslog->print<CRITICAL>("Cannot set socket send options\n");
         close(comm_fd);
         return -1;
     }
@@ -94,7 +94,7 @@ int set_comm_sock_opts(int comm_fd, SysLog *syslog,
 
     if (setsockopt(comm_fd, SOL_SOCKET, SO_RCVBUF,
                   &rcvbuf_len, sizeof(rcvbuf_len)) < 0) {
-        syslog->print<SysLog::CRITICAL>("Cannot set socket receive options\n");
+        syslog->print<CRITICAL>("Cannot set socket receive options\n");
         close(comm_fd);
         return -1;
     }
@@ -105,7 +105,7 @@ int set_comm_sock_opts(int comm_fd, SysLog *syslog,
 
         if (setsockopt(comm_fd, IPPROTO_TCP, TCP_NODELAY,
                        (char *)&one, sizeof(one)) < 0) {
-            syslog->print<SysLog::CRITICAL>("Cannot set TCP_NODELAY\n");
+            syslog->print<CRITICAL>("Cannot set TCP_NODELAY\n");
             close(comm_fd);
             return -1;
         }
@@ -142,17 +142,17 @@ void session_thread_call(int comm_fd, ListeningChannel<sock_type> *listener)
     auto session = static_cast<Session<sock_type>*>(
                         &listener->kserver->session_manager.get_session(sid));
 
-    listener->kserver->syslog. template print<SysLog::INFO>(
+    listener->kserver->syslog. template print<INFO>(
                 "Start session id = %u. "
                 "Client IP = %s, port = %u. Start time = %li\n",
                 sid, session->get_client_ip(), session->get_client_port(),
                 session->get_start_time());
 
     if (session->run() < 0)
-        listener->kserver->syslog. template print<SysLog::ERROR>(
+        listener->kserver->syslog. template print<ERROR>(
                                         "An error occured during session\n");
 
-    listener->kserver->syslog. template print<SysLog::INFO>(
+    listener->kserver->syslog. template print<INFO>(
                 "Close session id = %u with #req = %u. #err = %u\n",
                 sid, session->request_num(), session->error_num());
 
@@ -173,14 +173,14 @@ void comm_thread_call(ListeningChannel<sock_type> *listener)
             break;
 
         if (comm_fd < 0) {
-            listener->kserver->syslog. template print<SysLog::CRITICAL>(
+            listener->kserver->syslog. template print<CRITICAL>(
                 "Connection to client rejected [sock_type = %u]\n", sock_type);
             continue;
         }
 
 #if KSERVER_HAS_THREADS
         if (listener->is_max_threads()) {
-            listener->kserver->syslog. template print<SysLog::WARNING>(
+            listener->kserver->syslog. template print<WARNING>(
                         "Maximum number of workers exceeded\n");
             continue;
         }
@@ -192,7 +192,7 @@ void comm_thread_call(ListeningChannel<sock_type> *listener)
 #endif
     }
 
-    listener->kserver->syslog. template print<SysLog::INFO>(
+    listener->kserver->syslog. template print<INFO>(
                 "%s listener closed.\n", listen_channel_desc[sock_type].c_str());
 }
 
@@ -201,7 +201,7 @@ int ListeningChannel<sock_type>::__start_worker()
 {
     if (listen_fd >= 0) {
         if (listen(listen_fd, KSERVER_BACKLOG) < 0) {
-            kserver->syslog.print<SysLog::PANIC>("Listen %s error\n",
+            kserver->syslog.print<PANIC>("Listen %s error\n",
                                   listen_channel_desc[sock_type].c_str());
             return -1;
         }
@@ -238,10 +238,10 @@ template<>
 void ListeningChannel<TCP>::shutdown()
 {
     if (kserver->config->tcp_worker_connections > 0) {
-        kserver->syslog.print<SysLog::INFO>("Closing TCP listener ...\n");
+        kserver->syslog.print<INFO>("Closing TCP listener ...\n");
 
         if (::shutdown(listen_fd, SHUT_RDWR) < 0)
-            kserver->syslog.print<SysLog::WARNING>(
+            kserver->syslog.print<WARNING>(
                          "Cannot shutdown socket for TCP listener\n");
 
         close(listen_fd);
@@ -292,10 +292,10 @@ template<>
 void ListeningChannel<WEBSOCK>::shutdown()
 {
     if (kserver->config->websock_worker_connections > 0) {
-        kserver->syslog.print<SysLog::INFO>("Closing WebSocket listener ...\n");
+        kserver->syslog.print<INFO>("Closing WebSocket listener ...\n");
 
         if (::shutdown(listen_fd, SHUT_RDWR) < 0)
-            kserver->syslog.print<SysLog::WARNING>(
+            kserver->syslog.print<WARNING>(
                          "Cannot shutdown socket for WebSocket listener\n");
 
         close(listen_fd);
@@ -335,7 +335,7 @@ int create_unix_listening(const char *unix_sock_path, SysLog *syslog)
     int listen_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
 
     if (listen_fd_ < 0) {
-        syslog->print<SysLog::PANIC>("Can't open Unix socket\n");
+        syslog->print<PANIC>("Can't open Unix socket\n");
         return -1;
     }
 
@@ -345,7 +345,7 @@ int create_unix_listening(const char *unix_sock_path, SysLog *syslog)
     int len = strlen(local.sun_path) + sizeof(local.sun_family);
 
     if (bind(listen_fd_, (struct sockaddr *) &local, len) < 0) {
-        syslog->print<SysLog::PANIC>("Unix socket binding error\n");
+        syslog->print<PANIC>("Unix socket binding error\n");
         close(listen_fd_);
         return -1;
     }
@@ -371,10 +371,10 @@ template<>
 void ListeningChannel<UNIX>::shutdown()
 {
     if (kserver->config->unixsock_worker_connections > 0) {
-        kserver->syslog.print<SysLog::INFO>("Closing Unix listener ...\n");
+        kserver->syslog.print<INFO>("Closing Unix listener ...\n");
 
         if (::shutdown(listen_fd, SHUT_RDWR) < 0)
-            kserver->syslog.print<SysLog::WARNING>(
+            kserver->syslog.print<WARNING>(
                          "Cannot shutdown socket for Unix listener\n");
 
         close(listen_fd);

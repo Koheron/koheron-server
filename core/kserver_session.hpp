@@ -148,7 +148,7 @@ class Session : public SessionAbstract
 
     void exit_session() {
         if (exit_socket() < 0)
-            session_manager.kserver.syslog.print<SysLog::WARNING>(
+            session_manager.kserver.syslog.print<WARNING>(
                 "An error occured during session exit\n");
     }
 
@@ -159,7 +159,7 @@ class Session : public SessionAbstract
         const auto err = rcv_n_bytes(buff.data(), sizeof(uint64_t));
 
         if (err < 0) {
-            session_manager.kserver.syslog.print<SysLog::ERROR>(
+            session_manager.kserver.syslog.print<ERROR>(
             "Cannot read pack length\n");
             return -1;
         }
@@ -217,7 +217,7 @@ int Session<sock_type>::run()
         requests_num++;
 
         if (unlikely(session_manager.dev_manager.execute(cmd) < 0)) {
-            session_manager.kserver.syslog.print<SysLog::ERROR>(
+            session_manager.kserver.syslog.print<ERROR>(
                 "Failed to execute command [device = %i, operation = %i]\n",
                 cmd.device, cmd.operation);
             errors_num++;
@@ -250,7 +250,7 @@ inline int Session<TCP>::recv(std::array<T, N>& arr, Command& cmd)
         return -1;
 
     if (length != size_of<T, N>) {
-        session_manager.kserver.syslog.print<SysLog::ERROR>(
+        session_manager.kserver.syslog.print<ERROR>(
             "TCPSocket: Array extraction failed. Expected %lu bytes received %lu bytes\n",
             size_of<T, N>, length);
         return -1;
@@ -272,7 +272,7 @@ inline int Session<TCP>::recv(std::vector<T>& vec, Command& cmd)
     const auto err = rcv_n_bytes(reinterpret_cast<char *>(vec.data()), length * sizeof(T));
 
     if (err >= 0)
-        session_manager.kserver.syslog.print<SysLog::DEBUG>(
+        session_manager.kserver.syslog.print<DEBUG>(
             "TCPSocket: Received a vector of %lu bytes\n", length);
 
     return err;
@@ -291,7 +291,7 @@ inline int Session<TCP>::recv(std::string& str, Command& cmd)
     const auto err = rcv_n_bytes(const_cast<char*>(str.data()), length);
 
     if (err >= 0)
-        session_manager.kserver.syslog.print<SysLog::DEBUG>(
+        session_manager.kserver.syslog.print<DEBUG>(
             "TCPSocket: Received a string of %lu bytes\n", length);
 
     return err;
@@ -320,7 +320,7 @@ inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd, std::true_
         return std::tuple_cat(std::make_tuple(-1), std::tuple<Tp...>());
 
     if (length != pack_len) {
-        session_manager.kserver.syslog.print<SysLog::ERROR>(
+        session_manager.kserver.syslog.print<ERROR>(
             "TCPSocket: Scalar pack deserialization failed. Expected %lu bytes received %lu bytes\n",
             pack_len, length);
 
@@ -340,24 +340,24 @@ inline int Session<TCP>::write(const T *data, unsigned int len)
     const int n_bytes_send = ::write(comm_fd, (void*)data, bytes_send);
 
     if (n_bytes_send == 0) {
-       session_manager.kserver.syslog.print<SysLog::ERROR>(
+       session_manager.kserver.syslog.print<ERROR>(
           "TCPSocket::write: Connection closed by client\n");
        return 0;
     }
 
     if (unlikely(n_bytes_send < 0)) {
-       session_manager.kserver.syslog.print<SysLog::ERROR>(
+       session_manager.kserver.syslog.print<ERROR>(
           "TCPSocket::write: Can't write to client\n");
        return -1;
     }
 
     if (unlikely(n_bytes_send != bytes_send)) {
-        session_manager.kserver.syslog.print<SysLog::ERROR>(
+        session_manager.kserver.syslog.print<ERROR>(
             "TCPSocket::write: Some bytes have not been sent\n");
         return -1;
     }
 
-    session_manager.kserver.syslog.print<SysLog::DEBUG>("[S] [%u bytes]\n", bytes_send);
+    session_manager.kserver.syslog.print<DEBUG>("[S] [%u bytes]\n", bytes_send);
     return bytes_send;
 }
 
@@ -393,7 +393,7 @@ inline int Session<WEBSOCK>::recv(std::array<T, N>& arr, Command& cmd)
     const auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
 
     if (length != size_of<T, N>) {
-        session_manager.kserver.syslog.print<SysLog::ERROR>(
+        session_manager.kserver.syslog.print<ERROR>(
             "WebSocket: Array extraction failed. Expected %lu bytes received %lu bytes\n",
             size_of<T, N>, length);
         return -1;
@@ -410,7 +410,7 @@ inline int Session<WEBSOCK>::recv(std::vector<T>& vec, Command& cmd)
     const auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
 
     if (length > CMD_PAYLOAD_BUFFER_LEN) {
-        session_manager.kserver.syslog.print<SysLog::ERROR>(
+        session_manager.kserver.syslog.print<ERROR>(
             "WebSocket: Payload size overflow during buffer reception\n");
         return -1;
     }
@@ -426,7 +426,7 @@ inline int Session<WEBSOCK>::recv(std::string& str, Command& cmd)
     const auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
 
     if (length > CMD_PAYLOAD_BUFFER_LEN) {
-        session_manager.kserver.syslog.print<SysLog::ERROR>(
+        session_manager.kserver.syslog.print<ERROR>(
             "WebSocket::rcv_vector: Payload size overflow\n");
         return -1;
     }
@@ -455,7 +455,7 @@ inline std::tuple<int, Tp...> Session<WEBSOCK>::deserialize(Command& cmd, std::t
     const auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
 
     if (length != pack_len) {
-        session_manager.kserver.syslog.print<SysLog::ERROR>(
+        session_manager.kserver.syslog.print<ERROR>(
             "WebSocket: Scalar pack deserialization failed. Expected %lu bytes received %lu bytes\n",
             pack_len, length);
 
