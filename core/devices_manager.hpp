@@ -13,6 +13,11 @@
 
 #include <devices_container.hpp>
 
+#if KSERVER_HAS_THREADS
+#  include <thread>
+#  include <mutex>
+#endif
+
 namespace kserver {
 
 class KServer;
@@ -39,6 +44,10 @@ class DeviceManager
     KServer *kserver;
     DevicesContainer dev_cont;
     std::array<bool, device_num - 2> is_started;
+
+#if KSERVER_HAS_THREADS
+    std::recursive_mutex mutex;
+#endif
 
     template<std::size_t dev> void alloc_device();
 

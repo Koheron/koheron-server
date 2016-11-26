@@ -9,10 +9,6 @@
 
 #include <devices.hpp>
 
-#if KSERVER_HAS_THREADS
-#  include <thread>
-#endif
-
 namespace kserver {
 
 DeviceManager::DeviceManager(KServer *kserver_)
@@ -42,7 +38,11 @@ auto make_index_sequence_in_range() {
 template<std::size_t dev>
 void DeviceManager::alloc_device()
 {
-    // TODO Take a mutex here
+
+// Dead lock here
+#if KSERVER_HAS_THREADS
+    std::lock_guard<std::recursive_mutex> lock(mutex);
+#endif
 
     kserver->syslog.print<SysLog::INFO>(
         "Device Manager: Starting device [%u] %s...\n",
