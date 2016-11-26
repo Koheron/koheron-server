@@ -26,7 +26,7 @@ class UsesContext
     }
 
     void log(const std::string& msg) {
-        ctx.log.print<INFO>(msg.c_str());
+        ctx.log<INFO>(msg.c_str());
     }
 
   private:

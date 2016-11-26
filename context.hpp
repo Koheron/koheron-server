@@ -19,25 +19,29 @@ namespace kserver {
 class Context {
   private:
     kserver::DeviceManager& dm;
+    kserver::SysLog& syslog;
 
   public:
 #if KSERVER_HAS_DEVMEM
     MemoryManager mm;
 #endif
 
-    kserver::SysLog& log;
-
     template<class Dev>
     Dev& get() const;
+
+    template<unsigned int severity, typename... Args>
+    void log(const char *msg, Args&&... args) {
+        syslog.print<severity>(msg, std::forward<Args>(args)...);
+    }
 
   private:
     // Constructor and initilization are private:
     // Devices cannot call them.
 
     Context(kserver::DeviceManager& dm_,
-            kserver::SysLog& log_)
+            kserver::SysLog& syslog_)
     : dm(dm_)
-    , log(log_)
+    , syslog(syslog_)
 #if KSERVER_HAS_DEVMEM
     , mm()
 #endif
