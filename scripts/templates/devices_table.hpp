@@ -8,6 +8,8 @@
 
 #include <array>
 
+#include <core/string_utils.hpp>
+
 using device_t = std::size_t;
 
 template<class Dev> constexpr device_t dev_id_of;
@@ -23,5 +25,17 @@ template<> constexpr device_t dev_id_of<{{ device.objects[0]["type"] }}> = {{ de
 {% endfor -%}
 
 constexpr device_t device_num = {{ devices|length + 2 }};
+
+constexpr auto devices_names = kserver::make_array(
+    kserver::str_const("NoDevice"),
+    kserver::str_const("KServer"),
+{%- for device in devices -%}
+{% if not loop.last %}
+    kserver::str_const("{{ device.objects[0]['type'] }}"),
+{%- else %}
+    kserver::str_const("{{ device.objects[0]['type'] }}")
+{%- endif %}
+{%- endfor %}
+);
 
 #endif // __DEVICES_TABLE_HPP__

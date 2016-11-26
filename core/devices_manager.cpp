@@ -41,6 +41,10 @@ auto make_index_sequence_in_range() {
 
 template<std::size_t dev>
 int DeviceManager::alloc_device() {
+    kserver->syslog.print<SysLog::INFO>(
+        "Device Manager: Starting device [%u] %s...\n",
+        dev, std::get<dev>(devices_names).data());
+
     dev_cont.alloc<dev>(); // May fail
     std::get<dev - 2>(device_list)
         = std::make_unique<KDevice<dev>>(kserver, dev_cont.get<dev>());
@@ -76,8 +80,6 @@ DeviceManager::start_impl(device_t dev)
 template<device_t... devs>
 int DeviceManager::start(device_t dev, std::index_sequence<devs...>)
 {
-    kserver->syslog.print<SysLog::INFO>(
-        "Device Manager: Starting device #%u...\n", dev);
     return start_impl<devs...>(dev);
 }
 

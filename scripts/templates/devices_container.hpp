@@ -58,9 +58,7 @@ class DevicesContainer
     std::tuple<
 {%- for device in devices -%}
 {% if not loop.last -%}
-{% for object in device.objects -%}
  std::unique_ptr<{{ device.objects[0]['type'] }}>,
-{%- endfor %}
 {%- else -%}
  std::unique_ptr<{{ device.objects[0]['type'] }}>
 {%- endif -%}

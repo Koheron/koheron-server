@@ -14,15 +14,14 @@ void SysLog::print(const char *msg, Tp... args)
 {
     static_assert(severity <= syslog_severity_num, "Invalid logging level");
 
-    static constexpr std::array<std::tuple<int, str_const>, syslog_severity_num>
-    log_array = {{
+    static constexpr auto log_array = kserver::make_array(
         std::make_tuple(LOG_ALERT, str_const("KSERVER PANIC")),
         std::make_tuple(LOG_CRIT, str_const("KSERVER CRITICAL")),
         std::make_tuple(LOG_ERR, str_const("KSERVER ERROR")),
         std::make_tuple(LOG_WARNING, str_const("KSERVER WARNING")),
         std::make_tuple(LOG_NOTICE, str_const("KSERVER INFO")),
         std::make_tuple(LOG_DEBUG, str_const("KSERVER DEBUG"))
-    }};
+    );
 
     print_msg<severity>(std::get<1>(log_array[severity]), msg, args...);
     call_syslog<severity, std::get<0>(log_array[severity])>(msg, args...);
