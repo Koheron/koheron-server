@@ -40,25 +40,32 @@ auto make_index_sequence_in_range() {
 }
 
 template<std::size_t dev>
-void DeviceManager::alloc_device() {
+int DeviceManager::alloc_device() {
+    dev_cont.alloc<dev>(); // May fail
     std::get<dev - 2>(device_list)
         = std::make_unique<KDevice<dev>>(kserver, dev_cont.get<dev>());
+    return 0;
 }
 
 template<device_t dev0, device_t... devs>
 std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, int>
 DeviceManager::start_impl(device_t dev)
 {
-    alloc_device<dev0>();
-    return 0;
+    static_assert(dev0 < device_num, "");
+    static_assert(dev0 >= 2, "");
+    return alloc_device<dev0>();
 }
 
 template<device_t dev0, device_t... devs>
 std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, int>
 DeviceManager::start_impl(device_t dev)
 {
+    static_assert(dev0 < device_num, "");
+    static_assert(dev0 >= 2, "");
+
     if (dev == dev0) {
         alloc_device<dev0>();
+        std::get<dev0 - 2>(is_started) = true;
         return 0;
     } else {
         return start_impl<devs...>(dev);
@@ -69,7 +76,8 @@ DeviceManager::start_impl(device_t dev)
 template<device_t... devs>
 int DeviceManager::start(device_t dev, std::index_sequence<devs...>)
 {
-    kserver->syslog.print<SysLog::INFO>("Starting device %u...\n", dev);
+    kserver->syslog.print<SysLog::INFO>(
+        "Device Manager: Starting device #%u...\n", dev);
     return start_impl<devs...>(dev);
 }
 
@@ -81,7 +89,6 @@ int DeviceManager::init()
         return -1;
     }
 
-    dev_cont.init(); // To be initialized in start
     return 0;
 }
 

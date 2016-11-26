@@ -38,7 +38,7 @@ class DeviceManager
     DevicesContainer dev_cont;
     std::array<bool, device_num - 2> is_started;
 
-    template<std::size_t dev> void alloc_device();
+    template<std::size_t dev> int alloc_device();
 
     // Start
 

@@ -20,42 +20,42 @@ class DevicesContainer
 {
   public:
     DevicesContainer(Context& ctx_)
-    : ctx(ctx_) {}
+    : ctx(ctx_)
+    {
+        is_started.fill(false);
+        is_started.fill(false);
+    }
 
     template<device_t dev>
     auto& get() {
+        if (! std::get<dev - 2>(is_started))
+            alloc<dev>(); // May fail. How to return failure ?
+
         return *std::get<dev - 2>(devtup).get();
     }
 
+    // TODO Detect circular dependencies
+
     template<device_t dev>
-    void alloc_dev() {
-        std::get<dev>(devtup) = std::make_unique<
-                                    std::remove_reference_t<
-                                        decltype(*std::get<dev>(devtup).get())
-                                    >
-                                >(ctx);
-    }
+    int alloc() {
+        if (std::get<dev - 2>(is_started))
+            return 0;
 
-    template<std::size_t num>
-    std::enable_if_t<num == 0, void>
-    init_impl() {
-        alloc_dev<num>();
+        std::get<dev - 2>(devtup)
+                = std::make_unique<
+                    std::remove_reference_t<
+                        decltype(*std::get<dev - 2>(devtup).get())
+                    >
+                >(ctx);
+        std::get<dev - 2>(is_started) = true;
+        return 0;
     }
-
-    template<std::size_t num>
-    std::enable_if_t<0 < num, void>
-    init_impl() {
-        alloc_dev<num>();
-        init_impl<num - 1>();
-    }
-
-    void init() {
-        init_impl<device_num-3>();
-    }
-
 
   private:
     Context& ctx;
+
+    std::array<bool, device_num - 2> is_started;
+    std::array<bool, device_num - 2> is_starting;
 
     std::tuple<
 {%- for device in devices -%}
