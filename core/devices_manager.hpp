@@ -36,19 +36,36 @@ class DeviceManager
     std::array<std::unique_ptr<KDeviceAbstract>, device_num - 2> device_list;
     KServer *kserver;
     DevicesContainer dev_cont;
+    std::array<bool, device_num - 2> is_started;
 
     template<std::size_t dev> void alloc_device();
 
-    template<std::size_t num>
-    std::enable_if_t<num < 2, void>
-    open_devices() {}
+    // Start
 
-    template<std::size_t num>
-    std::enable_if_t<num >= 2, void>
-    open_devices() {
-        alloc_device<num>();
-        open_devices<num - 1>();
-    }
+    template<device_t... devs>
+    int start(device_t dev, std::index_sequence<devs...>);
+
+    template<device_t dev0, device_t... devs>
+    std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, int>
+    start_impl(device_t dev);
+
+    template<device_t dev0, device_t... devs>
+    std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, int>
+    start_impl(device_t dev);
+
+    // Execute
+
+    template<device_t... devs>
+    int execute_dev(KDeviceAbstract *dev_abs, Command& cmd,
+                    std::index_sequence<devs...>);
+
+    template<device_t dev0, device_t... devs>
+    std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, int>
+    execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd);
+
+    template<device_t dev0, device_t... devs>
+    std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, int>
+    execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd);
 };
 
 } // namespace kserver

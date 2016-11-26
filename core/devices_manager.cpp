@@ -18,50 +18,8 @@ namespace kserver {
 DeviceManager::DeviceManager(KServer *kserver_)
 : kserver(kserver_)
 , dev_cont(kserver->ct)
-{}
-
-template<std::size_t dev>
-void DeviceManager::alloc_device() {
-    std::get<dev - 2>(device_list)
-        = std::make_unique<KDevice<dev>>(kserver, dev_cont.get<dev>());
-}
-
-int DeviceManager::init()
 {
-    if (kserver->ct.init() < 0) {
-        kserver->syslog.print<SysLog::CRITICAL>(
-                "Context initialization failed\n");
-        return -1;
-    }
-
-    dev_cont.init();
-    open_devices<device_num - 1>();
-    return 0;
-}
-
-template<device_t dev0, device_t... devs>
-std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, int>
-execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd) {
-    static_assert(dev0 < device_num, "");
-    static_assert(dev0 >= 2, "");
-    return static_cast<KDevice<dev0>*>(dev_abs)->execute(cmd);
-}
-
-template<device_t dev0, device_t... devs>
-std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, int>
-execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd) {
-    static_assert(dev0 < device_num, "");
-    static_assert(dev0 >= 2, "");
-
-    return dev_abs->kind == dev0 ? static_cast<KDevice<dev0>*>(dev_abs)->execute(cmd)
-                                 : execute_dev_impl<devs...>(dev_abs, cmd);
-}
-
-template<device_t... devs>
-int execute_dev(KDeviceAbstract *dev_abs, Command& cmd,
-                std::index_sequence<devs...>) {
-    static_assert(sizeof...(devs) == device_num - 2, "");
-    return execute_dev_impl<devs...>(dev_abs, cmd);
+    is_started.fill(false);
 }
 
 // Range integer sequence
@@ -81,17 +39,95 @@ auto make_index_sequence_in_range() {
     return make_index_sequence_with_offset<First, Last - First>();
 }
 
+template<std::size_t dev>
+void DeviceManager::alloc_device() {
+    std::get<dev - 2>(device_list)
+        = std::make_unique<KDevice<dev>>(kserver, dev_cont.get<dev>());
+}
+
+template<device_t dev0, device_t... devs>
+std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, int>
+DeviceManager::start_impl(device_t dev)
+{
+    alloc_device<dev0>();
+    return 0;
+}
+
+template<device_t dev0, device_t... devs>
+std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, int>
+DeviceManager::start_impl(device_t dev)
+{
+    if (dev == dev0) {
+        alloc_device<dev0>();
+        return 0;
+    } else {
+        return start_impl<devs...>(dev);
+    }
+
+}
+
+template<device_t... devs>
+int DeviceManager::start(device_t dev, std::index_sequence<devs...>)
+{
+    kserver->syslog.print<SysLog::INFO>("Starting device %u...\n", dev);
+    return start_impl<devs...>(dev);
+}
+
+int DeviceManager::init()
+{
+    if (kserver->ct.init() < 0) {
+        kserver->syslog.print<SysLog::CRITICAL>(
+                "Context initialization failed\n");
+        return -1;
+    }
+
+    dev_cont.init(); // To be initialized in start
+    return 0;
+}
+
+template<device_t dev0, device_t... devs>
+std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, int>
+DeviceManager::execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd)
+{
+    static_assert(dev0 < device_num, "");
+    static_assert(dev0 >= 2, "");
+    return static_cast<KDevice<dev0>*>(dev_abs)->execute(cmd);
+}
+
+template<device_t dev0, device_t... devs>
+std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, int>
+DeviceManager::execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd)
+{
+    static_assert(dev0 < device_num, "");
+    static_assert(dev0 >= 2, "");
+
+    return dev_abs->kind == dev0 ? static_cast<KDevice<dev0>*>(dev_abs)->execute(cmd)
+                                 : execute_dev_impl<devs...>(dev_abs, cmd);
+}
+
+template<device_t... devs>
+int DeviceManager::execute_dev(KDeviceAbstract *dev_abs, Command& cmd,
+                               std::index_sequence<devs...>)
+{
+    static_assert(sizeof...(devs) == device_num - 2, "");
+    return execute_dev_impl<devs...>(dev_abs, cmd);
+}
+
 int DeviceManager::execute(Command& cmd)
 {
     assert(cmd.device < device_num);
 
-    if (cmd.device == 0)
+    if (cmd.device == 0) {
         return 0;
-    else if (cmd.device == 1)
+    } else if (cmd.device == 1) {
         return kserver->execute(cmd);
-    else
+    } else {
+        if (! is_started[cmd.device - 2])
+            start(cmd.device, make_index_sequence_in_range<2, device_num>());
+
         return execute_dev(device_list[cmd.device - 2].get(), cmd,
                            make_index_sequence_in_range<2, device_num>());
+    }
 }
 
 } // namespace kserver

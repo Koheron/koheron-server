@@ -29,7 +29,11 @@ class DevicesContainer
 
     template<device_t dev>
     void alloc_dev() {
-        std::get<dev>(devtup) = std::make_unique<std::remove_reference_t<decltype(*std::get<dev>(devtup).get())>>(ctx);
+        std::get<dev>(devtup) = std::make_unique<
+                                    std::remove_reference_t<
+                                        decltype(*std::get<dev>(devtup).get())
+                                    >
+                                >(ctx);
     }
 
     template<std::size_t num>
