@@ -38,8 +38,6 @@ auto make_index_sequence_in_range() {
 template<std::size_t dev>
 void DeviceManager::alloc_device()
 {
-
-// Dead lock here
 #if KSERVER_HAS_THREADS
     std::lock_guard<std::recursive_mutex> lock(mutex);
 #endif
