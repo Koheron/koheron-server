@@ -32,7 +32,7 @@ template<unsigned int severity, typename... Tp>
 int SysLog::__emit_error(const char *message, Tp... args)
 {
     // We don't emit if connections are closed
-    if (kserver->sig_handler.Interrupt())
+    if (kserver->sig_handler.interrupt())
         return 0;
 
     int ret = snprintf(fmt_buffer, FMT_BUFF_LEN, message, args...);

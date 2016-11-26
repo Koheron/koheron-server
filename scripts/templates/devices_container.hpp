@@ -6,6 +6,8 @@
 #include <tuple>
 #include <memory>
 
+#include <core/syslog.hpp>
+
 {% for device in devices -%}
 {% for include in device.includes -%}
 #include "{{ include }}"
@@ -19,8 +21,9 @@ namespace kserver {
 class DevicesContainer
 {
   public:
-    DevicesContainer(Context& ctx_)
+    DevicesContainer(Context& ctx_, SysLog& syslog_)
     : ctx(ctx_)
+    , syslog(syslog_)
     {
         is_started.fill(false);
         is_starting.fill(false);
@@ -28,16 +31,23 @@ class DevicesContainer
 
     template<device_t dev>
     auto& get() {
-        assert(std::get<dev - 2>(is_started));
         return *std::get<dev - 2>(devtup).get();
     }
-
-    // TODO Detect circular dependencies
 
     template<device_t dev>
     int alloc() {
         if (std::get<dev - 2>(is_started))
             return 0;
+
+        if (std::get<dev - 2>(is_starting)) {
+            syslog.print<SysLog::CRITICAL>(
+                "Circular dependency detected while initializing device [%u] %s\n",
+                dev, std::get<dev>(devices_names).data());
+
+            return -1;
+        }
+
+        std::get<dev - 2>(is_starting) = true;
 
         std::get<dev - 2>(devtup)
                 = std::make_unique<
@@ -45,12 +55,15 @@ class DevicesContainer
                         decltype(*std::get<dev - 2>(devtup).get())
                     >
                 >(ctx);
+
+        std::get<dev - 2>(is_starting) = false;
         std::get<dev - 2>(is_started) = true;
         return 0;
     }
 
   private:
     Context& ctx;
+    SysLog& syslog;
 
     std::array<bool, device_num - 2> is_started;
     std::array<bool, device_num - 2> is_starting;

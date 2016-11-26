@@ -130,6 +130,7 @@ class KServer
     SignalHandler sig_handler;
 
     std::atomic<bool> exit_comm;
+    std::atomic<bool> exit_all;
 
     // Listeners
 #if KSERVER_HAS_TCP

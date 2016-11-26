@@ -40,19 +40,19 @@ class DeviceManager
     DevicesContainer dev_cont;
     std::array<bool, device_num - 2> is_started;
 
-    template<std::size_t dev> int alloc_device();
+    template<std::size_t dev> void alloc_device();
 
     // Start
 
     template<device_t... devs>
-    int start(device_t dev, std::index_sequence<devs...>);
+    void start(device_t dev, std::index_sequence<devs...>);
 
     template<device_t dev0, device_t... devs>
-    std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, int>
+    std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, void>
     start_impl(device_t dev);
 
     template<device_t dev0, device_t... devs>
-    std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, int>
+    std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, void>
     start_impl(device_t dev);
 
     // Execute

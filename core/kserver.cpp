@@ -38,6 +38,7 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
         exit (EXIT_FAILURE);
 
     exit_comm.store(false);
+    exit_all.store(false);
 
 #if KSERVER_HAS_TCP
     if (tcp_listener.init() < 0)
@@ -126,7 +127,7 @@ int KServer::run()
         return -1;
 
     while (1) {
-        if (sig_handler.Interrupt()) {
+        if (sig_handler.interrupt() || exit_all) {
             syslog.print<SysLog::INFO>("Interrupt received, killing KServer ...\n");
             session_manager.delete_all();
             close_listeners();

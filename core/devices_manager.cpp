@@ -17,7 +17,7 @@ namespace kserver {
 
 DeviceManager::DeviceManager(KServer *kserver_)
 : kserver(kserver_)
-, dev_cont(kserver->ct)
+, dev_cont(kserver->ct, kserver->syslog)
 {
     is_started.fill(false);
 }
@@ -40,29 +40,39 @@ auto make_index_sequence_in_range() {
 }
 
 template<std::size_t dev>
-int DeviceManager::alloc_device() {
+void DeviceManager::alloc_device()
+{
+    // TODO Take a mutex here
+
     kserver->syslog.print<SysLog::INFO>(
         "Device Manager: Starting device [%u] %s...\n",
         dev, std::get<dev>(devices_names).data());
 
-    dev_cont.alloc<dev>(); // May fail
+    if (dev_cont.alloc<dev>() < 0) {
+        kserver->syslog.print<SysLog::CRITICAL>(
+            "Failed to allocate device [%u] %s. Exiting server...\n",
+            dev, std::get<dev>(devices_names).data());
+
+        kserver->exit_all = true;
+        return;
+    }
+
     std::get<dev - 2>(device_list)
         = std::make_unique<KDevice<dev>>(kserver, dev_cont.get<dev>());
     std::get<dev - 2>(is_started) = true;
-    return 0;
 }
 
 template<device_t dev0, device_t... devs>
-std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, int>
+std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, void>
 DeviceManager::start_impl(device_t dev)
 {
     static_assert(dev0 < device_num, "");
     static_assert(dev0 >= 2, "");
-    return alloc_device<dev0>();
+    alloc_device<dev0>();
 }
 
 template<device_t dev0, device_t... devs>
-std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, int>
+std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, void>
 DeviceManager::start_impl(device_t dev)
 {
     static_assert(dev0 < device_num, "");
@@ -70,17 +80,16 @@ DeviceManager::start_impl(device_t dev)
 
     if (dev == dev0) {
         alloc_device<dev0>();
-        return 0;
     } else {
-        return start_impl<devs...>(dev);
+        start_impl<devs...>(dev);
     }
 
 }
 
 template<device_t... devs>
-int DeviceManager::start(device_t dev, std::index_sequence<devs...>)
+void DeviceManager::start(device_t dev, std::index_sequence<devs...>)
 {
-    return start_impl<devs...>(dev);
+    start_impl<devs...>(dev);
 }
 
 int DeviceManager::init()

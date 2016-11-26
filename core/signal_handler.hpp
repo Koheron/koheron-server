@@ -14,7 +14,7 @@ class SignalHandler
   public:
     int init(KServer *kserver_);
 
-    int Interrupt() const {return s_interrupted;}
+    int interrupt() const {return s_interrupted;}
 
     static int volatile s_interrupted;
     static KServer *kserver;
