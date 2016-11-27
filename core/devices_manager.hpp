@@ -11,14 +11,46 @@
 
 #include "kdevice.hpp"
 
-#include <devices_container.hpp>
+#include <devices_table.hpp>
+#include <devices.hpp>
 
 #if KSERVER_HAS_THREADS
 #  include <thread>
 #  include <mutex>
 #endif
 
+class Context;
+
 namespace kserver {
+
+class DevicesContainer
+{
+  public:
+    DevicesContainer(Context& ctx_, SysLog& syslog_)
+    : ctx(ctx_)
+    , syslog(syslog_)
+    {
+        is_started.fill(false);
+        is_starting.fill(false);
+    }
+
+    template<device_t dev>
+    auto& get() {
+        return *std::get<dev - 2>(devtup);
+    }
+
+    template<device_t dev>
+    int alloc();
+
+  private:
+    Context& ctx;
+    SysLog& syslog;
+
+    std::array<bool, device_num - 2> is_started;
+    std::array<bool, device_num - 2> is_starting;
+
+    devices_tuple_t devtup;
+};
 
 class KServer;
 struct Command;

@@ -7,9 +7,36 @@
 #include "commands.hpp"
 #include "syslog.tpp"
 
-#include <devices.hpp>
-
 namespace kserver {
+
+//----------------------------------------------------------------------------
+// Device container
+//----------------------------------------------------------------------------
+
+template<device_t dev>
+int DevicesContainer::alloc() {
+    if (std::get<dev - 2>(is_started))
+        return 0;
+
+    if (std::get<dev - 2>(is_starting)) {
+        syslog.print<CRITICAL>(
+            "Circular dependency detected while initializing device [%u] %s\n",
+            dev, std::get<dev>(devices_names).data());
+
+        return -1;
+    }
+
+    std::get<dev - 2>(is_starting) = true;
+    using dev_type = std::remove_reference_t<decltype(*std::get<dev - 2>(devtup))>;
+    std::get<dev - 2>(devtup) = std::make_unique<dev_type>(ctx);
+    std::get<dev - 2>(is_starting) = false;
+    std::get<dev - 2>(is_started) = true;
+    return 0;
+}
+
+//----------------------------------------------------------------------------
+// Device manager
+//----------------------------------------------------------------------------
 
 DeviceManager::DeviceManager(KServer *kserver_)
 : kserver(kserver_)

@@ -7,6 +7,8 @@
 #define __DEVICES_TABLE_HPP__
 
 #include <array>
+#include <tuple>
+#include <memory>
 
 #include <core/string_utils.hpp>
 
@@ -37,5 +39,18 @@ constexpr auto devices_names = kserver::make_array(
 {%- endif %}
 {%- endfor %}
 );
+
+// Devices are store as unique_ptr ensuring single
+// instantiation of each device.
+
+using devices_tuple_t = std::tuple<
+{%- for device in devices -%}
+{% if not loop.last -%}
+ std::unique_ptr<{{ device.objects[0]['type'] }}>,
+{%- else -%}
+ std::unique_ptr<{{ device.objects[0]['type'] }}>
+{%- endif -%}
+{%- endfor -%}
+>;
 
 #endif // __DEVICES_TABLE_HPP__
