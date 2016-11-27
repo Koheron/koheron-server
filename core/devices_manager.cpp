@@ -144,7 +144,7 @@ int DeviceManager::execute(Command& cmd)
     } else if (cmd.device == 1) {
         return kserver->execute(cmd);
     } else {
-        if (! is_started[cmd.device - 2])
+        if (unlikely(! is_started[cmd.device - 2]))
             start(cmd.device, make_index_sequence_in_range<2, device_num>());
 
         return execute_dev(device_list[cmd.device - 2].get(), cmd,

@@ -43,9 +43,10 @@ static constexpr auto log_array = kserver::make_array(
 );
 
 template<unsigned int severity>
-constexpr int to_priority() {
-    return std::get<0>(std::get<severity>(log_array));
-}
+constexpr int to_priority = std::get<0>(std::get<severity>(log_array));
+
+template<unsigned int severity>
+constexpr str_const severity_msg = std::get<1>(std::get<severity>(log_array));
 
 struct SysLog
 {
@@ -102,7 +103,7 @@ struct SysLog
     std::enable_if_t< severity <= INFO, void >
     call_syslog(const char *message, Args&&... args) {
         if (config->syslog)
-            syslog<to_priority<severity>()>(message, std::forward<Args>(args)...);
+            syslog<to_priority<severity>>(message, std::forward<Args>(args)...);
     }
 
     // We don't send debug messages to the system log
