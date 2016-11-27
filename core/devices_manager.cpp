@@ -6,6 +6,7 @@
 #include "kserver.hpp"
 #include "commands.hpp"
 #include "syslog.tpp"
+#include "meta_utils.hpp"
 
 namespace kserver {
 
@@ -13,7 +14,7 @@ namespace kserver {
 // Device container
 //----------------------------------------------------------------------------
 
-template<device_t dev>
+template<device_id dev>
 int DevicesContainer::alloc() {
     if (std::get<dev - 2>(is_started))
         return 0;
@@ -27,8 +28,7 @@ int DevicesContainer::alloc() {
     }
 
     std::get<dev - 2>(is_starting) = true;
-    using dev_type = std::remove_reference_t<decltype(*std::get<dev - 2>(devtup))>;
-    std::get<dev - 2>(devtup) = std::make_unique<dev_type>(ctx);
+    std::get<dev - 2>(devtup) = std::make_unique<device_t<dev>>(ctx);
     std::get<dev - 2>(is_starting) = false;
     std::get<dev - 2>(is_started) = true;
     return 0;
@@ -43,23 +43,6 @@ DeviceManager::DeviceManager(KServer *kserver_)
 , dev_cont(kserver->ct, kserver->syslog)
 {
     is_started.fill(false);
-}
-
-// Range integer sequence
-
-// http://stackoverflow.com/questions/35625079/offset-for-variadic-template-integer-sequence
-template <std::size_t O, std::size_t... Is>
-std::index_sequence<(O + Is)...> add_offset(std::index_sequence<Is...>)
-{ return {}; }
-
-template <std::size_t O, std::size_t N>
-auto make_index_sequence_with_offset() {
-    return add_offset<O>(std::make_index_sequence<N>{});
-}
-
-template <std::size_t First, std::size_t Last>
-auto make_index_sequence_in_range() {
-    return make_index_sequence_with_offset<First, Last - First>();
 }
 
 template<std::size_t dev>
@@ -87,18 +70,18 @@ void DeviceManager::alloc_device()
     std::get<dev - 2>(is_started) = true;
 }
 
-template<device_t dev0, device_t... devs>
+template<device_id dev0, device_id... devs>
 std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, void>
-DeviceManager::start_impl(device_t dev)
+DeviceManager::start_impl(device_id dev)
 {
     static_assert(dev0 < device_num, "");
     static_assert(dev0 >= 2, "");
     alloc_device<dev0>();
 }
 
-template<device_t dev0, device_t... devs>
+template<device_id dev0, device_id... devs>
 std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, void>
-DeviceManager::start_impl(device_t dev)
+DeviceManager::start_impl(device_id dev)
 {
     static_assert(dev0 < device_num, "");
     static_assert(dev0 >= 2, "");
@@ -107,8 +90,8 @@ DeviceManager::start_impl(device_t dev)
                 : start_impl<devs...>(dev);
 }
 
-template<device_t... devs>
-void DeviceManager::start(device_t dev, std::index_sequence<devs...>)
+template<device_id... devs>
+void DeviceManager::start(device_id dev, std::index_sequence<devs...>)
 {
     start_impl<devs...>(dev);
 }
@@ -124,7 +107,7 @@ int DeviceManager::init()
     return 0;
 }
 
-template<device_t dev0, device_t... devs>
+template<device_id dev0, device_id... devs>
 std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, int>
 DeviceManager::execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd)
 {
@@ -133,7 +116,7 @@ DeviceManager::execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd)
     return static_cast<KDevice<dev0>*>(dev_abs)->execute(cmd);
 }
 
-template<device_t dev0, device_t... devs>
+template<device_id dev0, device_id... devs>
 std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, int>
 DeviceManager::execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd)
 {
@@ -144,7 +127,7 @@ DeviceManager::execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd)
                                  : execute_dev_impl<devs...>(dev_abs, cmd);
 }
 
-template<device_t... devs>
+template<device_id... devs>
 int DeviceManager::execute_dev(KDeviceAbstract *dev_abs, Command& cmd,
                                std::index_sequence<devs...>)
 {

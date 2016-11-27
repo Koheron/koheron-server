@@ -17,17 +17,17 @@ struct Command;
 
 class KDeviceAbstract {
   public:
-    KDeviceAbstract(device_t kind_, KServer *kserver_)
+    KDeviceAbstract(device_id kind_, KServer *kserver_)
     : kind(kind_)
     , kserver(kserver_)
     {}
 
-    device_t kind = dev_id_of<NoDevice>;
+    device_id kind = dev_id_of<NoDevice>;
     KServer *kserver;
 friend class DeviceManager;
 };
 
-template<device_t dev_kind>
+template<device_id dev_kind>
 class KDevice : public KDeviceAbstract {};
 
 } // namespace kserver

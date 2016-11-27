@@ -34,12 +34,12 @@ class DevicesContainer
         is_starting.fill(false);
     }
 
-    template<device_t dev>
+    template<device_id dev>
     auto& get() {
         return *std::get<dev - 2>(devtup);
     }
 
-    template<device_t dev>
+    template<device_id dev>
     int alloc();
 
   private:
@@ -63,7 +63,7 @@ class DeviceManager
     int init();
     int execute(Command &cmd);
 
-    template<device_t dev>
+    template<device_id dev>
     auto& get() {
         if (! std::get<dev - 2>(is_started))
             alloc_device<dev>();
@@ -85,28 +85,28 @@ class DeviceManager
 
     // Start
 
-    template<device_t... devs>
-    void start(device_t dev, std::index_sequence<devs...>);
+    template<device_id... devs>
+    void start(device_id dev, std::index_sequence<devs...>);
 
-    template<device_t dev0, device_t... devs>
+    template<device_id dev0, device_id... devs>
     std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, void>
-    start_impl(device_t dev);
+    start_impl(device_id dev);
 
-    template<device_t dev0, device_t... devs>
+    template<device_id dev0, device_id... devs>
     std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, void>
-    start_impl(device_t dev);
+    start_impl(device_id dev);
 
     // Execute
 
-    template<device_t... devs>
+    template<device_id... devs>
     int execute_dev(KDeviceAbstract *dev_abs, Command& cmd,
                     std::index_sequence<devs...>);
 
-    template<device_t dev0, device_t... devs>
+    template<device_id dev0, device_id... devs>
     std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, int>
     execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd);
 
-    template<device_t dev0, device_t... devs>
+    template<device_id dev0, device_id... devs>
     std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, int>
     execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd);
 };

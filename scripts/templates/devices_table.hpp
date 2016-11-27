@@ -11,22 +11,17 @@
 #include <memory>
 
 #include <core/string_utils.hpp>
+#include <core/meta_utils.hpp>
 
-using device_t = std::size_t;
-
-template<class Dev> constexpr device_t dev_id_of;
+using device_id = std::size_t;
 
 class NoDevice;
-template<> constexpr device_t dev_id_of<NoDevice> = 0;
-
 class KServer;
-template<> constexpr device_t dev_id_of<KServer> = 1;
 {% for device in devices %}
 class {{ device.objects[0]["type"] }};
-template<> constexpr device_t dev_id_of<{{ device.objects[0]["type"] }}> = {{ device.id }};
 {% endfor -%}
 
-constexpr device_t device_num = {{ devices|length + 2 }};
+constexpr device_id device_num = {{ devices|length + 2 }};
 
 constexpr auto devices_names = kserver::make_array(
     kserver::str_const("NoDevice"),
@@ -40,6 +35,8 @@ constexpr auto devices_names = kserver::make_array(
 {%- endfor %}
 );
 
+static_assert(std::tuple_size<decltype(devices_names)>::value == device_num, "");
+
 // Devices are store as unique_ptr ensuring single
 // instantiation of each device.
 
@@ -52,5 +49,23 @@ using devices_tuple_t = std::tuple<
 {%- endif -%}
 {%- endfor -%}
 >;
+
+static_assert(std::tuple_size<devices_tuple_t>::value == device_num - 2, "");
+
+// Device id from device type
+
+template<class Dev> constexpr device_id dev_id_of;
+template<> constexpr device_id dev_id_of<NoDevice> = 0;
+template<> constexpr device_id dev_id_of<KServer> = 1;
+
+template<class Dev>
+constexpr device_id dev_id_of
+	= Index_v<std::unique_ptr<Dev>, devices_tuple_t> + 2;
+
+// Device type from device id
+
+template<device_id dev>
+using device_t = std::remove_reference_t<
+					decltype(*std::get<dev - 2>(std::declval<devices_tuple_t>()))>;
 
 #endif // __DEVICES_TABLE_HPP__

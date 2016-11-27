@@ -79,7 +79,7 @@ struct Command
 
     SessID sess_id = -1;                    ///< ID of the session emitting the command
     SessionAbstract *sess;                  ///< Pointer to the session emitting the command
-    device_t device = dev_id_of<NoDevice>;  ///< The device to control
+    device_id device = dev_id_of<NoDevice>;  ///< The device to control
     int32_t operation = -1;                 ///< Operation ID
 
     Buffer<HEADER_SIZE> header;             ///< Raw data header

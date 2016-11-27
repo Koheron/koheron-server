@@ -37,7 +37,7 @@ int Session<TCP>::read_command(Command& cmd)
     const auto header_tuple = cmd.header.deserialize<HEADER_TYPE_LIST>();
     cmd.sess_id = id;
     cmd.sess = this;
-    cmd.device = static_cast<device_t>(std::get<0>(header_tuple));
+    cmd.device = static_cast<device_id>(std::get<0>(header_tuple));
     cmd.operation = std::get<1>(header_tuple);
 
     session_manager.kserver.syslog.print<DEBUG>(
@@ -126,7 +126,7 @@ int Session<WEBSOCK>::read_command(Command& cmd)
     const auto header_tuple = cmd.header.deserialize<HEADER_TYPE_LIST>();
     cmd.sess_id = id;
     cmd.sess = this;
-    cmd.device = static_cast<device_t>(std::get<0>(header_tuple));
+    cmd.device = static_cast<device_id>(std::get<0>(header_tuple));
     cmd.operation = std::get<1>(header_tuple);
 
     session_manager.kserver.syslog.print<DEBUG>(
