@@ -9,7 +9,6 @@
 #include "commands.hpp"
 #include "kserver_session.hpp"
 #include "session_manager.hpp"
-#include "pubsub.tpp"
 #include "syslog.tpp"
 
 #include <devices_json.hpp>

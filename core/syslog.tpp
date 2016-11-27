@@ -3,7 +3,7 @@
 #include <string>
 
 #include "syslog.hpp"
-#include "kserver.hpp"
+#include "pubsub.tpp"
 
 namespace kserver {
 

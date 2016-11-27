@@ -23,7 +23,6 @@ extern "C" {
 
 #include "peer_info.hpp"
 #include "session_manager.hpp"
-#include "session_manager.tpp"
 #include "kserver_session.hpp"
 #include "syslog.tpp"
 

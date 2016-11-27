@@ -5,7 +5,6 @@
 #include "session_manager.hpp"
 
 #include "kserver_session.hpp"
-#include "pubsub.tpp"
 #include "syslog.tpp"
 
 #include <sys/socket.h>
