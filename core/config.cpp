@@ -21,9 +21,7 @@ KServerConfig::KServerConfig()
   tcp_worker_connections(DFLT_WORKER_CONNECTIONS),
   websock_port(WEBSOCKET_DFLT_PORT),
   websock_worker_connections(DFLT_WORKER_CONNECTIONS),
-  unixsock_worker_connections(DFLT_WORKER_CONNECTIONS),
-  addr_limit_down(DFLT_ADDR_LIMIT_DOWN),
-  addr_limit_up(DFLT_ADDR_LIMIT_UP)
+  unixsock_worker_connections(DFLT_WORKER_CONNECTIONS)
 {
    memset(unixsock_path, 0, UNIX_SOCKET_PATH_LEN);
    strcpy(unixsock_path, DFLT_UNIX_SOCK_PATH);
@@ -207,41 +205,6 @@ int KServerConfig::_read_unixsocket(JsonValue value)
     return _read_server(value, UNIXSOCK_SERVER);
 }
 
-int KServerConfig::_read_addr_limits(JsonValue value)
-{
-    if (value.getTag() != JSON_OBJECT) {
-        fprintf(stderr, "Invalid addr_limits field\n");
-        return -1;
-    }
-
-    for (auto i : value) {
-        if (strcmp(i->key, "up") == 0) {
-            if (i->value.getTag() != JSON_STRING) {
-                fprintf(stderr, "Address limit up must be a string "
-                                "of the hexadecimal address number\n");
-                return -1;
-            }
-
-            addr_limit_up = (intptr_t)strtol(i->value.toString(), NULL, 0);
-        }
-        else if (strcmp(i->key, "down") == 0) {
-            if (i->value.getTag() != JSON_STRING) {
-                fprintf(stderr, "Address limit down must be a string "
-                                "of the hexadecimal address number\n");
-                return -1;
-            }
-
-            addr_limit_down = (intptr_t)strtol(i->value.toString(), NULL, 0);
-        }
-        else {
-            fprintf(stderr, "Unknown addr_limits key %s\n", i->key);
-            return -1;
-        }
-    }
-
-    return 0;
-}
-
 void KServerConfig::_check_config()
 {
     if (daemon) {
@@ -268,7 +231,6 @@ void KServerConfig::_check_config()
 #define IS_TCP          TEST_KEY("TCP")
 #define IS_WEBSOCKET    TEST_KEY("websocket")
 #define IS_UNIX         TEST_KEY("unix")
-#define IS_ADDR_LIMITS  TEST_KEY("addr_limits")
 
 int KServerConfig::load_file(char *filename)
 {
@@ -322,10 +284,6 @@ int KServerConfig::load_file(char *filename)
         else if (IS_UNIX) {
             if (_read_unixsocket(i->value) < 0)
                 return -1;
-        }
-        else if (IS_ADDR_LIMITS) {
-            if (_read_addr_limits(i->value) < 0)
-                return -1;
         } else {
             fprintf(stderr, "Unknown field %s in configuration file\n", i->key);
             return -1;
@@ -354,11 +312,6 @@ void KServerConfig::show()
 
     printf("Websocket listen: %u\n", websock_port);
     printf("Websocket workers: %u\n\n", websock_worker_connections);
-
-    // http://stackoverflow.com/questions/5795978/string-format-for-intptr-t-and-uintptr-t
-    printf("Addr limit down: %" PRIxPTR "\n", addr_limit_down);
-    printf("Addr limit up: %" PRIxPTR "\n\n", addr_limit_up);
-    printf("\n====================================\n\n");
 }
 
 } // namespace kserver

@@ -8,6 +8,8 @@
 #include <cstring>
 #include <tuple>
 #include <array>
+#include <vector>
+#include <string>
 
 namespace kserver {
 

@@ -1,7 +1,6 @@
 /// (c) Koheron
 
 #include "kserver_session.hpp"
-
 #include "syslog.tpp"
 
 namespace kserver {

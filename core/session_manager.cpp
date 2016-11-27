@@ -3,9 +3,9 @@
 /// (c) Koheron
 
 #include "session_manager.hpp"
-
-#include "kserver_session.hpp"
 #include "syslog.tpp"
+#include "kserver_session.hpp"
+#include "kserver.hpp"
 
 #include <sys/socket.h>
 

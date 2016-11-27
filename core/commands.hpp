@@ -6,10 +6,12 @@
 #define __COMMANDS_HPP__
 
 #include <array>
+#include <vector>
+#include <tuple>
+#include <string>
 
 #include <devices_table.hpp>
-
-#include "session_manager.hpp"
+#include "kserver_defs.hpp"
 #include "serializer_deserializer.hpp"
 
 namespace kserver {
@@ -65,6 +67,8 @@ struct Buffer
     std::array<char, len> _data;
     size_t position; // Current position in the buffer
 };
+
+class SessionAbstract;
 
 struct Command
 {

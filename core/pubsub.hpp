@@ -5,9 +5,6 @@
 #ifndef __PUBSUB_HPP__
 #define __PUBSUB_HPP__
 
-#include "kserver_defs.hpp"
-#include "commands.hpp"
-
 #include <cstdint>
 #include <vector>
 #include <array>
@@ -19,9 +16,10 @@
 #  include <mutex>
 #endif
 
-namespace kserver {
+#include "kserver_defs.hpp"
+#include "session_manager.hpp"
 
-class SessionManager;
+namespace kserver {
 
 template<size_t channels_count>
 struct Subscribers

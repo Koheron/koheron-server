@@ -12,17 +12,13 @@
 #include <type_traits>
 
 #include "commands.hpp"
-#include "devices_manager.hpp"
-#include "kserver_defs.hpp"
-#include "kserver.hpp"
 #include "peer_info.hpp"
-#include "session_manager.hpp"
 #include "serializer_deserializer.hpp"
 #include "socket_interface_defs.hpp"
+#include "kserver.hpp"
 
 #if KSERVER_HAS_WEBSOCKET
 #include "websocket.hpp"
-#include "websocket.tpp"
 #endif
 
 namespace kserver {
@@ -118,7 +114,7 @@ class Session : public SessionAbstract
 
 #if KSERVER_HAS_WEBSOCKET
     struct EmptyWebsock {
-        EmptyWebsock(std::shared_ptr<KServerConfig> config_, KServer *kserver_) {}
+        EmptyWebsock(std::shared_ptr<KServerConfig> config_, SysLog& syslog_) {}
     };
 
     std::conditional_t<sock_type == WEBSOCK, WebSocket, EmptyWebsock> websock;
@@ -184,7 +180,7 @@ Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
 , peer_info(PeerInfo<sock_type>(comm_fd_))
 , session_manager(session_manager_)
 #if KSERVER_HAS_WEBSOCKET
-, websock(config_, &session_manager_.kserver)
+, websock(config_, session_manager_.kserver.syslog)
 #endif
 , requests_num(0)
 , errors_num(0)
