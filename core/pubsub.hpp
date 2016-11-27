@@ -23,14 +23,7 @@ namespace kserver {
 
 class SessionManager;
 
-// http://stackoverflow.com/questions/12927951/array-indexing-converting-to-integer-with-scoped-enumeration
-template<class channels>
-constexpr size_t chan_count() noexcept {
-    static_assert(std::is_enum<channels>(), "Not an enum");
-    return static_cast<size_t>(channels::channels_count);
-}
-
-template<class channels>
+template<size_t channels_count>
 struct Subscribers
 {
     const std::vector<SessID>& get(uint16_t channel) const {
@@ -38,7 +31,7 @@ struct Subscribers
     }
 
     int subscribe(uint16_t channel, SessID sid) {
-        if (channel >= chan_count<channels>())
+        if (channel >= channels_count)
             return -1;
 
         _subscribers[channel].push_back(sid);
@@ -63,7 +56,7 @@ struct Subscribers
     }
 
   private:
-    std::array<std::vector<SessID>, chan_count<channels>()> _subscribers;
+    std::array<std::vector<SessID>, channels_count> _subscribers;
 };
 
 class PubSub
@@ -106,7 +99,7 @@ class PubSub
 
   private:
     SessionManager& session_manager;
-    Subscribers<Channels> subscribers;
+    Subscribers<channels_count> subscribers;
 };
 
 } // namespace kserver
