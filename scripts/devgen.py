@@ -110,11 +110,6 @@ def render_device_table(devices, build_dir):
     with open(os.path.join(build_dir, 'devices_json.hpp'), 'w') as output:
         output.write(template.render(devices=devices, json=get_json(devices)))
 
-    print('Generate devices container')
-    template = get_renderer().get_template(os.path.join('scripts/templates', 'devices_container.hpp'))
-    with open(os.path.join(build_dir, 'devices_container.hpp'), 'w') as output:
-        output.write(template.render(devices=devices, json=get_json(devices)))
-
     print('Generate context.cpp')
     template = get_renderer().get_template(os.path.join('scripts/templates', 'context.cpp'))
     with open(os.path.join(build_dir, 'context.cpp'), 'w') as output:

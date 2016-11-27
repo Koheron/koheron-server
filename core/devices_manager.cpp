@@ -103,10 +103,8 @@ DeviceManager::start_impl(device_t dev)
     static_assert(dev0 < device_num, "");
     static_assert(dev0 >= 2, "");
 
-    if (dev == dev0)
-        alloc_device<dev0>();
-    else
-        start_impl<devs...>(dev);
+    dev == dev0 ? alloc_device<dev0>()
+                : start_impl<devs...>(dev);
 }
 
 template<device_t... devs>
