@@ -118,6 +118,9 @@ def render_device_table(devices, build_dir):
     output_filename = os.path.join(build_dir, 'devices.hpp')
     fill_template(devices, 'devices.hpp', output_filename)
 
+    output_filename = os.path.join(build_dir, 'ks_devices.hpp')
+    fill_template(devices, 'ks_devices.hpp', output_filename)
+
 def render_ids(devices, build_dir):
     template = get_renderer().get_template(os.path.join('scripts/templates', 'operations.hpp'))
     with open(os.path.join(build_dir, 'operations.hpp'), 'w') as output:

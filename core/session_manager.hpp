@@ -12,7 +12,6 @@
 
 #include "kserver_defs.hpp"
 #include "config.hpp"
-// #include "kserver_session.hpp"
 
 #if KSERVER_HAS_THREADS
 #  include <mutex>

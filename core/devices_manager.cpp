@@ -7,8 +7,7 @@
 #include "commands.hpp"
 #include "syslog.tpp"
 #include "meta_utils.hpp"
-
-// #include <context.hpp>
+#include <ks_devices.hpp>
 
 namespace kserver {
 

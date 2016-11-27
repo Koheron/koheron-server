@@ -17,7 +17,6 @@
 #endif
 
 #include "kserver_defs.hpp"
-#include "session_manager.hpp"
 
 namespace kserver {
 
@@ -56,6 +55,8 @@ struct Subscribers
   private:
     std::array<std::vector<SessID>, channels_count> _subscribers;
 };
+
+class SessionManager;
 
 class PubSub
 {
