@@ -24,7 +24,6 @@
 #include "syslog.hpp"
 #include "signal_handler.hpp"
 #include "session_manager.hpp"
-#include "pubsub.hpp"
 
 namespace kserver {
 
@@ -147,8 +146,6 @@ class KServer
     // Logs
     SysLog syslog;
     std::time_t start_time;
-
-    PubSub pubsub;
 
 #if KSERVER_HAS_THREADS
     std::mutex ks_mutex;

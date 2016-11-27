@@ -21,7 +21,7 @@ template<uint16_t channel, uint16_t event, typename... Args>
 int SysLog::notify(const char *message, Args&&... args)
 {
     // We don't emit if connections are closed
-    if (kserver->sig_handler.interrupt())
+    if (sig_handler.interrupt())
         return 0;
 
     int ret = kserver::snprintf(fmt_buffer, FMT_BUFF_LEN, message, std::forward<Args>(args)...);
@@ -36,7 +36,7 @@ int SysLog::notify(const char *message, Args&&... args)
         return -1;
     }
 
-    kserver->pubsub.emit_cstr<channel, event>(fmt_buffer);
+    pubsub.emit_cstr<channel, event>(fmt_buffer);
     return 0;
 }
 

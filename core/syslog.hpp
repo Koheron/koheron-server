@@ -16,6 +16,7 @@
 
 #include "string_utils.hpp"
 #include "pubsub.hpp"
+#include "signal_handler.hpp"
 
 /// Severity of the message
 enum severity {
@@ -60,12 +61,16 @@ struct SysLog
   private:
     std::shared_ptr<KServerConfig> config;
     char fmt_buffer[FMT_BUFF_LEN];
-    KServer *kserver;
+    SignalHandler& sig_handler;
+    PubSub pubsub;
 
   private:
-    SysLog(std::shared_ptr<KServerConfig> config_, KServer *kserver_)
+    SysLog(std::shared_ptr<KServerConfig> config_,
+           SignalHandler& sig_handler_,
+           SessionManager& sess_manager_)
     : config(config_)
-    , kserver(kserver_)
+    , sig_handler(sig_handler_)
+    , pubsub(sess_manager_)
     {
         memset(fmt_buffer, 0, FMT_BUFF_LEN);
 
@@ -130,6 +135,7 @@ struct SysLog
     }
 
 friend class KServer;
+friend class SessionManager;
 };
 
 } // namespace kserver

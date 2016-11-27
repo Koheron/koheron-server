@@ -89,7 +89,7 @@ void SessionManager::delete_session(SessID id)
     }
 
     // Unsubscribe from any broadcast channel
-    kserver.pubsub.unsubscribe(id);
+    kserver.syslog.pubsub.unsubscribe(id);
 
     if (session_pool[id] != nullptr) {
         switch (session_pool[id]->kind) {

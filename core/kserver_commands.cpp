@@ -238,7 +238,7 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
 
 KSERVER_EXECUTE_OP(SUBSCRIBE_PUBSUB)
 {
-    return pubsub.subscribe(std::get<1>(cmd.sess->deserialize<uint32_t>(cmd)), cmd.sess_id);
+    return syslog.pubsub.subscribe(std::get<1>(cmd.sess->deserialize<uint32_t>(cmd)), cmd.sess_id);
 }
 
 /////////////////////////////////////
@@ -248,8 +248,8 @@ KSERVER_EXECUTE_OP(SUBSCRIBE_PUBSUB)
 KSERVER_EXECUTE_OP(PUBSUB_PING)
 {
     NO_PARAM(PUBSUB_PING)
-    pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::PING>(static_cast<uint32_t>(cmd.sess_id));
-    pubsub.emit_cstr<PubSub::SERVER_CHANNEL, PubSub::PING_TEXT>("Ping from server\n");
+    syslog.pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::PING>(static_cast<uint32_t>(cmd.sess_id));
+    syslog.notify<PubSub::SERVER_CHANNEL, PubSub::PING_TEXT>("Ping from server\n");
     syslog.print<INFO>("Pubsub test triggered\n");
     return 0;
 }
