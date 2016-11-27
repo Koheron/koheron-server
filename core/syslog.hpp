@@ -83,18 +83,18 @@ struct SysLog
         }
     }
 
-    // High severity (Panic, ..., Warning)
+    // High severity (Panic, ..., Warning) => stderr
     template<unsigned int severity, typename... Args>
     std::enable_if_t< severity <= WARNING, void >
-    print_msg(const str_const& severity_desc, const char *message, Args... args) {
-        kserver::fprintf(stderr, (severity_desc.to_string() + ": " + std::string(message)).c_str(),
+    print_msg(const char *message, Args... args) {
+        kserver::fprintf(stderr, (severity_msg<severity>.to_string() + ": " + std::string(message)).c_str(),
                          std::forward<Args>(args)...);
     }
 
-    // Low severity (Info, Debug)
+    // Low severity (Info, Debug) => stdout if verbose
     template<unsigned int severity, typename... Args>
     std::enable_if_t< severity >= INFO, void >
-    print_msg(const str_const& severity_desc, const char *message, Args&&... args) {
+    print_msg(const char *message, Args&&... args) {
         if (config->verbose)
             kserver::printf(message, std::forward<Args>(args)...);
     }

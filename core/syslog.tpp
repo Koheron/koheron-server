@@ -12,7 +12,7 @@ void SysLog::print(const char *msg, Args&&... args)
 {
     static_assert(severity <= syslog_severity_num, "Invalid logging level");
 
-    print_msg<severity>(severity_msg<severity>, msg, std::forward<Args>(args)...);
+    print_msg<severity>(msg, std::forward<Args>(args)...);
     call_syslog<severity>(msg, std::forward<Args>(args)...);
     emit_error<severity>(msg, std::forward<Args>(args)...);
 }
