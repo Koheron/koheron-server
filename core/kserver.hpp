@@ -20,14 +20,11 @@
 #include <ctime>
 #include <utility>
 
-// #include "kdevice.hpp"
 #include "devices_manager.hpp"
 #include "syslog.hpp"
 #include "signal_handler.hpp"
-// #include "peer_info.hpp"
 #include "session_manager.hpp"
 #include "pubsub.hpp"
-#include <context.hpp>
 
 namespace kserver {
 
@@ -156,8 +153,6 @@ class KServer
 #if KSERVER_HAS_THREADS
     std::mutex ks_mutex;
 #endif
-
-    Context ct;
 
     int execute(Command& cmd);
     template<int op> int execute_op(Command& cmd);

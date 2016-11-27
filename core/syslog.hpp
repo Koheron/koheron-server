@@ -15,6 +15,7 @@
 #include <syslog.h>
 
 #include "string_utils.hpp"
+#include "pubsub.hpp"
 
 /// Severity of the message
 enum severity {
@@ -52,6 +53,9 @@ struct SysLog
 {
     template<unsigned int severity, typename... Args>
     void print(const char *msg, Args&&... args);
+
+    template<uint16_t channel, uint16_t event, typename... Args>
+    int notify(const char *msg, Args&&... args);
 
   private:
     std::shared_ptr<KServerConfig> config;
@@ -114,12 +118,9 @@ struct SysLog
     }
 
     template<unsigned int severity, typename... Args>
-    int __emit_error(const char *message, Args&&... args);
-
-    template<unsigned int severity, typename... Args>
     std::enable_if_t< severity <= INFO, int >
     emit_error(const char *message, Args&&... args) {
-        return __emit_error<severity>(message, std::forward<Args>(args)...);
+        return notify<PubSub::SYSLOG_CHANNEL, severity>(message, std::forward<Args>(args)...);
     }
 
     template<unsigned int severity, typename... Args>

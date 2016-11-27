@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include "kserver.hpp"
 #include "syslog.hpp"
+#include "kserver.hpp"
 
 namespace kserver {
 
@@ -17,14 +17,14 @@ void SysLog::print(const char *msg, Args&&... args)
     emit_error<severity>(msg, std::forward<Args>(args)...);
 }
 
-template<unsigned int severity, typename... Args>
-int SysLog::__emit_error(const char *message, Args&&... args)
+template<uint16_t channel, uint16_t event, typename... Args>
+int SysLog::notify(const char *message, Args&&... args)
 {
     // We don't emit if connections are closed
     if (kserver->sig_handler.interrupt())
         return 0;
 
-    int ret = snprintf(fmt_buffer, FMT_BUFF_LEN, message, std::forward<Args>(args)...);
+    int ret = kserver::snprintf(fmt_buffer, FMT_BUFF_LEN, message, std::forward<Args>(args)...);
 
     if (ret < 0) {
         fprintf(stderr, "emit_error: Format error\n");
@@ -36,7 +36,7 @@ int SysLog::__emit_error(const char *message, Args&&... args)
         return -1;
     }
 
-    kserver->pubsub.emit_cstr<PubSub::SYSLOG_CHANNEL, severity>(fmt_buffer);
+    kserver->pubsub.emit_cstr<channel, event>(fmt_buffer);
     return 0;
 }
 

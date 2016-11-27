@@ -4,11 +4,11 @@
 /// (c) Koheron 
 
 {% for device in devices -%}
-# include <{{ device.class_name|lower + '.hpp' }}>
-{% endfor %}
-
-{% for device in devices -%}
 {% for include in device.includes -%}
 #include "{{ include }}"
 {% endfor -%}
+{% endfor %}
+
+{% for device in devices -%}
+# include <{{ device.class_name|lower + '.hpp' }}>
 {% endfor %}

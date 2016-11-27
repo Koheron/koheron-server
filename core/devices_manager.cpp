@@ -8,6 +8,8 @@
 #include "syslog.tpp"
 #include "meta_utils.hpp"
 
+// #include <context.hpp>
+
 namespace kserver {
 
 //----------------------------------------------------------------------------
@@ -40,7 +42,8 @@ int DevicesContainer::alloc() {
 
 DeviceManager::DeviceManager(KServer *kserver_)
 : kserver(kserver_)
-, dev_cont(kserver->ct, kserver->syslog)
+, dev_cont(ctx, kserver->syslog)
+, ctx(*this, kserver->syslog)
 {
     is_started.fill(false);
 }
@@ -98,7 +101,7 @@ void DeviceManager::start(device_id dev, std::index_sequence<devs...>)
 
 int DeviceManager::init()
 {
-    if (kserver->ct.init() < 0) {
+    if (ctx.init() < 0) {
         kserver->syslog.print<CRITICAL>(
                 "Context initialization failed\n");
         return -1;

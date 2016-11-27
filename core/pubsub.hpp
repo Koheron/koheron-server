@@ -88,6 +88,7 @@ class PubSub
     enum Channels {
         SERVER_CHANNEL,        ///< Server events
         SYSLOG_CHANNEL,        ///< Syslog events
+        DEVICES_CHANNEL,       ///< Device notifications
         channels_count
     };
 

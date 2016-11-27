@@ -8,16 +8,16 @@
 #ifndef __{{ device.class_name|upper }}_HPP__
 #define __{{ device.class_name|upper }}_HPP__
 
+#include <memory>
+#if KSERVER_HAS_THREADS
+#include <mutex>
+#endif
+
 #include <core/kdevice.hpp>
 
 {% for include in device.includes -%}
 #include "{{ include }}"
 {% endfor -%}
-
-#include <memory>
-#if KSERVER_HAS_THREADS
-#include <mutex>
-#endif
 
 namespace kserver {
 

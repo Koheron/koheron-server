@@ -8,18 +8,15 @@
 #include <array>
 #include <memory>
 #include <assert.h>
-
-#include "kdevice.hpp"
-
-#include <devices_table.hpp>
-#include <devices.hpp>
-
 #if KSERVER_HAS_THREADS
 #  include <thread>
 #  include <mutex>
 #endif
 
-class Context;
+#include "kdevice.hpp"
+
+#include <devices_table.hpp>
+#include <devices.hpp>
 
 namespace kserver {
 
@@ -80,6 +77,8 @@ class DeviceManager
 #if KSERVER_HAS_THREADS
     std::recursive_mutex mutex;
 #endif
+
+    Context ctx;
 
     template<std::size_t dev> void alloc_device();
 
