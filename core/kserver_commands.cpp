@@ -233,12 +233,21 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
 
 KSERVER_EXECUTE_OP(SUBSCRIBE_PUBSUB)
 {
-    return syslog.pubsub.subscribe(std::get<1>(cmd.sess->deserialize<uint32_t>(cmd)), cmd.sess_id);
+    const auto tup = cmd.sess->deserialize<uint32_t>(cmd);
+
+    if (std::get<0>(tup) < 0) {
+        syslog.print<ERROR>("Pubsub subscribe: cannot read channel\n");
+        return -1;
+    }
+
+    const auto channel = std::get<1>(tup);
+    syslog.print<INFO>("Session id #%u subscribes to channel #%u\n", cmd.sess_id, channel);
+    return syslog.pubsub.subscribe(channel, cmd.sess_id);
 }
 
 /////////////////////////////////////
 // BROADCAST_PING
-// Trigger broadcast emission on a given channel
+// Trigger notifications for tests
 
 KSERVER_EXECUTE_OP(PUBSUB_PING)
 {

@@ -369,6 +369,11 @@ int WebSocket::read_n_bytes(int64_t bytes, int64_t expected)
                 expected -= bytes_read;	
             }
 
+            if (unlikely(bytes_read < 0)) {
+                syslog.print<ERROR>("WebSocket: Cannot read data\n");
+                return -1;
+            }
+
             if (expected < 0)
                 expected = 0;
         }
