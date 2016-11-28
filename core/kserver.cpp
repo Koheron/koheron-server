@@ -9,6 +9,7 @@
 #include "commands.hpp"
 #include "kserver_session.hpp"
 #include "session_manager.hpp"
+#include "syslog.tpp"
 
 namespace kserver {
 
