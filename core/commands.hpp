@@ -52,14 +52,14 @@ struct Buffer
     template<typename T>
     void to_vector(std::vector<T>& vec, uint64_t length) {
         const auto b = reinterpret_cast<const T*>(begin());
-        vec.insert(vec.begin(), std::make_move_iterator(b),
-                   std::make_move_iterator(b + length));
+        vec.resize(length);
+        std::move(b, b + length, vec.begin());
         position += length * sizeof(T);
     }
 
     void to_string(std::string& str, uint64_t length) {
-        str.insert(str.begin(), std::make_move_iterator(begin()),
-                   std::make_move_iterator(begin() + length));
+        str.resize(length);
+        std::move(begin(), begin() + length, str.begin());
         position += length;
     }
 
