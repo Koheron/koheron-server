@@ -1,5 +1,8 @@
 /// (c) Koheron
 
+#ifndef __PUBSUB_TPP__
+#define __PUBSUB_TPP__
+
 #include "pubsub.hpp"
 #include "kserver_session.hpp"
 
@@ -11,7 +14,7 @@
 namespace kserver {
 
 template<uint16_t channel, uint16_t event, typename... Tp>
-void PubSub::emit(Tp&&... args)
+inline void PubSub::emit(Tp&&... args)
 {
     static_assert(channel < channels_count, "Invalid channel");
 
@@ -22,7 +25,7 @@ void PubSub::emit(Tp&&... args)
 }
 
 template<uint16_t channel, uint16_t event>
-void PubSub::emit_cstr(const char *str)
+inline void PubSub::emit_cstr(const char *str)
 {
     static_assert(channel < channels_count, "Invalid channel");
 
@@ -33,3 +36,5 @@ void PubSub::emit_cstr(const char *str)
 }
 
 } // namespace kserver
+
+#endif // __PUBSUB_TPP__

@@ -107,7 +107,7 @@ class WebSocket
 };
 
 template<class T>
-int WebSocket::send(const T *data, unsigned int len)
+inline int WebSocket::send(const T *data, unsigned int len)
 {
     if (connection_closed)
         return 0;

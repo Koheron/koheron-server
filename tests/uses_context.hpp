@@ -29,9 +29,9 @@ class UsesContext
         ctx.log<INFO>(msg.c_str());
     }
 
-    // void notify(const std::string& msg) {
-    //     ctx.notify<UsesContext>(msg.c_str());
-    // }
+    void notify(const std::string& msg) {
+        ctx.notify<UsesContext>(msg.c_str());
+    }
 
   private:
     Context& ctx;
