@@ -241,7 +241,7 @@ KSERVER_EXECUTE_OP(SUBSCRIBE_PUBSUB)
     }
 
     const auto channel = std::get<1>(tup);
-    syslog.print<INFO>("Session id #%u subscribes to channel #%u\n", cmd.sess_id, channel);
+    syslog.print<DEBUG>("Session id #%u subscribes to channel #%u\n", cmd.sess_id, channel);
     return syslog.pubsub.subscribe(channel, cmd.sess_id);
 }
 
