@@ -25,8 +25,14 @@ def generate(devices_list, base_dir, build_dir):
             render_device('.hpp', device, build_dir)
             render_device('.cpp', device, build_dir)
             devices.append(device)
-    render_device_table(devices, build_dir)
-    render_ids(devices, build_dir)
+
+    render_templates(devices, build_dir,
+        ['devices_table.hpp',
+         'devices_json.hpp',
+         'context.cpp',
+         'devices.hpp',
+         'ks_devices.hpp',
+         'operations.hpp'])
 
 class Device:
     def __init__(self, path, base_dir):
@@ -45,11 +51,6 @@ class Device:
         self.includes = dev['includes']
         self.id = None
         self.calls = None
-
-def render_device(extension, device, build_dir):
-    template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device' + extension))
-    with open(os.path.join(build_dir, 'ks_' + device.tag.lower() + extension), 'w') as output:
-        output.write(template.render(device=device))
 
 def get_json(devices):
     data = [{
@@ -94,37 +95,16 @@ def get_renderer():
     renderer.filters['get_parser'] = get_parser
     return renderer
 
-def fill_template(devices, template_filename, output_filename):
-    template = get_renderer().get_template(os.path.join('scripts/templates', template_filename))
-    with open(output_filename, 'w') as output:
-        output.write(template.render(devices=devices))
+def render_templates(devices, build_dir, filenames):
+    for filename in filenames:
+        template = get_renderer().get_template(os.path.join('scripts/templates', filename))
+        with open(os.path.join(build_dir, filename), 'w') as output:
+            output.write(template.render(devices=devices, json=get_json(devices)))
 
-def render_device_table(devices, build_dir):
-    print('Generate devices table')
-    template = get_renderer().get_template(os.path.join('scripts/templates', 'devices_table.hpp'))
-    with open(os.path.join(build_dir, 'devices_table.hpp'), 'w') as output:
-        output.write(template.render(devices=devices, json=get_json(devices)))
-
-    print('Generate devices json')
-    template = get_renderer().get_template(os.path.join('scripts/templates', 'devices_json.hpp'))
-    with open(os.path.join(build_dir, 'devices_json.hpp'), 'w') as output:
-        output.write(template.render(devices=devices, json=get_json(devices)))
-
-    print('Generate context.cpp')
-    template = get_renderer().get_template(os.path.join('scripts/templates', 'context.cpp'))
-    with open(os.path.join(build_dir, 'context.cpp'), 'w') as output:
-        output.write(template.render(devices=devices, json=get_json(devices)))
-
-    output_filename = os.path.join(build_dir, 'devices.hpp')
-    fill_template(devices, 'devices.hpp', output_filename)
-
-    output_filename = os.path.join(build_dir, 'ks_devices.hpp')
-    fill_template(devices, 'ks_devices.hpp', output_filename)
-
-def render_ids(devices, build_dir):
-    template = get_renderer().get_template(os.path.join('scripts/templates', 'operations.hpp'))
-    with open(os.path.join(build_dir, 'operations.hpp'), 'w') as output:
-        output.write(template.render(devices=devices, json=get_json(devices)))
+def render_device(extension, device, build_dir):
+    template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device' + extension))
+    with open(os.path.join(build_dir, 'ks_' + device.tag.lower() + extension), 'w') as output:
+        output.write(template.render(device=device))
 
 # -----------------------------------------------------------------------------
 # Parse device C++ header
