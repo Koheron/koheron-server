@@ -22,8 +22,7 @@ def generate(devices_list, base_dir, build_dir):
             device.calls = cmd_calls(device.raw, dev_id)
             dev_id +=1
             print('Generating ' + device.name + '...')
-            render_device('.hpp', device, build_dir)
-            render_device('.cpp', device, build_dir)
+            render_device(device, build_dir)
             devices.append(device)
 
     render_templates(devices, build_dir,
@@ -76,7 +75,7 @@ def get_json(devices):
 
     return json.dumps(data, separators=(',', ':')).replace('"', '\\"').replace('\\\\','')
 
-def get_renderer():
+def get_template(filename):
     renderer = jinja2.Environment(
       block_start_string = '{%',
       block_end_string = '%}',
@@ -93,18 +92,17 @@ def get_renderer():
 
     renderer.filters['get_fragment'] = get_fragment
     renderer.filters['get_parser'] = get_parser
-    return renderer
+    return renderer.get_template(os.path.join('scripts/templates', filename))
 
 def render_templates(devices, build_dir, filenames):
     for filename in filenames:
-        template = get_renderer().get_template(os.path.join('scripts/templates', filename))
         with open(os.path.join(build_dir, filename), 'w') as output:
-            output.write(template.render(devices=devices, json=get_json(devices)))
+            output.write(get_template(filename).render(devices=devices, json=get_json(devices)))
 
-def render_device(extension, device, build_dir):
-    template = get_renderer().get_template(os.path.join('scripts/templates', 'ks_device' + extension))
-    with open(os.path.join(build_dir, 'ks_' + device.tag.lower() + extension), 'w') as output:
-        output.write(template.render(device=device))
+def render_device(device, build_dir):
+    for extension in ['.cpp', '.hpp']:
+        with open(os.path.join(build_dir, 'ks_' + device.tag.lower() + extension), 'w') as output:
+            output.write(get_template('ks_device' + extension).render(device=device))
 
 # -----------------------------------------------------------------------------
 # Parse device C++ header
