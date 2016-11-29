@@ -323,6 +323,7 @@ serialize(Tp... t)
 template<size_t SCALAR_PACK_LEN>
 class DynamicSerializer {
   private:
+    // Dynamic container
     // http://stackoverflow.com/questions/12042824/how-to-write-a-type-trait-is-container-or-is-vector
     template<typename T, typename _ = void>
     struct is_container : std::false_type {};
@@ -338,7 +339,7 @@ class DynamicSerializer {
             is_container_helper<
                 typename T::value_type,
                 typename T::size_type,
-                // typename T::allocator_type, std::array don't have an allocator
+                typename T::allocator_type,
                 typename T::iterator,
                 typename T::const_iterator,
                 decltype(std::declval<T>().size()),
@@ -356,10 +357,19 @@ class DynamicSerializer {
     static constexpr bool is_container_v = is_container<T>::value;
 
     static_assert(is_container_v<std::vector<float>>, "");
-    static_assert(is_container_v<std::array<float, 10>>, "");
     static_assert(is_container_v<std::string>, "");
     static_assert(!is_container_v<float>, "");
 
+    // Scalar
+    template<typename T>
+    static constexpr bool is_scalar_v = std::is_scalar<std::remove_reference_t<T>>::value &&
+                                        !std::is_pointer<std::remove_reference_t<T>>::value;
+
+    static_assert(is_scalar_v<float>, "");
+    static_assert(!is_scalar_v<uint32_t*>, "");
+    static_assert(!is_scalar_v<std::vector<float>>, "");
+
+    // Tuple
     template <typename T>
     struct is_std_tuple : std::false_type {};
     template <typename... Args>
@@ -371,6 +381,19 @@ class DynamicSerializer {
     static_assert(is_std_tuple_v<std::tuple<uint32_t, float>>, "");
     static_assert(!is_std_tuple_v<uint32_t>, "");
 
+    // Array
+    template <typename T>
+    struct is_std_array : std::false_type {};
+    template <typename V, size_t N>
+    struct is_std_array<std::array<V, N>> : std::true_type {};
+
+    template <typename T>
+    static constexpr bool is_std_array_v = is_std_array<T>::value;
+
+    static_assert(is_std_array_v<std::array<uint32_t, 10>>, "");
+    static_assert(!is_std_array_v<std::vector<uint32_t>>, "");
+
+    // C string
     // http://stackoverflow.com/questions/8097534/type-trait-for-strings
     template <typename T>
     struct is_c_string : public
@@ -386,12 +409,8 @@ class DynamicSerializer {
     static_assert(is_c_string_v<const char*>, "");
     static_assert(!is_c_string_v<std::string>, "");
 
+  private:
     // Scalars
-
-    void dump_size_to_buffer(std::vector<unsigned char>& buffer, uint64_t size) {
-        buffer.resize(buffer.size() + size_of<uint64_t>);
-        kserver::append(buffer.data() + buffer.size() - size_of<uint64_t>, size);
-    }
 
     template<typename T>
     void append(T t) {
@@ -401,7 +420,6 @@ class DynamicSerializer {
 
     void dump_scalar_pack(std::vector<unsigned char>& buffer) {
         if (scal_size > 0) {
-            dump_size_to_buffer(buffer, scal_size);
             buffer.reserve(buffer.size() + scal_size);
             buffer.insert(buffer.end(), scal_data.data(), scal_data.data() + scal_size);
             scal_size = 0;
@@ -409,39 +427,29 @@ class DynamicSerializer {
     }
 
     template<typename Tp0, typename... Tp>
-    inline std::enable_if_t<0 == sizeof...(Tp) &&
-                            std::is_scalar<
-                                typename std::remove_reference<Tp0>::type
-                            >::value &&
-                            !std::is_pointer<
-                                typename std::remove_reference<Tp0>::type
-                            >::value, void>
+    inline std::enable_if_t<0 == sizeof...(Tp) && is_scalar_v<Tp0>, void>
     command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
         append(std::forward<Tp0>(t));
     }
 
     template <typename Tp0, typename... Tp>
-    inline std::enable_if_t<0 < sizeof...(Tp) &&
-                            std::is_scalar<
-                                typename std::remove_reference<Tp0>::type
-                            >::value &&
-                            !std::is_pointer<
-                                typename std::remove_reference<Tp0>::type
-                            >::value, void>
+    inline std::enable_if_t<0 < sizeof...(Tp) && is_scalar_v<Tp0>, void>
     command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
         append(std::forward<Tp0>(t));
         command_serializer(buffer, std::forward<Tp>(args)...);
     }
 
-    // Containers (array, vector, string)
+    // Dynamic containers (vector, string)
 
     template<typename Container>
     void dump_container_to_buffer(std::vector<unsigned char>& buffer,
                                   const Container& container) {
         static_assert(is_container_v<Container>, "");
 
-        auto n_bytes = container.size() * sizeof(typename Container::value_type);
-        dump_size_to_buffer(buffer, n_bytes);
+        using T = typename Container::value_type;
+        const uint32_t n_bytes = container.size() * sizeof(T);
+        buffer.resize(buffer.size() + size_of<uint32_t>);
+        kserver::append(buffer.data() + buffer.size() - size_of<uint32_t>, n_bytes);
 
         if (n_bytes > 0) {
             const auto bytes = reinterpret_cast<const unsigned char*>(container.data());
@@ -450,23 +458,46 @@ class DynamicSerializer {
     }
 
     template<typename Tp0, typename... Tp>
-    std::enable_if_t<0 == sizeof...(Tp) &&
-                     is_container_v<
-                         typename std::remove_reference<Tp0>::type
-                    >, void>
+    std::enable_if_t<0 == sizeof...(Tp) && is_container_v<std::remove_reference_t<Tp0>>, void>
     command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
         dump_scalar_pack(buffer);
         dump_container_to_buffer(buffer, std::forward<Tp0>(t));
     }
 
     template <typename Tp0, typename... Tp>
-    std::enable_if_t<0 < sizeof...(Tp) &&
-                     is_container_v<
-                         typename std::remove_reference<Tp0>::type
-                    >, void>
+    std::enable_if_t<0 < sizeof...(Tp) && is_container_v<std::remove_reference_t<Tp0>>, void>
     command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
         dump_scalar_pack(buffer);
         dump_container_to_buffer(buffer, std::forward<Tp0>(t));
+        command_serializer(buffer, std::forward<Tp>(args)...);
+    }
+
+    // std::array
+
+    template<typename Array>
+    void dump_array_to_buffer(std::vector<unsigned char>& buffer,
+                                  const Array& arr) {
+        using T = typename Array::value_type;
+        constexpr auto n_bytes = std::tuple_size<Array>::value * sizeof(T);
+
+        if (n_bytes > 0) {
+            const auto bytes = reinterpret_cast<const unsigned char*>(arr.data());
+            buffer.insert(buffer.end(), bytes, bytes + n_bytes);
+        }
+    }
+
+    template<typename Tp0, typename... Tp>
+    std::enable_if_t<0 == sizeof...(Tp) && is_std_array_v<std::decay_t<Tp0>>, void>
+    command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
+        dump_scalar_pack(buffer);
+        dump_array_to_buffer(buffer, std::forward<Tp0>(t));
+    }
+
+    template <typename Tp0, typename... Tp>
+    std::enable_if_t<0 < sizeof...(Tp) && is_std_array_v<std::decay_t<Tp0>>, void>
+    command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
+        dump_scalar_pack(buffer);
+        dump_array_to_buffer(buffer, std::forward<Tp0>(t));
         command_serializer(buffer, std::forward<Tp>(args)...);
     }
 
@@ -505,7 +536,7 @@ class DynamicSerializer {
                      >, void>
     build_command(std::vector<unsigned char>& buffer, Tp0&& arg0, Args&&... args) {
         const auto& header = serialize(0U, class_id, func_id);
-        buffer.resize(required_buffer_size<uint32_t, uint16_t, uint16_t>());
+        buffer.resize(kserver::required_buffer_size<uint32_t, uint16_t, uint16_t>());
         std::move(header.begin(), header.end(), buffer.begin());
         scal_size = 0;
         command_serializer(buffer, std::forward<Tp0>(arg0),
@@ -516,8 +547,8 @@ class DynamicSerializer {
     template<uint16_t class_id, uint16_t func_id, typename... Args>
     std::enable_if_t< 0 == sizeof...(Args), void >
     build_command(std::vector<unsigned char>& buffer, Args&&... args) {
-        const auto& header = serialize(0U, class_id, func_id, 0UL);
-        buffer.resize(required_buffer_size<uint32_t, uint16_t, uint16_t, uint64_t>());
+        const auto& header = serialize(0U, class_id, func_id);
+        buffer.resize(kserver::required_buffer_size<uint32_t, uint16_t, uint16_t>());
         std::move(header.begin(), header.end(), buffer.begin());
     }
 
