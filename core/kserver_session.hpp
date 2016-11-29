@@ -240,18 +240,6 @@ template<>
 template<typename T, size_t N>
 inline int Session<TCP>::recv(std::array<T, N>& arr, Command& cmd)
 {
-    const auto length = get_pack_length();
-
-    if (length < 0)
-        return -1;
-
-    if (length != size_of<T, N>) {
-        session_manager.kserver.syslog.print<ERROR>(
-            "TCPSocket: Array extraction failed. Expected %lu bytes received %lu bytes\n",
-            size_of<T, N>, length);
-        return -1;
-    }
-
     return rcv_n_bytes(reinterpret_cast<char*>(arr.data()), size_of<T, N>);
 }
 
