@@ -48,6 +48,7 @@ class Device:
         self.class_name = 'KS_' + self.tag.capitalize()
         self.objects = dev['objects']
         self.includes = dev['includes']
+        self.ks_name = 'ks_' + os.path.basename(self.includes[0]).split('.')[0]
         self.id = None
         self.calls = None
 
@@ -101,7 +102,7 @@ def render_templates(devices, build_dir, filenames):
 
 def render_device(device, build_dir):
     for extension in ['.cpp', '.hpp']:
-        with open(os.path.join(build_dir, 'ks_' + device.tag.lower() + extension), 'w') as output:
+        with open(os.path.join(build_dir, device.ks_name + extension), 'w') as output:
             output.write(get_template('ks_device' + extension).render(device=device))
 
 # -----------------------------------------------------------------------------

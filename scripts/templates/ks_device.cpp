@@ -5,7 +5,7 @@
 ///
 /// (c) Koheron 
 
-#include "{{ device.class_name|lower }}.hpp"
+#include "{{ device.ks_name }}.hpp"
 
 #include <core/commands.hpp>
 #include <core/kserver.hpp>

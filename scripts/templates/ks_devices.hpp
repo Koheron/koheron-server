@@ -1,4 +1,4 @@
 
 {% for device in devices -%}
-# include <{{ device.class_name|lower + '.hpp' }}>
+# include <{{ device.ks_name + '.hpp' }}>
 {% endfor %}
