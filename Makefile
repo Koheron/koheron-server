@@ -2,7 +2,7 @@ CONFIG=config/config_local.yaml
 PYTHON=/usr/bin/python
 
 SHA=`git rev-parse --short HEAD`
-TAG=0.11.0
+TAG=0.12.0
 KOHERON_SERVER_VERSION=$(TAG).$(SHA)
 
 # Base directory for paths
