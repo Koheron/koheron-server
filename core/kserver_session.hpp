@@ -364,7 +364,7 @@ template<>
 template<typename T>
 inline int Session<WEBSOCK>::recv(std::vector<T>& vec, Command& cmd)
 {
-    const auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
+    const auto length = std::get<0>(cmd.payload.deserialize<uint32_t>());
 
     if (length > CMD_PAYLOAD_BUFFER_LEN) {
         session_manager.kserver.syslog.print<ERROR>(
@@ -380,7 +380,7 @@ template<>
 template<>
 inline int Session<WEBSOCK>::recv(std::string& str, Command& cmd)
 {
-    const auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
+    const auto length = std::get<0>(cmd.payload.deserialize<uint32_t>());
 
     if (length > CMD_PAYLOAD_BUFFER_LEN) {
         session_manager.kserver.syslog.print<ERROR>(
