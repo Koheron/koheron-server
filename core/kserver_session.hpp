@@ -285,11 +285,6 @@ template<>
 template<typename... Tp>
 inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd, std::false_type)
 {
-    const auto length = get_pack_length();
-
-    if (length != 0)
-        return std::make_tuple(-1);
-
     return std::make_tuple(0);
 }
 
@@ -298,19 +293,6 @@ template<typename... Tp>
 inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd, std::true_type)
 {
     constexpr auto pack_len = required_buffer_size<Tp...>();
-    const auto length = get_pack_length();
-
-    if (length < 0)
-        return std::tuple_cat(std::make_tuple(-1), std::tuple<Tp...>());
-
-    if (length != pack_len) {
-        session_manager.kserver.syslog.print<ERROR>(
-            "TCPSocket: Scalar pack deserialization failed. Expected %lu bytes received %lu bytes\n",
-            pack_len, length);
-
-        return std::tuple_cat(std::make_tuple(-1), std::tuple<Tp...>());
-    }
-
     Buffer<pack_len> buff;
     const int err = rcv_n_bytes(buff.data(), pack_len);
     return std::tuple_cat(std::make_tuple(err), buff.deserialize<Tp...>());

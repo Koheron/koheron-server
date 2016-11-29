@@ -219,15 +219,10 @@ def generate_call(device, dev_id, operation):
 # -----------------------------------------------------------
 
 def parser_generator(device, operation): 
-    lines = []   
     if operation.get('arguments') is None:
-        lines.append('\n    auto args_tuple = cmd.sess->deserialize(cmd);\n')
-        lines.append('    if (std::get<0>(args_tuple) < 0) {\n')
-        lines.append('        kserver->syslog.print<ERROR>(\"[{} - {}] Failed to deserialize buffer.\\n");\n'.format(device.name, operation['name']))
-        lines.append('        return -1;\n')
-        lines.append('    }\n')
-        return ''.join(lines)
+        return ''
 
+    lines = []
     packs, has_vector = build_args_packs(lines, operation)
 
     if not has_vector:
