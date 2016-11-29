@@ -152,7 +152,7 @@ class Session : public SessionAbstract
 
     int64_t get_pack_length() {
         Buffer<sizeof(uint64_t)> buff;
-        const auto err = rcv_n_bytes(buff.data(), sizeof(uint64_t));
+        const auto err = rcv_n_bytes(buff.data(), sizeof(uint32_t));
 
         if (err < 0) {
             session_manager.kserver.syslog.print<ERROR>(
@@ -160,7 +160,7 @@ class Session : public SessionAbstract
             return -1;
         }
 
-        return std::get<0>(buff.deserialize<uint64_t>());
+        return std::get<0>(buff.deserialize<uint32_t>());
     }
 
     template<class T> int write(const T *data, unsigned int len);
@@ -356,15 +356,6 @@ template<>
 template<typename T, size_t N>
 inline int Session<WEBSOCK>::recv(std::array<T, N>& arr, Command& cmd)
 {
-    const auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
-
-    if (length != size_of<T, N>) {
-        session_manager.kserver.syslog.print<ERROR>(
-            "WebSocket: Array extraction failed. Expected %lu bytes received %lu bytes\n",
-            size_of<T, N>, length);
-        return -1;
-    }
-
     arr = cmd.payload.extract_array<T, N>();
     return 0;
 }
@@ -405,11 +396,6 @@ template<>
 template<typename... Tp>
 inline std::tuple<int, Tp...> Session<WEBSOCK>::deserialize(Command& cmd, std::false_type)
 {
-    const auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
-
-    if (length != 0)
-        return std::make_tuple(-1);
-
     return std::make_tuple(0);
 }
 
@@ -417,17 +403,6 @@ template<>
 template<typename... Tp>
 inline std::tuple<int, Tp...> Session<WEBSOCK>::deserialize(Command& cmd, std::true_type)
 {
-    constexpr auto pack_len = required_buffer_size<Tp...>();
-    const auto length = std::get<0>(cmd.payload.deserialize<uint64_t>());
-
-    if (length != pack_len) {
-        session_manager.kserver.syslog.print<ERROR>(
-            "WebSocket: Scalar pack deserialization failed. Expected %lu bytes received %lu bytes\n",
-            pack_len, length);
-
-        return std::tuple_cat(std::make_tuple(-1), std::tuple<Tp...>());
-    }
-
     return std::tuple_cat(std::make_tuple(0), cmd.payload.deserialize<Tp...>());
 }
 
