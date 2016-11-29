@@ -88,10 +88,9 @@ class Session : public SessionAbstract
     template<typename T>
     int recv(std::vector<T>& vec, Command& cmd);
 
-    // TODO Use perfect forwarding
     template<uint16_t class_id, uint16_t func_id, typename... Args>
-    int send(Args... args) {
-        dyn_ser.build_command<class_id, func_id>(send_buffer, args...);
+    int send(Args&&... args) {
+        dyn_ser.build_command<class_id, func_id>(send_buffer, std::forward<Args>(args)...);
         const auto bytes_send = write(send_buffer.data(), send_buffer.size());
 
         if (bytes_send == 0)

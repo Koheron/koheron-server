@@ -398,8 +398,8 @@ class DynamicSerializer {
     template <typename T>
     struct is_c_string : public
     std::integral_constant<bool,
-        std::is_same<char*, typename std::remove_reference<T>::type>::value ||
-        std::is_same<const char*, typename std::remove_reference<T>::type>::value
+        std::is_same<char*, std::decay_t<T>>::value ||
+        std::is_same<const char*, std::decay_t<T>>::value
     >{};
 
     template<typename T>
