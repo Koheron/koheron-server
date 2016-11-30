@@ -6,6 +6,10 @@
 
 #include <chrono>
 
+#if KSERVER_HAS_SYSTEMD
+#include <systemd/sd-daemon.h>
+#endif
+
 #include "commands.hpp"
 #include "kserver_session.hpp"
 #include "session_manager.hpp"
@@ -124,6 +128,10 @@ int KServer::run()
 
     if (start_listeners_workers() < 0)
         return -1;
+
+#if KSERVER_HAS_SYSTEMD
+    sd_notify (0, "READY=1");
+#endif
 
     while (1) {
         if (sig_handler.interrupt() || exit_all) {

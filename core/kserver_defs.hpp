@@ -72,6 +72,8 @@ namespace kserver {
 /// Syslog level
 #define KSERVER_SYSLOG_UPTO LOG_NOTICE
 
+#define KSERVER_HAS_SYSTEMD 1
+
 // ------------------------------------------
 // Buffer sizes
 // ------------------------------------------
