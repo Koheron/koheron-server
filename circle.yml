@@ -16,7 +16,7 @@ dependencies:
     - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 100
     - sudo ln -s /usr/bin/arm-linux-gnueabihf-gcc-5 /usr/bin/arm-linux-gnueabihf-gcc
     - sudo ln -s /usr/bin/arm-linux-gnueabihf-g++-5 /usr/bin/arm-linux-gnueabihf-g++
-    - sudo at-get install -y libsystemd-dev
+    - sudo apt-get install -y libsystemd-dev
 
 test:
   pre:

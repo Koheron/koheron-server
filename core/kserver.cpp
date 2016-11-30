@@ -129,6 +129,7 @@ int KServer::run()
     if (start_listeners_workers() < 0)
         return -1;
 
+// XXX Not sure the listeners are really started here...
 #if KSERVER_HAS_SYSTEMD
     sd_notify (0, "READY=1");
 #endif
