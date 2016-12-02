@@ -57,10 +57,6 @@ struct KServerConfig
     /// Unix socket max parallel connections
     unsigned int unixsock_worker_connections;
 
-    /// Allowed memory region for memory mapping
-    intptr_t addr_limit_down;
-    intptr_t addr_limit_up;
-
   private:
     char* _get_source(char *filename);
 
@@ -75,7 +71,6 @@ struct KServerConfig
     int _read_tcp(JsonValue value);
     int _read_websocket(JsonValue value);
     int _read_unixsocket(JsonValue value);
-    int _read_addr_limits(JsonValue value);
 };
 
 } // namespace kserver

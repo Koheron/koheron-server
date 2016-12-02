@@ -3,10 +3,9 @@
 /// (c) Koheron
 
 #include "session_manager.hpp"
-
-#include "kserver_session.hpp"
-#include "pubsub.tpp"
 #include "syslog.tpp"
+#include "kserver_session.hpp"
+#include "kserver.hpp"
 
 #include <sys/socket.h>
 
@@ -17,13 +16,9 @@
 
 namespace kserver {
 
-SessionManager::SessionManager(KServer& kserver_, DeviceManager& dev_manager_,
-                               int perm_policy_)
+SessionManager::SessionManager(KServer& kserver_, DeviceManager& dev_manager_)
 : kserver(kserver_),
   dev_manager(dev_manager_),
-  perm_policy(perm_policy_),
-  fcfs_id(-1),
-  lclf_lifo(),
   session_pool(),
   reusable_ids(0)
 {}
@@ -78,52 +73,6 @@ std::vector<SessID> SessionManager::get_current_ids()
     return res;
 }
 
-void SessionManager::reset_permissions(SessID id)
-{
-    switch (perm_policy) {
-      case FCFS:
-        // We reset the flag to indicate that the next 
-        // opening session will have write permission.
-        if(id == fcfs_id)
-            fcfs_id = -1;
-      case LCFS:
-        // We remove from the LIFO the deleted session and
-        // give back the writing rights to the previous
-        // session holding them.
-        if (id == lclf_lifo.top()) {
-            lclf_lifo.pop();
-
-            // Remove all the invalid IDs on the top of the LIFO
-            while (lclf_lifo.size() > 0 && !is_current_id(lclf_lifo.top()))
-                lclf_lifo.pop();
-
-            if (lclf_lifo.size() > 0) {
-                switch(session_pool[lclf_lifo.top()]->kind) {
-#if KSERVER_HAS_TCP
-                  case TCP:
-                    cast_to_session<TCP>(session_pool[lclf_lifo.top()])
-                                        ->permissions.write = true;
-                    break;
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
-                  case UNIX:
-                    cast_to_session<UNIX>(session_pool[lclf_lifo.top()])
-                                        ->permissions.write = true;
-                    break;
-#endif
-#if KSERVER_HAS_WEBSOCKET
-                  case WEBSOCK:
-                    cast_to_session<WEBSOCK>(session_pool[lclf_lifo.top()])
-                                        ->permissions.write = true;
-                    break;
-#endif
-                  default: assert(false);
-                }
-            }
-        }
-    }
-}
-
 void SessionManager::delete_session(SessID id)
 {
 #if KSERVER_HAS_THREADS
@@ -133,13 +82,13 @@ void SessionManager::delete_session(SessID id)
     int sess_fd;
 
     if (!is_current_id(id)) {
-        kserver.syslog.print<SysLog::INFO>(
+        kserver.syslog.print<INFO>(
                              "Not allocated session ID: %u\n", id);
         return;
     }
 
     // Unsubscribe from any broadcast channel
-    kserver.pubsub.unsubscribe(id);
+    kserver.syslog.pubsub.unsubscribe(id);
 
     if (session_pool[id] != nullptr) {
         switch (session_pool[id]->kind) {
@@ -162,12 +111,11 @@ void SessionManager::delete_session(SessID id)
         }
 
         if (shutdown(sess_fd, SHUT_RDWR) < 0)
-            kserver.syslog.print<SysLog::WARNING>(
+            kserver.syslog.print<WARNING>(
                          "Cannot shutdown socket for session ID: %u\n", id);
         close(sess_fd);
     }
 
-    reset_permissions(id);
     session_pool.erase(id);
     reusable_ids.push_back(id);
     num_sess--;
@@ -175,14 +123,14 @@ void SessionManager::delete_session(SessID id)
 
 void SessionManager::delete_all()
 {
-    kserver.syslog.print<SysLog::INFO>("Closing all active sessions ...\n");
+    kserver.syslog.print<INFO>("Closing all active sessions ...\n");
     assert(num_sess == session_pool.size());
 
     if (!session_pool.empty()) {
         auto ids = get_current_ids();
         
         for (auto& id : ids) {
-            kserver.syslog.print<SysLog::INFO>("Delete session %u\n", id);
+            kserver.syslog.print<INFO>("Delete session %u\n", id);
             delete_session(id);
         }
     }

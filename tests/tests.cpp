@@ -62,6 +62,16 @@ std::vector<uint32_t>& Tests::send_std_vector2()
     return data_u;
 }
 
+std::vector<int32_t>& Tests::send_std_vector3()
+{
+    data_i.resize(20);
+
+    for (unsigned int i=0; i<data_i.size(); i++)
+        data_i[i] = -i*i;
+
+    return data_i;
+}
+
 std::array<float, 10>& Tests::send_std_array()
 {    
     for (uint32_t i=0; i<data_std_array.size(); i++)

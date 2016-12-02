@@ -7,62 +7,65 @@
 #define __DEVICES_TABLE_HPP__
 
 #include <array>
-#include <sstream>
-#include <string>
-#include <typeinfo>
-#include <cxxabi.h>
+#include <tuple>
+#include <memory>
 
-{% for device in devices -%}
-{% for include in device.includes -%}
-#include "{{ include }}"
+#include <core/string_utils.hpp>
+#include <core/meta_utils.hpp>
+
+using device_id = std::size_t;
+
+class NoDevice;
+class KServer;
+{% for device in devices %}
+class {{ device.objects[0]["type"] }};
 {% endfor -%}
-{% endfor %}
 
-#define DEVICES_TABLE(ENTRY) \
-{% for device in devices -%}
-    {% if not loop.last -%}
-        ENTRY( {{device.tag}}, {{device.class_name}}, {{ device | list_operations(max_op_num) }} ) \
-    {% else -%}
-        ENTRY( {{device.tag}}, {{device.class_name}}, {{ device | list_operations(max_op_num) }} )
-    {% endif -%}
-{% endfor %}
+constexpr device_id device_num = {{ devices|length + 2 }};
 
-/// Maximum number of operations
-#define MAX_OP_NUM {{max_op_num}}
+constexpr auto devices_names = kserver::make_array(
+    kserver::str_const("NoDevice"),
+    kserver::str_const("KServer"),
+{%- for device in devices -%}
+{% if not loop.last %}
+    kserver::str_const("{{ device.objects[0]['type'] }}"),
+{%- else %}
+    kserver::str_const("{{ device.objects[0]['type'] }}")
+{%- endif %}
+{%- endfor %}
+);
 
-/// Devices #
-typedef enum {
-    NO_DEVICE = 0,
-    KSERVER = 1,
-    {% for device in devices -%}
-    {{ device.tag | upper }} = {{ device.id }},
-    {% endfor -%}
-    device_num
-} device_t;
+static_assert(std::tuple_size<decltype(devices_names)>::value == device_num, "");
 
-// http://stackoverflow.com/questions/4484982/how-to-convert-typename-t-to-string-in-c
-template<typename T>
-inline auto get_type_str()
-{
-    std::string res;
-    char *name = nullptr;
-    int status;
-    name = abi::__cxa_demangle(typeid(T).name(), 0, 0, &status);
+// Devices are store as unique_ptr ensuring single
+// instantiation of each device.
 
-    if (name != nullptr)
-        res = std::string(name);
-    else
-        res = std::string(typeid(T).name());
+using devices_tuple_t = std::tuple<
+{%- for device in devices -%}
+{% if not loop.last -%}
+ std::unique_ptr<{{ device.objects[0]['type'] }}>,
+{%- else -%}
+ std::unique_ptr<{{ device.objects[0]['type'] }}>
+{%- endif -%}
+{%- endfor -%}
+>;
 
-    free(name);
-    return res;
-}
+static_assert(std::tuple_size<devices_tuple_t>::value == device_num - 2, "");
 
-inline auto build_devices_json()
-{
-    std::stringstream ss;
-    ss << "{{ json }}";
-    return ss.str();
-}
+// Device id from device type
+
+template<class Dev> constexpr device_id dev_id_of;
+template<> constexpr device_id dev_id_of<NoDevice> = 0;
+template<> constexpr device_id dev_id_of<KServer> = 1;
+
+template<class Dev>
+constexpr device_id dev_id_of
+	= Index_v<std::unique_ptr<Dev>, devices_tuple_t> + 2;
+
+// Device type from device id
+
+template<device_id dev>
+using device_t = std::remove_reference_t<
+					decltype(*std::get<dev - 2>(std::declval<devices_tuple_t>()))>;
 
 #endif // __DEVICES_TABLE_HPP__

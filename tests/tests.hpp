@@ -6,6 +6,8 @@
 #include <tuple>
 #include <string>
 
+#include <context.hpp>
+
 constexpr size_t calc_array_length(size_t n_bits) {
     return 1 << n_bits;
 }
@@ -15,7 +17,7 @@ constexpr size_t calc_array_length(size_t n_bits) {
 class Tests
 {
   public:
-    Tests() 
+    Tests(Context& ct)
     : data(0)
     , buffer(0)
     {}
@@ -31,6 +33,7 @@ class Tests
     // Send arrays
     std::vector<float>& send_std_vector();
     std::vector<uint32_t>& send_std_vector2();
+    std::vector<int32_t>& send_std_vector3();
     std::array<float, 10>& send_std_array();
 
     auto& send_std_array2(uint32_t mul) {
@@ -43,6 +46,13 @@ class Tests
     std::array<uint32_t, 2 * HALF_ARRAY_LEN>& send_std_array3(uint32_t add) {
         for (uint32_t i=0; i<data_std_array3.size(); i++)
             data_std_array3[i] = add + i;
+
+        return data_std_array3;
+    }
+
+    const std::array<uint32_t, 2 * HALF_ARRAY_LEN>& send_std_array4(uint32_t add) {
+        for (uint32_t i=0; i<data_std_array3.size(); i++)
+            data_std_array3[i] = add + 2 * i;
 
         return data_std_array3;
     }
@@ -93,6 +103,7 @@ class Tests
 
     std::vector<float> data;
     std::vector<uint32_t> data_u;
+    std::vector<int32_t> data_i;
 
   private:
     std::vector<uint32_t> buffer;

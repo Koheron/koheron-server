@@ -8,6 +8,8 @@
 #include <cstring>
 #include <tuple>
 #include <array>
+#include <vector>
+#include <string>
 
 namespace kserver {
 
@@ -142,7 +144,7 @@ inline uint64_t extract<uint64_t>(const char *buff)
 {
     uint32_t u1 = extract<uint32_t>(buff);
     uint32_t u2 = extract<uint32_t>(buff + size_of<uint32_t>);
-    return static_cast<uint64_t>(u1) + (static_cast<uint64_t>(u2) << 32);
+    return static_cast<uint64_t>(u2) + (static_cast<uint64_t>(u1) << 32);
 }
 
 template<>
@@ -224,6 +226,13 @@ inline void append<bool>(unsigned char *buff, bool value)
 // ------------------------
 
 namespace detail {
+    template<size_t position, typename... Tp>
+    inline std::enable_if_t<0 == sizeof...(Tp), std::tuple<Tp...>>
+    deserialize(const char *buff)
+    {
+        return std::make_tuple();
+    }
+
     template<size_t position, typename Tp0, typename... Tp>
     inline std::enable_if_t<0 == sizeof...(Tp), std::tuple<Tp0, Tp...>>
     deserialize(const char *buff)
@@ -240,17 +249,21 @@ namespace detail {
     }
 
     // Required buffer size
+    template<typename... Tp>
+    constexpr std::enable_if_t<0 == sizeof...(Tp), size_t>
+    required_buffer_size() {
+        return 0;
+    }
+
     template<typename Tp0, typename... Tp>
     constexpr std::enable_if_t<0 == sizeof...(Tp), size_t>
-    required_buffer_size()
-    {
+    required_buffer_size() {
         return size_of<Tp0>;
     }
 
     template<typename Tp0, typename... Tp>
     constexpr std::enable_if_t<0 < sizeof...(Tp), size_t>
-    required_buffer_size()
-    {
+    required_buffer_size() {
         return size_of<Tp0> + required_buffer_size<Tp...>();
     }
 }
@@ -302,6 +315,254 @@ serialize(Tp... t)
 {
     return serialize<Tp...>(std::make_tuple(t...));
 }
+
+// ---------------------------
+// Commands serializer
+// ---------------------------
+
+template<size_t SCALAR_PACK_LEN>
+class DynamicSerializer {
+  private:
+    // Dynamic container
+    // http://stackoverflow.com/questions/12042824/how-to-write-a-type-trait-is-container-or-is-vector
+    template<typename T, typename _ = void>
+    struct is_container : std::false_type {};
+
+    template<typename... Ts>
+    struct is_container_helper {};
+
+    template<typename T>
+    struct is_container<
+        T,
+        std::conditional_t<
+            false,
+            is_container_helper<
+                typename T::value_type,
+                typename T::size_type,
+                typename T::allocator_type,
+                typename T::iterator,
+                typename T::const_iterator,
+                decltype(std::declval<T>().size()),
+                decltype(std::declval<T>().data()),
+                decltype(std::declval<T>().begin()),
+                decltype(std::declval<T>().end()),
+                decltype(std::declval<T>().cbegin()),
+                decltype(std::declval<T>().cend())
+                >,
+            void
+            >
+        > : public std::true_type {};
+
+    template<typename T>
+    static constexpr bool is_container_v = is_container<T>::value;
+
+    static_assert(is_container_v<std::vector<float>>, "");
+    static_assert(is_container_v<std::string>, "");
+    static_assert(!is_container_v<float>, "");
+
+    // Scalar
+    template<typename T>
+    static constexpr bool is_scalar_v = std::is_scalar<std::remove_reference_t<T>>::value &&
+                                        !std::is_pointer<std::remove_reference_t<T>>::value;
+
+    static_assert(is_scalar_v<float>, "");
+    static_assert(!is_scalar_v<uint32_t*>, "");
+    static_assert(!is_scalar_v<std::vector<float>>, "");
+
+    // Tuple
+    template <typename T>
+    struct is_std_tuple : std::false_type {};
+    template <typename... Args>
+    struct is_std_tuple<std::tuple<Args...>> : std::true_type {};
+
+    template<typename T>
+    static constexpr bool is_std_tuple_v = is_std_tuple<T>::value;
+
+    static_assert(is_std_tuple_v<std::tuple<uint32_t, float>>, "");
+    static_assert(!is_std_tuple_v<uint32_t>, "");
+
+    // Array
+    template <typename T>
+    struct is_std_array : std::false_type {};
+    template <typename V, size_t N>
+    struct is_std_array<std::array<V, N>> : std::true_type {};
+
+    template <typename T>
+    static constexpr bool is_std_array_v = is_std_array<T>::value;
+
+    static_assert(is_std_array_v<std::array<uint32_t, 10>>, "");
+    static_assert(!is_std_array_v<std::vector<uint32_t>>, "");
+
+    // C string
+    // http://stackoverflow.com/questions/8097534/type-trait-for-strings
+    template <typename T>
+    struct is_c_string : public
+    std::integral_constant<bool,
+        std::is_same<char*, std::decay_t<T>>::value ||
+        std::is_same<const char*, std::decay_t<T>>::value
+    >{};
+
+    template<typename T>
+    static constexpr bool is_c_string_v = is_c_string<T>::value;
+
+    static_assert(is_c_string_v<char*>, "");
+    static_assert(is_c_string_v<const char*>, "");
+    static_assert(!is_c_string_v<std::string>, "");
+
+  private:
+    // Scalars
+
+    template<typename T>
+    void append(T t) {
+        kserver::append<T>(&scal_data[scal_size], t);
+        scal_size += size_of<T>;
+    }
+
+    void dump_scalar_pack(std::vector<unsigned char>& buffer) {
+        if (scal_size > 0) {
+            buffer.reserve(buffer.size() + scal_size);
+            buffer.insert(buffer.end(), scal_data.data(), scal_data.data() + scal_size);
+            scal_size = 0;
+        }
+    }
+
+    template<typename Tp0, typename... Tp>
+    inline std::enable_if_t<0 == sizeof...(Tp) && is_scalar_v<Tp0>, void>
+    command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
+        append(std::forward<Tp0>(t));
+    }
+
+    template <typename Tp0, typename... Tp>
+    inline std::enable_if_t<0 < sizeof...(Tp) && is_scalar_v<Tp0>, void>
+    command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
+        append(std::forward<Tp0>(t));
+        command_serializer(buffer, std::forward<Tp>(args)...);
+    }
+
+    // Dynamic containers (vector, string)
+
+    template<typename Container>
+    void dump_container_to_buffer(std::vector<unsigned char>& buffer,
+                                  const Container& container) {
+        static_assert(is_container_v<Container>, "");
+
+        using T = typename Container::value_type;
+        const uint32_t n_bytes = container.size() * sizeof(T);
+        buffer.resize(buffer.size() + size_of<uint32_t>);
+        kserver::append(buffer.data() + buffer.size() - size_of<uint32_t>, n_bytes);
+
+        if (n_bytes > 0) {
+            const auto bytes = reinterpret_cast<const unsigned char*>(container.data());
+            buffer.insert(buffer.end(), bytes, bytes + n_bytes);
+        }
+    }
+
+    template<typename Tp0, typename... Tp>
+    std::enable_if_t<0 == sizeof...(Tp) && is_container_v<std::remove_reference_t<Tp0>>, void>
+    command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
+        dump_scalar_pack(buffer);
+        dump_container_to_buffer(buffer, std::forward<Tp0>(t));
+    }
+
+    template <typename Tp0, typename... Tp>
+    std::enable_if_t<0 < sizeof...(Tp) && is_container_v<std::remove_reference_t<Tp0>>, void>
+    command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
+        dump_scalar_pack(buffer);
+        dump_container_to_buffer(buffer, std::forward<Tp0>(t));
+        command_serializer(buffer, std::forward<Tp>(args)...);
+    }
+
+    // std::array
+
+    template<typename Array>
+    void dump_array_to_buffer(std::vector<unsigned char>& buffer,
+                                  const Array& arr) {
+        using T = typename Array::value_type;
+        constexpr auto n_bytes = std::tuple_size<Array>::value * sizeof(T);
+
+        if (n_bytes > 0) {
+            const auto bytes = reinterpret_cast<const unsigned char*>(arr.data());
+            buffer.insert(buffer.end(), bytes, bytes + n_bytes);
+        }
+    }
+
+    template<typename Tp0, typename... Tp>
+    std::enable_if_t<0 == sizeof...(Tp) && is_std_array_v<std::decay_t<Tp0>>, void>
+    command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
+        dump_scalar_pack(buffer);
+        dump_array_to_buffer(buffer, std::forward<Tp0>(t));
+    }
+
+    template <typename Tp0, typename... Tp>
+    std::enable_if_t<0 < sizeof...(Tp) && is_std_array_v<std::decay_t<Tp0>>, void>
+    command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
+        dump_scalar_pack(buffer);
+        dump_array_to_buffer(buffer, std::forward<Tp0>(t));
+        command_serializer(buffer, std::forward<Tp>(args)...);
+    }
+
+    // C strings
+
+    template<typename Tp0, typename... Tp>
+    std::enable_if_t<0 == sizeof...(Tp) && is_c_string_v<Tp0>, void>
+    command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
+        dump_scalar_pack(buffer);
+        dump_container_to_buffer(buffer, std::string(std::forward<Tp0>(t)));
+    }
+
+    template <typename Tp0, typename... Tp>
+    std::enable_if_t<0 < sizeof...(Tp) && is_c_string_v<Tp0>, void>
+    command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
+        dump_scalar_pack(buffer);
+        dump_container_to_buffer(buffer, std::string(std::forward<Tp0>(t)));
+        command_serializer(buffer, std::forward<Tp>(args)...);
+    }
+
+    // Tuples are unpacked before serialization
+
+    template<uint16_t class_id, uint16_t func_id,
+             std::size_t... I, typename... Args>
+    void call_command_serializer(std::vector<unsigned char>& buffer,
+                                 std::index_sequence<I...>,
+                                 std::tuple<Args...> tup_args) {
+        build_command<class_id, func_id>(buffer, std::get<I>(tup_args)...);
+    }
+
+  public:
+    template<uint16_t class_id, uint16_t func_id, typename Tp0, typename... Args>
+    std::enable_if_t<0 <= sizeof...(Args) &&
+                     !is_std_tuple_v<
+                         typename std::remove_reference<Tp0>::type
+                     >, void>
+    build_command(std::vector<unsigned char>& buffer, Tp0&& arg0, Args&&... args) {
+        const auto& header = serialize(0U, class_id, func_id);
+        buffer.resize(kserver::required_buffer_size<uint32_t, uint16_t, uint16_t>());
+        std::move(header.begin(), header.end(), buffer.begin());
+        scal_size = 0;
+        command_serializer(buffer, std::forward<Tp0>(arg0),
+                           std::forward<Args>(args)...);
+        dump_scalar_pack(buffer);
+    }
+
+    template<uint16_t class_id, uint16_t func_id, typename... Args>
+    std::enable_if_t< 0 == sizeof...(Args), void >
+    build_command(std::vector<unsigned char>& buffer, Args&&... args) {
+        const auto& header = serialize(0U, class_id, func_id);
+        buffer.resize(kserver::required_buffer_size<uint32_t, uint16_t, uint16_t>());
+        std::move(header.begin(), header.end(), buffer.begin());
+    }
+
+    template<uint16_t class_id, uint16_t func_id, typename... Args>
+    void build_command(std::vector<unsigned char>& buffer,
+                       std::tuple<Args...> tup_args) {
+        call_command_serializer<class_id, func_id>(buffer,
+                std::index_sequence_for<Args...>{}, tup_args);
+    }
+
+  private:
+    std::array<unsigned char, SCALAR_PACK_LEN> scal_data;
+    uint64_t scal_size = 0;
+};
 
 } // namespace kserver
 

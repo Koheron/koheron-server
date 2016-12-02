@@ -9,12 +9,12 @@
 #include "commands.hpp"
 #include "kserver_session.hpp"
 #include "session_manager.hpp"
+#include "syslog.tpp"
 
 namespace kserver {
 
 KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
-: KDevice<KServer, KSERVER>(this),
-  config(config_),
+: config(config_),
   sig_handler(),
 #if KSERVER_HAS_TCP
     tcp_listener(this),
@@ -26,25 +26,25 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
     unix_listener(this),
 #endif
   dev_manager(this),
-  session_manager(*this, dev_manager, SessionManager::DFLT_WRITE_PERM_POLICY),
-  syslog(config_, this),
-  start_time(0),
-  pubsub(session_manager)
+  session_manager(*this, dev_manager),
+  syslog(config_, sig_handler, session_manager),
+  start_time(0)
 {
     if (sig_handler.init(this) < 0)
         exit(EXIT_FAILURE);
 
-    if (dev_manager.Init() < 0)
+    if (dev_manager.init() < 0)
         exit (EXIT_FAILURE);
 
     exit_comm.store(false);
+    exit_all.store(false);
 
 #if KSERVER_HAS_TCP
     if (tcp_listener.init() < 0)
         exit(EXIT_FAILURE);
 #else
     if (config->tcp_worker_connections > 0)
-        syslog.print<SysLog::ERROR>("TCP connections not supported\n");
+        syslog.print<ERROR>("TCP connections not supported\n");
 #endif // KSERVER_HAS_TCP
 
 #if KSERVER_HAS_WEBSOCKET
@@ -52,7 +52,7 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
         exit(EXIT_FAILURE);
 #else
     if (config->websock_worker_connections > 0)
-        syslog.print<SysLog::ERROR>("Websocket connections not supported\n");
+        syslog.print<ERROR>("Websocket connections not supported\n");
 #endif // KSERVER_HAS_WEBSOCKET
 
 #if KSERVER_HAS_UNIX_SOCKET
@@ -60,7 +60,7 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
         exit(EXIT_FAILURE);
 #else
     if (config->unixsock_worker_connections > 0)
-        syslog.print<SysLog::ERROR>("Unix socket connections not supported\n");
+        syslog.print<ERROR>("Unix socket connections not supported\n");
 #endif // KSERVER_HAS_UNIX_SOCKET
 }
 
@@ -126,8 +126,8 @@ int KServer::run()
         return -1;
 
     while (1) {
-        if (sig_handler.Interrupt()) {
-            syslog.print<SysLog::INFO>("Interrupt received, killing KServer ...\n");
+        if (sig_handler.interrupt() || exit_all) {
+            syslog.print<INFO>("Interrupt received, killing KServer ...\n");
             session_manager.delete_all();
             close_listeners();
             syslog.close();

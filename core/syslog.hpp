@@ -15,6 +15,19 @@
 #include <syslog.h>
 
 #include "string_utils.hpp"
+#include "pubsub.hpp"
+#include "signal_handler.hpp"
+
+/// Severity of the message
+enum severity {
+    PANIC,    ///< When KServer is not functionnal anymore
+    CRITICAL, ///< When an error results in session crash
+    ERROR,    ///< Typically when a command execution failed
+    WARNING,
+    INFO,
+    DEBUG, // Special print function for debug
+    syslog_severity_num
+};
 
 namespace kserver {
 
@@ -22,11 +35,42 @@ class KServer;
 
 #define FMT_BUFF_LEN 512
 
+static constexpr auto log_array = kserver::make_array(
+    std::make_tuple(LOG_ALERT, str_const("KSERVER PANIC")),
+    std::make_tuple(LOG_CRIT, str_const("KSERVER CRITICAL")),
+    std::make_tuple(LOG_ERR, str_const("KSERVER ERROR")),
+    std::make_tuple(LOG_WARNING, str_const("KSERVER WARNING")),
+    std::make_tuple(LOG_NOTICE, str_const("KSERVER INFO")),
+    std::make_tuple(LOG_DEBUG, str_const("KSERVER DEBUG"))
+);
+
+template<unsigned int severity>
+constexpr int to_priority = std::get<0>(std::get<severity>(log_array));
+
+template<unsigned int severity>
+constexpr str_const severity_msg = std::get<1>(std::get<severity>(log_array));
+
 struct SysLog
 {
-    SysLog(std::shared_ptr<KServerConfig> config_, KServer *kserver_)
+    template<unsigned int severity, typename... Args>
+    void print(const char *msg, Args&&... args);
+
+    template<uint16_t channel, uint16_t event, typename... Args>
+    int notify(const char *msg, Args&&... args);
+
+  private:
+    std::shared_ptr<KServerConfig> config;
+    char fmt_buffer[FMT_BUFF_LEN];
+    SignalHandler& sig_handler;
+    PubSub pubsub;
+
+  private:
+    SysLog(std::shared_ptr<KServerConfig> config_,
+           SignalHandler& sig_handler_,
+           SessionManager& sess_manager_)
     : config(config_)
-    , kserver(kserver_)
+    , sig_handler(sig_handler_)
+    , pubsub(sess_manager_)
     {
         memset(fmt_buffer, 0, FMT_BUFF_LEN);
 
@@ -48,70 +92,61 @@ struct SysLog
         }
     }
 
-    /// Severity of the message
-    enum severity {
-        PANIC,    ///< When KServer is not functionnal anymore
-        CRITICAL, ///< When an error results in session crash
-        ERROR,    ///< Typically when a command execution failed
-        WARNING,
-        INFO,
-        DEBUG, // Special print function for debug
-        syslog_severity_num
-    };
-
-    template<unsigned int severity, typename... Tp>
-    void print(const std::string& msg, Tp... args);
-
-  private:
-    std::shared_ptr<KServerConfig> config;
-    char fmt_buffer[FMT_BUFF_LEN];
-    KServer *kserver;
-
-  private:
-    // High severity (Panic, ..., Warning)
-    template<unsigned int severity, typename... Tp>
-    typename std::enable_if_t< severity <= WARNING, void >
-    print_msg(const str_const& severity_desc, const std::string& message, Tp... args) {
-        fprintf(stderr, severity_desc.to_string() + ": " + message, args...);
+    // High severity (Panic, ..., Warning) => stderr
+    template<unsigned int severity, typename... Args>
+    std::enable_if_t< severity <= WARNING, void >
+    print_msg(const char *message, Args... args) {
+        kserver::fprintf(stderr, (severity_msg<severity>.to_string() + ": " + std::string(message)).c_str(),
+                         std::forward<Args>(args)...);
     }
 
-    // Low severity (Info, Debug)
-    template<unsigned int severity, typename... Tp>
-    typename std::enable_if_t< severity >= INFO, void >
-    print_msg(const str_const& severity_desc, const std::string& message, Tp... args) {
+    // Low severity (Info, Debug) => stdout if verbose
+    template<unsigned int severity, typename... Args>
+    std::enable_if_t< severity >= INFO, void >
+    print_msg(const char *message, Args&&... args) {
         if (config->verbose)
-            printf(message, args...);
+            kserver::printf(message, std::forward<Args>(args)...);
     }
 
-    template<unsigned int severity, int priority, typename... Tp>
-    typename std::enable_if_t< severity <= INFO, void >
-    call_syslog(const std::string& message, Tp... args) {
+    template<unsigned int severity, typename... Args>
+    std::enable_if_t< severity <= INFO, void >
+    call_syslog(const char *message, Args&&... args) {
         if (config->syslog)
-            syslog<priority>(message, args...);;
+            syslog<to_priority<severity>>(message, std::forward<Args>(args)...);
     }
 
     // We don't send debug messages to the system log
-    template<unsigned int severity, int priority, typename... Tp>
-    typename std::enable_if_t< severity >= DEBUG, int >
-    call_syslog(const std::string& message, Tp... args) {
+    template<unsigned int severity, typename... Args>
+    std::enable_if_t< severity >= DEBUG, int >
+    call_syslog(const char *message, Args&&... args) {
         return 0;
     }
 
-    template<unsigned int severity, typename... Tp>
-    int __emit_error(const std::string& message, Tp... args);
-
-    template<unsigned int severity, typename... Tp>
-    typename std::enable_if_t< severity <= INFO, int >
-    emit_error(const std::string& message, Tp... args) {
-        return __emit_error<severity>(message, args...);
+    template<unsigned int severity, typename... Args>
+    std::enable_if_t< severity <= INFO, int >
+    emit_error(const char *message, Args&&... args) {
+        return notify<PubSub::SYSLOG_CHANNEL, severity>(message, std::forward<Args>(args)...);
     }
 
-    template<unsigned int severity, typename... Tp>
-    typename std::enable_if_t< severity >= DEBUG, int >
-    emit_error(const std::string& message, Tp... args) {
+    template<unsigned int severity, typename... Args>
+    std::enable_if_t< severity >= DEBUG, int >
+    emit_error(const char *message, Args... args) {
         return 0;
     }
+
+friend class KServer;
+friend class SessionManager;
 };
+
+template<unsigned int severity, typename... Args>
+void SysLog::print(const char *msg, Args&&... args)
+{
+    static_assert(severity <= syslog_severity_num, "Invalid logging level");
+
+    print_msg<severity>(msg, std::forward<Args>(args)...);
+    call_syslog<severity>(msg, std::forward<Args>(args)...);
+    emit_error<severity>(msg, std::forward<Args>(args)...);
+}
 
 } // namespace kserver
 

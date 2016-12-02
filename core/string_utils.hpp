@@ -14,55 +14,55 @@ namespace kserver {
 // -------------------------------------------------------------------------
 
 // printf
-template<typename... Tp>
-typename std::enable_if_t< 0 < sizeof...(Tp), void >
-printf(const std::string& fmt, Tp... args) {
-    std::printf(fmt.c_str(), args...);
+template<typename... Args>
+typename std::enable_if_t< 0 < sizeof...(Args), void >
+printf(const char *fmt, Args&&... args) {
+    std::printf(fmt, std::forward<Args>(args)...);
 }
 
-template<typename... Tp>
-typename std::enable_if_t< 0 == sizeof...(Tp), void >
-printf(const std::string& fmt, Tp... args) {
-    std::printf("%s", fmt.c_str());
+template<typename... Args>
+typename std::enable_if_t< 0 == sizeof...(Args), void >
+printf(const char *fmt, Args&&... args) {
+    std::printf("%s", fmt);
 }
 
 // fprintf
-template<typename... Tp>
-typename std::enable_if_t< 0 < sizeof...(Tp), void >
-fprintf(FILE *stream, const std::string& fmt, Tp... args) {
-    std::fprintf(stream, fmt.c_str(), args...);
+template<typename... Args>
+typename std::enable_if_t< 0 < sizeof...(Args), void >
+fprintf(FILE *stream, const char *fmt, Args&&... args) {
+    std::fprintf(stream, fmt, std::forward<Args>(args)...);
 }
 
-template<typename... Tp>
-typename std::enable_if_t< 0 == sizeof...(Tp), void >
-fprintf(FILE *stream, const std::string& fmt, Tp... args) {
-    std::fprintf(stream, "%s", fmt.c_str());
+template<typename... Args>
+typename std::enable_if_t< 0 == sizeof...(Args), void >
+fprintf(FILE *stream, const char *fmt, Args&&... args) {
+    std::fprintf(stream, "%s", fmt);
 }
 
 // snprintf
-template<typename... Tp>
-typename std::enable_if_t< 0 < sizeof...(Tp), int >
-snprintf(char *s, size_t n, const std::string& fmt, Tp... args) {
-    return std::snprintf(s, n, fmt.c_str(), args...);
+template<typename... Args>
+typename std::enable_if_t< 0 < sizeof...(Args), int >
+snprintf(char *s, size_t n, const char *fmt, Args&&... args) {
+    return std::snprintf(s, n, fmt, std::forward<Args>(args)...);
 }
 
-template<typename... Tp>
-typename std::enable_if_t< 0 == sizeof...(Tp), int >
-snprintf(char *s, size_t n, const std::string& fmt, Tp... args) {
-    return std::snprintf(s, n, "%s", fmt.c_str());
+template<typename... Args>
+typename std::enable_if_t< 0 == sizeof...(Args), int >
+snprintf(char *s, size_t n, const char *fmt, Args&&... args) {
+    return std::snprintf(s, n, "%s", fmt);
 }
 
 // syslog
-template<int priority, typename... Tp>
-typename std::enable_if_t< 0 < sizeof...(Tp), void >
-syslog(const std::string& fmt, Tp... args) {
-    ::syslog(priority, fmt.c_str(), args...);
+template<int priority, typename... Args>
+typename std::enable_if_t< 0 < sizeof...(Args), void >
+syslog(const char *fmt, Args&&... args) {
+    ::syslog(priority, fmt, std::forward<Args>(args)...);
 }
 
-template<int priority, typename... Tp>
-typename std::enable_if_t< 0 == sizeof...(Tp), void >
-syslog(const std::string& fmt, Tp... args) {
-    ::syslog(priority, "%s", fmt.c_str());
+template<int priority, typename... Args>
+typename std::enable_if_t< 0 == sizeof...(Args), void >
+syslog(const char *fmt, Args&&... args) {
+    ::syslog(priority, "%s", fmt);
 }
 
 // -------------------------------------------------------------------------
@@ -91,6 +91,12 @@ class str_const { // constexpr string
 
     std::string to_string() const {return std::string(p_);}
 };
+
+template<class T, class... Tail, class Elem = typename std::decay<T>::type>
+constexpr std::array<Elem,1+sizeof...(Tail)> make_array(T&& head, Tail&&... values)
+{
+  return { std::forward<T>(head), std::forward<Tail>(values)... };
+}
 
 } // namespace kserver
 

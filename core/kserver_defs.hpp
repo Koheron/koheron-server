@@ -73,29 +73,6 @@ namespace kserver {
 #define KSERVER_SYSLOG_UPTO LOG_NOTICE
 
 // ------------------------------------------
-// Permissions
-// ------------------------------------------
-
-/// Default permission for writing into a device
-#define DFLT_WRITE_PERM true
-
-/// Default permission for reading from a device
-#define DFLT_READ_PERM  true
-
-/// Write permission default policy
-/// NONE: It's the war ! Users can write all together ... Not advisable
-/// FCFS: First Come First Served 
-///       --> The first connected user has write access to the devices
-/// LCFS: Last Come First Served
-///       --> The last connected user has write access to the devices
-#define DFLT_WRITE_PERM_POLICY LCFS
-
-/// Allowed memory region for memory mapping
-/// By default set to 0x0, that is no limitation
-#define DFLT_ADDR_LIMIT_DOWN 0x0
-#define DFLT_ADDR_LIMIT_UP   0x0
-
-// ------------------------------------------
 // Buffer sizes
 // ------------------------------------------
 
