@@ -33,8 +33,6 @@ namespace kserver {
 
 class KServer;
 
-#define FMT_BUFF_LEN 512
-
 static constexpr auto log_array = kserver::make_array(
     std::make_tuple(LOG_ALERT, str_const("KSERVER PANIC")),
     std::make_tuple(LOG_CRIT, str_const("KSERVER CRITICAL")),
@@ -60,7 +58,6 @@ struct SysLog
 
   private:
     std::shared_ptr<KServerConfig> config;
-    char fmt_buffer[FMT_BUFF_LEN];
     SignalHandler& sig_handler;
     PubSub pubsub;
 
@@ -72,8 +69,6 @@ struct SysLog
     , sig_handler(sig_handler_)
     , pubsub(sess_manager_)
     {
-        memset(fmt_buffer, 0, FMT_BUFF_LEN);
-
         if (config->syslog) {
             setlogmask(LOG_UPTO(KSERVER_SYSLOG_UPTO));
             openlog("KServer", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);

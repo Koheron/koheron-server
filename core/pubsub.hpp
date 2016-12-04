@@ -63,7 +63,9 @@ class PubSub
   public:
     PubSub(SessionManager& session_manager_)
     : session_manager(session_manager_)
-    {}
+    {
+        memset(fmt_buffer, 0, FMT_BUFF_LEN);
+    }
 
     // Session sid subscribes to a channel
     int subscribe(uint16_t channel, SessID sid) {
@@ -81,8 +83,8 @@ class PubSub
     template<uint16_t channel, uint16_t event, typename... Tp>
     void emit(Tp&&... args);
 
-    template<uint16_t channel, uint16_t event>
-    void emit_cstr(const char *str);
+    template<uint16_t channel, uint16_t event, typename... Args>
+    int emit_cstr(const char *str, Args&&... args);
 
     enum Channels {
         SERVER_CHANNEL,        ///< Server events
@@ -100,6 +102,9 @@ class PubSub
   private:
     SessionManager& session_manager;
     Subscribers<channels_count> subscribers;
+
+    static constexpr int32_t FMT_BUFF_LEN = 512;
+    char fmt_buffer[FMT_BUFF_LEN];
 };
 
 } // namespace kserver

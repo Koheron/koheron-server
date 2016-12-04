@@ -24,15 +24,30 @@ inline void PubSub::emit(Tp&&... args)
         );
 }
 
-template<uint16_t channel, uint16_t event>
-inline void PubSub::emit_cstr(const char *str)
+template<uint16_t channel, uint16_t event, typename... Args>
+inline int PubSub::emit_cstr(const char *str, Args&&... args)
 {
     static_assert(channel < channels_count, "Invalid channel");
 
+    int ret = kserver::snprintf(fmt_buffer, FMT_BUFF_LEN, str,
+                                std::forward<Args>(args)...);
+
+    if (unlikely(ret < 0)) {
+        fprintf(stderr, "emit_error: Format error\n");
+        return -1;
+    }
+
+    if (unlikely(ret >= FMT_BUFF_LEN)) {
+        fprintf(stderr, "emit_error: Buffer fmt_buffer overflow\n");
+        return -1;
+    }
+
     if (subscribers.count(channel) > 0) {
         for (auto const& sid : subscribers.get(channel))
-            session_manager.get_session(sid).send<channel, event>(str);
+            session_manager.get_session(sid).send<channel, event>(fmt_buffer);
     }
+
+    return 0;
 }
 
 } // namespace kserver
