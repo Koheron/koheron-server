@@ -18,8 +18,8 @@ inline void PubSub::emit(Tp&&... args)
 {
     static_assert(channel < channels_count, "Invalid channel");
 
-    for (auto const& sid : subscribers.get(channel))
-        session_manager.get_session(sid).send<channel, event>(
+    for (auto const& sid : subscribers.get<channel>())
+        session_manager.get_session(sid).template send<channel, event>(
             std::make_tuple(std::forward<Tp>(args)...)
         );
 }
@@ -42,9 +42,9 @@ inline int PubSub::emit_cstr(const char *str, Args&&... args)
         return -1;
     }
 
-    if (subscribers.count(channel) > 0) {
-        for (auto const& sid : subscribers.get(channel))
-            session_manager.get_session(sid).send<channel, event>(fmt_buffer);
+    if (subscribers.count<channel>() > 0) {
+        for (auto const& sid : subscribers.get<channel>())
+            session_manager.get_session(sid).template send<channel, event>(fmt_buffer);
     }
 
     return 0;

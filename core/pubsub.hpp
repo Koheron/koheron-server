@@ -23,8 +23,14 @@ namespace kserver {
 template<size_t channels_count>
 struct Subscribers
 {
-    const std::vector<SessID>& get(uint16_t channel) const {
-        return _subscribers[channel];
+    template<uint16_t channel>
+    const auto& get() const {
+        return std::get<channel>(_subscribers);
+    }
+
+    template<uint16_t channel>
+    int count() const {
+        return get<channel>().size();
     }
 
     int subscribe(uint16_t channel, SessID sid) {
@@ -46,10 +52,6 @@ struct Subscribers
                 s.pop_back();
             }
         }
-    }
-
-    int count(uint16_t channel) const {
-        return _subscribers[channel].size();
     }
 
   private:
