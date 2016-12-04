@@ -17,6 +17,7 @@
 #endif
 
 #include "kserver_defs.hpp"
+#include "signal_handler.hpp"
 
 namespace kserver {
 
@@ -63,8 +64,10 @@ class SessionManager;
 class PubSub
 {
   public:
-    PubSub(SessionManager& session_manager_)
+    PubSub(SessionManager& session_manager_,
+           SignalHandler& sig_handler_)
     : session_manager(session_manager_)
+    , sig_handler(sig_handler_)
     {
         memset(fmt_buffer, 0, FMT_BUFF_LEN);
     }
@@ -103,6 +106,7 @@ class PubSub
 
   private:
     SessionManager& session_manager;
+    SignalHandler& sig_handler;
     Subscribers<channels_count> subscribers;
 
     static constexpr int32_t FMT_BUFF_LEN = 512;

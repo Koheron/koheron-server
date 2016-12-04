@@ -29,6 +29,10 @@ inline int PubSub::emit_cstr(const char *str, Args&&... args)
 {
     static_assert(channel < channels_count, "Invalid channel");
 
+    // We don't emit if connections are closed
+    if (sig_handler.interrupt())
+        return 0;
+
     int ret = kserver::snprintf(fmt_buffer, FMT_BUFF_LEN, str,
                                 std::forward<Args>(args)...);
 

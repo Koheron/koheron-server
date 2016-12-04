@@ -16,7 +16,6 @@
 
 #include "string_utils.hpp"
 #include "pubsub.hpp"
-#include "signal_handler.hpp"
 
 /// Severity of the message
 enum severity {
@@ -58,7 +57,6 @@ struct SysLog
 
   private:
     std::shared_ptr<KServerConfig> config;
-    SignalHandler& sig_handler;
     PubSub pubsub;
 
   private:
@@ -66,8 +64,7 @@ struct SysLog
            SignalHandler& sig_handler_,
            SessionManager& sess_manager_)
     : config(config_)
-    , sig_handler(sig_handler_)
-    , pubsub(sess_manager_)
+    , pubsub(sess_manager_, sig_handler_)
     {
         if (config->syslog) {
             setlogmask(LOG_UPTO(KSERVER_SYSLOG_UPTO));
