@@ -38,7 +38,15 @@ struct Subscribers
         if (channel >= channels_count)
             return -1;
 
-        _subscribers[channel].push_back(sid);
+        // Check whether session hasn't already
+        // subscribed before adding to subscribers.
+
+        auto& s = _subscribers[channel];
+        auto it = std::find(s.begin(), s.end(), sid);
+
+        if (it == s.end())
+            s.push_back(sid);
+
         return 0;
     }
 
@@ -110,7 +118,7 @@ class PubSub
     SignalHandler& sig_handler;
     Subscribers<channels_count> subscribers;
 
-    static constexpr int32_t FMT_BUFF_LEN = 512;
+    static constexpr int32_t FMT_BUFF_LEN = 1024;
     char fmt_buffer[FMT_BUFF_LEN];
 };
 
