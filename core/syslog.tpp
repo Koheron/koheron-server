@@ -11,8 +11,8 @@
 namespace kserver {
 
 template<uint16_t channel, uint16_t event, typename... Args>
-inline int SysLog::notify(const char *message, Args&&... args) {
-    return pubsub.emit_cstr<channel, event>(message, std::forward<Args>(args)...);
+inline int SysLog::notify(Args&&... args) {
+    return pubsub.emit<channel, event>(std::forward<Args>(args)...);
 }
 
 } // namespace kserver

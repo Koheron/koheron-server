@@ -36,9 +36,9 @@ class Context {
     }
 
     template<class Dev, typename... Args>
-    int notify(const char *msg, Args&&... args) {
+    int notify(Args&&... args) {
         return syslog.notify<kserver::PubSub::DEVICES_CHANNEL,
-                             dev_id_of<Dev>>(msg, std::forward<Args>(args)...);
+                             dev_id_of<Dev>>(std::forward<Args>(args)...);
     }
 
   private:

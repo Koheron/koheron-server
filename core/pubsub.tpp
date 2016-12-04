@@ -6,26 +6,32 @@
 #include "pubsub.hpp"
 #include "kserver_session.hpp"
 
-#if KSERVER_HAS_THREADS
-#  include <thread>
-#  include <mutex>
-#endif
-
 namespace kserver {
 
-template<uint16_t channel, uint16_t event, typename... Tp>
-inline void PubSub::emit(Tp&&... args)
+template<uint16_t channel, uint16_t event, typename... Args>
+inline int PubSub::emit(Args&&... args)
 {
     static_assert(channel < channels_count, "Invalid channel");
 
-    for (auto const& sid : subscribers.get<channel>())
-        session_manager.get_session(sid).template send<channel, event>(
-            std::make_tuple(std::forward<Tp>(args)...)
-        );
+    // We don't emit if connections are closed
+    if (sig_handler.interrupt())
+        return 0;
+
+    int err = 0;
+
+    for (auto const& sid : subscribers.get<channel>()) {
+        int r = session_manager.get_session(sid)
+                    .template send<channel, event>(std::forward<Args>(args)...);
+
+        if (unlikely(r < 0))
+            err = r;
+    }
+
+    return err;
 }
 
 template<uint16_t channel, uint16_t event, typename... Args>
-inline int PubSub::emit_cstr(const char *str, Args&&... args)
+inline int PubSub::emit(const char *str, Args&&... args)
 {
     static_assert(channel < channels_count, "Invalid channel");
 
@@ -46,12 +52,19 @@ inline int PubSub::emit_cstr(const char *str, Args&&... args)
         return -1;
     }
 
+    int err = 0;
+
     if (subscribers.count<channel>() > 0) {
-        for (auto const& sid : subscribers.get<channel>())
-            session_manager.get_session(sid).template send<channel, event>(fmt_buffer);
+        for (auto const& sid : subscribers.get<channel>()) {
+            int r = session_manager.get_session(sid)
+                        .template send<channel, event>(fmt_buffer);
+
+            if (unlikely(r < 0))
+                err = r;
+        }
     }
 
-    return 0;
+    return err;
 }
 
 } // namespace kserver

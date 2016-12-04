@@ -53,7 +53,7 @@ struct SysLog
     void print(const char *msg, Args&&... args);
 
     template<uint16_t channel, uint16_t event, typename... Args>
-    int notify(const char *msg, Args&&... args);
+    int notify(Args&&... args);
 
   private:
     std::shared_ptr<KServerConfig> config;

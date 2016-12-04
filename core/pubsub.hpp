@@ -85,11 +85,12 @@ class PubSub
     // Event message structure
     // |      RESERVED     | CHANNEL |  EVENT  |   Arguments
     // |  0 |  1 |  2 |  3 |  4 |  5 |  8 |  9 | 12 | 13 | 14 | ...
-    template<uint16_t channel, uint16_t event, typename... Tp>
-    void emit(Tp&&... args);
-
     template<uint16_t channel, uint16_t event, typename... Args>
-    int emit_cstr(const char *str, Args&&... args);
+    int emit(Args&&... args);
+
+    // This specialization emits a formated string
+    template<uint16_t channel, uint16_t event, typename... Args>
+    int emit(const char *str, Args&&... args);
 
     enum Channels {
         SERVER_CHANNEL,        ///< Server events
