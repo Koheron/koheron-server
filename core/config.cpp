@@ -17,14 +17,18 @@ KServerConfig::KServerConfig()
   tcp_nodelay(false),
   syslog(false),
   daemon(true),
+  notify_systemd(false),
   tcp_port(TCP_DFLT_PORT),
   tcp_worker_connections(DFLT_WORKER_CONNECTIONS),
   websock_port(WEBSOCKET_DFLT_PORT),
   websock_worker_connections(DFLT_WORKER_CONNECTIONS),
   unixsock_worker_connections(DFLT_WORKER_CONNECTIONS)
 {
-   memset(unixsock_path, 0, UNIX_SOCKET_PATH_LEN);
-   strcpy(unixsock_path, DFLT_UNIX_SOCK_PATH);
+    memset(unixsock_path, 0, UNIX_SOCKET_PATH_LEN);
+    strcpy(unixsock_path, DFLT_UNIX_SOCK_PATH);
+
+    memset(notify_socket, 0, UNIX_SOCKET_PATH_LEN);
+    strcpy(notify_socket, DFLT_NOTIFY_SOCKET);
 }
 
 char* KServerConfig::_get_source(char *filename)
@@ -66,43 +70,31 @@ int is_on(JsonValue value)
         return -1;
 }
 
-int KServerConfig::_read_verbose(JsonValue value)
-{
-    int status = is_on(value);
-
-    if (status < 0) {
-        fprintf(stderr, "Invalid field verbose\n");
-        return -1;
-    }
-
-    verbose = status;
+#define READ_BOOL(name)                               \
+    int status = is_on(value);                        \
+                                                      \
+    if (status < 0) {                                 \
+        fprintf(stderr, "Invalid field " #name "\n"); \
+        return -1;                                    \
+    }                                                 \
+                                                      \
+    name = status;                                    \
     return 0;
+
+int KServerConfig::_read_verbose(JsonValue value) {
+    READ_BOOL(verbose)
 }
 
-int KServerConfig::_read_tcp_nodelay(JsonValue value)
-{
-    int status = is_on(value);
-
-    if (status < 0) {
-        fprintf(stderr, "Invalid field tcp_nodelay\n");
-        return -1;
-    }
-
-    tcp_nodelay = status;
-    return 0;
+int KServerConfig::_read_tcp_nodelay(JsonValue value) {
+    READ_BOOL(tcp_nodelay)
 }
 
-int KServerConfig::_read_daemon(JsonValue value)
-{
-    int status = is_on(value);
+int KServerConfig::_read_daemon(JsonValue value) {
+    READ_BOOL(daemon)
+}
 
-    if (status < 0) {
-        fprintf(stderr, "Invalid field daemon\n");
-        return -1;
-    }
-
-    daemon = status;
-    return 0;
+int KServerConfig::_read_notify_systemd(JsonValue value) {
+    READ_BOOL(notify_systemd)
 }
 
 int KServerConfig::_read_log(JsonValue value)
@@ -156,7 +148,7 @@ int KServerConfig::_read_server(JsonValue value, server_t serv_type)
             }
         }
         else if(strcmp (i->key, "path") == 0) {
-            if(serv_type != UNIXSOCK_SERVER) {
+            if (serv_type != UNIXSOCK_SERVER) {
                 fprintf(stderr, "Field path only valid for Unix socket\n");
                 return -1;
             }
@@ -166,7 +158,6 @@ int KServerConfig::_read_server(JsonValue value, server_t serv_type)
                 return -1;
             }
 
-            memset(unixsock_path, 0, UNIX_SOCKET_PATH_LEN);
             strcpy(unixsock_path, i->value.toString());
         }        
         else if (strcmp(i->key, "worker_connections") == 0) {
@@ -224,13 +215,15 @@ void KServerConfig::_check_config()
 #define TEST_KEY(key_name)          \
     strcmp(i->key, key_name) == 0
 
-#define IS_VERBOSE      TEST_KEY("verbose")
-#define IS_TCP_NODELAY  TEST_KEY("tcp_nodelay")
-#define IS_DAEMON       TEST_KEY("daemon")
-#define IS_LOGS         TEST_KEY("logs")
-#define IS_TCP          TEST_KEY("TCP")
-#define IS_WEBSOCKET    TEST_KEY("websocket")
-#define IS_UNIX         TEST_KEY("unix")
+#define IS_VERBOSE         TEST_KEY("verbose")
+#define IS_TCP_NODELAY     TEST_KEY("tcp_nodelay")
+#define IS_DAEMON          TEST_KEY("daemon")
+#define IS_NOTIFY_SYSTEMD  TEST_KEY("notify-systemd")
+#define IS_NOTIFY_SOCKET   TEST_KEY("notify-socket")
+#define IS_LOGS            TEST_KEY("logs")
+#define IS_TCP             TEST_KEY("TCP")
+#define IS_WEBSOCKET       TEST_KEY("websocket")
+#define IS_UNIX            TEST_KEY("unix")
 
 int KServerConfig::load_file(char *filename)
 {
@@ -269,6 +262,18 @@ int KServerConfig::load_file(char *filename)
             if (_read_daemon(i->value) < 0)
                 return -1;
         }
+        else if (IS_NOTIFY_SYSTEMD) {
+            if (_read_notify_systemd(i->value) < 0)
+                return -1;
+        }
+        else if (IS_NOTIFY_SOCKET) {
+            if (i->value.getTag() != JSON_STRING) {
+                fprintf(stderr, "Invalid value in field notify-socket\n");
+                return -1;
+            }
+
+            strcpy(notify_socket, i->value.toString());
+        }
         else if (IS_LOGS) {
             if (_read_log(i->value) < 0)
                 return -1;
@@ -304,7 +309,9 @@ void KServerConfig::show()
     printf("  KServer config  \n");
     printf("==================\n\n");
 
-    printf("Verbose: %s\n\n", verbose ? "ON": "OFF");
+    printf("Verbose: %s\n", verbose ? "ON": "OFF");
+    printf("Notify systemd: %s\n", notify_systemd ? "ON": "OFF");
+    printf("Systemd notification socket: %s\n", notify_socket);
     printf("System log: %s\n\n", syslog ? "ON": "OFF");
 
     printf("TCP listen: %u\n", tcp_port);
@@ -312,6 +319,9 @@ void KServerConfig::show()
 
     printf("Websocket listen: %u\n", websock_port);
     printf("Websocket workers: %u\n\n", websock_worker_connections);
+
+    printf("Unix socket path: %s\n", unixsock_path);
+    printf("Unix socket workers: %u\n\n", unixsock_worker_connections);
 }
 
 } // namespace kserver

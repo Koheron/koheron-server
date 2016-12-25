@@ -42,6 +42,12 @@ struct KServerConfig
     /// Run KServer as a daemon if true
     bool daemon;
 
+    /// Notify systemd when server ready
+    bool notify_systemd;
+
+    /// Notification socket for systemd
+    char notify_socket[UNIX_SOCKET_PATH_LEN];
+
     /// TCP listening port
     unsigned int tcp_port;
     /// TCP max parallel connections
@@ -66,6 +72,7 @@ struct KServerConfig
     int _read_verbose(JsonValue value);
     int _read_tcp_nodelay(JsonValue value);
     int _read_daemon(JsonValue value);
+    int _read_notify_systemd(JsonValue value);
     int _read_log(JsonValue value);
     int _read_server(JsonValue value, server_t serv_type);
     int _read_tcp(JsonValue value);

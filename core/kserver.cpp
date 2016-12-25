@@ -118,7 +118,8 @@ void KServer::join_listeners_workers()
 #endif
 }
 
-bool KServer::is_ready() {
+bool KServer::is_ready()
+{
     bool ready = true;
 
 #if KSERVER_HAS_TCP
@@ -137,6 +138,15 @@ bool KServer::is_ready() {
     return ready;
 }
 
+#if KSERVER_HAS_SYSTEMD
+    // https://github.com/unbit/uwsgi/blob/master/core/notify.c
+
+    void KServer::notify_systemd_ready()
+    {
+        
+    }
+#endif
+
 int KServer::run()
 {
     bool ready_notified = false;
@@ -149,7 +159,8 @@ int KServer::run()
         if (!ready_notified && is_ready()) {
             syslog.print<INFO>("Koheron server ready\n");
 #if KSERVER_HAS_SYSTEMD
-            // TODO notify systemd
+        if (config->notify_systemd)
+            notify_systemd_ready();
 #endif
             ready_notified = true;
         }

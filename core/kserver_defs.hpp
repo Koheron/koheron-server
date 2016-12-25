@@ -35,6 +35,9 @@ namespace kserver {
 /// Enable Unix sockets
 #define KSERVER_HAS_UNIX_SOCKET 1
 
+/// Systemd notification socket
+#define DFLT_NOTIFY_SOCKET "/run/systemd/notify"
+
 /// Default number of parallel sessions per server
 #define DFLT_WORKER_CONNECTIONS 10
 
