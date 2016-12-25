@@ -9,9 +9,9 @@ dependencies:
     - pip install -r requirements.txt
     - make __PYTHON=python tmp/koheron-python
     - if [ ! -e venv/py2 ]; then \
-          make -C tmp/koheron-python PY2_VENV=../../venv/py2 PY3_VENV=../../venv/py3 ../../venv/py2 ../../venv/py3; \
-          venv/py2/bin/pip install numpy==1.11.1 pytest; \
-          venv/py3/bin/pip3 install numpy==1.11.1 pytest;
+          make -C tmp/koheron-python PY2_VENV=../../venv/py2 PY3_VENV=../../venv/py3 ../../venv/py2 ../../venv/py3 \
+          venv/py2/bin/pip install numpy==1.11.1 pytest \
+          venv/py3/bin/pip3 install numpy==1.11.1 pytest
       fi
     - sudo bash -c "echo deb http://fr.archive.ubuntu.com/ubuntu/ wily main >> /etc/apt/sources.list"
     - sudo bash -c "echo deb-src http://fr.archive.ubuntu.com/ubuntu/ wily main >> /etc/apt/sources.list"
