@@ -9,8 +9,8 @@ dependencies:
     - pip install -r requirements.txt
     - make __PYTHON=python tmp/koheron-python
     - if [ ! -e venv/py2 ]; then make -C tmp/koheron-python PY2_VENV=../../venv/py2 PY3_VENV=../../venv/py3 ../../venv/py2 ../../venv/py3; else echo "Venv seems to be cached"; fi
-    - if [ ! -e venv/py2 ]; then ../../venv/py2/bin/pip install numpy==1.11.1 pytest; fi
-    - if [ ! -e venv/py3 ]; then ../../venv/py3/bin/pip3 install numpy==1.11.1 pytest; fi
+    - if [ ! -e venv/py2 ]; then venv/py2/bin/pip install numpy==1.11.1 pytest; fi
+    - if [ ! -e venv/py3 ]; then venv/py3/bin/pip3 install numpy==1.11.1 pytest; fi
     - sudo bash -c "echo deb http://fr.archive.ubuntu.com/ubuntu/ wily main >> /etc/apt/sources.list"
     - sudo bash -c "echo deb-src http://fr.archive.ubuntu.com/ubuntu/ wily main >> /etc/apt/sources.list"
     - sudo apt-get update; sudo apt-get install gcc-5 g++-5 gcc-5-arm-linux-gnueabihf g++-5-arm-linux-gnueabihf
@@ -18,7 +18,6 @@ dependencies:
     - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 100
     - sudo ln -s /usr/bin/arm-linux-gnueabihf-gcc-5 /usr/bin/arm-linux-gnueabihf-gcc
     - sudo ln -s /usr/bin/arm-linux-gnueabihf-g++-5 /usr/bin/arm-linux-gnueabihf-g++
-    - sudo apt-get install -y libsystemd-dev
 
 test:
   pre:
