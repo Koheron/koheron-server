@@ -82,7 +82,7 @@ CXXFLAGS=$(CFLAGS) -std=c++14 -pthread
 # Libraries
 # --------------------------------------------------------------
 
-LIBS = -lm -lsystemd # -lpthread -lssl -lcrypto
+LIBS = -lm # -lpthread -lssl -lcrypto
 
 .PHONY: all debug
 

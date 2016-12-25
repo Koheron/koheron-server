@@ -162,6 +162,8 @@ void session_thread_call(int comm_fd, ListeningChannel<sock_type> *listener)
 template<int sock_type>
 void comm_thread_call(ListeningChannel<sock_type> *listener)
 {
+    listener->is_ready = true;
+
     while (!listener->kserver->exit_comm.load()) {
         int comm_fd = listener->open_communication();
 

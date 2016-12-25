@@ -6,10 +6,6 @@
 
 #include <chrono>
 
-#if KSERVER_HAS_SYSTEMD
-#include <systemd/sd-daemon.h>
-#endif
-
 #include "commands.hpp"
 #include "kserver_session.hpp"
 #include "session_manager.hpp"
@@ -122,21 +118,44 @@ void KServer::join_listeners_workers()
 #endif
 }
 
+bool KServer::is_ready() {
+    bool ready = true;
+
+#if KSERVER_HAS_TCP
+    if (config->tcp_worker_connections > 0)
+        ready = ready && tcp_listener.is_ready;
+#endif
+#if KSERVER_HAS_WEBSOCKET
+    if (config->websock_worker_connections > 0)
+        ready = ready && websock_listener.is_ready;
+#endif
+#if KSERVER_HAS_UNIX_SOCKET
+    if (config->unixsock_worker_connections > 0)
+        ready = ready && unix_listener.is_ready;
+#endif
+
+    return ready;
+}
+
 int KServer::run()
 {
+    bool ready_notified = false;
     start_time = std::time(nullptr);
 
     if (start_listeners_workers() < 0)
         return -1;
 
-// XXX Not sure the listeners are really started here...
-#if KSERVER_HAS_SYSTEMD
-    sd_notify (0, "READY=1");
-#endif
-
     while (1) {
+        if (!ready_notified && is_ready()) {
+            syslog.print<INFO>("Koheron server ready\n");
+#if KSERVER_HAS_SYSTEMD
+            // TODO notify systemd
+#endif
+            ready_notified = true;
+        }
+
         if (sig_handler.interrupt() || exit_all) {
-            syslog.print<INFO>("Interrupt received, killing KServer ...\n");
+            syslog.print<INFO>("Interrupt received, killing Koheron server ...\n");
             session_manager.delete_all();
             close_listeners();
             syslog.close();
