@@ -143,10 +143,16 @@ bool KServer::is_ready()
 }
 
 #if KSERVER_HAS_SYSTEMD
-// https://github.com/unbit/uwsgi/blob/master/core/notify.c
-
 void KServer::notify_systemd_ready()
 {
+
+    /// TV (26/12/2016)
+    /// Could also call sd_notify directly but did not find an
+    /// easy way to cross-compile and link with libsystemd for armhf.
+    ///
+    /// So we call directly the notification socket as uwsgi does:
+    /// https://github.com/unbit/uwsgi/blob/master/core/notify.c
+
     struct sockaddr_un sd_sun;
     struct msghdr msg;
     struct iovec *_iovec;
@@ -206,8 +212,8 @@ int KServer::run()
         if (!ready_notified && is_ready()) {
             syslog.print<INFO>("Koheron server ready\n");
 #if KSERVER_HAS_SYSTEMD
-        if (config->notify_systemd)
-            notify_systemd_ready();
+            if (config->notify_systemd)
+                notify_systemd_ready();
 #endif
             ready_notified = true;
         }
