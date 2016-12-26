@@ -11,6 +11,10 @@
 #include "session_manager.hpp"
 #include "syslog.tpp"
 
+extern "C" {
+  #include <sys/un.h>
+}
+
 namespace kserver {
 
 KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
@@ -139,12 +143,55 @@ bool KServer::is_ready()
 }
 
 #if KSERVER_HAS_SYSTEMD
-    // https://github.com/unbit/uwsgi/blob/master/core/notify.c
+// https://github.com/unbit/uwsgi/blob/master/core/notify.c
 
-    void KServer::notify_systemd_ready()
-    {
-        
+void KServer::notify_systemd_ready()
+{
+    struct sockaddr_un sd_sun;
+    struct msghdr msg;
+    struct iovec *_iovec;
+
+    int sd_notif_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
+
+    if (sd_notif_fd < 0) {
+        syslog.print<WARNING>("Cannot open notification socket\n");
+        return;
     }
+
+    memset(&sd_sun, 0, sizeof(struct sockaddr_un));
+    sd_sun.sun_family = AF_UNIX;
+    strcpy(sd_sun.sun_path, config->notify_socket);
+    int len = strlen(sd_sun.sun_path) + sizeof(sd_sun.sun_family);
+
+    if (connect(sd_notif_fd, (struct sockaddr *)&sd_sun, len) == -1) {
+        syslog.print<WARNING>("Cannot connect to notification socket\n");
+        goto exit_notification_socket;
+    }
+
+    memset(&msg, 0, sizeof(struct msghdr));
+    _iovec = msg.msg_iov;
+    _iovec = (struct iovec*)malloc(sizeof(struct iovec) * 3);
+    memset(_iovec, 0, sizeof(struct iovec) * 3);
+    msg.msg_name = (void*)&sd_sun;
+    msg.msg_namelen = sizeof(struct sockaddr_un)
+            - (sizeof(sd_sun.sun_path) - strlen(config->notify_socket));
+    _iovec[0].iov_base = const_cast<void*>(reinterpret_cast<const void*>(
+                            "STATUS=Koheron server is ready\nREADY=1\n"));
+    _iovec[0].iov_len = 39;
+    msg.msg_iovlen = 1;
+
+    if (sendmsg(sd_notif_fd, &msg, 0) < 0) {
+        syslog.print<WARNING>("Cannot send notification to systemd\n");
+    }
+
+    free(_iovec);
+
+exit_notification_socket:
+    if (::shutdown(sd_notif_fd, SHUT_RDWR) < 0)
+        syslog.print<WARNING>("Cannot shutdown notification socket\n");
+
+    close(sd_notif_fd);
+}
 #endif
 
 int KServer::run()

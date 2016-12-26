@@ -337,6 +337,7 @@ int create_unix_listening(const char *unix_sock_path, SysLog *syslog)
         return -1;
     }
 
+    memset(&local, 0, sizeof(struct sockaddr_un));
     local.sun_family = AF_UNIX;
     strcpy(local.sun_path, unix_sock_path);
     unlink(local.sun_path);
