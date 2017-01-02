@@ -162,6 +162,8 @@ void session_thread_call(int comm_fd, ListeningChannel<sock_type> *listener)
 template<int sock_type>
 void comm_thread_call(ListeningChannel<sock_type> *listener)
 {
+    listener->is_ready = true;
+
     while (!listener->kserver->exit_comm.load()) {
         int comm_fd = listener->open_communication();
 
@@ -335,6 +337,7 @@ int create_unix_listening(const char *unix_sock_path, SysLog *syslog)
         return -1;
     }
 
+    memset(&local, 0, sizeof(struct sockaddr_un));
     local.sun_family = AF_UNIX;
     strcpy(local.sun_path, unix_sock_path);
     unlink(local.sun_path);
