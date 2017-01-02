@@ -143,6 +143,9 @@ bool KServer::is_ready()
 }
 
 #if KSERVER_HAS_SYSTEMD
+
+#define UMIN(a, b) ((a) < (b) ? (a) : (b))
+
 void KServer::notify_systemd_ready()
 {
 
@@ -155,48 +158,45 @@ void KServer::notify_systemd_ready()
 
     struct sockaddr_un sd_sun;
     struct msghdr msg;
-    struct iovec *_iovec;
+    const char *state;
 
-    int sd_notif_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
+    int sd_notif_fd = socket(AF_UNIX, SOCK_DGRAM|SOCK_CLOEXEC, 0);
 
     if (sd_notif_fd < 0) {
         syslog.print<WARNING>("Cannot open notification socket\n");
         return;
     }
 
+    int len = strlen(config->notify_socket);
     memset(&sd_sun, 0, sizeof(struct sockaddr_un));
     sd_sun.sun_family = AF_UNIX;
-    strcpy(sd_sun.sun_path, config->notify_socket);
-    int len = strlen(sd_sun.sun_path) + sizeof(sd_sun.sun_family);
+    strncpy(sd_sun.sun_path, config->notify_socket, UMIN(len, (int)sizeof(sd_sun.sun_path)));
 
-    if (connect(sd_notif_fd, (struct sockaddr *)&sd_sun, len) == -1) {
-        syslog.print<WARNING>("Cannot connect to notification socket\n");
-        goto exit_notification_socket;
-    }
+    if (sd_sun.sun_path[0] == '@')
+        sd_sun.sun_path[0] = 0;
 
     memset(&msg, 0, sizeof(struct msghdr));
-    _iovec = msg.msg_iov;
-    _iovec = (struct iovec*)malloc(sizeof(struct iovec) * 3);
+    msg.msg_iov = (struct iovec*)malloc(sizeof(struct iovec) * 3);
 
-    if (_iovec == nullptr) {
-        syslog.print<WARNING>("Cannot allocate _iovec\n");
+    if (msg.msg_iov == nullptr) {
+        syslog.print<WARNING>("Cannot allocate msg.msg_iov\n");
         goto exit_notification_socket;
     }
 
-    memset(_iovec, 0, sizeof(struct iovec) * 3);
-    msg.msg_name = (void*)&sd_sun;
-    msg.msg_namelen = sizeof(struct sockaddr_un)
-            - (sizeof(sd_sun.sun_path) - strlen(config->notify_socket));
-    _iovec[0].iov_base = const_cast<void*>(reinterpret_cast<const void*>(
-                            "STATUS=Koheron server is ready\nREADY=1\n"));
-    _iovec[0].iov_len = 39;
+    memset(msg.msg_iov, 0, sizeof(struct iovec) * 3);
+    msg.msg_name = &sd_sun;
+    msg.msg_namelen = sizeof(struct sockaddr_un) - (sizeof(sd_sun.sun_path) - len);
+
+    state = "STATUS=Koheron server is ready\nREADY=1\n";
+    msg.msg_iov[0].iov_base = (char *)(state);
+    msg.msg_iov[0].iov_len = strlen(state);
     msg.msg_iovlen = 1;
 
-    if (sendmsg(sd_notif_fd, &msg, 0) < 0) {
-        syslog.print<WARNING>("Cannot send notification to systemd\n");
+    if (sendmsg(sd_notif_fd, &msg, MSG_NOSIGNAL) < 0) {
+        syslog.print<WARNING>("Cannot send notification to systemd.\n");
     }
 
-    free(_iovec);
+    free(msg.msg_iov);
 
 exit_notification_socket:
     if (::shutdown(sd_notif_fd, SHUT_RDWR) < 0)

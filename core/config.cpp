@@ -123,6 +123,22 @@ int KServerConfig::_read_log(JsonValue value)
     return 0;
 }
 
+int check_unixsocket_path(const char *path)
+{
+    // Must be an abstract socket, or an absolute path
+    if ((path[0] != '@' && path[0] != '/') || path[1] == 0) {
+        fprintf(stderr, "Invalid path for unix socket %s\n", path);
+        return -1;
+    }
+
+    if (strlen(path) > UNIX_SOCKET_PATH_LEN) {
+        fprintf(stderr, "Unix socket path too long\n");
+        return -1;
+    }
+
+    return 0;
+}
+
 int KServerConfig::_read_server(JsonValue value, server_t serv_type)
 {
     if (value.getTag() != JSON_OBJECT) {
@@ -158,7 +174,12 @@ int KServerConfig::_read_server(JsonValue value, server_t serv_type)
                 return -1;
             }
 
-            strcpy(unixsock_path, i->value.toString());
+            const char *path = i->value.toString();
+
+            if (check_unixsocket_path(path) < 0)
+                return -1;
+
+            strcpy(unixsock_path, path);
         }        
         else if (strcmp(i->key, "worker_connections") == 0) {
             if (i->value.getTag() != JSON_NUMBER) {
@@ -272,7 +293,12 @@ int KServerConfig::load_file(char *filename)
                 return -1;
             }
 
-            strcpy(notify_socket, i->value.toString());
+            const char *notify_socket_path = i->value.toString();
+
+            if (check_unixsocket_path(notify_socket_path) < 0)
+                return -1;
+
+            strcpy(unixsock_path, notify_socket_path);
         }
         else if (IS_LOGS) {
             if (_read_log(i->value) < 0)
