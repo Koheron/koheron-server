@@ -177,6 +177,12 @@ void KServer::notify_systemd_ready()
     memset(&msg, 0, sizeof(struct msghdr));
     _iovec = msg.msg_iov;
     _iovec = (struct iovec*)malloc(sizeof(struct iovec) * 3);
+
+    if (_iovec == nullptr) {
+        syslog.print<WARNING>("Cannot allocate _iovec\n");
+        goto exit_notification_socket;
+    }
+
     memset(_iovec, 0, sizeof(struct iovec) * 3);
     msg.msg_name = (void*)&sd_sun;
     msg.msg_namelen = sizeof(struct sockaddr_un)
