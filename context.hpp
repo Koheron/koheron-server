@@ -13,10 +13,8 @@
 class Context : public ContextBase
 {
   public:
-    Context(kserver::DeviceManager& dm,
-            kserver::SysLog& log)
-    : ContextBase(dm, log)
-    , mm()
+    Context()
+    : mm()
     {}
 
     int init() {
@@ -27,15 +25,7 @@ class Context : public ContextBase
 };
 
 #else
-
-class Context : public ContextBase
-{
-  public:
-    Context(kserver::DeviceManager& dm,
-            kserver::SysLog& log)
-    : ContextBase(dm, log) {}
-};
-
+class Context : public ContextBase {};
 #endif
 
 #endif // __CONTEXT_HPP__

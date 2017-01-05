@@ -15,8 +15,16 @@ namespace kserver {
 class ContextBase
 {
   private:
-    kserver::DeviceManager& dm;
-    kserver::SysLog& syslog;
+    kserver::DeviceManager *dm;
+    kserver::SysLog *syslog;
+
+    void set_device_manager(kserver::DeviceManager *dm_) {
+        dm = dm_;
+    }
+
+    void set_syslog(kserver::SysLog *syslog_) {
+        syslog = syslog_;
+    }
 
   public:
     template<class Dev>
@@ -24,22 +32,16 @@ class ContextBase
 
     template<unsigned int severity, typename... Args>
     void log(const char *msg, Args&&... args) {
-        syslog.print<severity>(msg, std::forward<Args>(args)...);
+        syslog->print<severity>(msg, std::forward<Args>(args)...);
     }
 
     template<class Dev, typename... Args>
     int notify(Args&&... args) {
-        return syslog.notify<kserver::PubSub::DEVICES_CHANNEL,
-                             dev_id_of<Dev>>(std::forward<Args>(args)...);
+        return syslog->notify<kserver::PubSub::DEVICES_CHANNEL,
+                              dev_id_of<Dev>>(std::forward<Args>(args)...);
     }
 
   protected:
-    ContextBase(kserver::DeviceManager& dm_,
-                kserver::SysLog& syslog_)
-    : dm(dm_)
-    , syslog(syslog_)
-    {}
-
     virtual int init() { return 0; }
 
 friend class kserver::DeviceManager;

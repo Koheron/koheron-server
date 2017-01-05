@@ -4,7 +4,7 @@
 
 template<class Dev>
 Dev& ContextBase::get() const {
-    return dm.get<dev_id_of<Dev>>();
+    return dm->get<dev_id_of<Dev>>();
 }
 
 {%- for device in devices -%}
