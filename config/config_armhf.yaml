@@ -17,7 +17,6 @@ arch_flags:
 defines:
   - DEBUG_KSERVER
   # - RELEASE_KSERVER
-  # - KSERVER_HAS_DEVMEM
   - LOCAL
 
 debug:
