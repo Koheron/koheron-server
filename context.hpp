@@ -7,26 +7,17 @@
 #include <core/syslog.hpp>
 #include <devices_table.hpp>
 
-#if KSERVER_HAS_DEVMEM
-#include <drivers/lib/memory_manager.hpp>
-#include <drivers/memory.hpp>
-#endif
-
 namespace kserver {
     class DeviceManager;
     class KServer;
 }
 
-class Context {
+class ContextBase {
   private:
     kserver::DeviceManager& dm;
     kserver::SysLog& syslog;
 
   public:
-#if KSERVER_HAS_DEVMEM
-    MemoryManager mm;
-#endif
-
     template<class Dev>
     Dev& get() const;
 
@@ -41,26 +32,50 @@ class Context {
                              dev_id_of<Dev>>(std::forward<Args>(args)...);
     }
 
-  private:
-    Context(kserver::DeviceManager& dm_,
-            kserver::SysLog& syslog_)
+  protected:
+    ContextBase(kserver::DeviceManager& dm_,
+                kserver::SysLog& syslog_)
     : dm(dm_)
     , syslog(syslog_)
-#if KSERVER_HAS_DEVMEM
-    , mm()
-#endif
     {}
 
-    int init() {
-#if KSERVER_HAS_DEVMEM
-        if (mm.open() < 0)
-            return -1;
-#endif
-        return 0;
-    }
+    virtual int init() { return 0; }
 
 friend class kserver::DeviceManager;
 friend class kserver::KServer;
 };
+
+#if KSERVER_HAS_DEVMEM // TODO Move into koheron-sdk
+
+#include <drivers/lib/memory_manager.hpp>
+#include <drivers/memory.hpp>
+
+class Context : public ContextBase
+{
+  public:
+    Context(kserver::DeviceManager& dm,
+            kserver::SysLog& log)
+    : ContextBase(dm, log)
+    , mm()
+    {}
+
+    int init() {
+        return mm.open();
+    }
+
+    MemoryManager mm;
+};
+
+#else
+
+class Context : public ContextBase
+{
+  public:
+    Context(kserver::DeviceManager& dm,
+            kserver::SysLog& log)
+    : ContextBase(dm, log) {}
+};
+
+#endif
 
 #endif // __CONTEXT_HPP__
