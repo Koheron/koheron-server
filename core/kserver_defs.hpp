@@ -13,16 +13,6 @@ namespace kserver {
 #define KSERVER_IS_DAEMON 1
 
 // ------------------------------------------
-// Architecture
-// ------------------------------------------
-
-#ifdef LOCAL
-#  define KSERVER_HAS_DEVMEM 0
-#else
-#  define KSERVER_HAS_DEVMEM 1
-#endif
-
-// ------------------------------------------
 // Connections
 // ------------------------------------------
 

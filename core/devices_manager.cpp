@@ -42,8 +42,9 @@ int DevicesContainer::alloc() {
 DeviceManager::DeviceManager(KServer *kserver_)
 : kserver(kserver_)
 , dev_cont(ctx, kserver->syslog)
-, ctx(*this, kserver->syslog)
 {
+    ctx.set_device_manager(this);
+    ctx.set_syslog(&kserver->syslog);
     is_started.fill(false);
 }
 
