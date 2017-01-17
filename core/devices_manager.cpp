@@ -54,6 +54,9 @@ void DeviceManager::alloc_device()
     std::lock_guard<std::recursive_mutex> lock(mutex);
 #endif
 
+    if (std::get<dev - 2>(is_started))
+        return;
+
     kserver->syslog.print<INFO>(
         "Device Manager: Starting device [%u] %s...\n",
         dev, std::get<dev>(devices_names).data());
