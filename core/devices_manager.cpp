@@ -63,7 +63,7 @@ void DeviceManager::alloc_device()
         dev, std::get<dev>(devices_names).data());
 
     if (dev_cont.alloc<dev>() < 0) {
-        kserver->syslog.print<CRITICAL>(
+        kserver->syslog.print<PANIC>(
             "Failed to allocate device [%u] %s. Exiting server...\n",
             dev, std::get<dev>(devices_names).data());
 
