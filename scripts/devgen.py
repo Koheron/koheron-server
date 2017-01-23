@@ -129,8 +129,8 @@ def parse_header_device(_class, hppfile):
     device['operations'] = []
     op_id = 0
     for method in _class['methods']['public']:
-        # We eliminate constructor and destructor
-        if not (method['name'] in [s + _class['name'] for s in ['','~']]):
+        # We eliminate constructor, destructor and templates
+        if (not (method['name'] in [s + _class['name'] for s in ['','~']])) and not method['template']:
             device['operations'].append(parse_header_operation(device['name'], method))
             device['operations'][-1]['id'] = op_id
             op_id += 1

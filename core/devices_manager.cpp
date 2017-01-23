@@ -2,12 +2,10 @@
 ///
 /// (c) Koheron
 
-#include "syslog.tpp"
-
 #include "devices_manager.hpp"
 #include "kserver.hpp"
 #include "commands.hpp"
-// #include "syslog.tpp"
+#include "syslog.tpp"
 #include "meta_utils.hpp"
 #include <ks_devices.hpp>
 

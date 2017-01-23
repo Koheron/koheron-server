@@ -105,6 +105,12 @@ class Tests
     std::vector<uint32_t> data_u;
     std::vector<int32_t> data_i;
 
+    // Function template: Must be excluded
+    template<typename T, size_t N>
+    int64_t template_array(const std::array<T, N>& arr) {
+        return arr.size();
+    }
+
   private:
     std::vector<uint32_t> buffer;
     std::array<float, 10> data_std_array;
