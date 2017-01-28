@@ -21,12 +21,6 @@ namespace {{ device.name }} {
 {% endfor %}
 }
 
-template<uint32_t id> struct arg_types;
-template<uint32_t id> using arg_types_t = typename arg_types<id>::type;
-
-template<uint32_t id> struct ret_type;
-template<uint32_t id> using ret_type_t = typename ret_type<id>::type;
-
 {% for device in devices -%}
     {% for operation in device.operations -%}
 
