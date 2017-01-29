@@ -18,7 +18,7 @@ class Math {
 
 On the client side:
 
-``` py
+``` python
 from koheron import KoheronClient, command
 
 class Math(object):
