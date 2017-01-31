@@ -226,6 +226,7 @@ int KServer::run()
 
         if (sig_handler.interrupt() || exit_all) {
             syslog.print<INFO>("Interrupt received, killing Koheron server ...\n");
+
             session_manager.delete_all();
             close_listeners();
             syslog.close();
