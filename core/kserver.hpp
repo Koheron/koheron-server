@@ -46,8 +46,9 @@ class ListeningChannel
 {
   public:
     ListeningChannel(KServer *kserver_)
-    : listen_fd(-1),
-      kserver(kserver_)
+    : listen_fd(-1)
+    , is_ready(false)
+    , kserver(kserver_)
     {
         num_threads.store(-1);
     }
@@ -74,6 +75,9 @@ class ListeningChannel
     /// Number of sessions using the channel
     std::atomic<int> num_threads;
 
+    /// True when ready to open sessions
+    std::atomic<bool> is_ready;
+
 #if KSERVER_HAS_THREADS
     std::thread comm_thread; ///< Listening thread
 #endif
@@ -94,7 +98,7 @@ void ListeningChannel<sock_type>::join_worker()
 }
 #endif // KSERVER_HAS_THREADS
 
-////////////////////////////////////////////////////////////////////////////
+ ////////////////////////////////////////////////////////////////////////////
 /////// KServer
 
 /// Main class of the server. It initializes the 
@@ -139,6 +143,9 @@ class KServer
     ListeningChannel<UNIX> unix_listener;
 #endif
 
+    /// True when all listeners are ready
+    bool is_ready();
+
     // Managers
     DeviceManager dev_manager;
     SessionManager session_manager;
@@ -160,6 +167,9 @@ class KServer
     void detach_listeners_workers();
     void join_listeners_workers();
     void close_listeners();
+#if KSERVER_HAS_SYSTEMD
+    void notify_systemd_ready();
+#endif
 
 template<int sock_type> friend class ListeningChannel;
 };

@@ -42,8 +42,9 @@ int DevicesContainer::alloc() {
 DeviceManager::DeviceManager(KServer *kserver_)
 : kserver(kserver_)
 , dev_cont(ctx, kserver->syslog)
-, ctx(*this, kserver->syslog)
 {
+    ctx.set_device_manager(this);
+    ctx.set_syslog(&kserver->syslog);
     is_started.fill(false);
 }
 
@@ -54,12 +55,15 @@ void DeviceManager::alloc_device()
     std::lock_guard<std::recursive_mutex> lock(mutex);
 #endif
 
+    if (std::get<dev - 2>(is_started))
+        return;
+
     kserver->syslog.print<INFO>(
         "Device Manager: Starting device [%u] %s...\n",
         dev, std::get<dev>(devices_names).data());
 
     if (dev_cont.alloc<dev>() < 0) {
-        kserver->syslog.print<CRITICAL>(
+        kserver->syslog.print<PANIC>(
             "Failed to allocate device [%u] %s. Exiting server...\n",
             dev, std::get<dev>(devices_names).data());
 

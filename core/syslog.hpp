@@ -16,7 +16,6 @@
 
 #include "string_utils.hpp"
 #include "pubsub.hpp"
-#include "signal_handler.hpp"
 
 /// Severity of the message
 enum severity {
@@ -32,8 +31,6 @@ enum severity {
 namespace kserver {
 
 class KServer;
-
-#define FMT_BUFF_LEN 512
 
 static constexpr auto log_array = kserver::make_array(
     std::make_tuple(LOG_ALERT, str_const("KSERVER PANIC")),
@@ -56,12 +53,10 @@ struct SysLog
     void print(const char *msg, Args&&... args);
 
     template<uint16_t channel, uint16_t event, typename... Args>
-    int notify(const char *msg, Args&&... args);
+    int notify(Args&&... args);
 
   private:
     std::shared_ptr<KServerConfig> config;
-    char fmt_buffer[FMT_BUFF_LEN];
-    SignalHandler& sig_handler;
     PubSub pubsub;
 
   private:
@@ -69,11 +64,8 @@ struct SysLog
            SignalHandler& sig_handler_,
            SessionManager& sess_manager_)
     : config(config_)
-    , sig_handler(sig_handler_)
-    , pubsub(sess_manager_)
+    , pubsub(sess_manager_, sig_handler_)
     {
-        memset(fmt_buffer, 0, FMT_BUFF_LEN);
-
         if (config->syslog) {
             setlogmask(LOG_UPTO(KSERVER_SYSLOG_UPTO));
             openlog("KServer", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);

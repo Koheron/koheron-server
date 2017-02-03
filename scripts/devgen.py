@@ -93,6 +93,7 @@ def get_template(filename):
 
     renderer.filters['get_fragment'] = get_fragment
     renderer.filters['get_parser'] = get_parser
+    renderer.filters['get_exact_ret_type'] = get_exact_ret_type
     return renderer.get_template(os.path.join('scripts/templates', filename))
 
 def render_templates(devices, build_dir, filenames):
@@ -129,8 +130,8 @@ def parse_header_device(_class, hppfile):
     device['operations'] = []
     op_id = 0
     for method in _class['methods']['public']:
-        # We eliminate constructor and destructor
-        if not (method['name'] in [s + _class['name'] for s in ['','~']]):
+        # We eliminate constructor, destructor and templates
+        if (not (method['name'] in [s + _class['name'] for s in ['','~']])) and not method['template']:
             device['operations'].append(parse_header_operation(device['name'], method))
             device['operations'][-1]['id'] = op_id
             op_id += 1
@@ -141,6 +142,7 @@ def parse_header_operation(devname, method):
     operation['tag'] = method['name'].upper()
     operation['name'] = method['name']
     operation['ret_type'] = method['rtnType']
+
     check_type(operation['ret_type'], devname, operation['name'])
 
     if len(method['parameters']) > 0:
@@ -180,12 +182,18 @@ def format_type(_type):
     else:
         return _type
 
-def format_ret_type(classname, operation):
-    if operation['ret_type'] in ['auto', 'auto&', 'auto &'] or is_std_array(operation['ret_type']):
+def get_exact_ret_type(classname, operation):
+    if 'auto' in operation['ret_type'] or is_std_array(operation['ret_type']):
         decl_arg_list = []
         for arg in operation.get('arguments', []):
             decl_arg_list.append('std::declval<{}>()'.format(arg['type']))
-        return '" << get_type_str<decltype(std::declval<{}>().{}({}))>() << "'.format(classname, operation['name'], ' ,'.join(decl_arg_list))
+        return 'decltype(std::declval<{}>().{}({}))'.format(classname, operation['name'], ' ,'.join(decl_arg_list))
+    else:
+        return operation['ret_type']
+
+def format_ret_type(classname, operation):
+    if 'auto' in operation['ret_type'] or is_std_array(operation['ret_type']):
+        return '" << get_type_str<{}>() << "'.format(get_exact_ret_type(classname, operation))
     else:
         return operation['ret_type']
 

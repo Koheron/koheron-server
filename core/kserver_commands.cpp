@@ -238,7 +238,7 @@ KSERVER_EXECUTE_OP(SUBSCRIBE_PUBSUB)
 
 KSERVER_EXECUTE_OP(PUBSUB_PING)
 {
-    syslog.pubsub.emit<PubSub::SERVER_CHANNEL, PubSub::PING>(static_cast<uint32_t>(cmd.sess_id));
+    syslog.notify<PubSub::SERVER_CHANNEL, PubSub::PING>(static_cast<uint32_t>(cmd.sess_id));
     syslog.notify<PubSub::SERVER_CHANNEL, PubSub::PING_TEXT>("Ping from server\n");
     syslog.print<INFO>("Pubsub test triggered\n");
     return 0;
