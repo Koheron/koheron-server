@@ -27,9 +27,3 @@ test:
     - cat nohup.out
     - make __PYTHON=python tmp/koheron-python
     - make -C tmp/koheron-python PY2_VENV=../../venv/py2 PY3_VENV=../../venv/py3 test
-
-deployment:
-  build_clients:
-    branch: master
-    commands:
-      - bash scripts/trig_builds.sh
