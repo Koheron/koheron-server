@@ -2,7 +2,7 @@ CONFIG=config/config_local.yaml
 PYTHON=/usr/bin/python
 
 SHA=`git rev-parse --short HEAD`
-TAG=0.12.0
+TAG=0.13.0
 KOHERON_SERVER_VERSION=$(TAG).$(SHA)
 
 # Base directory for paths
@@ -142,7 +142,7 @@ operations_hpp: $(TMP_OPERATIONS_HPP)
 .PHONY: test_python
 
 KOHERON_PYTHON_URL = https://github.com/Koheron/koheron-python.git
-KOHERON_PYTHON_BRANCH = v0.12
+KOHERON_PYTHON_BRANCH = v0.13.0-rc
 KOHERON_PYTHON_DIR = $(TMP)/koheron-python
 
 $(KOHERON_PYTHON_DIR):
