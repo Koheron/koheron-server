@@ -5,9 +5,6 @@
 #ifndef __PUBSUB_HPP__
 #define __PUBSUB_HPP__
 
-#include "kserver_defs.hpp"
-#include "commands.hpp"
-
 #include <cstdint>
 #include <vector>
 #include <array>
@@ -19,31 +16,37 @@
 #  include <mutex>
 #endif
 
+#include "kserver_defs.hpp"
+#include "signal_handler.hpp"
+
 namespace kserver {
 
-class SessionManager;
-
-#define EMIT_BUFF_SIZE 4096
-
-// http://stackoverflow.com/questions/12927951/array-indexing-converting-to-integer-with-scoped-enumeration
-template<class channels>
-constexpr size_t chan_count() noexcept {
-    static_assert(std::is_enum<channels>(), "Not an enum");
-    return static_cast<size_t>(channels::channels_count);
-}
-
-template<class channels>
+template<size_t channels_count>
 struct Subscribers
 {
-    const std::vector<SessID>& get(uint32_t channel) const {
-        return _subscribers[channel];
+    template<uint16_t channel>
+    const auto& get() const {
+        return std::get<channel>(_subscribers);
     }
 
-    int subscribe(uint32_t channel, SessID sid) {
-        if (channel >= chan_count<channels>())
+    template<uint16_t channel>
+    int count() const {
+        return get<channel>().size();
+    }
+
+    int subscribe(uint16_t channel, SessID sid) {
+        if (channel >= channels_count)
             return -1;
 
-        _subscribers[channel].push_back(sid);
+        // Check whether session hasn't already
+        // subscribed before adding to subscribers.
+
+        auto& s = _subscribers[channel];
+        auto it = std::find(s.begin(), s.end(), sid);
+
+        if (it == s.end())
+            s.push_back(sid);
+
         return 0;
     }
 
@@ -60,24 +63,25 @@ struct Subscribers
         }
     }
 
-    int count(uint32_t channel) const {
-        return _subscribers[channel].size();
-    }
-
   private:
-    std::array<std::vector<SessID>, chan_count<channels>()> _subscribers;
+    std::array<std::vector<SessID>, channels_count> _subscribers;
 };
+
+class SessionManager;
 
 class PubSub
 {
   public:
-    PubSub(SessionManager& session_manager_)
+    PubSub(SessionManager& session_manager_,
+           SignalHandler& sig_handler_)
     : session_manager(session_manager_)
-    , emit_buffer(0)
-    {}
+    , sig_handler(sig_handler_)
+    {
+        memset(fmt_buffer, 0, FMT_BUFF_LEN);
+    }
 
     // Session sid subscribes to a channel
-    int subscribe(uint32_t channel, SessID sid) {
+    int subscribe(uint16_t channel, SessID sid) {
         return subscribers.subscribe(channel, sid);
     }
 
@@ -87,33 +91,35 @@ class PubSub
     }
 
     // Event message structure
-    // |      RESERVED     |      CHANNEL      |       EVENT       |   Arguments
-    // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | ...
-    template<uint32_t channel, uint32_t event, typename... Tp>
-    void emit(Tp&&... args);
+    // |      RESERVED     | CHANNEL |  EVENT  |   Arguments
+    // |  0 |  1 |  2 |  3 |  4 |  5 |  8 |  9 | 12 | 13 | 14 | ...
+    template<uint16_t channel, uint16_t event, typename... Args>
+    int emit(Args&&... args);
 
-    template<uint32_t channel, uint32_t event>
-    void emit_cstr(const char *str);
+    // This specialization emits a formated string
+    template<uint16_t channel, uint16_t event, typename... Args>
+    int emit(const char *str, Args&&... args);
 
     enum Channels {
         SERVER_CHANNEL,        ///< Server events
         SYSLOG_CHANNEL,        ///< Syslog events
+        DEVICES_CHANNEL,       ///< Device notifications
         channels_count
     };
 
     enum ServerChanEvents {
         PING,                   ///< For tests
+        PING_TEXT,              ///< For tests
         server_chan_events_num
     };
 
   private:
     SessionManager& session_manager;
-    Subscribers<Channels> subscribers;
-    std::vector<unsigned char> emit_buffer;
+    SignalHandler& sig_handler;
+    Subscribers<channels_count> subscribers;
 
-#if KSERVER_HAS_THREADS
-    std::mutex mutex;
-#endif
+    static constexpr int32_t FMT_BUFF_LEN = 1024;
+    char fmt_buffer[FMT_BUFF_LEN];
 };
 
 } // namespace kserver

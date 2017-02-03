@@ -8,48 +8,35 @@
 #ifndef __{{ device.class_name|upper }}_HPP__
 #define __{{ device.class_name|upper }}_HPP__
 
-{% for include in device.includes -%}
-#include "{{ include }}"
-{% endfor -%}
-
+#include <memory>
 #if KSERVER_HAS_THREADS
 #include <mutex>
 #endif
 
 #include <core/kdevice.hpp>
-#include <core/devices_manager.hpp>
+
+{% for include in device.includes -%}
+#include "{{ include }}"
+{% endfor -%}
 
 namespace kserver {
 
-class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device.tag }}>
+template<>
+class KDevice<dev_id_of<{{ device.objects[0]["type"] }}>> : public KDeviceAbstract
 {
   public:
-    const device_t kind = {{ device.tag }};
-    enum { __kind = {{ device.tag }} };
+    int execute(Command& cmd);
+    template<int op> int execute_op(Command& cmd);
 
-  public:
-#if KSERVER_HAS_DEVMEM
-    {{ device.class_name }}(KServer* kserver, MemoryManager& dev_mem_)
-#else
-    {{ device.class_name }}(KServer* kserver)
-#endif
-    : KDevice<{{ device.class_name }},{{ device.tag }}>(kserver)
-#if KSERVER_HAS_DEVMEM
-    , dev_mem(dev_mem_)
-#endif
-    {% for object in device.objects -%}
-#if KSERVER_HAS_DEVMEM
-    , {{ object["name"] }}(dev_mem_)
-#else
-    , {{ object["name"] }}()
-#endif
-    {% endfor -%}
+    KDevice(KServer *kserver, {{ device.objects[0]["type"] }}& {{ device.objects[0]["name"] }}_)
+    : KDeviceAbstract(dev_id_of<{{ device.objects[0]["type"] }}>, kserver)
+    , {{ device.objects[0]["name"] }}({{ device.objects[0]["name"] }}_)
     {}
 
     enum Operation {
         {% for operation in device.operations -%}
         {{ operation['tag'] }} = {{ operation['id'] }},
-        {% endfor -%}        
+        {% endfor -%}
         {{ device.tag|lower }}_op_num
     };
 
@@ -57,29 +44,21 @@ class {{ device.class_name }} : public KDevice<{{ device.class_name }},{{ device
     std::mutex mutex;
 #endif
 
-#if KSERVER_HAS_DEVMEM
-    MemoryManager& dev_mem;
-#endif
-    {% for object in device.objects -%}
-    {{ object["type"] }} {{ object["name"] }};
-    {% endfor -%}
-}; // class KS_{{ device.tag|capitalize }}
+    {{ device.objects[0]["type"] }}& {{ device.objects[0]["name"] }};
 
 {% for operation in device.operations -%}
-template<>
-template<>
-struct KDevice<{{ device.class_name }},{{ device.tag }}>::
-            Argument<{{ device.class_name }}::{{ operation['tag'] }}>
-{
+struct Argument_{{ operation['name'] }} {
 {%- macro print_param_line(arg) %}
         {{ arg["type"] }} {{ arg["name"]}};
 {%- endmacro -%}
 {% for arg in operation["arguments"] -%}
     {{ arg["type"] }} {{ arg["name"]}};
 {% endfor -%}
-};
+} args_{{ operation['name'] }};
 
 {% endfor -%}
+
+}; // class KS_{{ device.tag|capitalize }}
 
 } // namespace kserver
 

@@ -5,7 +5,7 @@
 ///
 /// (c) Koheron 
 
-#include "{{ device.class_name|lower }}.hpp"
+#include "{{ device.ks_name }}.hpp"
 
 #include <core/commands.hpp>
 #include <core/kserver.hpp>
@@ -14,59 +14,38 @@
 #if KSERVER_HAS_DEVMEM
 #include <drivers/lib/memory_manager.hpp>
 #endif
-namespace kserver {
 
-#define THIS (static_cast<{{ device.class_name }}*>(this))
+namespace kserver {
 
 {% for operation in device.operations -%}
 /////////////////////////////////////
 // {{ operation['name'] }}
 
 template<>
-template<>
-int KDevice<{{ device.class_name }}, {{ device.tag }}>::
-        parse_arg<{{ device.class_name }}::{{ operation['tag'] }}> (Command& cmd,
-                KDevice<{{ device.class_name}}, {{ device.tag }}>::
-                Argument<{{ device.class_name }}::{{ operation['tag'] }}>& args, SessID sess_id)
+int KDevice<dev_id_of<{{ device.objects[0]["type"] }}>>::
+        execute_op<KDevice<dev_id_of<{{ device.objects[0]["type"] }}>>::{{ operation['tag'] }}>(Command& cmd)
 {
     {{ operation | get_parser(device) }}
-    return 0;
-}
-
-template<>
-template<>
-int KDevice<{{ device.class_name }}, {{ device.tag }}>::
-        execute_op<{{ device.class_name }}::{{ operation['tag'] }}>
-        (const Argument<{{ device.class_name }}::{{ operation['tag'] }}>& args, SessID sess_id)
-{
     {{ operation | get_fragment(device) }}
 }
 
 {% endfor %}
 
-
-template<>
-int KDevice<{{ device.class_name }}, {{ device.tag }}>::
-        execute(Command& cmd)
+int KDevice<dev_id_of<{{ device.objects[0]["type"] }}>>::execute(Command& cmd)
 {
 #if KSERVER_HAS_THREADS
-    std::lock_guard<std::mutex> lock(THIS->mutex);
+    std::lock_guard<std::mutex> lock(mutex);
 #endif
 
     switch(cmd.operation) {
 {% for operation in device.operations -%}
-      case {{ device.class_name }}::{{ operation['tag'] }}: {
-        Argument<{{ device.class_name }}::{{ operation['tag'] }}> args;
-
-        if (parse_arg<{{ device.class_name }}::{{ operation['tag'] }}>(cmd, args, cmd.sess_id) < 0)
-            return -1;
-
-        return execute_op<{{ device.class_name }}::{{ operation['tag'] }}>(args, cmd.sess_id);
+      case {{ operation['tag'] }}: {
+        return execute_op<{{ operation['tag'] }}>(cmd);
       }
 {% endfor %}
-      case {{ device.class_name }}::{{ device.tag | lower }}_op_num:
+      case {{ device.tag | lower }}_op_num:
       default:
-          kserver->syslog.print<SysLog::ERROR>("{{ device.class_name }}: Unknown operation\n");
+          kserver->syslog.print<ERROR>("{{ device.class_name }}: Unknown operation\n");
           return -1;
     }
 }

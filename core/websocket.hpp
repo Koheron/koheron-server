@@ -13,12 +13,12 @@
 
 namespace kserver {
 
-class KServer;
+class SysLog;
 
 class WebSocket
 {
   public:
-    WebSocket(std::shared_ptr<KServerConfig> config_, KServer *kserver_);
+    WebSocket(std::shared_ptr<KServerConfig> config_, SysLog& syslog_);
 
     void set_id(int comm_fd_);
     int authenticate();
@@ -37,7 +37,7 @@ class WebSocket
 
   private:
     std::shared_ptr<KServerConfig> config;
-    KServer *kserver;
+    SysLog& syslog;
 
     int comm_fd;
 
@@ -105,6 +105,22 @@ class WebSocket
     int send_request(const std::string& request);
     int send_request(const unsigned char *bits, long long len);
 };
+
+template<class T>
+inline int WebSocket::send(const T *data, unsigned int len)
+{
+    if (connection_closed)
+        return 0;
+
+    long unsigned int char_data_len = len * sizeof(T) / sizeof(char);
+
+    if (char_data_len + 10 > WEBSOCK_SEND_BUF_LEN)
+        return -1;
+
+    int mask_offset = set_send_header(send_buf, char_data_len, (1 << 7) + BINARY_FRAME);
+    memcpy(&send_buf[mask_offset], data, char_data_len);
+    return send_request(send_buf, mask_offset + char_data_len);
+}
 
 } // namespace kserver
 

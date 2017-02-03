@@ -6,228 +6,156 @@
 #include "kserver.hpp"
 #include "commands.hpp"
 #include "syslog.tpp"
-
-#if KSERVER_HAS_THREADS
-#  include <thread>
-#endif
+#include "meta_utils.hpp"
+#include <ks_devices.hpp>
 
 namespace kserver {
 
+//----------------------------------------------------------------------------
+// Device container
+//----------------------------------------------------------------------------
+
+template<device_id dev>
+int DevicesContainer::alloc() {
+    if (std::get<dev - 2>(is_started))
+        return 0;
+
+    if (std::get<dev - 2>(is_starting)) {
+        syslog.print<CRITICAL>(
+            "Circular dependency detected while initializing device [%u] %s\n",
+            dev, std::get<dev>(devices_names).data());
+
+        return -1;
+    }
+
+    std::get<dev - 2>(is_starting) = true;
+    std::get<dev - 2>(devtup) = std::make_unique<device_t<dev>>(ctx);
+    std::get<dev - 2>(is_starting) = false;
+    std::get<dev - 2>(is_started) = true;
+    return 0;
+}
+
+//----------------------------------------------------------------------------
+// Device manager
+//----------------------------------------------------------------------------
+
 DeviceManager::DeviceManager(KServer *kserver_)
-: device_list(device_num)
-,  kserver(kserver_)
-#if KSERVER_HAS_DEVMEM
-,  dev_mem()
-#endif
+: kserver(kserver_)
+, dev_cont(ctx, kserver->syslog)
 {
-    device_list[KSERVER] = static_cast<KDeviceAbstract*>(kserver);
-    is_started[KSERVER] = 1;
+    ctx.set_device_manager(this);
+    ctx.set_syslog(&kserver->syslog);
+    is_started.fill(false);
 }
 
-DeviceManager::~DeviceManager()
-{
-    Reset();
-}
-
-int DeviceManager::Init()
-{
-#if KSERVER_HAS_DEVMEM
-    if (dev_mem.open() < 0) {
-        kserver->syslog.print<SysLog::CRITICAL>(
-                              "Can't start MemoryManager\n");
-        return -1;
-    }
-#endif
-
-    return 0;
-}
-
-// X Macro: Start new device
-#if KSERVER_HAS_DEVMEM
-#define EXPAND_AS_START_DEVICE(num, name, operations ...)                 \
-        case num:                                                         \
-            device_list[num]                                              \
-                = new name (static_cast<KServer*>(device_list[KSERVER]),  \
-                            dev_mem);                                     \
-            break;
-#else
-#define EXPAND_AS_START_DEVICE(num, name, operations ...)                 \
-        case num:                                                         \
-            device_list[num]                                              \
-                = new name (static_cast<KServer*>(device_list[KSERVER])); \
-            break;
-#endif
-
-int DeviceManager::StartDev(device_t dev)
+template<std::size_t dev>
+void DeviceManager::alloc_device()
 {
 #if KSERVER_HAS_THREADS
-    std::lock_guard<std::mutex> lock(mutex);
+    std::lock_guard<std::recursive_mutex> lock(mutex);
 #endif
 
-    assert(dev < device_num);
+    if (std::get<dev - 2>(is_started))
+        return;
 
-    if (is_started[dev])
-        return 0;
+    kserver->syslog.print<INFO>(
+        "Device Manager: Starting device [%u] %s...\n",
+        dev, std::get<dev>(devices_names).data());
 
-    if (dev == NO_DEVICE) {
-        is_started[dev] = 1;
-        return 0;
+    if (dev_cont.alloc<dev>() < 0) {
+        kserver->syslog.print<PANIC>(
+            "Failed to allocate device [%u] %s. Exiting server...\n",
+            dev, std::get<dev>(devices_names).data());
+
+        kserver->exit_all = true;
+        return;
     }
 
-    if (dev == KSERVER)
-        if (!is_started[dev]) {
-            kserver->syslog.print<SysLog::CRITICAL>(
-                                  "KServer must always be started !\n");
-            return -1;   
-        }
+    std::get<dev - 2>(device_list)
+        = std::make_unique<KDevice<dev>>(kserver, dev_cont.get<dev>());
+    std::get<dev - 2>(is_started) = true;
+}
 
-    switch (dev) {
-        // Automatic generation with X macro
-        DEVICES_TABLE(EXPAND_AS_START_DEVICE)
+template<device_id dev0, device_id... devs>
+std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, void>
+DeviceManager::start_impl(device_id dev)
+{
+    static_assert(dev0 < device_num, "");
+    static_assert(dev0 >= 2, "");
+    alloc_device<dev0>();
+}
 
-      default:
-        kserver->syslog.print<SysLog::CRITICAL>("Unknown device\n");
+template<device_id dev0, device_id... devs>
+std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, void>
+DeviceManager::start_impl(device_id dev)
+{
+    static_assert(dev0 < device_num, "");
+    static_assert(dev0 >= 2, "");
+
+    dev == dev0 ? alloc_device<dev0>()
+                : start_impl<devs...>(dev);
+}
+
+template<device_id... devs>
+void DeviceManager::start(device_id dev, std::index_sequence<devs...>)
+{
+    start_impl<devs...>(dev);
+}
+
+int DeviceManager::init()
+{
+    if (ctx.init() < 0) {
+        kserver->syslog.print<CRITICAL>(
+                "Context initialization failed\n");
         return -1;
     }
-
-    assert(device_list.at(dev) != NULL);
-
-    is_started[dev] = 1;
 
     return 0;
 }
 
-// X Macro: Execute device
-#define EXPAND_AS_EXECUTE_DEVICE(num, name, operations ...)         \
-        case num: {                                                 \
-            KDevice<name, num>                                      \
-                *dev = static_cast<KDevice<name, num> *>(dev_abs);  \
-            error = dev->execute(cmd);                              \
-            break;                                                  \
-        }
-
-int DeviceManager::Execute(Command& cmd)
+template<device_id dev0, device_id... devs>
+std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, int>
+DeviceManager::execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd)
 {
-    if (!is_started[cmd.device])
-        if (StartDev(cmd.device) < 0)
-            return -1;
+    static_assert(dev0 < device_num, "");
+    static_assert(dev0 >= 2, "");
+    return static_cast<KDevice<dev0>*>(dev_abs)->execute(cmd);
+}
 
-    if (cmd.device == 0)
-        return 0;
+template<device_id dev0, device_id... devs>
+std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, int>
+DeviceManager::execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd)
+{
+    static_assert(dev0 < device_num, "");
+    static_assert(dev0 >= 2, "");
 
+    return dev_abs->kind == dev0 ? static_cast<KDevice<dev0>*>(dev_abs)->execute(cmd)
+                                 : execute_dev_impl<devs...>(dev_abs, cmd);
+}
+
+template<device_id... devs>
+int DeviceManager::execute_dev(KDeviceAbstract *dev_abs, Command& cmd,
+                               std::index_sequence<devs...>)
+{
+    static_assert(sizeof...(devs) == device_num - 2, "");
+    return execute_dev_impl<devs...>(dev_abs, cmd);
+}
+
+int DeviceManager::execute(Command& cmd)
+{
     assert(cmd.device < device_num);
-    KDeviceAbstract *dev_abs = device_list[cmd.device];
 
-    int error = 0;
-
-    switch (dev_abs->kind) {
-      case NO_DEVICE:
+    if (cmd.device == 0) {
         return 0;
-        break;
-      case KSERVER: {
-        KDevice<KServer, KSERVER>
-           *dev = static_cast<KDevice<KServer, KSERVER> *>(dev_abs);
-        error = dev->execute(cmd);
-        break;
-      }
+    } else if (cmd.device == 1) {
+        return kserver->execute(cmd);
+    } else {
+        if (unlikely(! is_started[cmd.device - 2]))
+            start(cmd.device, make_index_sequence_in_range<2, device_num>());
 
-      DEVICES_TABLE(EXPAND_AS_EXECUTE_DEVICE) // X-Macro
-
-      case device_num:
-      default:
-        kserver->syslog.print<SysLog::CRITICAL>("Execute: Unknown device\n");
-        return -1;
+        return execute_dev(device_list[cmd.device - 2].get(), cmd,
+                           make_index_sequence_in_range<2, device_num>());
     }
-
-    return error; 
-}
-
-bool DeviceManager::IsStarted(device_t dev) const
-{
-    assert(dev < device_num);
-    return is_started[(unsigned int) (dev)];
-}
-
-void DeviceManager::SetDevStarted(device_t dev)
-{
-    assert(dev < device_num);
-    is_started[(unsigned int) (dev)] = 1;
-}
-
-// X Macro: Stop device
-#define EXPAND_AS_STOP_DEVICE(num, name, operations ...)       \
-        case num: {                                            \
-            if (is_started[num]) {                             \
-                delete static_cast< name *>(device_list[num]); \
-                is_started[num] = 0;                           \
-            }                                                  \
-            break;                                             \
-        }
-
-void DeviceManager::StopDev(device_t dev)
-{
-#if KSERVER_HAS_THREADS
-    std::lock_guard<std::mutex> lock(mutex);
-#endif
-
-    assert(dev < device_num);
-
-    // A direct call to delete as:
-    // delete device_list[dev];
-    // doesn't call the specific destructor of each class
-    // since device_list contains pointers of KDeviceAbstract.
-    // Therefore, we cast to the appropriate KDevice before
-    // deleting:
-    // delete ( dev_name *) device_list[dev];
-    switch (dev) {
-      // Automatic generation with X macro
-      DEVICES_TABLE(EXPAND_AS_STOP_DEVICE)
-
-      default:
-        kserver->syslog.print<SysLog::CRITICAL>("Unknown device\n");
-    }
-}
-
-void DeviceManager::Reset(void) 
-{
-#if KSERVER_HAS_THREADS
-    std::lock_guard<std::mutex> lock(mutex);
-#endif
-
-    // KServer is never reseted
-    for (unsigned int i=2; i<device_num; i++)
-        StopDev((device_t)i);
-}
-
-int DeviceManager::StartAll(void)
-{
-#if KSERVER_HAS_THREADS
-    std::lock_guard<std::mutex> lock(mutex);
-#endif
-
-    int ret = 0;
-
-    // Maybe not the most efficient implementation
-    // But not a speed critical function
-    for (unsigned int i=0; i<device_num; i++)
-        if (StartDev((device_t)i) < 0)
-            ret = -1;
-
-    return ret;
-}
-
-KS_device_status DeviceManager::GetStatus(device_t dev)
-{
-    // NO_DEVICE and KSERVER are always on
-    if (dev==0 || dev==1)
-        return DEV_ON;
-
-    assert(dev < device_num);
-
-    if (!is_started[dev])
-        return DEV_OFF;
-    else
-        return DEV_ON;
 }
 
 } // namespace kserver

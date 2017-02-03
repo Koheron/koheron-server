@@ -6,9 +6,12 @@
 #define __COMMANDS_HPP__
 
 #include <array>
+#include <vector>
+#include <tuple>
+#include <string>
 
-#include "session_manager.hpp"
-#include "dev_definitions.hpp"
+#include <devices_table.hpp>
+#include "kserver_defs.hpp"
 #include "serializer_deserializer.hpp"
 
 namespace kserver {
@@ -25,6 +28,8 @@ struct Buffer
     void set()     {_data.fill(0);}
     char* data()   {return _data.data();}
     char* begin()  {return &(_data.data())[position];}
+
+    // These functions are used by Websocket
 
     template<typename... Tp>
     std::tuple<Tp...> deserialize() {
@@ -45,14 +50,16 @@ struct Buffer
     }
 
     template<typename T>
-    void copy_to_vector(std::vector<T>& vec, uint64_t length) {
+    void to_vector(std::vector<T>& vec, uint64_t length) {
         const auto b = reinterpret_cast<const T*>(begin());
-        vec.insert(vec.begin(), b, b + length);
+        vec.resize(length);
+        std::move(b, b + length, vec.begin());
         position += length * sizeof(T);
     }
 
-    void copy_to_string(std::string& str, uint64_t length) {
-        str.insert(str.begin(), begin(), begin() + length);
+    void to_string(std::string& str, uint64_t length) {
+        str.resize(length);
+        std::move(begin(), begin() + length, str.begin());
         position += length;
     }
 
@@ -61,6 +68,8 @@ struct Buffer
     size_t position; // Current position in the buffer
 };
 
+class SessionAbstract;
+
 struct Command
 {
     Command() noexcept
@@ -68,23 +77,17 @@ struct Command
     {}
 
     enum Header : uint32_t {
-        HEADER_SIZE = 12,
+        HEADER_SIZE = 8,
         HEADER_START = 4  // First 4 bytes are reserved
     };
 
-    SessID sess_id = -1;                    ///< ID of the session emitting the command  
-    device_t device = NO_DEVICE;            ///< The device to control
+    SessID sess_id = -1;                    ///< ID of the session emitting the command
+    SessionAbstract *sess;                  ///< Pointer to the session emitting the command
+    device_id device = dev_id_of<NoDevice>;  ///< The device to control
     int32_t operation = -1;                 ///< Operation ID
-    int64_t payload_size;
 
     Buffer<HEADER_SIZE> header;             ///< Raw data header
     Buffer<CMD_PAYLOAD_BUFFER_LEN> payload;
-    
-    void print() const {
-        printf("SessID = %u\n", (uint32_t)sess_id);
-        printf("Device = %u\n", (uint32_t)device);
-        printf("Operation = %u\n", operation);
-    }
 };
 
 } // namespace kserver

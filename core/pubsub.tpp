@@ -1,51 +1,72 @@
 /// (c) Koheron
 
+#ifndef __PUBSUB_TPP__
+#define __PUBSUB_TPP__
+
 #include "pubsub.hpp"
 #include "kserver_session.hpp"
 
-#if KSERVER_HAS_THREADS
-#  include <thread>
-#  include <mutex>
-#endif
-
 namespace kserver {
 
-template<uint32_t channel, uint32_t event, typename... Tp>
-void PubSub::emit(Tp&&... args)
+template<uint16_t channel, uint16_t event, typename... Args>
+inline int PubSub::emit(Args&&... args)
 {
     static_assert(channel < channels_count, "Invalid channel");
 
-    for (auto const& sid : subscribers.get(channel))
-        session_manager.get_session(sid).send(
-            std::make_tuple(0U,   // RESERVED
-                            channel,
-                            event,
-                            args...)
-        );
+    // We don't emit if connections are closed
+    if (sig_handler.interrupt())
+        return 0;
+
+    int err = 0;
+
+    for (auto const& sid : subscribers.get<channel>()) {
+        int r = session_manager.get_session(sid)
+                    .template send<channel, event>(std::forward<Args>(args)...);
+
+        if (unlikely(r < 0))
+            err = r;
+    }
+
+    return err;
 }
 
-template<uint32_t channel, uint32_t event>
-void PubSub::emit_cstr(const char *str)
+template<uint16_t channel, uint16_t event, typename... Args>
+inline int PubSub::emit(const char *str, Args&&... args)
 {
     static_assert(channel < channels_count, "Invalid channel");
 
-    if (subscribers.count(channel) > 0) {
-        // Need a mutex: emit_buffer is shared memory
-#if KSERVER_HAS_THREADS
-        std::lock_guard<std::mutex> lock(mutex);
-#endif
+    // We don't emit if connections are closed
+    if (sig_handler.interrupt())
+        return 0;
 
-        const auto& string = std::string(str);
-        uint32_t len = string.size() + 1; // Including '\0'
-        const auto& array = serialize(std::make_tuple(0U, channel, event, len));
-        emit_buffer.resize(0);
-        emit_buffer.insert(emit_buffer.end(), array.begin(), array.end());
-        emit_buffer.insert(emit_buffer.end(), string.begin(), string.end());
-        emit_buffer.push_back('\0');
+    int ret = kserver::snprintf(fmt_buffer, FMT_BUFF_LEN, str,
+                                std::forward<Args>(args)...);
 
-        for (auto const& sid : subscribers.get(channel))
-            session_manager.get_session(sid).send(emit_buffer);
+    if (unlikely(ret < 0)) {
+        fprintf(stderr, "emit_error: Format error\n");
+        return -1;
     }
+
+    if (unlikely(ret >= FMT_BUFF_LEN)) {
+        fprintf(stderr, "emit_error: Buffer fmt_buffer overflow\n");
+        return -1;
+    }
+
+    int err = 0;
+
+    if (subscribers.count<channel>() > 0) {
+        for (auto const& sid : subscribers.get<channel>()) {
+            int r = session_manager.get_session(sid)
+                        .template send<channel, event>(fmt_buffer);
+
+            if (unlikely(r < 0))
+                err = r;
+        }
+    }
+
+    return err;
 }
 
 } // namespace kserver
+
+#endif // __PUBSUB_TPP__

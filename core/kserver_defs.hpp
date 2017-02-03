@@ -13,16 +13,6 @@ namespace kserver {
 #define KSERVER_IS_DAEMON 1
 
 // ------------------------------------------
-// Architecture
-// ------------------------------------------
-
-#ifdef LOCAL
-#  define KSERVER_HAS_DEVMEM 0
-#else
-#  define KSERVER_HAS_DEVMEM 1
-#endif
-
-// ------------------------------------------
 // Connections
 // ------------------------------------------
 
@@ -34,6 +24,9 @@ namespace kserver {
 
 /// Enable Unix sockets
 #define KSERVER_HAS_UNIX_SOCKET 1
+
+/// Systemd notification socket
+#define DFLT_NOTIFY_SOCKET "/run/systemd/notify"
 
 /// Default number of parallel sessions per server
 #define DFLT_WORKER_CONNECTIONS 10
@@ -72,28 +65,7 @@ namespace kserver {
 /// Syslog level
 #define KSERVER_SYSLOG_UPTO LOG_NOTICE
 
-// ------------------------------------------
-// Permissions
-// ------------------------------------------
-
-/// Default permission for writing into a device
-#define DFLT_WRITE_PERM true
-
-/// Default permission for reading from a device
-#define DFLT_READ_PERM  true
-
-/// Write permission default policy
-/// NONE: It's the war ! Users can write all together ... Not advisable
-/// FCFS: First Come First Served 
-///       --> The first connected user has write access to the devices
-/// LCFS: Last Come First Served
-///       --> The last connected user has write access to the devices
-#define DFLT_WRITE_PERM_POLICY LCFS
-
-/// Allowed memory region for memory mapping
-/// By default set to 0x0, that is no limitation
-#define DFLT_ADDR_LIMIT_DOWN 0x0
-#define DFLT_ADDR_LIMIT_UP   0x0
+#define KSERVER_HAS_SYSTEMD 1
 
 // ------------------------------------------
 // Buffer sizes

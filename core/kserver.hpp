@@ -20,13 +20,10 @@
 #include <ctime>
 #include <utility>
 
-#include "kdevice.hpp"
 #include "devices_manager.hpp"
 #include "syslog.hpp"
 #include "signal_handler.hpp"
-#include "peer_info.hpp"
 #include "session_manager.hpp"
-#include "pubsub.hpp"
 
 namespace kserver {
 
@@ -49,8 +46,9 @@ class ListeningChannel
 {
   public:
     ListeningChannel(KServer *kserver_)
-    : listen_fd(-1),
-      kserver(kserver_)
+    : listen_fd(-1)
+    , is_ready(false)
+    , kserver(kserver_)
     {
         num_threads.store(-1);
     }
@@ -77,6 +75,9 @@ class ListeningChannel
     /// Number of sessions using the channel
     std::atomic<int> num_threads;
 
+    /// True when ready to open sessions
+    std::atomic<bool> is_ready;
+
 #if KSERVER_HAS_THREADS
     std::thread comm_thread; ///< Listening thread
 #endif
@@ -97,7 +98,7 @@ void ListeningChannel<sock_type>::join_worker()
 }
 #endif // KSERVER_HAS_THREADS
 
-////////////////////////////////////////////////////////////////////////////
+ ////////////////////////////////////////////////////////////////////////////
 /////// KServer
 
 /// Main class of the server. It initializes the 
@@ -105,12 +106,9 @@ void ListeningChannel<sock_type>::join_worker()
 ///
 /// Derived from KDevice, therefore it is seen as 
 /// a device from the client stand point.
-class KServer : public KDevice<KServer, KSERVER>
-{
-  public:
-    const device_t kind = KSERVER;
-    enum { __kind = KSERVER };
 
+class KServer
+{
   public:
     KServer(std::shared_ptr<kserver::KServerConfig> config_);
 
@@ -118,13 +116,13 @@ class KServer : public KDevice<KServer, KSERVER>
 
     /// Operations associated to the device
     enum Operation {
-        GET_VERSION,            ///< Send th version of the server
-        GET_CMDS,               ///< Send the commands numbers
-        GET_STATS,              ///< Get KServer listeners statistics
-        GET_DEV_STATUS,         ///< Send the devices status
-        GET_RUNNING_SESSIONS,   ///< Send the running sessions
-        SUBSCRIBE_PUBSUB,       ///< Subscribe to a broadcast channel
-        PUBSUB_PING,            ///< Emit a ping to server broadcast subscribers
+        GET_VERSION = 0,            ///< Send th version of the server
+        GET_CMDS = 1,               ///< Send the commands numbers
+        GET_STATS = 2,              ///< Get KServer listeners statistics
+        GET_DEV_STATUS = 3,         ///< Send the devices status
+        GET_RUNNING_SESSIONS = 4,   ///< Send the running sessions
+        SUBSCRIBE_PUBSUB = 5,       ///< Subscribe to a broadcast channel
+        PUBSUB_PING = 6,            ///< Emit a ping to server broadcast subscribers
         kserver_op_num
     };
 
@@ -132,6 +130,7 @@ class KServer : public KDevice<KServer, KSERVER>
     SignalHandler sig_handler;
 
     std::atomic<bool> exit_comm;
+    std::atomic<bool> exit_all;
 
     // Listeners
 #if KSERVER_HAS_TCP
@@ -144,6 +143,9 @@ class KServer : public KDevice<KServer, KSERVER>
     ListeningChannel<UNIX> unix_listener;
 #endif
 
+    /// True when all listeners are ready
+    bool is_ready();
+
     // Managers
     DeviceManager dev_manager;
     SessionManager session_manager;
@@ -152,11 +154,12 @@ class KServer : public KDevice<KServer, KSERVER>
     SysLog syslog;
     std::time_t start_time;
 
-    PubSub pubsub;
-
 #if KSERVER_HAS_THREADS
     std::mutex ks_mutex;
 #endif
+
+    int execute(Command& cmd);
+    template<int op> int execute_op(Command& cmd);
 
   private:
     // Internal functions
@@ -164,9 +167,9 @@ class KServer : public KDevice<KServer, KSERVER>
     void detach_listeners_workers();
     void join_listeners_workers();
     void close_listeners();
-
-    template<int sock_type>
-    void save_session_logs(Session<sock_type> *session, PeerInfo peer_info);
+#if KSERVER_HAS_SYSTEMD
+    void notify_systemd_ready();
+#endif
 
 template<int sock_type> friend class ListeningChannel;
 };
