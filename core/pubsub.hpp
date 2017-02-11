@@ -17,21 +17,36 @@
 #endif
 
 #include "kserver_defs.hpp"
+#include "signal_handler.hpp"
 
 namespace kserver {
 
 template<size_t channels_count>
 struct Subscribers
 {
-    const std::vector<SessID>& get(uint16_t channel) const {
-        return _subscribers[channel];
+    template<uint16_t channel>
+    const auto& get() const {
+        return std::get<channel>(_subscribers);
+    }
+
+    template<uint16_t channel>
+    int count() const {
+        return get<channel>().size();
     }
 
     int subscribe(uint16_t channel, SessID sid) {
         if (channel >= channels_count)
             return -1;
 
-        _subscribers[channel].push_back(sid);
+        // Check whether session hasn't already
+        // subscribed before adding to subscribers.
+
+        auto& s = _subscribers[channel];
+        auto it = std::find(s.begin(), s.end(), sid);
+
+        if (it == s.end())
+            s.push_back(sid);
+
         return 0;
     }
 
@@ -48,10 +63,6 @@ struct Subscribers
         }
     }
 
-    int count(uint16_t channel) const {
-        return _subscribers[channel].size();
-    }
-
   private:
     std::array<std::vector<SessID>, channels_count> _subscribers;
 };
@@ -61,9 +72,13 @@ class SessionManager;
 class PubSub
 {
   public:
-    PubSub(SessionManager& session_manager_)
+    PubSub(SessionManager& session_manager_,
+           SignalHandler& sig_handler_)
     : session_manager(session_manager_)
-    {}
+    , sig_handler(sig_handler_)
+    {
+        memset(fmt_buffer, 0, FMT_BUFF_LEN);
+    }
 
     // Session sid subscribes to a channel
     int subscribe(uint16_t channel, SessID sid) {
@@ -78,11 +93,12 @@ class PubSub
     // Event message structure
     // |      RESERVED     | CHANNEL |  EVENT  |   Arguments
     // |  0 |  1 |  2 |  3 |  4 |  5 |  8 |  9 | 12 | 13 | 14 | ...
-    template<uint16_t channel, uint16_t event, typename... Tp>
-    void emit(Tp&&... args);
+    template<uint16_t channel, uint16_t event, typename... Args>
+    int emit(Args&&... args);
 
-    template<uint16_t channel, uint16_t event>
-    void emit_cstr(const char *str);
+    // This specialization emits a formated string
+    template<uint16_t channel, uint16_t event, typename... Args>
+    int emit(const char *str, Args&&... args);
 
     enum Channels {
         SERVER_CHANNEL,        ///< Server events
@@ -99,7 +115,11 @@ class PubSub
 
   private:
     SessionManager& session_manager;
+    SignalHandler& sig_handler;
     Subscribers<channels_count> subscribers;
+
+    static constexpr int32_t FMT_BUFF_LEN = 1024;
+    char fmt_buffer[FMT_BUFF_LEN];
 };
 
 } // namespace kserver

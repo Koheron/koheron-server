@@ -6,7 +6,7 @@
 #include <tuple>
 #include <string>
 
-#include <context.hpp>
+#include "context.hpp"
 
 constexpr size_t calc_array_length(size_t n_bits) {
     return 1 << n_bits;
@@ -104,6 +104,12 @@ class Tests
     std::vector<float> data;
     std::vector<uint32_t> data_u;
     std::vector<int32_t> data_i;
+
+    // Function template: Must be excluded
+    template<typename T, size_t N>
+    int64_t template_array(const std::array<T, N>& arr) {
+        return arr.size();
+    }
 
   private:
     std::vector<uint32_t> buffer;
