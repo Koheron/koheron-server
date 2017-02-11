@@ -13,7 +13,7 @@
 
 namespace kserver {
 
-class SysLog;
+struct SysLog;
 
 class WebSocket
 {

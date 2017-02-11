@@ -95,7 +95,7 @@ class str_const { // constexpr string
 template<class T, class... Tail, class Elem = typename std::decay<T>::type>
 constexpr std::array<Elem,1+sizeof...(Tail)> make_array(T&& head, Tail&&... values)
 {
-  return { std::forward<T>(head), std::forward<Tail>(values)... };
+  return {{ std::forward<T>(head), std::forward<Tail>(values)... }};
 }
 
 } // namespace kserver
