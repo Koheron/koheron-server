@@ -23,7 +23,9 @@ struct Buffer
     : position(position_)
     {};
 
-    constexpr size_t size() const {return len;}
+    constexpr size_t size() const {
+        return len;
+    }
 
     void set()     {_data.fill(0);}
     char* data()   {return _data.data();}

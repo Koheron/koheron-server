@@ -28,15 +28,18 @@ struct Index;
 
 template <class T, class... Types>
 struct Index<T, std::tuple<T, Types...>> {
-    static const std::size_t value = 0;
+    static constexpr std::size_t value = 0;
 };
 
 template <class T, class U, class... Types>
 struct Index<T, std::tuple<U, Types...>> {
-    static const std::size_t value = 1 + Index<T, std::tuple<Types...>>::value;
+    static constexpr std::size_t value = 1 + Index<T, std::tuple<Types...>>::value;
 };
 
 template <class T, class Tuple>
 constexpr std::size_t Index_v = Index<T, Tuple>::value;
+
+static_assert(Index_v<uint32_t, std::tuple<uint32_t, float>> == 0, "");
+static_assert(Index_v<float, std::tuple<uint32_t, float>> == 1, "");
 
 #endif // __META_UTILS_HPP__

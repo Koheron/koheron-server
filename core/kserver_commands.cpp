@@ -49,7 +49,7 @@ int send_listener_stats(Command& cmd, KServer *kserver,
                         ListeningChannel<sock_type> *listener)
 {
     char send_str[KS_DEV_WRITE_STR_LEN];
-    unsigned int bytes_send = 0;
+    int bytes_send = 0;
 
     int ret = snprintf(send_str, KS_DEV_WRITE_STR_LEN,
                     "%s:%d:%d:%d\n", 
@@ -79,8 +79,8 @@ int send_listener_stats(Command& cmd, KServer *kserver,
 KSERVER_EXECUTE_OP(GET_STATS)
 {
     char send_str[KS_DEV_WRITE_STR_LEN];
-    unsigned int bytes = 0;
-    unsigned int bytes_send = 0;
+    int bytes = 0;
+    int bytes_send = 0;
 
     // Send start time
     int ret = snprintf(send_str, KS_DEV_WRITE_STR_LEN,
@@ -156,8 +156,8 @@ KSERVER_EXECUTE_OP(GET_DEV_STATUS) {return 0;}
 KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
 {
     char send_str[KS_DEV_WRITE_STR_LEN];
-    unsigned int bytes = 0;
-    unsigned int bytes_send = 0;
+    int bytes = 0;
+    int bytes_send = 0;
 
     const auto& ids = session_manager.get_current_ids();
 

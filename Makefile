@@ -66,22 +66,22 @@ CPUS = $(shell nproc 2> /dev/null || echo 1)
 # --------------------------------------------------------------
 
 # Use Link Time Optimization
-# CC=$(CROSS_COMPILE)gcc -flto
-# CCXX=$(CROSS_COMPILE)g++ -flto
-CC=$(CROSS_COMPILE)clang -flto
-CCXX=$(CROSS_COMPILE)clang -flto
+CC=$(CROSS_COMPILE)gcc -flto
+CCXX=$(CROSS_COMPILE)g++ -flto
+# CC=$(CROSS_COMPILE)clang-3.9 -flto
+# CCXX=$(CROSS_COMPILE)clang-3.9 -flto
 
 # --------------------------------------------------------------
 # GCC compiling & linking flags
 # --------------------------------------------------------------
 
-# CPP_STD=c++14
-CPP_STD=c++1y
+CPP_STD=c++14
 
 INC=-I$(TMP) -I$(BASE_DIR) -I.
 CFLAGS=-Wall -Werror $(INC) $(DEFINES) -MMD -MP
 CFLAGS += $(ARCH_FLAGS) $(DEBUG_FLAGS) $(OPTIM_FLAGS)
 CXXFLAGS=$(CFLAGS) -std=$(CPP_STD) -pthread
+# CXXFLAGS+=-stdlib=libc++
 
 # --------------------------------------------------------------
 # Libraries

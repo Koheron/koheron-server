@@ -30,7 +30,7 @@ class ContextBase
     template<class Dev>
     Dev& get() const;
 
-    template<unsigned int severity, typename... Args>
+    template<int severity, typename... Args>
     void log(const char *msg, Args&&... args) {
         syslog->print<severity>(msg, std::forward<Args>(args)...);
     }

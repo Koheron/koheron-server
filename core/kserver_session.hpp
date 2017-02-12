@@ -16,6 +16,7 @@
 #include "serializer_deserializer.hpp"
 #include "socket_interface_defs.hpp"
 #include "kserver.hpp"
+#include "session_abstract.hpp"
 
 #if KSERVER_HAS_WEBSOCKET
 #include "websocket.hpp"
@@ -25,18 +26,18 @@ namespace kserver {
 
 class SessionManager;
 
-class SessionAbstract
-{
-  public:
-    SessionAbstract(int sock_type_)
-    : kind(sock_type_) {}
+// class SessionAbstract
+// {
+//   public:
+//     SessionAbstract(int sock_type_)
+//     : kind(sock_type_) {}
 
-    template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd);
-    template<typename Tp> int recv(Tp& container, Command& cmd);
-    template<uint16_t class_id, uint16_t func_id, typename... Args> int send(Args&&... args);
+//     template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd);
+//     template<typename Tp> int recv(Tp& container, Command& cmd);
+//     template<uint16_t class_id, uint16_t func_id, typename... Args> int send(Args&&... args);
 
-    int kind;
-};
+//     int kind;
+// };
 
 /// Session
 ///
@@ -294,7 +295,7 @@ inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd, std::true_
     constexpr auto pack_len = required_buffer_size<Tp...>();
     Buffer<pack_len> buff;
     const int err = rcv_n_bytes(buff.data(), pack_len);
-    return std::tuple_cat(std::make_tuple(err), buff.deserialize<Tp...>());
+    return std::tuple_cat(std::make_tuple(err), buff.template deserialize<Tp...>());
 }
 
 template<>

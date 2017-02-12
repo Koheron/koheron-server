@@ -5,6 +5,7 @@
 #include "kserver.hpp"
 
 #include <chrono>
+#include <cstdlib>
 
 #include "commands.hpp"
 #include "kserver_session.hpp"

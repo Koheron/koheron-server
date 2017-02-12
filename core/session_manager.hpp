@@ -12,6 +12,7 @@
 
 #include "kserver_defs.hpp"
 #include "config.hpp"
+#include "session_abstract.hpp"
 
 #if KSERVER_HAS_THREADS
 #  include <mutex>
@@ -19,7 +20,7 @@
 
 namespace kserver {
 
-class SessionAbstract;
+// class SessionAbstract;
 template<int sock_type> class Session;
 class DeviceManager;
 class KServer;

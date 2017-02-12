@@ -54,18 +54,21 @@ static_assert(std::tuple_size<devices_tuple_t>::value == device_num - 2, "");
 
 // Device id from device type
 
-template<class Dev> constexpr device_id dev_id_of;
-template<> constexpr device_id dev_id_of<NoDevice> = 0;
-template<> constexpr device_id dev_id_of<KServer> = 1;
+// template<class Dev> constexpr device_id dev_id_of;
+// template<> constexpr device_id dev_id_of<NoDevice> = 0;
+// template<> constexpr device_id dev_id_of<KServer> = 1;
 
 template<class Dev>
 constexpr device_id dev_id_of
-	= Index_v<std::unique_ptr<Dev>, devices_tuple_t> + 2;
+    = Index<std::unique_ptr<Dev>, devices_tuple_t>::value + 2;
+
+template<> constexpr device_id dev_id_of<NoDevice> = 0;
+template<> constexpr device_id dev_id_of<KServer> = 1;
 
 // Device type from device id
 
 template<device_id dev>
 using device_t = std::remove_reference_t<
-					decltype(*std::get<dev - 2>(std::declval<devices_tuple_t>()))>;
+                    decltype(*std::get<dev - 2>(std::declval<devices_tuple_t>()))>;
 
 #endif // __DEVICES_TABLE_HPP__

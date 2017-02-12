@@ -20,8 +20,6 @@ class SignalHandler
     static KServer *kserver;
 
   private:
-    int status;
-
     int set_interrup_signals();
     int set_ignore_signals();
     int set_crash_signals();

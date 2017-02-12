@@ -41,8 +41,10 @@ static constexpr auto log_array = kserver::make_array(
     std::make_tuple(LOG_DEBUG, str_const("KSERVER DEBUG"))
 );
 
-template<int severity>
-constexpr int to_priority = std::get<0>(std::get<severity>(log_array));
+// template<int severity>
+// static constexpr int to_priority = std::get<0>(std::get<severity>(log_array));
+
+// static_assert(to_priority<PANIC> == LOG_ALERT, "");
 
 template<int severity>
 constexpr str_const severity_msg = std::get<1>(std::get<severity>(log_array));
@@ -100,11 +102,18 @@ struct SysLog
             kserver::printf(message, std::forward<Args>(args)...);
     }
 
+    template<int severity>
+    static constexpr int to_priority = std::get<0>(std::get<severity>(log_array));
+
+    static_assert(to_priority<PANIC> == LOG_ALERT, "");
+    static_assert(to_priority<INFO> == LOG_NOTICE, "");
+
     template<int severity, typename... Args>
     std::enable_if_t< severity <= INFO, void >
     call_syslog(const char *message, Args&&... args) {
         if (config->syslog)
-            syslog<to_priority<severity>>(message, std::forward<Args>(args)...);
+            // kserver::syslog<to_priority<severity>>(message, std::forward<Args>(args)...);
+            kserver::syslog<std::get<0>(std::get<severity>(log_array))>(message, std::forward<Args>(args)...);
     }
 
     // We don't send debug messages to the system log
@@ -117,7 +126,7 @@ struct SysLog
     template<int severity, typename... Args>
     std::enable_if_t< severity <= INFO, int >
     emit_error(const char *message, Args&&... args) {
-        return notify<PubSub::SYSLOG_CHANNEL, severity>(message, std::forward<Args>(args)...);
+        return notify<PubSub::SYSLOG_CHANNEL, static_cast<uint16_t>(severity)>(message, std::forward<Args>(args)...);
     }
 
     template<int severity, typename... Args>
