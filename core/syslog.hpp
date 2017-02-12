@@ -112,8 +112,7 @@ struct SysLog
     std::enable_if_t< severity <= INFO, void >
     call_syslog(const char *message, Args&&... args) {
         if (config->syslog)
-            // kserver::syslog<to_priority<severity>>(message, std::forward<Args>(args)...);
-            kserver::syslog<std::get<0>(std::get<severity>(log_array))>(message, std::forward<Args>(args)...);
+            kserver::syslog<to_priority<severity>>(message, std::forward<Args>(args)...);
     }
 
     // We don't send debug messages to the system log
