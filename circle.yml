@@ -26,7 +26,7 @@ dependencies:
 
 test:
   pre:
-    - make COMPILER=clang CONFIG=config/config_local_clang.yaml clean all
+    - make COMPILER=clang CONFIG=config/config_local_clang.yaml
     - make CONFIG=config/config_armhf.yaml __PYTHON=python clean all
     - make CONFIG=config/config_local.yaml __PYTHON=python clean all
     - ./tmp/kserverd -c ./config/kserver_local.conf:
