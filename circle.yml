@@ -17,13 +17,13 @@ dependencies:
     - sudo bash -c "echo deb-src http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.8 main >> /etc/apt/sources.list"
     - sudo bash -c "echo deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main >> /etc/apt/sources.list"
     - sudo bash -c "echo deb-src http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main >> /etc/apt/sources.list"
-    - sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+    - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
     - sudo apt-get update; sudo apt-get install gcc-5 g++-5 gcc-5-arm-linux-gnueabihf g++-5-arm-linux-gnueabihf
     - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 100
     - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 100
     - sudo ln -s /usr/bin/arm-linux-gnueabihf-gcc-5 /usr/bin/arm-linux-gnueabihf-gcc
     - sudo ln -s /usr/bin/arm-linux-gnueabihf-g++-5 /usr/bin/arm-linux-gnueabihf-g++
-    - sudo apt-get install clang-3.9
+    - sudo apt-get install -y clang-3.9
 
 test:
   pre:
