@@ -74,8 +74,9 @@ ifeq ($(COMPILER),gcc)
 endif
 
 ifeq ($(COMPILER),clang)
-	CC=$(CROSS_COMPILE)clang-3.9 -flto
-	CCXX=$(CROSS_COMPILE)clang-3.9 -flto
+	CC=$(CROSS_COMPILE)clang-3.9 -flto -fuse-ld=gold
+	CCXX=$(CROSS_COMPILE)clang++-3.9 -flto
+	LD_FLAGS=-fuse-ld=gold
 endif
 
 # --------------------------------------------------------------
@@ -86,10 +87,6 @@ INC=-I$(TMP) -I$(BASE_DIR) -I.
 CFLAGS=-Wall -Werror $(INC) $(DEFINES) -MMD -MP
 CFLAGS += $(ARCH_FLAGS) $(DEBUG_FLAGS) $(OPTIM_FLAGS)
 CXXFLAGS=$(CFLAGS) -std=c++14 -pthread
-
-ifeq ($(COMPILER),clang)
-	CXXFLAGS+=-stdlib=libc++
-endif
 
 # --------------------------------------------------------------
 # Libraries
@@ -135,7 +132,7 @@ $(TMP)/%.o: $(TMP)/%.cpp
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
 
 $(EXECUTABLE): $(OBJ)
-	$(CCXX) -o $@ $(OBJ) $(CXXFLAGS) $(LIBS)
+	$(CCXX) -o $@ $(OBJ) $(CXXFLAGS) $(LD_FLAGS) $(LIBS)
 
 exec: $(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(KS_DEVICES_CPP)
 	$(MAKE) --jobs=$(CPUS) $(EXECUTABLE)

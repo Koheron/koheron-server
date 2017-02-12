@@ -12,6 +12,7 @@ server-name: kserverd
 cross-compile: ""
 
 arch_flags:
+  - stdlib=libc++
   - march=native
 
 defines:
