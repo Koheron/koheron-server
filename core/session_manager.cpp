@@ -3,9 +3,6 @@
 /// (c) Koheron
 
 #include "session_manager.hpp"
-#include "syslog.tpp"
-#include "kserver_session.hpp"
-#include "kserver.hpp"
 
 #include <sys/socket.h>
 
@@ -13,6 +10,10 @@
 #  include <thread>
 #  include <mutex>
 #endif
+
+#include "syslog.tpp"
+#include "kserver.hpp"
+#include "kserver_session.hpp"
 
 namespace kserver {
 
@@ -29,7 +30,7 @@ unsigned int SessionManager::num_sess = 0;
 
 void SessionManager::print_reusable_ids()
 {
-    if (reusable_ids.size() == 0) {
+    if (reusable_ids.empty()) {
         printf("reusable_ids = {}\n");
     } else {
         printf("reusable_ids = {%u", reusable_ids[0]);
@@ -65,9 +66,9 @@ std::vector<SessID> SessionManager::get_current_ids()
 {
     std::vector<SessID> res(0);
 
-    for (auto it = session_pool.begin(); it != session_pool.end(); ++it) {
-        assert(!is_reusable_id(it->first));
-        res.push_back(it->first);
+    for (auto& session : session_pool) {
+        assert(!is_reusable_id(session.first));
+        res.push_back(session.first);
     }
 
     return res;
