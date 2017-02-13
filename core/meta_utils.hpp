@@ -3,6 +3,8 @@
 #ifndef __META_UTILS_HPP__
 #define __META_UTILS_HPP__
 
+#include <utility>
+
 // Range integer sequence
 
 // http://stackoverflow.com/questions/35625079/offset-for-variadic-template-integer-sequence

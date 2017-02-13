@@ -84,7 +84,7 @@ constexpr int64_t CMD_PAYLOAD_BUFFER_LEN = 16384 * 8;
 #define KSERVER_SEND_STR_LEN 16384
 
 /// Receive data buffer length
-#define KSERVER_RECV_DATA_BUFF_LEN 16384 * 2 * 4
+#define KSERVER_RECV_DATA_BUFF_LEN (16384 * 2 * 4)
 
 /// Number of char for the device identification
 #define N_CHAR_DEV 16
@@ -124,7 +124,7 @@ constexpr int64_t CMD_PAYLOAD_BUFFER_LEN = 16384 * 8;
 // Misc
 // ------------------------------------------
 
-typedef int SessID;
+using SessID = int;
 
 #define likely(x)       __builtin_expect(!!(x), 1)
 #define unlikely(x)     __builtin_expect(!!(x), 0)

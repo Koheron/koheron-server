@@ -28,12 +28,12 @@ extern "C" {
 constexpr char opt_str[] = "hc:vlp:d:w";
 
 static struct option lopts[] = {
-    {"help"     ,   0, 	0, 	'h'},
-    {"config"   ,   1, 	0, 	'c'},
-    {"verbose"  ,   0, 	0, 	'v'}
+    {"help"     ,   0, 	nullptr, 	'h'},
+    {"config"   ,   1, 	nullptr, 	'c'},
+    {"verbose"  ,   0, 	nullptr, 	'v'}
 };
 
-void usage(void)
+void usage()
 {
     printf("Usage: kserver [Option]\n\n");
     printf("Option \t\t Long option \t\t Meaning\n");

@@ -20,7 +20,7 @@ namespace kserver {
 template<int sock_type>
 struct PeerInfo
 {
-    PeerInfo(int comm_fd)
+    explicit PeerInfo(int comm_fd)
     {
         memset(ip_str, 0, INET6_ADDRSTRLEN);
         ip_family = 0;
@@ -44,7 +44,7 @@ struct PeerInfo
   private:
     void fill_up(int comm_fd)
     {
-        struct sockaddr_storage addr;
+        struct sockaddr_storage addr{};
         socklen_t len = sizeof addr;
 
         if (getpeername(comm_fd, (struct sockaddr*)&addr, &len) >= 0) {

@@ -125,7 +125,7 @@ struct SysLog
     template<int severity, typename... Args>
     std::enable_if_t< severity <= INFO, int >
     emit_error(const char *message, Args&&... args) {
-        return notify<PubSub::SYSLOG_CHANNEL, static_cast<uint16_t>(severity)>(message, std::forward<Args>(args)...);
+        return notify<PubSub::SYSLOG_CHANNEL, severity>(message, std::forward<Args>(args)...);
     }
 
     template<int severity, typename... Args>

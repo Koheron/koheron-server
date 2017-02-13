@@ -189,7 +189,7 @@ void KServer::notify_systemd_ready()
     msg.msg_namelen = sizeof(struct sockaddr_un) - (sizeof(sd_sun.sun_path) - len);
 
     state = "STATUS=Koheron server is ready\nREADY=1\n";
-    msg.msg_iov[0].iov_base = (char *)(state);
+    msg.msg_iov[0].iov_base = const_cast<char *>(state);
     msg.msg_iov[0].iov_len = strlen(state);
     msg.msg_iovlen = 1;
 
@@ -215,7 +215,7 @@ int KServer::run()
     if (start_listeners_workers() < 0)
         return -1;
 
-    while (1) {
+    while (true) {
         if (!ready_notified && is_ready()) {
             syslog.print<INFO>("Koheron server ready\n");
 #if KSERVER_HAS_SYSTEMD

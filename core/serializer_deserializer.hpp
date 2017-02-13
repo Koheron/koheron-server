@@ -39,7 +39,7 @@ template<typename Tp> void append(unsigned char *buff, Tp value);  // Serializat
 template<>
 inline uint8_t extract<uint8_t>(const char *buff)
 {
-    return (unsigned char)buff[0];
+    return static_cast<unsigned char>(buff[0]);
 }
 
 template<>
@@ -71,7 +71,8 @@ inline void append<int8_t>(unsigned char *buff, int8_t value)
 template<>
 inline uint16_t extract<uint16_t>(const char *buff)
 {
-    return (unsigned char)buff[1] + ((unsigned char)buff[0] << 8);
+    return static_cast<unsigned char>(buff[1])
+           + (static_cast<unsigned char>(buff[0]) << 8);
 }
 
 template<>
@@ -105,8 +106,8 @@ inline void append<int16_t>(unsigned char *buff, int16_t value)
 template<>
 inline uint32_t extract<uint32_t>(const char *buff)
 {
-    return (unsigned char)buff[3] + ((unsigned char)buff[2] << 8) 
-           + ((unsigned char)buff[1] << 16) + ((unsigned char)buff[0] << 24);
+    return static_cast<unsigned char>(buff[3]) + (static_cast<unsigned char>(buff[2]) << 8)
+           + (static_cast<unsigned char>(buff[1]) << 16) + (static_cast<unsigned char>(buff[0]) << 24);
 }
 
 template<>

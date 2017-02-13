@@ -100,7 +100,7 @@ int set_comm_sock_opts(int comm_fd, SysLog *syslog,
         int one = 1;
 
         if (setsockopt(comm_fd, IPPROTO_TCP, TCP_NODELAY,
-                       (char *)&one, sizeof(one)) < 0) {
+                       reinterpret_cast<char *>(&one), sizeof(one)) < 0) {
             syslog->print<CRITICAL>("Cannot set TCP_NODELAY\n");
             close(comm_fd);
             return -1;
@@ -114,7 +114,7 @@ int set_comm_sock_opts(int comm_fd, SysLog *syslog,
 int open_tcp_communication(int listen_fd, SysLog *syslog,
                            const std::shared_ptr<KServerConfig>& config)
 {
-    int comm_fd = accept(listen_fd, (struct sockaddr*) NULL, NULL);
+    int comm_fd = accept(listen_fd, (struct sockaddr*) nullptr, nullptr);
 
     if (comm_fd < 0)
         return comm_fd;
