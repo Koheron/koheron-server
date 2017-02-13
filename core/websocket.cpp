@@ -128,7 +128,7 @@ int WebSocket::read_http_packet()
     return nb_bytes_rcvd;
 }
 
-int WebSocket::set_send_header(unsigned char *bits, long long data_len,
+int WebSocket::set_send_header(unsigned char *bits, int64_t data_len,
                                unsigned int format)
 {
     memset(bits, 0, 10 + data_len);
@@ -399,7 +399,7 @@ int WebSocket::send_request(const std::string& request)
                         request.length());
 }
 
-int WebSocket::send_request(const unsigned char *bits, long long len)
+int WebSocket::send_request(const unsigned char *bits, int64_t len)
 {
     if (connection_closed)
         return 0;

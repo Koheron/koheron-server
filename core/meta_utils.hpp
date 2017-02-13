@@ -4,6 +4,7 @@
 #define __META_UTILS_HPP__
 
 #include <utility>
+#include <cstdint>
 
 // Range integer sequence
 

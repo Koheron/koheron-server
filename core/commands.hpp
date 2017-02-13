@@ -19,7 +19,7 @@ namespace kserver {
 template<size_t len>
 struct Buffer
 {
-    constexpr Buffer(size_t position_ = 0) noexcept
+    explicit constexpr Buffer(size_t position_ = 0) noexcept
     : position(position_)
     {};
 

@@ -213,7 +213,7 @@ inline void append<double>(unsigned char *buff, double value)
 template<>
 inline bool extract<bool>(const char *buff)
 {
-    return (unsigned char)buff[0] == 1;
+    return static_cast<unsigned char>(buff[0]) == 1;
 }
 
 template<>
@@ -267,7 +267,7 @@ namespace detail {
     required_buffer_size() {
         return size_of<Tp0> + required_buffer_size<Tp...>();
     }
-}
+} // namespace detail
 
 template<typename... Tp>
 constexpr size_t required_buffer_size()

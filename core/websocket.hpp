@@ -100,10 +100,10 @@ class WebSocket
     int check_opcode(unsigned int opcode);
     int read_n_bytes(int64_t bytes, int64_t expected);
 
-    int set_send_header(unsigned char *bits, long long data_len,
+    int set_send_header(unsigned char *bits, int64_t data_len,
                         unsigned int format);
     int send_request(const std::string& request);
-    int send_request(const unsigned char *bits, long long len);
+    int send_request(const unsigned char *bits, int64_t len);
 };
 
 template<class T>

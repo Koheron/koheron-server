@@ -5,6 +5,7 @@
 
 #include <cstring>
 #include <string>
+#include <array>
 #include <syslog.h>
 
 namespace kserver {
@@ -77,7 +78,7 @@ class str_const { // constexpr string
 
   public:
     template<std::size_t N>
-    constexpr str_const(const char(&a)[N]) : // ctor
+    explicit constexpr str_const(const char(&a)[N]) : // ctor
         p_(a), sz_(N-1) {}
 
     constexpr char operator[](std::size_t n) { // []

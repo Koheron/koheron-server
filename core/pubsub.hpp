@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <vector>
 #include <array>
+#include <cstring>
 #include <algorithm>
 #include <type_traits>
 
