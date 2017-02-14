@@ -24,8 +24,9 @@ int Session<TCP>::read_command(Command& cmd)
     // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | ...
     const int header_bytes = rcv_n_bytes(cmd.header.data(), Command::HEADER_SIZE);
 
-    if (header_bytes == 0)
+    if (header_bytes == 0) {
         return header_bytes;
+    }
 
     if (unlikely(header_bytes < 0)) {
         session_manager.kserver.syslog.print<ERROR>(
@@ -113,8 +114,9 @@ int Session<WEBSOCK>::read_command(Command& cmd)
         return -1;
     }
 
-    if (websock.is_closed())
+    if (websock.is_closed()) {
         return 0;
+    }
 
     if (websock.payload_size() < Command::HEADER_SIZE) {
         session_manager.kserver.syslog.print<ERROR>(

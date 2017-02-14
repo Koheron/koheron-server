@@ -81,8 +81,9 @@ class Session : public SessionAbstract
         dyn_ser.build_command<class_id, func_id>(send_buffer, std::forward<Args>(args)...);
         const auto bytes_send = write(send_buffer.data(), send_buffer.size());
 
-        if (bytes_send == 0)
+        if (bytes_send == 0) {
             status = CLOSED;
+        }
 
         return bytes_send;
     }
@@ -130,9 +131,10 @@ class Session : public SessionAbstract
     }
 
     void exit_session() {
-        if (exit_socket() < 0)
+        if (exit_socket() < 0) {
             session_manager.kserver.syslog.print<WARNING>(
                 "An error occured during session exit\n");
+        }
     }
 
     int read_command(Command& cmd);
@@ -179,15 +181,17 @@ Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
 template<int sock_type>
 int Session<sock_type>::run()
 {
-    if (init_session() < 0)
+    if (init_session() < 0) {
         return -1;
+    }
 
     while (!session_manager.kserver.exit_comm.load()) {
         Command cmd;
         const int nb_bytes_rcvd = read_command(cmd);
 
-        if (session_manager.kserver.exit_comm.load())
+        if (session_manager.kserver.exit_comm.load()) {
             break;
+        }
 
         if (nb_bytes_rcvd <= 0) {
 
@@ -206,8 +210,9 @@ int Session<sock_type>::run()
             errors_num++;
         }
 
-        if (status == CLOSED)
+        if (status == CLOSED) {
             break;
+        }
     }
 
     exit_session();
@@ -236,15 +241,17 @@ inline int Session<TCP>::recv(std::vector<T>& vec, Command& cmd)
 {
     const auto length = get_pack_length() / sizeof(T);
 
-    if (length < 0)
+    if (length < 0) {
         return -1;
+    }
 
     vec.resize(length);
     const auto err = rcv_n_bytes(reinterpret_cast<char *>(vec.data()), length * sizeof(T));
 
-    if (err >= 0)
+    if (err >= 0) {
         session_manager.kserver.syslog.print<DEBUG>(
             "TCPSocket: Received a vector of %lu bytes\n", length);
+    }
 
     return err;
 }
@@ -255,15 +262,17 @@ inline int Session<TCP>::recv(std::string& str, Command& cmd)
 {
     const auto length = get_pack_length();
 
-    if (length < 0)
+    if (length < 0) {
         return -1;
+    }
 
     str.resize(length);
     const auto err = rcv_n_bytes(const_cast<char*>(str.data()), length);
 
-    if (err >= 0)
+    if (err >= 0) {
         session_manager.kserver.syslog.print<DEBUG>(
             "TCPSocket: Received a string of %lu bytes\n", length);
+    }
 
     return err;
 }
