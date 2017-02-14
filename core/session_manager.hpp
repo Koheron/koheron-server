@@ -76,7 +76,7 @@ SessID SessionManager::create_session(const std::shared_ptr<KServerConfig>& conf
 
     // Choose a reusable ID if available else
     // create a new ID equal to the session number
-    if (reusable_ids.size() == 0) {
+    if (reusable_ids.empty()) {
         new_id = num_sess;
     } else {
         new_id = reusable_ids.back();

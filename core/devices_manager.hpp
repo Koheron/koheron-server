@@ -15,8 +15,8 @@
 
 #include "kdevice.hpp"
 
-#include <devices_table.hpp>
 #include <devices.hpp>
+#include <devices_table.hpp>
 
 namespace kserver {
 
@@ -55,7 +55,7 @@ struct Command;
 class DeviceManager
 {
   public:
-    DeviceManager(KServer *kserver_);
+    explicit DeviceManager(KServer *kserver_);
 
     int init();
     int execute(Command &cmd);
