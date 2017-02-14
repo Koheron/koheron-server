@@ -13,8 +13,8 @@
 
 extern "C" {
     #include <sys/socket.h>	// socket definitions
-    #include <sys/types.h>	// socket types      
     #include <arpa/inet.h>	// inet (3) funtions
+    #include <sys/types.h>	// socket types
     #include <unistd.h>
 }
 
@@ -61,14 +61,8 @@ int WebSocket::authenticate()
     }
 
     std::string key;
-
-    try {
-        static const int WSKeyLen = 24;
-        key = http_packet.substr(pos + WSKeyIdentifier.length(), WSKeyLen);
-    } catch (std::out_of_range &err) {
-        return -1;
-    }
-
+    static const int WSKeyLen = 24;
+    key = http_packet.substr(pos + WSKeyIdentifier.length(), WSKeyLen);
     key.append(WSMagic);
 
     SHA1(reinterpret_cast<const unsigned char*>(key.c_str()),
@@ -322,7 +316,7 @@ int WebSocket::read_header()
             return 0;
 
         header.header_size = MEDIUM_HEADER;
-        unsigned short s = 0;
+        uint16_t s = 0;
         memcpy(&s, (const char*)&read_str[2], 2);
         header.payload_size = ntohs(s);
         header.mask_offset = MEDIUM_OFFSET;
@@ -335,8 +329,8 @@ int WebSocket::read_header()
             return 0;
 
         header.header_size = BIG_HEADER;
-        unsigned long long l = 0;
-        memcpy(&l, (const char*)&read_str[2], 8);
+        uint64_t l = 0;
+        memcpy(&l, reinterpret_cast<const char*>(&read_str[2]), 8);
 
         header.payload_size = be64toh(l);
         header.mask_offset = BIG_OFFSET;

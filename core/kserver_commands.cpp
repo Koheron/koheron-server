@@ -51,7 +51,7 @@ int send_listener_stats(Command& cmd, KServer *kserver,
     char send_str[KS_DEV_WRITE_STR_LEN];
     int bytes_send = 0;
 
-    int ret = snprintf(send_str, KS_DEV_WRITE_STR_LEN,
+    int ret = snprintf(&send_str[0], KS_DEV_WRITE_STR_LEN,
                     "%s:%d:%d:%d\n", 
                     listen_channel_desc[sock_type].c_str(),
                     listener->stats.opened_sessions_num,
@@ -70,8 +70,9 @@ int send_listener_stats(Command& cmd, KServer *kserver,
         return -1;
     }
 
-    if ((bytes_send = kserver->GET_SESSION.send<1, KServer::GET_STATS>(send_str)) < 0)
+    if ((bytes_send = kserver->GET_SESSION.send<1, KServer::GET_STATS>(send_str)) < 0) {
         return -1;
+    }
 
     return bytes_send;
 }
@@ -83,7 +84,7 @@ KSERVER_EXECUTE_OP(GET_STATS)
     int bytes_send = 0;
 
     // Send start time
-    int ret = snprintf(send_str, KS_DEV_WRITE_STR_LEN,
+    int ret = snprintf(&send_str[0], KS_DEV_WRITE_STR_LEN,
                     "%s:%lu\n", "UPTIME",
                     std::time(nullptr) - start_time);
 
@@ -99,33 +100,38 @@ KSERVER_EXECUTE_OP(GET_STATS)
         return -1;
     }
 
-    if ((bytes = GET_SESSION.send<1, KServer::GET_STATS>(send_str)) < 0)
+    if ((bytes = GET_SESSION.send<1, KServer::GET_STATS>(send_str)) < 0) {
         return -1;
+    }
 
     bytes_send += bytes;
 
 #if KSERVER_HAS_TCP
-    if ((bytes = send_listener_stats<TCP>(cmd, this, &tcp_listener)) < 0)
+    if ((bytes = send_listener_stats<TCP>(cmd, this, &tcp_listener)) < 0) {
         return -1;
+    }
 
     bytes_send += bytes;
 #endif
 #if KSERVER_HAS_WEBSOCKET
-    if ((bytes = send_listener_stats<WEBSOCK>(cmd, this, &websock_listener)) < 0)
+    if ((bytes = send_listener_stats<WEBSOCK>(cmd, this, &websock_listener)) < 0) {
         return -1;
+    }
 
     bytes_send += bytes;
 #endif
 #if KSERVER_HAS_UNIX_SOCKET
-    if ((bytes = send_listener_stats<UNIX>(cmd, this, &unix_listener)) < 0)
+    if ((bytes = send_listener_stats<UNIX>(cmd, this, &unix_listener)) < 0) {
         return -1;
+    }
 
     bytes_send += bytes;
 #endif
 
     // Send EORS (End Of KServer Stats)
-    if ((bytes = GET_SESSION.send<1, KServer::GET_STATS>("EOKS\n")) < 0)
+    if ((bytes = GET_SESSION.send<1, KServer::GET_STATS>("EOKS\n")) < 0) {
         return -1;
+    }
 
     syslog.print<DEBUG>("[S] [%u bytes]\n", bytes_send + bytes);
     return 0;
@@ -167,7 +173,7 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
         const char *sock_type_name;
         const char *ip;
         uint32_t port, req_num, err_num;
-        std::time_t start_time;
+        std::time_t start_time = std::time(nullptr);
 
         switch (session.kind) {
 #if KSERVER_HAS_TCP
@@ -182,7 +188,7 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
           default: assert(false);
         }
 
-        int ret = snprintf(send_str, KS_DEV_WRITE_STR_LEN,
+        int ret = snprintf(&send_str[0], KS_DEV_WRITE_STR_LEN,
                            "%u:%s:%s:%u:%u:%u:%li\n",
                            id, sock_type_name,
                            ip, port, req_num, err_num,
@@ -200,15 +206,17 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
             return -1;
         }
 
-        if ((bytes = GET_SESSION.send<1, KServer::GET_RUNNING_SESSIONS>(send_str)) < 0)
+        if ((bytes = GET_SESSION.send<1, KServer::GET_RUNNING_SESSIONS>(send_str)) < 0) {
             return -1;
+        }
 
         bytes_send += bytes;
     }
 
     // Send EORS (End Of Running Sessions)
-    if ((bytes = GET_SESSION.send<1, KServer::GET_RUNNING_SESSIONS>("EORS\n")) < 0)
+    if ((bytes = GET_SESSION.send<1, KServer::GET_RUNNING_SESSIONS>("EORS\n")) < 0) {
         return -1;
+    }
 
     syslog.print<DEBUG>("[S] [%u bytes]\n", bytes_send + bytes);
     return 0;

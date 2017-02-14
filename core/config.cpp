@@ -3,10 +3,10 @@
 /// (c) Koheron
 
 #include <fstream>
-#include <string>
 #include <cstring>
-#include <streambuf>
+#include <string>
 #include <inttypes.h>
+#include <streambuf>
 
 #include "config.hpp"
 
@@ -31,7 +31,7 @@ KServerConfig::KServerConfig()
     strcpy(notify_socket, DFLT_NOTIFY_SOCKET);
 }
 
-char* KServerConfig::_get_source(char *filename)
+char* KServerConfig::_get_source(const char *filename)
 {
     std::ifstream t(filename);
 
@@ -51,7 +51,7 @@ char* KServerConfig::_get_source(char *filename)
 
     t.close();
 
-    char *source = new char[config_str.length() + 1];
+    auto *source = new char[config_str.length() + 1];
     std::strcpy(source, config_str.c_str());
     return source;
 }
@@ -64,10 +64,11 @@ int is_on(JsonValue value)
 
     if (strcmp(value.toString(), "ON") == 0)
         return 1;
-    else if (strcmp(value.toString(), "OFF") == 0)
+
+    if (strcmp(value.toString(), "OFF") == 0)
         return 0;
-    else
-        return -1;
+
+    return -1;
 }
 
 #define READ_BOOL(name)                               \
@@ -113,7 +114,7 @@ int KServerConfig::_read_log(JsonValue value)
                 return -1;
             }
 
-            syslog = status;
+            syslog = (status != 0);
         } else {
             fprintf(stderr, "Invalid key in log\n");
             return -1;
@@ -246,7 +247,7 @@ void KServerConfig::_check_config()
 #define IS_WEBSOCKET       TEST_KEY("websocket")
 #define IS_UNIX            TEST_KEY("unix")
 
-int KServerConfig::load_file(char *filename)
+int KServerConfig::load_file(const char *filename)
 {
     char *source = _get_source(filename);
 
@@ -341,13 +342,13 @@ void KServerConfig::show()
     printf("System log: %s\n\n", syslog ? "ON": "OFF");
 
     printf("TCP listen: %u\n", tcp_port);
-    printf("TCP workers: %u\n\n", tcp_worker_connections);
+    printf("TCP workers: %i\n\n", tcp_worker_connections);
 
     printf("Websocket listen: %u\n", websock_port);
-    printf("Websocket workers: %u\n\n", websock_worker_connections);
+    printf("Websocket workers: %i\n\n", websock_worker_connections);
 
     printf("Unix socket path: %s\n", unixsock_path);
-    printf("Unix socket workers: %u\n\n", unixsock_worker_connections);
+    printf("Unix socket workers: %i\n\n", unixsock_worker_connections);
 }
 
 } // namespace kserver

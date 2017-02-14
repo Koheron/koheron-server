@@ -7,14 +7,13 @@
 
 #include <array>
 #include <memory>
-#include <assert.h>
+#include <cassert>
 #if KSERVER_HAS_THREADS
 #  include <thread>
 #  include <mutex>
 #endif
 
 #include "kdevice.hpp"
-
 #include <devices.hpp>
 #include <devices_table.hpp>
 

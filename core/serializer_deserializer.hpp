@@ -26,15 +26,12 @@ inline T pseudo_cast(const U &x)
 // Definitions
 // ------------------------
 
-// template<typename Tp, size_t N=0> constexpr size_t size_of;
 template<typename Tp, size_t N = 1> constexpr size_t size_of = sizeof(Tp) * N;
 
 template<typename Tp> Tp extract(const char *buff);                // Deserialization
 template<typename Tp> void append(unsigned char *buff, Tp value);  // Serialization
 
 // uint8_t
-
-// constexpr size_t size_of<uint8_t> = 1;
 
 template<>
 inline uint8_t extract<uint8_t>(const char *buff)
@@ -50,8 +47,6 @@ inline void append<uint8_t>(unsigned char *buff, uint8_t value)
 
 // int8_t
 
-// constexpr size_t size_of<int8_t> = 1;
-
 template<>
 inline int8_t extract<int8_t>(const char *buff)
 {
@@ -65,8 +60,6 @@ inline void append<int8_t>(unsigned char *buff, int8_t value)
 }
 
 // uint16_t
-
-// template<> constexpr size_t size_of<uint16_t> = 2;
 
 template<>
 inline uint16_t extract<uint16_t>(const char *buff)
@@ -84,8 +77,6 @@ inline void append<uint16_t>(unsigned char *buff, uint16_t value)
 
 // int16_t
 
-// template<> constexpr size_t size_of<int16_t> = 2;
-
 template<>
 inline int16_t extract<int16_t>(const char *buff)
 {
@@ -100,8 +91,6 @@ inline void append<int16_t>(unsigned char *buff, int16_t value)
 }
 
 // uint32_t
-
-// template<> constexpr size_t size_of<uint32_t> = 4;
 
 template<>
 inline uint32_t extract<uint32_t>(const char *buff)
@@ -120,8 +109,6 @@ inline void append<uint32_t>(unsigned char *buff, uint32_t value)
 }
 
 // int32_t
-
-// template<> constexpr size_t size_of<int32_t> = 4;
 
 template<>
 inline int32_t extract<int32_t>(const char *buff)
@@ -157,8 +144,6 @@ inline void append<uint64_t>(unsigned char *buff, uint64_t value)
 
 // int64_t
 
-// template<> constexpr size_t size_of<int64_t> = 8;
-
 template<>
 inline int64_t extract<int64_t>(const char *buff)
 {
@@ -174,9 +159,6 @@ inline void append<int64_t>(unsigned char *buff, int64_t value)
 
 // float
 
-// template<> constexpr size_t size_of<float> = size_of<uint32_t>;
-// static_assert(sizeof(float) == size_of<float>, "Invalid float size");
-
 template<>
 inline float extract<float>(const char *buff)
 {
@@ -191,9 +173,6 @@ inline void append<float>(unsigned char *buff, float value)
 
 // double
 
-// template<> constexpr size_t size_of<double> = size_of<uint64_t>;
-// static_assert(sizeof(double) == size_of<double>, "Invalid double size");
-
 template<>
 inline double extract<double>(const char *buff)
 {
@@ -207,8 +186,6 @@ inline void append<double>(unsigned char *buff, double value)
 }
 
 // bool
-
-// template<> constexpr size_t size_of<bool> = 1;
 
 template<>
 inline bool extract<bool>(const char *buff)

@@ -13,9 +13,9 @@
 
 extern "C" {
   #include <sys/socket.h>   // socket definitions
-  #include <sys/types.h>    // socket types      
   #include <arpa/inet.h>    // inet (3) functions
   #include <netinet/tcp.h>
+  #include <sys/types.h>    // socket types
 #if KSERVER_HAS_UNIX_SOCKET
   #include <sys/un.h>
 #endif
@@ -49,7 +49,7 @@ int create_tcp_listening(unsigned int port, SysLog *syslog,
         int one = 1;
 
         if (setsockopt(listen_fd_, IPPROTO_TCP, TCP_NODELAY,
-                      (char *)&one, sizeof(one)) < 0) {
+                       &one, sizeof(one)) < 0) {
             // This is only considered critical since it is performance
             // related but this doesn't prevent to use the socket
             // so only log the error and keep going ...
@@ -58,14 +58,15 @@ int create_tcp_listening(unsigned int port, SysLog *syslog,
     }
 #endif
 
-    struct sockaddr_in servaddr;
+    struct sockaddr_in servaddr{};
     bzero(&servaddr, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr = htons(INADDR_ANY);
     servaddr.sin_port = htons(port);
 
     // Assign name (address) to socket
-    if (bind(listen_fd_, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
+    if (bind(listen_fd_, reinterpret_cast<struct sockaddr *>(&servaddr),
+             sizeof(servaddr)) < 0) {
         syslog->print<PANIC>("Binding error\n");
         close(listen_fd_);
         return -1;
@@ -80,7 +81,7 @@ int set_comm_sock_opts(int comm_fd, SysLog *syslog,
     int sndbuf_len = sizeof(uint32_t) * KSERVER_SIG_LEN;
 
     if (setsockopt(comm_fd, SOL_SOCKET, SO_SNDBUF,
-                  &sndbuf_len, sizeof(sndbuf_len)) < 0) {
+                   &sndbuf_len, sizeof(sndbuf_len)) < 0) {
         syslog->print<CRITICAL>("Cannot set socket send options\n");
         close(comm_fd);
         return -1;
@@ -114,7 +115,7 @@ int set_comm_sock_opts(int comm_fd, SysLog *syslog,
 int open_tcp_communication(int listen_fd, SysLog *syslog,
                            const std::shared_ptr<KServerConfig>& config)
 {
-    int comm_fd = accept(listen_fd, (struct sockaddr*) nullptr, nullptr);
+    int comm_fd = accept(listen_fd, nullptr, nullptr);
 
     if (comm_fd < 0)
         return comm_fd;
@@ -257,7 +258,7 @@ template<>
 bool ListeningChannel<TCP>::is_max_threads()
 {
     return (num_threads.load() + 1)
-                 > (int)kserver->config->tcp_worker_connections;
+                 > kserver->config->tcp_worker_connections;
 }
 
 template<>
@@ -281,9 +282,9 @@ int ListeningChannel<WEBSOCK>::init()
         listen_fd = create_tcp_listening(kserver->config->websock_port,
                                            &kserver->syslog, kserver->config);
         return listen_fd;
-    } else {
-        return 0; // Nothing to be done
     }
+
+    return 0;
 }
 
 template<>
@@ -311,7 +312,7 @@ template<>
 bool ListeningChannel<WEBSOCK>::is_max_threads()
 {
     return (num_threads.load() + 1)
-                 > (int)kserver->config->websock_worker_connections;
+                 > kserver->config->websock_worker_connections;
 }
 
 template<>
@@ -328,7 +329,7 @@ int ListeningChannel<WEBSOCK>::start_worker()
 
 int create_unix_listening(const char *unix_sock_path, SysLog *syslog)
 {
-    struct sockaddr_un local;
+    struct sockaddr_un local{};
 
     int listen_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
 
@@ -343,7 +344,7 @@ int create_unix_listening(const char *unix_sock_path, SysLog *syslog)
     unlink(local.sun_path);
     int len = strlen(local.sun_path) + sizeof(local.sun_family);
 
-    if (bind(listen_fd_, (struct sockaddr *) &local, len) < 0) {
+    if (bind(listen_fd_, reinterpret_cast<struct sockaddr *>(&local), len) < 0) {
         syslog->print<PANIC>("Unix socket binding error\n");
         close(listen_fd_);
         return -1;
@@ -383,16 +384,16 @@ void ListeningChannel<UNIX>::shutdown()
 template<>
 int ListeningChannel<UNIX>::open_communication()
 {
-    struct sockaddr_un remote;
+    struct sockaddr_un remote{};
     uint32_t t = sizeof(remote);
-    return accept(listen_fd, (struct sockaddr *)&remote, &t);
+    return accept(listen_fd, reinterpret_cast<struct sockaddr *>(&remote), &t);
 }
 
 template<>
 bool ListeningChannel<UNIX>::is_max_threads()
 {
     return (num_threads.load() + 1)
-                 > (int)kserver->config->unixsock_worker_connections;
+                 > kserver->config->unixsock_worker_connections;
 }
 
 template<>

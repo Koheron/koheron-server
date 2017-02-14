@@ -46,7 +46,7 @@ struct Buffer
     const std::array<T, N>& extract_array() {
         // http://stackoverflow.com/questions/11205186/treat-c-cstyle-array-as-stdarray
         const auto p = reinterpret_cast<const std::array<T, N>*>(begin());
-        assert(p->data() == (const T*)begin());
+        assert(p->data() == reinterpret_cast<const T*>(begin()));
         position += size_of<T, N>;
         return *p;
     }
@@ -83,12 +83,12 @@ struct Command
         HEADER_START = 4  // First 4 bytes are reserved
     };
 
-    SessID sess_id = -1;                    ///< ID of the session emitting the command
-    SessionAbstract *sess;                  ///< Pointer to the session emitting the command
+    SessID sess_id = -1;                     ///< ID of the session emitting the command
+    SessionAbstract *sess;                   ///< Pointer to the session emitting the command
     device_id device = dev_id_of<NoDevice>;  ///< The device to control
-    int32_t operation = -1;                 ///< Operation ID
+    int32_t operation = -1;                  ///< Operation ID
 
-    Buffer<HEADER_SIZE> header;             ///< Raw data header
+    Buffer<HEADER_SIZE> header;              ///< Raw data header
     Buffer<CMD_PAYLOAD_BUFFER_LEN> payload;
 };
 
