@@ -61,8 +61,10 @@ class DeviceManager
 
     template<device_id dev>
     auto& get() {
-        if (! std::get<dev - 2>(is_started))
+        if (! std::get<dev - 2>(is_started)) {
             alloc_device<dev>();
+        }
+
         return dev_cont.get<dev>();
     }
 

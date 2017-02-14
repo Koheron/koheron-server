@@ -10,7 +10,7 @@ namespace kserver {
 class SessionAbstract
 {
   public:
-    SessionAbstract(int sock_type_)
+    explicit SessionAbstract(int sock_type_)
     : kind(sock_type_) {}
 
     template<typename... Tp> std::tuple<int, Tp...> deserialize(Command& cmd);

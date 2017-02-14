@@ -10,7 +10,7 @@
 namespace kserver {
     class DeviceManager;
     class KServer;
-}
+} // namespace kserver
 
 class ContextBase
 {

@@ -12,9 +12,9 @@
 #include <cstdlib>
 
 extern "C" {
-    #include <sys/socket.h>	// socket definitions
-    #include <arpa/inet.h>	// inet (3) funtions
-    #include <sys/types.h>	// socket types
+    #include <sys/socket.h> // socket definitions
+    #include <arpa/inet.h>  // inet (3) funtions
+    #include <sys/types.h>  // socket types
     #include <unistd.h>
 }
 

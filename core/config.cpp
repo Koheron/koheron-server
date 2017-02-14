@@ -2,13 +2,15 @@
 ///
 /// (c) Koheron
 
+#include "config.hpp"
+
 #include <fstream>
 #include <cstring>
+#include <cinttypes>
 #include <string>
-#include <inttypes.h>
 #include <streambuf>
 
-#include "config.hpp"
+#include "string_utils.hpp"
 
 namespace kserver {
 
@@ -36,7 +38,7 @@ char* KServerConfig::_get_source(const char *filename)
     std::ifstream t(filename);
 
     if (!t) {
-        fprintf(stderr, "Cannot open file %s\n", filename);
+        kserver::fprintf(stderr, "Cannot open file %s\n", filename);
         return nullptr;
     }
 
@@ -59,27 +61,30 @@ char* KServerConfig::_get_source(const char *filename)
 // Check whether a field is set to "ON" or "OFF"
 int is_on(JsonValue value)
 {
-    if (value.getTag() != JSON_STRING)
+    if (value.getTag() != JSON_STRING) {
         return -1;
+    }
 
-    if (strcmp(value.toString(), "ON") == 0)
+    if (strcmp(value.toString(), "ON") == 0) {
         return 1;
+    }
 
-    if (strcmp(value.toString(), "OFF") == 0)
+    if (strcmp(value.toString(), "OFF") == 0) {
         return 0;
+    }
 
     return -1;
 }
 
-#define READ_BOOL(name)                               \
-    int status = is_on(value);                        \
-                                                      \
-    if (status < 0) {                                 \
-        fprintf(stderr, "Invalid field " #name "\n"); \
-        return -1;                                    \
-    }                                                 \
-                                                      \
-    name = status;                                    \
+#define READ_BOOL(name)                                        \
+    int status = is_on(value);                                 \
+                                                               \
+    if (status < 0) {                                          \
+        kserver::fprintf(stderr, "Invalid field " #name "\n"); \
+        return -1;                                             \
+    }                                                          \
+                                                               \
+    (name) = status;                                           \
     return 0;
 
 int KServerConfig::_read_verbose(JsonValue value) {
@@ -101,7 +106,7 @@ int KServerConfig::_read_notify_systemd(JsonValue value) {
 int KServerConfig::_read_log(JsonValue value)
 {
     if (value.getTag() != JSON_OBJECT) {
-        fprintf(stderr, "Invalid field log\n");
+        kserver::fprintf(stderr, "Invalid field log\n");
         return -1;
     }
 
@@ -110,13 +115,13 @@ int KServerConfig::_read_log(JsonValue value)
             int status = is_on(i->value);
 
             if (status < 0) {
-                fprintf(stderr, "Invalid field system_log\n");
+                kserver::fprintf(stderr, "Invalid field system_log\n");
                 return -1;
             }
 
             syslog = (status != 0);
         } else {
-            fprintf(stderr, "Invalid key in log\n");
+            kserver::fprintf(stderr, "Invalid key in log\n");
             return -1;
         }
     }
@@ -128,12 +133,12 @@ int check_unixsocket_path(const char *path)
 {
     // Must be an abstract socket, or an absolute path
     if ((path[0] != '@' && path[0] != '/') || path[1] == 0) {
-        fprintf(stderr, "Invalid path for unix socket %s\n", path);
+        kserver::fprintf(stderr, "Invalid path for unix socket %s\n", path);
         return -1;
     }
 
     if (strlen(path) > UNIX_SOCKET_PATH_LEN) {
-        fprintf(stderr, "Unix socket path too long\n");
+        kserver::fprintf(stderr, "Unix socket path too long\n");
         return -1;
     }
 
@@ -143,14 +148,14 @@ int check_unixsocket_path(const char *path)
 int KServerConfig::_read_server(JsonValue value, server_t serv_type)
 {
     if (value.getTag() != JSON_OBJECT) {
-        fprintf(stderr, "Invalid TCP field\n");
+        kserver::fprintf(stderr, "Invalid TCP field\n");
         return -1;
     }
 
     for (auto i : value) {
         if (strcmp(i->key, "listen") == 0) {
             if (i->value.getTag() != JSON_NUMBER) {
-                fprintf(stderr, "Invalid value in field listen\n");
+                kserver::fprintf(stderr, "Invalid value in field listen\n");
                 return -1;
             }
             
@@ -160,25 +165,26 @@ int KServerConfig::_read_server(JsonValue value, server_t serv_type)
             else if (serv_type == WEBSOCK_SERVER) {
                 websock_port = i->value.toNumber();
             } else { // UNIXSOCK_SERVER
-                fprintf(stderr, "Unix socket don't have a listen port\n");
+                kserver::fprintf(stderr, "Unix socket don't have a listen port\n");
                 return -1;
             }
         }
         else if(strcmp (i->key, "path") == 0) {
             if (serv_type != UNIXSOCK_SERVER) {
-                fprintf(stderr, "Field path only valid for Unix socket\n");
+                kserver::fprintf(stderr, "Field path only valid for Unix socket\n");
                 return -1;
             }
 
             if (i->value.getTag() != JSON_STRING) {
-                fprintf(stderr, "Invalid value in field path\n");
+                kserver::fprintf(stderr, "Invalid value in field path\n");
                 return -1;
             }
 
             const char *path = i->value.toString();
 
-            if (check_unixsocket_path(path) < 0)
+            if (check_unixsocket_path(path) < 0) {
                 return -1;
+            }
 
             strcpy(unixsock_path, path);
         }        
@@ -188,12 +194,13 @@ int KServerConfig::_read_server(JsonValue value, server_t serv_type)
                 return -1;
             }
 
-            if (serv_type == TCP_SERVER)
+            if (serv_type == TCP_SERVER) {
                 tcp_worker_connections = i->value.toNumber();
-            else if (serv_type == WEBSOCK_SERVER)         
+            } else if (serv_type == WEBSOCK_SERVER) {
                 websock_worker_connections = i->value.toNumber();
-            else if (serv_type == UNIXSOCK_SERVER)        
+            } else if (serv_type == UNIXSOCK_SERVER) {
                 unixsock_worker_connections = i->value.toNumber();
+            }
         } else {
             fprintf(stderr, "Unknown server key %s\n", i->key);
             return -1;
@@ -228,9 +235,10 @@ void KServerConfig::_check_config()
         // In daemon mode it is advisable to 
         // activate the syslog since this is the
         // main output for the program
-        if (!syslog)
+        if (!syslog) {
             printf("NOTICE: You should consider to activate "
                    "the syslog when running KServer as a daemon\n");
+        }
     }
 }
 
@@ -251,12 +259,13 @@ int KServerConfig::load_file(const char *filename)
 {
     char *source = _get_source(filename);
 
-    if (source == nullptr)
+    if (source == nullptr) {
         return -1;
+}
 
     char *endptr;
     JsonValue value;
-    JsonAllocator allocator;
+    JsonAllocator allocator{};
 
     int status = jsonParse(source, &endptr, &value, allocator);
 
@@ -267,63 +276,73 @@ int KServerConfig::load_file(const char *filename)
     }
 
     if (value.getTag() != JSON_OBJECT) {
-        fprintf(stderr, "Invalid configuration file\n");
+        kserver::fprintf(stderr, "Invalid configuration file\n");
         return -1;
     }
 
     for (auto i : value) {
         if (IS_VERBOSE) {
-            if (_read_verbose(i->value) < 0)
+            if (_read_verbose(i->value) < 0) {
                 return -1;
+            }
         }
         else if (IS_TCP_NODELAY) {
-            if (_read_tcp_nodelay(i->value) < 0)
+            if (_read_tcp_nodelay(i->value) < 0) {
                 return -1;
+            }
         }
         else if (IS_DAEMON) {
-            if (_read_daemon(i->value) < 0)
+            if (_read_daemon(i->value) < 0) {
                 return -1;
+            }
         }
         else if (IS_NOTIFY_SYSTEMD) {
-            if (_read_notify_systemd(i->value) < 0)
+            if (_read_notify_systemd(i->value) < 0) {
                 return -1;
+            }
         }
         else if (IS_NOTIFY_SOCKET) {
             if (i->value.getTag() != JSON_STRING) {
-                fprintf(stderr, "Invalid value in field notify-socket\n");
+                kserver::fprintf(stderr, "Invalid value in field notify-socket\n");
                 return -1;
             }
 
             const char *notify_socket_path = i->value.toString();
 
-            if (check_unixsocket_path(notify_socket_path) < 0)
+            if (check_unixsocket_path(notify_socket_path) < 0) {
                 return -1;
+            }
 
             strcpy(unixsock_path, notify_socket_path);
         }
         else if (IS_LOGS) {
-            if (_read_log(i->value) < 0)
+            if (_read_log(i->value) < 0) {
                 return -1;
+            }
         }
         else if (IS_TCP) {
-            if (_read_tcp(i->value) < 0)
+            if (_read_tcp(i->value) < 0) {
                 return -1;
+            }
         }
         else if (IS_WEBSOCKET) {
-            if (_read_websocket(i->value) < 0)
+            if (_read_websocket(i->value) < 0) {
                 return -1;
+            }
         }
         else if (IS_UNIX) {
-            if (_read_unixsocket(i->value) < 0)
+            if (_read_unixsocket(i->value) < 0) {
                 return -1;
+            }
         } else {
             fprintf(stderr, "Unknown field %s in configuration file\n", i->key);
             return -1;
         }
     }
 
-    if (verbose)
+    if (verbose) {
         show();
+    }
 
     _check_config();
     delete[] source;
