@@ -86,9 +86,7 @@ void KServer::close_listeners()
     unix_listener.shutdown();
 #endif
 
-#if KSERVER_HAS_THREADS
     join_listeners_workers();
-#endif
 }
 
 int KServer::start_listeners_workers()
@@ -111,6 +109,7 @@ int KServer::start_listeners_workers()
 
 void KServer::join_listeners_workers()
 {
+#if KSERVER_HAS_THREADS
 #if KSERVER_HAS_TCP
     tcp_listener.join_worker();
 #endif
@@ -119,6 +118,7 @@ void KServer::join_listeners_workers()
 #endif
 #if KSERVER_HAS_UNIX_SOCKET
     unix_listener.join_worker();
+#endif
 #endif
 }
 
@@ -213,6 +213,10 @@ int KServer::run()
 
     if (start_listeners_workers() < 0)
         return -1;
+
+    // FIXME
+    // In a single-threaded config the notification to
+    // systemd and the interrupt signal catching won't happen.
 
     while (1) {
         if (!ready_notified && is_ready()) {

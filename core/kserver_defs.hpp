@@ -17,13 +17,19 @@ namespace kserver {
 // ------------------------------------------
 
 /// Enable TCP connections
-#define KSERVER_HAS_TCP 1
+#ifndef KSERVER_HAS_TCP
+  #define KSERVER_HAS_TCP 1
+#endif
 
 /// Enable Websocket connections
-#define KSERVER_HAS_WEBSOCKET 1
+#ifndef KSERVER_HAS_WEBSOCKET
+  #define KSERVER_HAS_WEBSOCKET 1
+#endif
 
 /// Enable Unix sockets
-#define KSERVER_HAS_UNIX_SOCKET 1
+#ifndef KSERVER_HAS_UNIX_SOCKET
+  #define KSERVER_HAS_UNIX_SOCKET 1
+#endif
 
 /// Systemd notification socket
 #define DFLT_NOTIFY_SOCKET "/run/systemd/notify"
@@ -56,7 +62,9 @@ namespace kserver {
 ///
 /// Threads must be enable when both TCP
 /// and Websockets connections are required.
-#define KSERVER_HAS_THREADS 1
+#ifndef KSERVER_HAS_THREADS
+  #define KSERVER_HAS_THREADS 1
+#endif
 
 // ------------------------------------------
 // Logs
@@ -65,7 +73,9 @@ namespace kserver {
 /// Syslog level
 #define KSERVER_SYSLOG_UPTO LOG_NOTICE
 
-#define KSERVER_HAS_SYSTEMD 1
+#ifndef KSERVER_HAS_SYSTEMD
+  #define KSERVER_HAS_SYSTEMD 1
+#endif
 
 // ------------------------------------------
 // Buffer sizes
@@ -133,7 +143,7 @@ typedef int SessID;
 // Checks
 // ------------------------------------------
 
-#if !KSERVER_HAS_TCP && !KSERVER_HAS_WEBSOCKET
+#if !KSERVER_HAS_TCP && !KSERVER_HAS_WEBSOCKET && !KSERVER_HAS_UNIX_SOCKET
 #error "KServer needs at least one connection type !!"
 #endif
 

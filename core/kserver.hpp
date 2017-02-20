@@ -8,11 +8,10 @@
 #include "kserver_defs.hpp"
 #include "socket_interface_defs.hpp"
 
-#if KSERVER_HAS_THREADS
 #include <thread>
-#include <mutex>
+#if KSERVER_HAS_THREADS
+  #include <mutex>
 #endif
-
 #include <array>
 #include <vector>
 #include <string>
