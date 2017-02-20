@@ -20,7 +20,8 @@ dependencies:
 test:
   pre:
     - make CONFIG=config/config_armhf.yaml __PYTHON=python clean all
-    - make CONFIG=config/config_single_threqd_tcp_release.yaml __PYTHON=python clean all
+    - make CONFIG=config/config_single_thread_tcp_release.yaml __PYTHON=python clean all
+    - make CONFIG=config/config_ws_unix_release.yaml __PYTHON=python clean all
     - make CONFIG=config/config_local.yaml __PYTHON=python clean all
     - ./tmp/kserverd -c ./config/kserver_local.conf:
           background: true

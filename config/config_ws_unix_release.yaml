@@ -1,7 +1,7 @@
 # Config for running tests on localhost
 # To be compiled on the local computer
 #
-# Build a single threaded server with TCP connection
+# Build a multi-threaded server with only Unix sockets and websockets.
 #
 # (c) Koheron
 
@@ -15,10 +15,10 @@ arch_flags:
 
 defines:
   - RELEASE_KSERVER
-  - KSERVER_HAS_THREADS=0
-  - KSERVER_HAS_TCP=1
-  - KSERVER_HAS_WEBSOCKET=0
-  - KSERVER_HAS_UNIX_SOCKET=0
+  - KSERVER_HAS_THREADS=1
+  - KSERVER_HAS_TCP=0
+  - KSERVER_HAS_WEBSOCKET=1
+  - KSERVER_HAS_UNIX_SOCKET=1
 
 debug:
   status: no # set to yes to compile in debug mode
