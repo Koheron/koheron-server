@@ -12,6 +12,10 @@ namespace kserver {
 // Run KServer as a daemon process
 #define KSERVER_IS_DAEMON 1
 
+#ifndef KSERVER_HAS_SYSTEMD
+  #define KSERVER_HAS_SYSTEMD 1
+#endif
+
 // ------------------------------------------
 // Connections
 // ------------------------------------------
@@ -73,8 +77,8 @@ namespace kserver {
 /// Syslog level
 #define KSERVER_SYSLOG_UPTO LOG_NOTICE
 
-#ifndef KSERVER_HAS_SYSTEMD
-  #define KSERVER_HAS_SYSTEMD 1
+#ifndef KSERVER_HAS_LOG
+  #define KSERVER_HAS_LOG 1
 #endif
 
 // ------------------------------------------

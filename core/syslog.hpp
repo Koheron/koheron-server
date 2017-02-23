@@ -66,22 +66,26 @@ struct SysLog
     : config(config_)
     , pubsub(sess_manager_, sig_handler_)
     {
+#if KSERVER_HAS_LOG
         if (config->syslog) {
             setlogmask(LOG_UPTO(KSERVER_SYSLOG_UPTO));
             openlog("KServer", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
         }
+#endif
     }
 
     // This cannot be done in the destructor
     // since it is called after the "delete config"
     // at the end of the main()
     void close() {
+#if KSERVER_HAS_LOG
         assert(config != nullptr);
 
         if (config->syslog) {
             print<INFO>("Close syslog ...\n");
             closelog();
         }
+#endif
     }
 
     // High severity (Panic, ..., Warning) => stderr
@@ -140,9 +144,11 @@ void SysLog::print(const char *msg, Args&&... args)
 {
     static_assert(severity <= syslog_severity_num, "Invalid logging level");
 
+#if KSERVER_HAS_LOG
     print_msg<severity>(msg, std::forward<Args>(args)...);
     call_syslog<severity>(msg, std::forward<Args>(args)...);
     emit_error<severity>(msg, std::forward<Args>(args)...);
+#endif
 }
 
 } // namespace kserver
