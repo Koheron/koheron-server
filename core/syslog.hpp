@@ -19,7 +19,7 @@
 
 /// Severity of the message
 enum severity {
-    PANIC,    ///< When KServer is not functionnal anymore
+    PANIC,    ///< When KServer is not functional anymore
     CRITICAL, ///< When an error results in session crash
     ERROR,    ///< Typically when a command execution failed
     WARNING,
@@ -88,8 +88,11 @@ struct SysLog
     template<unsigned int severity, typename... Args>
     std::enable_if_t< severity <= WARNING, void >
     print_msg(const char *message, Args... args) {
-        kserver::fprintf(stderr, (severity_msg<severity>.to_string() + ": " + std::string(message)).c_str(),
-                         std::forward<Args>(args)...);
+        if (config->use_stderr) {
+            kserver::fprintf(stderr, (severity_msg<severity>.to_string()
+                                      + ": " + std::string(message)).c_str(),
+                             std::forward<Args>(args)...);
+        }
     }
 
     // Low severity (Info, Debug) => stdout if verbose
