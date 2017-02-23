@@ -17,8 +17,9 @@ namespace kserver {
 
 template<device_id dev>
 int DevicesContainer::alloc() {
-    if (std::get<dev - 2>(is_started))
+    if (std::get<dev - 2>(is_started)) {
         return 0;
+    }
 
     if (std::get<dev - 2>(is_starting)) {
         syslog.print<CRITICAL>(
@@ -32,6 +33,7 @@ int DevicesContainer::alloc() {
     std::get<dev - 2>(devtup) = std::make_unique<device_t<dev>>(ctx);
     std::get<dev - 2>(is_starting) = false;
     std::get<dev - 2>(is_started) = true;
+
     return 0;
 }
 
@@ -55,8 +57,9 @@ void DeviceManager::alloc_device()
     std::lock_guard<std::recursive_mutex> lock(mutex);
 #endif
 
-    if (std::get<dev - 2>(is_started))
+    if (std::get<dev - 2>(is_started)) {
         return;
+    }
 
     kserver->syslog.print<INFO>(
         "Device Manager: Starting device [%u] %s...\n",
@@ -147,15 +150,18 @@ int DeviceManager::execute(Command& cmd)
 
     if (cmd.device == 0) {
         return 0;
-    } else if (cmd.device == 1) {
-        return kserver->execute(cmd);
-    } else {
-        if (unlikely(! is_started[cmd.device - 2]))
-            start(cmd.device, make_index_sequence_in_range<2, device_num>());
-
-        return execute_dev(device_list[cmd.device - 2].get(), cmd,
-                           make_index_sequence_in_range<2, device_num>());
     }
+
+    if (cmd.device == 1) {
+        return kserver->execute(cmd);
+    }
+
+    if (unlikely(! is_started[cmd.device - 2])) {
+        start(cmd.device, make_index_sequence_in_range<2, device_num>());
+    }
+
+    return execute_dev(device_list[cmd.device - 2].get(), cmd,
+                       make_index_sequence_in_range<2, device_num>());
 }
 
 } // namespace kserver

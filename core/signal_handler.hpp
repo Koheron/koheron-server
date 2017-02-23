@@ -14,14 +14,12 @@ class SignalHandler
   public:
     int init(KServer *kserver_);
 
-    int interrupt() const {return s_interrupted;}
+    bool interrupt() const {return s_interrupted != 0;}
 
     static int volatile s_interrupted;
     static KServer *kserver;
 
   private:
-    int status;
-
     int set_interrup_signals();
     int set_ignore_signals();
     int set_crash_signals();

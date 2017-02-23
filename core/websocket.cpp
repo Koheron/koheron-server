@@ -12,9 +12,9 @@
 #include <cstdlib>
 
 extern "C" {
-    #include <sys/socket.h>	// socket definitions
-    #include <sys/types.h>	// socket types      
-    #include <arpa/inet.h>	// inet (3) funtions
+    #include <sys/socket.h> // socket definitions
+    #include <arpa/inet.h>  // inet (3) funtions
+    #include <sys/types.h>  // socket types
     #include <unistd.h>
 }
 
@@ -61,14 +61,8 @@ int WebSocket::authenticate()
     }
 
     std::string key;
-
-    try {
-        static const int WSKeyLen = 24;
-        key = http_packet.substr(pos + WSKeyIdentifier.length(), WSKeyLen);
-    } catch (std::out_of_range &err) {
-        return -1;
-    }
-
+    static const int WSKeyLen = 24;
+    key = http_packet.substr(pos + WSKeyIdentifier.length(), WSKeyLen);
     key.append(WSMagic);
 
     SHA1(reinterpret_cast<const unsigned char*>(key.c_str()),
@@ -128,7 +122,7 @@ int WebSocket::read_http_packet()
     return nb_bytes_rcvd;
 }
 
-int WebSocket::set_send_header(unsigned char *bits, long long data_len,
+int WebSocket::set_send_header(unsigned char *bits, int64_t data_len,
                                unsigned int format)
 {
     memset(bits, 0, 10 + data_len);
@@ -322,7 +316,7 @@ int WebSocket::read_header()
             return 0;
 
         header.header_size = MEDIUM_HEADER;
-        unsigned short s = 0;
+        uint16_t s = 0;
         memcpy(&s, (const char*)&read_str[2], 2);
         header.payload_size = ntohs(s);
         header.mask_offset = MEDIUM_OFFSET;
@@ -335,8 +329,8 @@ int WebSocket::read_header()
             return 0;
 
         header.header_size = BIG_HEADER;
-        unsigned long long l = 0;
-        memcpy(&l, (const char*)&read_str[2], 8);
+        uint64_t l = 0;
+        memcpy(&l, reinterpret_cast<const char*>(&read_str[2]), 8);
 
         header.payload_size = be64toh(l);
         header.mask_offset = BIG_OFFSET;
@@ -399,7 +393,7 @@ int WebSocket::send_request(const std::string& request)
                         request.length());
 }
 
-int WebSocket::send_request(const unsigned char *bits, long long len)
+int WebSocket::send_request(const unsigned char *bits, int64_t len)
 {
     if (connection_closed)
         return 0;

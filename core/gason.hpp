@@ -27,9 +27,9 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <stddef.h>
-#include <assert.h>
+#include <cstdint>
+#include <cstddef>
+#include <cassert>
 
 // If set to 1, lines starting with '#' are comments
 #define JSON_HAS_COMMENTS 1
@@ -55,7 +55,7 @@ union JsonValue {
     uint64_t ival;
     double fval;
 
-    JsonValue(double x)
+    explicit JsonValue(double x)
         : fval(x) {
     }
     JsonValue(JsonTag tag = JSON_NULL, void *payload = nullptr) {

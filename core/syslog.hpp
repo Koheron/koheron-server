@@ -41,15 +41,17 @@ static constexpr auto log_array = kserver::make_array(
     std::make_tuple(LOG_DEBUG, str_const("KSERVER DEBUG"))
 );
 
-template<unsigned int severity>
-constexpr int to_priority = std::get<0>(std::get<severity>(log_array));
+// template<int severity>
+// static constexpr int to_priority = std::get<0>(std::get<severity>(log_array));
 
-template<unsigned int severity>
+// static_assert(to_priority<PANIC> == LOG_ALERT, "");
+
+template<int severity>
 constexpr str_const severity_msg = std::get<1>(std::get<severity>(log_array));
 
 struct SysLog
 {
-    template<unsigned int severity, typename... Args>
+    template<int severity, typename... Args>
     void print(const char *msg, Args&&... args);
 
     template<uint16_t channel, uint16_t event, typename... Args>
@@ -89,7 +91,7 @@ struct SysLog
     }
 
     // High severity (Panic, ..., Warning) => stderr
-    template<unsigned int severity, typename... Args>
+    template<int severity, typename... Args>
     std::enable_if_t< severity <= WARNING, void >
     print_msg(const char *message, Args... args) {
         if (config->use_stderr) {
@@ -100,7 +102,7 @@ struct SysLog
     }
 
     // Low severity (Info, Debug) => stdout if verbose
-    template<unsigned int severity, typename... Args>
+    template<int severity, typename... Args>
     std::enable_if_t< severity >= INFO, void >
     print_msg(const char *message, Args&&... args) {
         if (config->verbose) {
@@ -108,7 +110,13 @@ struct SysLog
         }
     }
 
-    template<unsigned int severity, typename... Args>
+    template<int severity>
+    static constexpr int to_priority = std::get<0>(std::get<severity>(log_array));
+
+    static_assert(to_priority<PANIC> == LOG_ALERT, "");
+    static_assert(to_priority<INFO> == LOG_NOTICE, "");
+
+    template<int severity, typename... Args>
     std::enable_if_t< severity <= INFO, void >
     call_syslog(const char *message, Args&&... args) {
         if (config->syslog) {
@@ -117,19 +125,19 @@ struct SysLog
     }
 
     // We don't send debug messages to the system log
-    template<unsigned int severity, typename... Args>
+    template<int severity, typename... Args>
     std::enable_if_t< severity >= DEBUG, int >
     call_syslog(const char *message, Args&&... args) {
         return 0;
     }
 
-    template<unsigned int severity, typename... Args>
+    template<int severity, typename... Args>
     std::enable_if_t< severity <= INFO, int >
     emit_error(const char *message, Args&&... args) {
         return notify<PubSub::SYSLOG_CHANNEL, severity>(message, std::forward<Args>(args)...);
     }
 
-    template<unsigned int severity, typename... Args>
+    template<int severity, typename... Args>
     std::enable_if_t< severity >= DEBUG, int >
     emit_error(const char *message, Args... args) {
         return 0;
@@ -139,7 +147,7 @@ friend class KServer;
 friend class SessionManager;
 };
 
-template<unsigned int severity, typename... Args>
+template<int severity, typename... Args>
 void SysLog::print(const char *msg, Args&&... args)
 {
     static_assert(severity <= syslog_severity_num, "Invalid logging level");

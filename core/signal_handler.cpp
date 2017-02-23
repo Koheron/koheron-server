@@ -6,9 +6,9 @@
 
 #include <iostream>
 #include <cxxabi.h>
+#include <csignal>
 
-extern "C" { 
-  #include <signal.h>
+extern "C" {
   #include <execinfo.h>
 }
 
@@ -74,7 +74,7 @@ int SignalHandler::set_ignore_signals()
     // Disable SIGPIPE which is call by the socket write function
     // when client closes its connection during writing.
     // Results in an unwanted server shutdown
-    if (sigaction(SIGPIPE, &sig_ign_handler, 0) < 0) {
+    if (sigaction(SIGPIPE, &sig_ign_handler, nullptr) < 0) {
         kserver->syslog.print<CRITICAL>("Cannot disable SIGPIPE\n");
         return -1;
     }
@@ -86,7 +86,7 @@ int SignalHandler::set_ignore_signals()
     // SIGPIPE is delivered to the thread generating it. 
     // It might thus be possible to stop the session emitting it.
 
-    if (sigaction(SIGTSTP, &sig_ign_handler, 0) < 0) {
+    if (sigaction(SIGTSTP, &sig_ign_handler, nullptr) < 0) {
         kserver->syslog.print<CRITICAL>("Cannot disable SIGTSTP\n");
         return -1;
     }
@@ -163,7 +163,7 @@ void crash_signal_handler(int sig)
             *offset_end++ = '\0';
 
             int status;
-            char *real_name = abi::__cxa_demangle(mangled_name, 0, 0, &status);
+            char *real_name = abi::__cxa_demangle(mangled_name, nullptr, nullptr, &status);
 
             // If demangling is successful, output the demangled function name
             if (status == 0) {
@@ -188,7 +188,7 @@ exit: // Exit Server
 
 int SignalHandler::set_crash_signals()
 {
-    struct sigaction sig_crash_handler;
+    struct sigaction sig_crash_handler{};
 
     sig_crash_handler.sa_handler = crash_signal_handler;
     sigemptyset(&sig_crash_handler.sa_mask);

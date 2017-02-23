@@ -20,7 +20,7 @@ namespace kserver {
 template<int sock_type>
 struct PeerInfo
 {
-    PeerInfo(int comm_fd)
+    explicit PeerInfo(int comm_fd)
     {
         memset(ip_str, 0, INET6_ADDRSTRLEN);
         ip_family = 0;
@@ -37,20 +37,21 @@ struct PeerInfo
         port = peer_info.port;
     }
 
-    unsigned short ip_family;       ///< Address family, AF_XXX
+    uint16_t ip_family;             ///< Address family, AF_XXX
     char ip_str[INET6_ADDRSTRLEN];  ///< IP address
     int port;                       ///< Connection port
 
   private:
     void fill_up(int comm_fd)
     {
-        struct sockaddr_storage addr;
+        struct sockaddr_storage addr{};
         socklen_t len = sizeof addr;
 
-        if (getpeername(comm_fd, (struct sockaddr*)&addr, &len) >= 0) {
+        if (getpeername(comm_fd, reinterpret_cast<struct sockaddr*>(&addr), &len) >= 0) {
             ip_family = addr.ss_family;
-            port = ntohs(((struct sockaddr_in *)&addr)->sin_port);
-            inet_ntop(ip_family , &(((struct sockaddr_in *)&addr)->sin_addr), ip_str, sizeof ip_str);
+            port = ntohs(reinterpret_cast<struct sockaddr_in *>(&addr)->sin_port);
+            inet_ntop(ip_family , &(reinterpret_cast<struct sockaddr_in *>(&addr)->sin_addr),
+                      ip_str, sizeof ip_str);
         }
     }
 };

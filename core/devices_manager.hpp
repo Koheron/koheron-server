@@ -7,16 +7,15 @@
 
 #include <array>
 #include <memory>
-#include <assert.h>
+#include <cassert>
 #if KSERVER_HAS_THREADS
 #  include <thread>
 #  include <mutex>
 #endif
 
 #include "kdevice.hpp"
-
-#include <devices_table.hpp>
 #include <devices.hpp>
+#include <devices_table.hpp>
 
 namespace kserver {
 
@@ -55,15 +54,17 @@ struct Command;
 class DeviceManager
 {
   public:
-    DeviceManager(KServer *kserver_);
+    explicit DeviceManager(KServer *kserver_);
 
     int init();
     int execute(Command &cmd);
 
     template<device_id dev>
     auto& get() {
-        if (! std::get<dev - 2>(is_started))
+        if (! std::get<dev - 2>(is_started)) {
             alloc_device<dev>();
+        }
+
         return dev_cont.get<dev>();
     }
 

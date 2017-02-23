@@ -11,7 +11,14 @@ dependencies:
     - if [ ! -e venv/py2 ]; then make -C tmp/koheron-python PY2_VENV=../../venv/py2 PY3_VENV=../../venv/py3 ../../venv/py2 ../../venv/py3 && venv/py2/bin/pip install numpy==1.11.1 pytest && venv/py3/bin/pip3 install numpy==1.11.1 pytest; fi
     - sudo bash -c "echo deb http://fr.archive.ubuntu.com/ubuntu/ wily main >> /etc/apt/sources.list"
     - sudo bash -c "echo deb-src http://fr.archive.ubuntu.com/ubuntu/ wily main >> /etc/apt/sources.list"
-    - sudo apt-get update; sudo apt-get install gcc-5 g++-5 gcc-5-arm-linux-gnueabihf g++-5-arm-linux-gnueabihf
+    - sudo bash -c "echo deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty main >> /etc/apt/sources.list"
+    - sudo bash -c "echo deb-src http://apt.llvm.org/trusty/ llvm-toolchain-trusty main >> /etc/apt/sources.list"
+    - sudo bash -c "echo deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.8 main >> /etc/apt/sources.list"
+    - sudo bash -c "echo deb-src http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.8 main >> /etc/apt/sources.list"
+    - sudo bash -c "echo deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main >> /etc/apt/sources.list"
+    - sudo bash -c "echo deb-src http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main >> /etc/apt/sources.list"
+    - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    - sudo apt-get update; sudo apt-get install gcc-5 g++-5 gcc-5-arm-linux-gnueabihf g++-5-arm-linux-gnueabihf clang-3.9 libc++-dev
     - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 100
     - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 100
     - sudo ln -s /usr/bin/arm-linux-gnueabihf-gcc-5 /usr/bin/arm-linux-gnueabihf-gcc
@@ -19,6 +26,7 @@ dependencies:
 
 test:
   pre:
+    - make COMPILER=clang CONFIG=config/config_local_clang.yaml __PYTHON=python clean all
     - make CONFIG=config/config_armhf.yaml __PYTHON=python clean all
     - make CONFIG=config/config_single_thread_tcp_release.yaml __PYTHON=python clean all
     - make CONFIG=config/config_ws_unix_release.yaml __PYTHON=python clean all

@@ -65,9 +65,19 @@ CPUS = $(shell nproc 2> /dev/null || echo 1)
 # Toolchains
 # --------------------------------------------------------------
 
+COMPILER=gcc
+
 # Use Link Time Optimization
-CC=$(CROSS_COMPILE)gcc -flto
-CCXX=$(CROSS_COMPILE)g++ -flto
+ifeq ($(COMPILER),gcc)
+	CC=$(CROSS_COMPILE)gcc -flto
+	CCXX=$(CROSS_COMPILE)g++ -flto
+endif
+
+ifeq ($(COMPILER),clang)
+	CC=$(CROSS_COMPILE)clang-3.9 -flto -fuse-ld=gold
+	CCXX=$(CROSS_COMPILE)clang++-3.9 -flto
+	LD_FLAGS=-fuse-ld=gold
+endif
 
 # --------------------------------------------------------------
 # GCC compiling & linking flags
@@ -122,7 +132,7 @@ $(TMP)/%.o: $(TMP)/%.cpp
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
 
 $(EXECUTABLE): $(OBJ)
-	$(CCXX) -o $@ $(OBJ) $(CXXFLAGS) $(LIBS)
+	$(CCXX) -o $@ $(OBJ) $(CXXFLAGS) $(LD_FLAGS) $(LIBS)
 
 exec: $(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(KS_DEVICES_CPP)
 	$(MAKE) --jobs=$(CPUS) $(EXECUTABLE)

@@ -26,20 +26,17 @@ inline T pseudo_cast(const U &x)
 // Definitions
 // ------------------------
 
-template<typename Tp, size_t N=0> constexpr size_t size_of;
-template<typename Tp, size_t N> constexpr size_t size_of = size_of<Tp> * N;
+template<typename Tp, size_t N = 1> constexpr size_t size_of = sizeof(Tp) * N;
 
 template<typename Tp> Tp extract(const char *buff);                // Deserialization
 template<typename Tp> void append(unsigned char *buff, Tp value);  // Serialization
 
 // uint8_t
 
-template<> constexpr size_t size_of<uint8_t> = 1;
-
 template<>
 inline uint8_t extract<uint8_t>(const char *buff)
 {
-    return (unsigned char)buff[0];
+    return static_cast<unsigned char>(buff[0]);
 }
 
 template<>
@@ -49,8 +46,6 @@ inline void append<uint8_t>(unsigned char *buff, uint8_t value)
 }
 
 // int8_t
-
-template<> constexpr size_t size_of<int8_t> = 1;
 
 template<>
 inline int8_t extract<int8_t>(const char *buff)
@@ -66,12 +61,11 @@ inline void append<int8_t>(unsigned char *buff, int8_t value)
 
 // uint16_t
 
-template<> constexpr size_t size_of<uint16_t> = 2;
-
 template<>
 inline uint16_t extract<uint16_t>(const char *buff)
 {
-    return (unsigned char)buff[1] + ((unsigned char)buff[0] << 8);
+    return static_cast<unsigned char>(buff[1])
+           + (static_cast<unsigned char>(buff[0]) << 8);
 }
 
 template<>
@@ -82,8 +76,6 @@ inline void append<uint16_t>(unsigned char *buff, uint16_t value)
 }
 
 // int16_t
-
-template<> constexpr size_t size_of<int16_t> = 2;
 
 template<>
 inline int16_t extract<int16_t>(const char *buff)
@@ -100,13 +92,11 @@ inline void append<int16_t>(unsigned char *buff, int16_t value)
 
 // uint32_t
 
-template<> constexpr size_t size_of<uint32_t> = 4;
-
 template<>
 inline uint32_t extract<uint32_t>(const char *buff)
 {
-    return (unsigned char)buff[3] + ((unsigned char)buff[2] << 8) 
-           + ((unsigned char)buff[1] << 16) + ((unsigned char)buff[0] << 24);
+    return static_cast<unsigned char>(buff[3]) + (static_cast<unsigned char>(buff[2]) << 8)
+           + (static_cast<unsigned char>(buff[1]) << 16) + (static_cast<unsigned char>(buff[0]) << 24);
 }
 
 template<>
@@ -119,8 +109,6 @@ inline void append<uint32_t>(unsigned char *buff, uint32_t value)
 }
 
 // int32_t
-
-template<> constexpr size_t size_of<int32_t> = 4;
 
 template<>
 inline int32_t extract<int32_t>(const char *buff)
@@ -156,8 +144,6 @@ inline void append<uint64_t>(unsigned char *buff, uint64_t value)
 
 // int64_t
 
-template<> constexpr size_t size_of<int64_t> = 8;
-
 template<>
 inline int64_t extract<int64_t>(const char *buff)
 {
@@ -173,9 +159,6 @@ inline void append<int64_t>(unsigned char *buff, int64_t value)
 
 // float
 
-template<> constexpr size_t size_of<float> = size_of<uint32_t>;
-static_assert(sizeof(float) == size_of<float>, "Invalid float size");
-
 template<>
 inline float extract<float>(const char *buff)
 {
@@ -189,9 +172,6 @@ inline void append<float>(unsigned char *buff, float value)
 }
 
 // double
-
-template<> constexpr size_t size_of<double> = size_of<uint64_t>;
-static_assert(sizeof(double) == size_of<double>, "Invalid double size");
 
 template<>
 inline double extract<double>(const char *buff)
@@ -207,12 +187,10 @@ inline void append<double>(unsigned char *buff, double value)
 
 // bool
 
-template<> constexpr size_t size_of<bool> = 1;
-
 template<>
 inline bool extract<bool>(const char *buff)
 {
-    return (unsigned char)buff[0] == 1;
+    return static_cast<unsigned char>(buff[0]) == 1;
 }
 
 template<>
@@ -266,7 +244,7 @@ namespace detail {
     required_buffer_size() {
         return size_of<Tp0> + required_buffer_size<Tp...>();
     }
-}
+} // namespace detail
 
 template<typename... Tp>
 constexpr size_t required_buffer_size()
@@ -294,8 +272,9 @@ namespace detail {
     inline std::enable_if_t<I < sizeof...(Tp), void>
     serialize(const std::tuple<Tp...>& t, unsigned char *buff)
     {
-        using type = typename std::tuple_element_t<I, std::tuple<Tp...>>;
-        append<type>(&buff[buff_pos], std::get<I>(t));
+        using type = typename std::tuple_element<I, std::tuple<Tp...>>::type;
+        // append<type>(&buff[buff_pos], std::get<I>(t));
+        append(&buff[buff_pos], std::get<I>(t));
         serialize<buff_pos + size_of<type>, I + 1, Tp...>(t, &buff[0]);
     }
 }
@@ -311,9 +290,9 @@ serialize(const std::tuple<Tp...>& t)
 
 template<typename... Tp>
 inline std::array<unsigned char, required_buffer_size<Tp...>()>
-serialize(Tp... t)
+serialize(Tp&&... t)
 {
-    return serialize<Tp...>(std::make_tuple(t...));
+    return serialize<Tp...>(std::make_tuple(std::forward<Tp>(t)...));
 }
 
 // ---------------------------

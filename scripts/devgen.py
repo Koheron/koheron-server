@@ -235,7 +235,7 @@ def parser_generator(device, operation):
 
     if not has_vector:
         print_req_buff_size(lines, packs)
-        lines.append('    static_assert(req_buff_size <= cmd.payload.size(), "Buffer size too small");\n\n');
+        lines.append('    static_assert(req_buff_size <= CMD_PAYLOAD_BUFFER_LEN, "Buffer size too small");\n\n');
 
     for idx, pack in enumerate(packs):
         if pack['family'] == 'scalar':
