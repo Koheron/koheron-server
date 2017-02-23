@@ -39,6 +39,9 @@ struct KServerConfig
     /// Send messages to syslog
     bool syslog;
 
+    /// Send errors to stderr
+    bool use_stderr;
+
     /// Run KServer as a daemon if true
     bool daemon;
 

@@ -24,7 +24,7 @@ enum severity {
     ERROR,    ///< Typically when a command execution failed
     WARNING,
     INFO,
-    DEBUG, // Special print function for debug
+    DEBUG,
     syslog_severity_num
 };
 
@@ -96,15 +96,17 @@ struct SysLog
     template<unsigned int severity, typename... Args>
     std::enable_if_t< severity >= INFO, void >
     print_msg(const char *message, Args&&... args) {
-        if (config->verbose)
+        if (config->verbose) {
             kserver::printf(message, std::forward<Args>(args)...);
+        }
     }
 
     template<unsigned int severity, typename... Args>
     std::enable_if_t< severity <= INFO, void >
     call_syslog(const char *message, Args&&... args) {
-        if (config->syslog)
+        if (config->syslog) {
             syslog<to_priority<severity>>(message, std::forward<Args>(args)...);
+        }
     }
 
     // We don't send debug messages to the system log

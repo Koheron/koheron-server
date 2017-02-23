@@ -16,6 +16,7 @@ KServerConfig::KServerConfig()
 : verbose(false),
   tcp_nodelay(false),
   syslog(false),
+  use_stderr(false),
   daemon(true),
   notify_systemd(false),
   tcp_port(TCP_DFLT_PORT),
@@ -114,6 +115,15 @@ int KServerConfig::_read_log(JsonValue value)
             }
 
             syslog = status;
+        } else if (strcmp(i->key, "use_stderr") == 0) {
+            int status = is_on(i->value);
+
+            if (status < 0) {
+                fprintf(stderr, "Invalid field system_log\n");
+                return -1;
+            }
+
+            use_stderr = status;
         } else {
             fprintf(stderr, "Invalid key in log\n");
             return -1;
@@ -338,7 +348,8 @@ void KServerConfig::show()
     printf("Verbose: %s\n", verbose ? "ON": "OFF");
     printf("Notify systemd: %s\n", notify_systemd ? "ON": "OFF");
     printf("Systemd notification socket: %s\n", notify_socket);
-    printf("System log: %s\n\n", syslog ? "ON": "OFF");
+    printf("System log: %s\n", syslog ? "ON": "OFF");
+    printf("Use stderr: %s\n\n", use_stderr ? "ON": "OFF");
 
     printf("TCP listen: %u\n", tcp_port);
     printf("TCP workers: %u\n\n", tcp_worker_connections);
