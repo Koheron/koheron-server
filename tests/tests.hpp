@@ -31,6 +31,7 @@ class Tests
     bool set_unsigned(uint8_t u8, uint16_t u16, uint32_t u32);
     bool set_signed(int8_t i8, int16_t i16, int32_t i32);
     bool set_complex_float(std::complex<float> z32);
+    bool set_complex_double(std::complex<double> z64);
 
     // Send arrays
     std::vector<float>& send_std_vector();

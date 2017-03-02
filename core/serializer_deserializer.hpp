@@ -214,6 +214,20 @@ inline void append<std::complex<float>>(unsigned char *buff, std::complex<float>
     // TODO
 }
 
+template<> constexpr size_t size_of<std::complex<double>> = 2 * sizeof(double);
+
+template<>
+inline std::complex<double> extract<std::complex<double>>(const char *buff)
+{
+    return detail::extract_cplx<double>(buff);
+}
+
+template<>
+inline void append<std::complex<double>>(unsigned char *buff, std::complex<double> value)
+{
+    // TODO
+}
+
 // bool
 
 template<>
