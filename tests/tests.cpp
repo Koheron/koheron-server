@@ -42,6 +42,12 @@ bool Tests::set_signed(int8_t i8, int16_t i16, int32_t i32)
     return i8 == -125 && i16 == -32764 && i32 == -2147483645;
 }
 
+bool Tests::set_complex_float(std::complex<float> z32)
+{
+    return fabs(z32.real() - 3.141592) <= std::numeric_limits<float>::epsilon()
+           && fabs(z32.imag() - 2.71828) <= std::numeric_limits<float>::epsilon();
+}
+
 std::vector<float>& Tests::send_std_vector()
 {
     data.resize(10);

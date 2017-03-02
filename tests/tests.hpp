@@ -5,6 +5,7 @@
 #include <vector>
 #include <tuple>
 #include <string>
+#include <complex>
 
 #include "context.hpp"
 
@@ -29,6 +30,7 @@ class Tests
     bool set_i64(int64_t i);
     bool set_unsigned(uint8_t u8, uint16_t u16, uint32_t u32);
     bool set_signed(int8_t i8, int16_t i16, int32_t i32);
+    bool set_complex_float(std::complex<float> z32);
 
     // Send arrays
     std::vector<float>& send_std_vector();

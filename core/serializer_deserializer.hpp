@@ -10,6 +10,7 @@
 #include <array>
 #include <vector>
 #include <string>
+#include <complex>
 
 namespace kserver {
 
@@ -183,6 +184,34 @@ template<>
 inline void append<double>(unsigned char *buff, double value)
 {
     append<uint64_t>(buff, pseudo_cast<uint64_t, double>(value));
+}
+
+// complex
+
+namespace detail {
+
+template<typename T>
+inline auto extract_cplx(const char *buff)
+{
+    T r = extract<T>(buff);
+    T i = extract<T>(buff + sizeof(T));
+    return std::complex<T>(r, i);
+}
+
+}  // namespace detail
+
+template<> constexpr size_t size_of<std::complex<float>> = 2 * sizeof(float);
+
+template<>
+inline std::complex<float> extract<std::complex<float>>(const char *buff)
+{
+    return detail::extract_cplx<float>(buff);
+}
+
+template<>
+inline void append<std::complex<float>>(unsigned char *buff, std::complex<float> value)
+{
+    // TODO
 }
 
 // bool
