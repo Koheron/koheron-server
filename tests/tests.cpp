@@ -54,6 +54,16 @@ bool Tests::set_complex_double(std::complex<double> z64)
            && fabs(z64.imag() - 2.654798454646) <= std::numeric_limits<double>::epsilon();
 }
 
+bool Tests::set_complex_float_double(uint64_t u, std::complex<float> z32, std::complex<double> z64, int64_t i)
+{
+    return u == 2225073854759576792
+           && fabs(z32.real() - 0.4294967) <= std::numeric_limits<float>::epsilon()
+           && fabs(z32.imag() - 0.3559151) <= std::numeric_limits<float>::epsilon()
+           && fabs(z64.real() - 0.4741953746153866) <= std::numeric_limits<double>::epsilon()
+           && fabs(z64.imag() - 0.314159265358979323846) <= std::numeric_limits<double>::epsilon()
+           && i == -9223372036854775805;
+}
+
 std::vector<float>& Tests::send_std_vector()
 {
     data.resize(10);
