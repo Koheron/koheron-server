@@ -328,6 +328,12 @@ std::tuple<int8_t, int8_t, int16_t, int16_t, int32_t, int32_t> Tests::get_tuple4
     return std::make_tuple(-127, 127, -32767, 32767, -2147483647, 2147483647);
 }
 
+std::tuple<bool, std::complex<double>, float, std::complex<float>, uint16_t> Tests::get_tuple5()
+{
+    return std::make_tuple(false, std::complex<double>(3.14159265358979323846, -9223372036854775807),
+                           507.3858, std::complex<float>(0.74231, -1.89793), 6553);
+}
+
 std::complex<float> Tests::get_cplx_float()
 {
     return std::complex<float>(3.14159, -0.47419);

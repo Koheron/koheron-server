@@ -256,22 +256,19 @@ inline void append<bool>(unsigned char *buff, bool value)
 namespace detail {
     template<size_t position, typename... Tp>
     inline std::enable_if_t<0 == sizeof...(Tp), std::tuple<Tp...>>
-    deserialize(const char *buff)
-    {
+    deserialize(const char *buff) {
         return std::make_tuple();
     }
 
     template<size_t position, typename Tp0, typename... Tp>
     inline std::enable_if_t<0 == sizeof...(Tp), std::tuple<Tp0, Tp...>>
-    deserialize(const char *buff)
-    {
+    deserialize(const char *buff) {
         return std::make_tuple(extract<Tp0>(&buff[position]));
     }
 
     template<size_t position, typename Tp0, typename... Tp>
     inline std::enable_if_t<0 < sizeof...(Tp), std::tuple<Tp0, Tp...>>
-    deserialize(const char *buff)
-    {
+    deserialize(const char *buff) {
         return std::tuple_cat(std::make_tuple(extract<Tp0>(&buff[position])),
                               deserialize<position + size_of<Tp0>, Tp...>(buff));
     }
@@ -297,14 +294,12 @@ namespace detail {
 } // namespace detail
 
 template<typename... Tp>
-constexpr size_t required_buffer_size()
-{
+constexpr size_t required_buffer_size() {
     return detail::required_buffer_size<Tp...>();
 }
 
 template<size_t position, typename... Tp>
-inline std::tuple<Tp...> deserialize(const char *buff)
-{
+inline std::tuple<Tp...> deserialize(const char *buff) {
     return detail::deserialize<position, Tp...>(buff);
 }
 
@@ -320,8 +315,7 @@ namespace detail {
 
     template<size_t buff_pos, size_t I, typename... Tp>
     inline std::enable_if_t<I < sizeof...(Tp), void>
-    serialize(const std::tuple<Tp...>& t, unsigned char *buff)
-    {
+    serialize(const std::tuple<Tp...>& t, unsigned char *buff) {
         using type = typename std::tuple_element<I, std::tuple<Tp...>>::type;
         // append<type>(&buff[buff_pos], std::get<I>(t));
         append(&buff[buff_pos], std::get<I>(t));
@@ -331,8 +325,7 @@ namespace detail {
 
 template<typename... Tp>
 inline std::array<unsigned char, required_buffer_size<Tp...>()>
-serialize(const std::tuple<Tp...>& t)
-{
+serialize(const std::tuple<Tp...>& t) {
     std::array<unsigned char, required_buffer_size<Tp...>()> arr;
     detail::serialize<0, 0, Tp...>(t, arr.data());
     return arr;
@@ -340,8 +333,7 @@ serialize(const std::tuple<Tp...>& t)
 
 template<typename... Tp>
 inline std::array<unsigned char, required_buffer_size<Tp...>()>
-serialize(Tp&&... t)
-{
+serialize(Tp&&... t) {
     return serialize<Tp...>(std::make_tuple(std::forward<Tp>(t)...));
 }
 
@@ -405,7 +397,7 @@ class DynamicSerializer {
     struct is_std_complex<std::complex<T>> : std::true_type {};
 
     template<typename T>
-    static constexpr bool is_std_complex_v = is_std_complex<T>::value;
+    static constexpr bool is_std_complex_v = is_std_complex<std::decay_t<T>>::value;
 
     static_assert(is_std_complex_v<std::complex<float>>, "");
     static_assert(!is_std_complex_v<float>, "");

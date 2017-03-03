@@ -94,9 +94,14 @@ class Tests
     std::tuple<uint32_t, float, uint64_t, double, int64_t> get_tuple2();
     std::tuple<bool, float, float, uint8_t, uint16_t> get_tuple3();
     std::tuple<int8_t, int8_t, int16_t, int16_t, int32_t, int32_t> get_tuple4();
+    std::tuple<bool, std::complex<double>, float, std::complex<float>, uint16_t> get_tuple5();
 
     // Send complex
     std::complex<float> get_cplx_float();
+
+    auto get_cplx_float2() {
+        return std::complex<float>(0.73858, -0.79324);
+    }
 
     // Send numbers
     uint64_t read_uint64();
