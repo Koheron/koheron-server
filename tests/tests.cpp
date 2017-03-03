@@ -328,6 +328,11 @@ std::tuple<int8_t, int8_t, int16_t, int16_t, int32_t, int32_t> Tests::get_tuple4
     return std::make_tuple(-127, 127, -32767, 32767, -2147483647, 2147483647);
 }
 
+std::complex<float> Tests::get_cplx_float()
+{
+    return std::complex<float>(3.14159, -0.47419);
+}
+
 uint64_t      Tests::read_uint64()    { return (1ULL << 63);       }
 int32_t       Tests::read_int()       { return -214748364;         }
 uint32_t      Tests::read_uint()      { return 301062138;          }

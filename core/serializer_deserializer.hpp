@@ -198,6 +198,13 @@ inline auto extract_cplx(const char *buff)
     return std::complex<T>(r, i);
 }
 
+template<typename T>
+inline void append_cplx(unsigned char *buff, std::complex<T> value)
+{
+    append<T>(buff, value.real());
+    append<T>(buff + sizeof(T), value.imag());
+}
+
 }  // namespace detail
 
 template<> constexpr size_t size_of<std::complex<float>> = 2 * sizeof(float);
@@ -211,7 +218,7 @@ inline std::complex<float> extract<std::complex<float>>(const char *buff)
 template<>
 inline void append<std::complex<float>>(unsigned char *buff, std::complex<float> value)
 {
-    // TODO
+    detail::append_cplx<float>(buff, value);
 }
 
 template<> constexpr size_t size_of<std::complex<double>> = 2 * sizeof(double);
@@ -225,7 +232,7 @@ inline std::complex<double> extract<std::complex<double>>(const char *buff)
 template<>
 inline void append<std::complex<double>>(unsigned char *buff, std::complex<double> value)
 {
-    // TODO
+    detail::append_cplx<double>(buff, value);
 }
 
 // bool
@@ -391,6 +398,18 @@ class DynamicSerializer {
     static_assert(!is_scalar_v<uint32_t*>, "");
     static_assert(!is_scalar_v<std::vector<float>>, "");
 
+    // Complex
+    template<typename T>
+    struct is_std_complex : std::false_type {};
+    template<typename T>
+    struct is_std_complex<std::complex<T>> : std::true_type {};
+
+    template<typename T>
+    static constexpr bool is_std_complex_v = is_std_complex<T>::value;
+
+    static_assert(is_std_complex_v<std::complex<float>>, "");
+    static_assert(!is_std_complex_v<float>, "");
+
     // Tuple
     template <typename T>
     struct is_std_tuple : std::false_type {};
@@ -449,13 +468,13 @@ class DynamicSerializer {
     }
 
     template<typename Tp0, typename... Tp>
-    inline std::enable_if_t<0 == sizeof...(Tp) && is_scalar_v<Tp0>, void>
+    inline std::enable_if_t<0 == sizeof...(Tp) && (is_scalar_v<Tp0> || is_std_complex_v<Tp0>), void>
     command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
         append(std::forward<Tp0>(t));
     }
 
     template <typename Tp0, typename... Tp>
-    inline std::enable_if_t<0 < sizeof...(Tp) && is_scalar_v<Tp0>, void>
+    inline std::enable_if_t<0 < sizeof...(Tp) && (is_scalar_v<Tp0> || is_std_complex_v<Tp0>), void>
     command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
         append(std::forward<Tp0>(t));
         command_serializer(buffer, std::forward<Tp>(args)...);

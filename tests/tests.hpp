@@ -95,6 +95,9 @@ class Tests
     std::tuple<bool, float, float, uint8_t, uint16_t> get_tuple3();
     std::tuple<int8_t, int8_t, int16_t, int16_t, int32_t, int32_t> get_tuple4();
 
+    // Send complex
+    std::complex<float> get_cplx_float();
+
     // Send numbers
     uint64_t read_uint64();
     int32_t read_int();
