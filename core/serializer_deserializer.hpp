@@ -400,6 +400,7 @@ class DynamicSerializer {
     static constexpr bool is_std_complex_v = is_std_complex<std::decay_t<T>>::value;
 
     static_assert(is_std_complex_v<std::complex<float>>, "");
+    static_assert(is_std_complex_v<std::complex<double>&>, "");
     static_assert(!is_std_complex_v<float>, "");
 
     // Tuple

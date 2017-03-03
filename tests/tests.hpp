@@ -103,6 +103,10 @@ class Tests
         return std::complex<float>(0.73858, -0.79324);
     }
 
+    auto get_cplx_double() {
+        return std::complex<double>(2.71828182845904523536, 3.14159265358979323846);
+    }
+
     // Send numbers
     uint64_t read_uint64();
     int32_t read_int();
