@@ -61,6 +61,13 @@ class Tests
         return data_std_array3;
     }
 
+    const auto& send_std_array_cplx_float(std::complex<float> mul) {
+        for (size_t i=0; i<data_std_array_cplx_float.size(); i++)
+            data_std_array_cplx_float[i] = mul * std::complex<float>(i, 2 * i);
+
+        return data_std_array_cplx_float;
+    }
+
     bool rcv_std_array(uint32_t u, float f, const std::array<uint32_t, 8192>& arr, double d, int32_t i);
     bool rcv_std_array2(const std::array<float, 8192>& arr);
     bool rcv_std_array3(const std::array<double, 8192>& arr);
@@ -132,6 +139,7 @@ class Tests
     std::array<float, 10> data_std_array;
     std::array<uint32_t, 512> data_std_array2;
     std::array<uint32_t, 2 * HALF_ARRAY_LEN> data_std_array3;
+    std::array<std::complex<float>, 1024> data_std_array_cplx_float;
 };
 
 #endif // __TESTS_TESTS_HPP__
