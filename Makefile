@@ -8,7 +8,6 @@ TAG=0.13.0
 BASE_DIR=.
 CONFIG_PATH=$(BASE_DIR)/$(CONFIG)
 TMP = $(BASE_DIR)/tmp
-__PYTHON = $(shell bash scripts/get_python.sh $(PYTHON) $(BASE_DIR))
 
 TEMPLATES = $(shell find scripts/templates -name '*.hpp' -o -name '*.h' -o -name '*.tpp')
 CORE_HEADERS = $(shell find core -name '*.hpp' -o -name '*.h' -o -name '*.tpp')
@@ -80,7 +79,7 @@ all: exec
 .PHONY: exec operations_hpp
 
 $(TMP)/devices_table.hpp $(TMP)/devices.hpp $(TMP)/operations.hpp $(KS_DEVICES_CPP): $(DEVICES_HPP) scripts/devgen.py $(TEMPLATES)
-	$(__PYTHON) scripts/make.py --generate $(CONFIG_PATH) $(TMP)
+	python scripts/make.py --generate $(CONFIG_PATH) $(TMP)
 
 $(TMP)/%.o: %.cpp
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
