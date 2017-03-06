@@ -25,17 +25,6 @@ namespace kserver {
 
 template<int sock_type> class Session;
 
-////////////////////////////////////////////////////////////////////////////
-/////// ListeningChannel
-
-template<int sock_type>
-struct ListenerStats
-{
-    int opened_sessions_num = 0; ///< Number of currently opened sessions
-    int total_sessions_num = 0;  ///< Total number of sessions
-    int total_requests_num = 0;  ///< Total number of requests
-};
-
 /// Implementation in listening_channel.cpp
 template<int sock_type>
 class ListeningChannel
@@ -75,7 +64,6 @@ class ListeningChannel
     std::thread comm_thread; ///< Listening thread
 
     KServer *kserver;
-    ListenerStats<sock_type> stats;
 
   private:
     int __start_worker();
@@ -128,9 +116,6 @@ class KServer
     // Managers
     DeviceManager dev_manager;
     SessionManager session_manager;
-
-    // Logs
-    std::time_t start_time;
 
     std::mutex ks_mutex;
 
