@@ -108,9 +108,6 @@ class KServer
     enum Operation {
         GET_VERSION = 0,            ///< Send th version of the server
         GET_CMDS = 1,               ///< Send the commands numbers
-        GET_STATS = 2,              ///< Get KServer listeners statistics
-        GET_DEV_STATUS = 3,         ///< Send the devices status
-        GET_RUNNING_SESSIONS = 4,   ///< Send the running sessions
         kserver_op_num
     };
 

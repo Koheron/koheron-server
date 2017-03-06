@@ -109,20 +109,13 @@ template<int sock_type>
 void session_thread_call(int comm_fd, ListeningChannel<sock_type> *listener)
 {
     listener->inc_thread_num();
-    listener->stats.opened_sessions_num++;
-    listener->stats.total_sessions_num++;
 
     SessID sid = listener->kserver->session_manager. template create_session<sock_type>(
                             listener->kserver->config, comm_fd);
 
-    auto session = static_cast<Session<sock_type>*>(
-                        &listener->kserver->session_manager.get_session(sid));
-
-    listener->stats.total_requests_num += session->request_num();
     listener->kserver->session_manager.delete_session(sid);
 
     listener->dec_thread_num();
-    listener->stats.opened_sessions_num--;
 }
 
 template<int sock_type>

@@ -58,10 +58,7 @@ def get_json(devices):
         'id': 1,
         'functions': [
             {'name': 'get_version', 'id': 0, 'args': [], 'ret_type': 'const char *'},
-            {'name': 'get_cmds', 'id': 1, 'args': [], 'ret_type': 'std::string'},
-            {'name': 'get_stats', 'id': 2, 'args': [], 'ret_type': 'const char *'},
-            {'name': 'get_dev_status', 'id': 3, 'args': [], 'ret_type': 'void'},
-            {'name': 'get_running_sessions', 'id': 4, 'args': [], 'ret_type': 'const char *'}
+            {'name': 'get_cmds', 'id': 1, 'args': [], 'ret_type': 'std::string'}
         ]
     }]
 
