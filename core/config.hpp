@@ -23,57 +23,36 @@ typedef enum {
 
 struct KServerConfig
 {
-    KServerConfig();
-
-    /// Load the config from a JSON configuration file
-    int load_file(char *filename);
-
-    void show();
-
     /// Display messages emitted and received
-    bool verbose;
+    bool verbose = false;
 
     /// Enable/Disable the Nagle algorithm in the TCP buffer
-    bool tcp_nodelay;
+    bool tcp_nodelay = true;
 
     /// Run KServer as a daemon if true
-    bool daemon;
+    bool daemon = true;
 
     /// Notify systemd when server ready
-    bool notify_systemd;
+    bool notify_systemd = true;
 
     /// Notification socket for systemd
-    char notify_socket[UNIX_SOCKET_PATH_LEN];
+    char notify_socket[UNIX_SOCKET_PATH_LEN] = "/run/systemd/notify";
 
     /// TCP listening port
-    unsigned int tcp_port;
+    unsigned int tcp_port = 36000;
     /// TCP max parallel connections
-    unsigned int tcp_worker_connections;
+    unsigned int tcp_worker_connections = 100;
 
     /// Websocket listening port
-    unsigned int websock_port;
+    unsigned int websock_port = 8080;
     /// Websocket max parallel connections
-    unsigned int websock_worker_connections;
+    unsigned int websock_worker_connections = 100;
 
     /// Unix socket file path
-    char unixsock_path[UNIX_SOCKET_PATH_LEN];
+    char unixsock_path[UNIX_SOCKET_PATH_LEN] = "/var/run/koheron-server.sock";
     /// Unix socket max parallel connections
-    unsigned int unixsock_worker_connections;
+    unsigned int unixsock_worker_connections = 100;
 
-  private:
-    char* _get_source(char *filename);
-
-    // Performs some checks and tuning on the loaded configuration
-    void _check_config();
-
-    int _read_verbose(JsonValue value);
-    int _read_tcp_nodelay(JsonValue value);
-    int _read_daemon(JsonValue value);
-    int _read_notify_systemd(JsonValue value);
-    int _read_server(JsonValue value, server_t serv_type);
-    int _read_tcp(JsonValue value);
-    int _read_websocket(JsonValue value);
-    int _read_unixsocket(JsonValue value);
 };
 
 } // namespace kserver
