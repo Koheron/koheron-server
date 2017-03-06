@@ -16,15 +16,6 @@ namespace kserver {
 // Connections
 // ------------------------------------------
 
-/// Enable TCP connections
-#define KSERVER_HAS_TCP 1
-
-/// Enable Websocket connections
-#define KSERVER_HAS_WEBSOCKET 1
-
-/// Enable Unix sockets
-#define KSERVER_HAS_UNIX_SOCKET 1
-
 /// Systemd notification socket
 #define DFLT_NOTIFY_SOCKET "/run/systemd/notify"
 
@@ -117,10 +108,6 @@ typedef int SessID;
 // ------------------------------------------
 // Checks
 // ------------------------------------------
-
-#if !KSERVER_HAS_TCP && !KSERVER_HAS_WEBSOCKET
-#error "KServer needs at least one connection type !!"
-#endif
 
 } // namespace kserver
 

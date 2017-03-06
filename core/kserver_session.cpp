@@ -8,8 +8,6 @@ namespace kserver {
 // TCP
 // -----------------------------------------------
 
-#if KSERVER_HAS_TCP || KSERVER_HAS_UNIX_SOCKET
-
 template<> int Session<TCP>::init_socket() {return 0;}
 template<> int Session<TCP>::exit_socket() {return 0;}
 
@@ -63,13 +61,9 @@ int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes)
     return bytes_read;
 }
 
-#endif
-
 // -----------------------------------------------
 // WebSocket
 // -----------------------------------------------
-
-#if KSERVER_HAS_WEBSOCKET
 
 template<>
 int Session<WEBSOCK>::init_socket()
@@ -110,7 +104,5 @@ int Session<WEBSOCK>::read_command(Command& cmd)
 
     return Command::HEADER_SIZE;
 }
-
-#endif
 
 } // namespace kserver

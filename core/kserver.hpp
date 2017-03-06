@@ -118,15 +118,9 @@ class KServer
     std::atomic<bool> exit_all;
 
     // Listeners
-#if KSERVER_HAS_TCP
     ListeningChannel<TCP> tcp_listener;
-#endif
-#if KSERVER_HAS_WEBSOCKET
     ListeningChannel<WEBSOCK> websock_listener;
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
     ListeningChannel<UNIX> unix_listener;
-#endif
 
     /// True when all listeners are ready
     bool is_ready();

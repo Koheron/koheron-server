@@ -20,42 +20,32 @@ namespace kserver {
 KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
 : config(config_),
   sig_handler(),
-#if KSERVER_HAS_TCP
-    tcp_listener(this),
-#endif
-#if KSERVER_HAS_WEBSOCKET
-    websock_listener(this),
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
-    unix_listener(this),
-#endif
+  tcp_listener(this),
+  websock_listener(this),
+  unix_listener(this),
   dev_manager(this),
   session_manager(*this, dev_manager),
   start_time(0)
 {
-    if (sig_handler.init(this) < 0)
+    if (sig_handler.init(this) < 0) {
         exit(EXIT_FAILURE);
-
-    if (dev_manager.init() < 0)
+    }
+    if (dev_manager.init() < 0) {
         exit (EXIT_FAILURE);
-
+    }
     exit_comm.store(false);
     exit_all.store(false);
 
-#if KSERVER_HAS_TCP
-    if (tcp_listener.init() < 0)
+    if (tcp_listener.init() < 0) {
         exit(EXIT_FAILURE);
-#endif // KSERVER_HAS_TCP
+    }
+    if (websock_listener.init() < 0) {
+        exit(EXIT_FAILURE);
+    }
+    if (unix_listener.init() < 0) {
+        exit(EXIT_FAILURE);
+    }
 
-#if KSERVER_HAS_WEBSOCKET
-    if (websock_listener.init() < 0)
-        exit(EXIT_FAILURE);
-#endif // KSERVER_HAS_WEBSOCKET
-
-#if KSERVER_HAS_UNIX_SOCKET
-    if (unix_listener.init() < 0)
-        exit(EXIT_FAILURE);
-#endif // KSERVER_HAS_UNIX_SOCKET
 }
 
 // This cannot be done in the destructor
@@ -65,68 +55,46 @@ void KServer::close_listeners()
 {
     exit_comm.store(true);
     assert(config != NULL);
-
-#if KSERVER_HAS_TCP
     tcp_listener.shutdown();
-#endif
-#if KSERVER_HAS_WEBSOCKET
     websock_listener.shutdown();
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
     unix_listener.shutdown();
-#endif
-
     join_listeners_workers();
 }
 
 int KServer::start_listeners_workers()
 {
-#if KSERVER_HAS_TCP
-    if (tcp_listener.start_worker() < 0)
+    if (tcp_listener.start_worker() < 0) {
         return -1;
-#endif
-#if KSERVER_HAS_WEBSOCKET
-    if (websock_listener.start_worker() < 0)
+    }
+    if (websock_listener.start_worker() < 0) {
         return -1;
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
-    if (unix_listener.start_worker() < 0)
+    }
+    if (unix_listener.start_worker() < 0) {
         return -1;
-#endif
-
+    }
     return 0;
 }
 
 void KServer::join_listeners_workers()
 {
-#if KSERVER_HAS_TCP
     tcp_listener.join_worker();
-#endif
-#if KSERVER_HAS_WEBSOCKET
     websock_listener.join_worker();
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
     unix_listener.join_worker();
-#endif
 }
 
 bool KServer::is_ready()
 {
     bool ready = true;
 
-#if KSERVER_HAS_TCP
-    if (config->tcp_worker_connections > 0)
+    if (config->tcp_worker_connections > 0) {
         ready = ready && tcp_listener.is_ready;
-#endif
-#if KSERVER_HAS_WEBSOCKET
-    if (config->websock_worker_connections > 0)
+    }
+    if (config->websock_worker_connections > 0) {
         ready = ready && websock_listener.is_ready;
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
-    if (config->unixsock_worker_connections > 0)
+    }
+    if (config->unixsock_worker_connections > 0) {
         ready = ready && unix_listener.is_ready;
-#endif
-
+    }
     return ready;
 }
 

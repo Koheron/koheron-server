@@ -15,10 +15,7 @@
 #include "serializer_deserializer.hpp"
 #include "socket_interface_defs.hpp"
 #include "kserver.hpp"
-
-#if KSERVER_HAS_WEBSOCKET
 #include "websocket.hpp"
-#endif
 
 namespace kserver {
 
@@ -105,13 +102,11 @@ class Session : public SessionAbstract
     std::conditional_t<sock_type == TCP || sock_type == UNIX,
             Buffer<KSERVER_RECV_DATA_BUFF_LEN>, EmptyBuffer> recv_data_buff;
 
-#if KSERVER_HAS_WEBSOCKET
     struct EmptyWebsock {
         EmptyWebsock(std::shared_ptr<KServerConfig> config_) {}
     };
 
     std::conditional_t<sock_type == WEBSOCK, WebSocket, EmptyWebsock> websock;
-#endif
 
     // Monitoring
     unsigned int requests_num; ///< Number of requests received during the current session
@@ -165,9 +160,7 @@ Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
 , comm_fd(comm_fd_)
 , id(id_)
 , session_manager(session_manager_)
-#if KSERVER_HAS_WEBSOCKET
 , websock(config_)
-#endif
 , requests_num(0)
 , errors_num(0)
 , send_buffer(0)
@@ -212,8 +205,6 @@ int Session<sock_type>::run()
 // -----------------------------------------------
 // TCP
 // -----------------------------------------------
-
-#if KSERVER_HAS_TCP || KSERVER_HAS_UNIX_SOCKET
 
 template<>
 int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes);
@@ -294,13 +285,11 @@ inline int Session<TCP>::write(const T *data, unsigned int len)
     return bytes_send;
 }
 
-#endif // KSERVER_HAS_TCP
 
 // -----------------------------------------------
 // Unix socket
 // -----------------------------------------------
 
-#if KSERVER_HAS_UNIX_SOCKET
 // Unix socket has the same interface than TCP socket
 template<>
 class Session<UNIX> : public Session<TCP>
@@ -311,13 +300,10 @@ class Session<UNIX> : public Session<TCP>
                   SessionManager& session_manager_)
     : Session<TCP>(config_, comm_fd_, id_, session_manager_) {}
 };
-#endif // KSERVER_HAS_UNIX_SOCKET
 
 // -----------------------------------------------
 // WebSocket
 // -----------------------------------------------
-
-#if KSERVER_HAS_WEBSOCKET
 
 template<>
 template<typename T, size_t N>
@@ -376,35 +362,21 @@ inline int Session<WEBSOCK>::write(const T *data, unsigned int len)
     return websock.send(data, len);
 }
 
-#endif // KSERVER_HAS_WEBSOCKET
-
 // -----------------------------------------------
 // Select session kind
 // -----------------------------------------------
 
-#if KSERVER_HAS_TCP
-  #define CASE_TCP(...)                                             \
-    case TCP:                                                       \
-        return static_cast<Session<TCP>*>(this)-> __VA_ARGS__;
-#else
-  #define CASE_TCP(...)
-#endif
+#define CASE_TCP(...)                                             \
+case TCP:                                                       \
+    return static_cast<Session<TCP>*>(this)-> __VA_ARGS__;
 
-#if KSERVER_HAS_UNIX_SOCKET
-  #define CASE_UNIX(...)                                            \
-    case UNIX:                                                      \
-        return static_cast<Session<UNIX>*>(this)-> __VA_ARGS__;
-#else
-  #define CASE_UNIX(...)
-#endif
+#define CASE_UNIX(...)                                            \
+case UNIX:                                                      \
+    return static_cast<Session<UNIX>*>(this)-> __VA_ARGS__;
 
-#if KSERVER_HAS_WEBSOCKET
-  #define CASE_WEBSOCK(...)                                         \
-    case WEBSOCK:                                                   \
-        return static_cast<Session<WEBSOCK>*>(this)-> __VA_ARGS__;
-#else
-  #define CASE_WEBSOCK(...)
-#endif
+#define CASE_WEBSOCK(...)                                         \
+case WEBSOCK:                                                   \
+    return static_cast<Session<WEBSOCK>*>(this)-> __VA_ARGS__;
 
 #define SWITCH_SOCK_TYPE(...)     \
     switch (this->kind) {         \

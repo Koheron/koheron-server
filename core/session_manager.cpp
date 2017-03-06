@@ -82,21 +82,15 @@ void SessionManager::delete_session(SessID id)
 
     if (session_pool[id] != nullptr) {
         switch (session_pool[id]->kind) {
-#if KSERVER_HAS_TCP
           case TCP:
             sess_fd = cast_to_session<TCP>(session_pool[id])->comm_fd;
             break;
-#endif
-#if KSERVER_HAS_UNIX_SOCKET
           case UNIX:
             sess_fd = cast_to_session<UNIX>(session_pool[id])->comm_fd;
             break;
-#endif
-#if KSERVER_HAS_WEBSOCKET
           case WEBSOCK:
             sess_fd = cast_to_session<WEBSOCK>(session_pool[id])->comm_fd;
             break;
-#endif
           default: assert(false);
         }
 

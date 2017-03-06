@@ -14,9 +14,7 @@ extern "C" {
   #include <sys/types.h>    // socket types
   #include <arpa/inet.h>    // inet (3) functions
   #include <netinet/tcp.h>
-#if KSERVER_HAS_UNIX_SOCKET
   #include <sys/un.h>
-#endif
 }
 
 namespace kserver {
@@ -158,8 +156,6 @@ int ListeningChannel<sock_type>::__start_worker()
 
 // ---- TCP ----
 
-#if KSERVER_HAS_TCP
-
 template<>
 int ListeningChannel<TCP>::init()
 {
@@ -200,11 +196,8 @@ int ListeningChannel<TCP>::start_worker()
     return __start_worker();
 }
 
-#endif // KSERVER_HAS_TCP
 
 // ---- WEBSOCK ----
-
-#if KSERVER_HAS_WEBSOCKET
 
 template<>
 int ListeningChannel<WEBSOCK>::init()
@@ -246,11 +239,7 @@ int ListeningChannel<WEBSOCK>::start_worker()
     return __start_worker();
 }
 
-#endif // KSERVER_HAS_WEBSOCKET
-
 // ---- UNIX ----
-
-#if KSERVER_HAS_UNIX_SOCKET
 
 int create_unix_listening(const char *unix_sock_path)
 {
@@ -318,7 +307,5 @@ int ListeningChannel<UNIX>::start_worker()
 {
     return __start_worker();
 }
-
-#endif // KSERVER_HAS_UNIX_SOCKET
 
 } // namespace kserver
