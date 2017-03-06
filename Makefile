@@ -1,4 +1,4 @@
-CONFIG=config/config_local.yaml
+CONFIG=tests/config_local.yaml
 PYTHON=/usr/bin/python
 
 SHA=`git rev-parse --short HEAD`

@@ -1,3 +1,0 @@
-devices:
-  - tests/tests.hpp
-  - tests/exception_tests.hpp
