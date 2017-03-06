@@ -70,10 +70,10 @@ class ListeningChannel
 }; // ListeningChannel
 
 template<int sock_type>
-void ListeningChannel<sock_type>::join_worker()
-{
-    if (listen_fd >= 0)
+void ListeningChannel<sock_type>::join_worker() {
+    if (listen_fd >= 0) {
         comm_thread.join();
+    }
 }
 
  ////////////////////////////////////////////////////////////////////////////
@@ -128,9 +128,6 @@ class KServer
     void detach_listeners_workers();
     void join_listeners_workers();
     void close_listeners();
-#if KSERVER_HAS_SYSTEMD
-    void notify_systemd_ready();
-#endif
 
 template<int sock_type> friend class ListeningChannel;
 };

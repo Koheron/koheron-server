@@ -17,15 +17,6 @@ struct KServerConfig
     /// Enable/Disable the Nagle algorithm in the TCP buffer
     bool tcp_nodelay = true;
 
-    /// Run KServer as a daemon if true
-    bool daemon = true;
-
-    /// Notify systemd when server ready
-    bool notify_systemd = true;
-
-    /// Notification socket for systemd
-    char notify_socket[UNIX_SOCKET_PATH_LEN] = "/run/systemd/notify";
-
     /// TCP listening port
     unsigned int tcp_port = 36000;
     /// TCP max parallel connections

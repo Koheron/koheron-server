@@ -26,6 +26,7 @@ namespace kserver {
 
 KSERVER_EXECUTE_OP(GET_VERSION)
 {
+    printf("kserver get version \n");
     return GET_SESSION.send<1, KServer::GET_VERSION>(xstr(KOHERON_SERVER_VERSION));
 }
 

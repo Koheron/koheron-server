@@ -30,17 +30,12 @@ int create_tcp_listening(unsigned int port, const std::shared_ptr<KServerConfig>
     // To avoid binding error
     // See http://beej.us/guide/bgnet/output/html/singlepage/bgnet.html#bind
     int yes = 1;
-
-    if (setsockopt(listen_fd_, SOL_SOCKET, SO_REUSEADDR,
-                  &yes, sizeof(int))==-1) {
+    if (setsockopt(listen_fd_, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int))==-1) {
+        printf("Binding error");
     }
 
-#if KSERVER_HAS_TCP_NODELAY
-    if (config->tcp_nodelay) {
-        int one = 1;
-        setsockopt(listen_fd_, IPPROTO_TCP, TCP_NODELAY, (char *)&one, sizeof(one));
-    }
-#endif
+    int one = 1;
+    setsockopt(listen_fd_, IPPROTO_TCP, TCP_NODELAY, (char *)&one, sizeof(one));
 
     struct sockaddr_in servaddr;
     bzero(&servaddr, sizeof(servaddr));
@@ -54,6 +49,7 @@ int create_tcp_listening(unsigned int port, const std::shared_ptr<KServerConfig>
         return -1;
     }
 
+    printf("TCP listening successful \n");
     return listen_fd_;
 }
 
@@ -75,23 +71,19 @@ int set_comm_sock_opts(int comm_fd, const std::shared_ptr<KServerConfig>& config
         return -1;
     }
 
-#if KSERVER_HAS_TCP_NODELAY
-    if (config->tcp_nodelay) {
-        int one = 1;
-
-        if (setsockopt(comm_fd, IPPROTO_TCP, TCP_NODELAY,
-                       (char *)&one, sizeof(one)) < 0) {
-            close(comm_fd);
-            return -1;
-        }
+    int one = 1;
+    if (setsockopt(comm_fd, IPPROTO_TCP, TCP_NODELAY, (char *)&one, sizeof(one)) < 0) {
+        close(comm_fd);
+        return -1;
     }
-#endif
+
 
     return 0;
 }
 
 int open_tcp_communication(int listen_fd, const std::shared_ptr<KServerConfig>& config)
 {
+    printf("start open_tcp_communication\n");
     int comm_fd = accept(listen_fd, (struct sockaddr*) NULL, NULL);
 
     if (comm_fd < 0)
@@ -100,12 +92,14 @@ int open_tcp_communication(int listen_fd, const std::shared_ptr<KServerConfig>& 
     if (set_comm_sock_opts(comm_fd, config) < 0)
         return -1;
 
+    printf("end open_tcp_communication\n");
     return comm_fd;
 }
 
 template<int sock_type>
 void session_thread_call(int comm_fd, ListeningChannel<sock_type> *listener)
 {
+    printf("start session_thread_call\n");
     listener->inc_thread_num();
 
     SessID sid = listener->kserver->session_manager. template create_session<sock_type>(
@@ -114,11 +108,13 @@ void session_thread_call(int comm_fd, ListeningChannel<sock_type> *listener)
     listener->kserver->session_manager.delete_session(sid);
 
     listener->dec_thread_num();
+    printf("end session_thread_call\n");
 }
 
 template<int sock_type>
 void comm_thread_call(ListeningChannel<sock_type> *listener)
 {
+    printf("start comm_thread_call\n");
     listener->is_ready = true;
 
     while (!listener->kserver->exit_comm.load()) {
@@ -138,19 +134,21 @@ void comm_thread_call(ListeningChannel<sock_type> *listener)
         std::thread sess_thread(session_thread_call<sock_type>, comm_fd, listener);
         sess_thread.detach();
     }
+    printf("end comm_thread_call\n");
 
 }
 
 template<int sock_type>
 int ListeningChannel<sock_type>::__start_worker()
 {
+    printf("start worker\n");
     if (listen_fd >= 0) {
         if (listen(listen_fd, KSERVER_BACKLOG) < 0) {
             return -1;
         }
         comm_thread = std::thread{comm_thread_call<sock_type>, this};
     }
-
+    printf("end worker\n");
     return 0;
 }
 
@@ -163,9 +161,9 @@ int ListeningChannel<TCP>::init()
 
     if (kserver->config->tcp_worker_connections > 0) {
         listen_fd = create_tcp_listening(kserver->config->tcp_port, kserver->config);
+        printf("TCP channel initialized\n");
         return listen_fd;
     }
-
     return 0;
 }
 
@@ -181,6 +179,7 @@ void ListeningChannel<TCP>::shutdown()
 template<>
 int ListeningChannel<TCP>::open_communication()
 {
+    printf("TCP open_communication\n");
     return open_tcp_communication(listen_fd, kserver->config);
 }
 
@@ -206,6 +205,7 @@ int ListeningChannel<WEBSOCK>::init()
 
     if (kserver->config->websock_worker_connections > 0) {
         listen_fd = create_tcp_listening(kserver->config->websock_port, kserver->config);
+        printf("Websocket channel initialized\n");
         return listen_fd;
     } else {
         return 0; // Nothing to be done
@@ -272,9 +272,9 @@ int ListeningChannel<UNIX>::init()
 
     if (kserver->config->unixsock_worker_connections > 0) {
         listen_fd = create_unix_listening(kserver->config->unixsock_path);
+        printf("Unix socket channel initialized\n");
         return listen_fd;
     }
-
     return 0;
 }
 

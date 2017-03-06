@@ -168,8 +168,10 @@ Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
 template<int sock_type>
 int Session<sock_type>::run()
 {
-    if (init_session() < 0)
+    if (init_session() < 0) {
+        printf("Session failed to initialize\n");
         return -1;
+    }
 
     while (!session_manager.kserver.exit_comm.load()) {
         Command cmd;
@@ -187,6 +189,7 @@ int Session<sock_type>::run()
         }
 
         requests_num++;
+        printf("request_num = %d\n", request_num);
 
         if (unlikely(session_manager.dev_manager.execute(cmd) < 0)) {
             errors_num++;
