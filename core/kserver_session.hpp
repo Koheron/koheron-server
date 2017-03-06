@@ -111,7 +111,6 @@ class Session : public SessionAbstract
     // Monitoring
     unsigned int requests_num; ///< Number of requests received during the current session
     unsigned int errors_num;   ///< Number of requests errors during the current session
-    std::time_t start_time;    ///< Starting time of the session
 
     std::vector<unsigned char> send_buffer;
     DynamicSerializer<1024> dyn_ser;
@@ -126,7 +125,6 @@ class Session : public SessionAbstract
     int init_session() {
         errors_num = 0;
         requests_num = 0;
-        start_time = std::time(nullptr);
         return init_socket();
     }
 

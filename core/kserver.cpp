@@ -24,8 +24,7 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
   websock_listener(this),
   unix_listener(this),
   dev_manager(this),
-  session_manager(*this, dev_manager),
-  start_time(0)
+  session_manager(*this, dev_manager)
 {
     if (sig_handler.init(this) < 0) {
         exit(EXIT_FAILURE);
@@ -160,7 +159,6 @@ exit_notification_socket:
 int KServer::run()
 {
     bool ready_notified = false;
-    start_time = std::time(nullptr);
 
     if (start_listeners_workers() < 0)
         return -1;
