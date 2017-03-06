@@ -37,10 +37,6 @@ namespace kserver {
 /// Disable Nagle algorithm for TCP connections
 #define KSERVER_HAS_TCP_NODELAY 1
 
-// ------------------------------------------
-// Logs
-// ------------------------------------------
-
 #define KSERVER_HAS_SYSTEMD 1
 
 // ------------------------------------------

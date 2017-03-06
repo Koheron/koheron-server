@@ -7,19 +7,7 @@
 #ifndef __CONFIG_HPP__
 #define __CONFIG_HPP__
 
-#include <cstdint>
-
-#include "kserver_defs.hpp"
-#include "gason.hpp"
-
 namespace kserver {
-
-typedef enum {
-    TCP_SERVER,
-    WEBSOCK_SERVER,
-    UNIXSOCK_SERVER,
-    server_t_num
-} server_t;
 
 struct KServerConfig
 {
