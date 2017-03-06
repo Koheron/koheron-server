@@ -7,6 +7,8 @@ dependencies:
     - venv
   pre:
     - pip install -r requirements.txt
+    - pip install koheron
+    - pip install pytest
     - sudo bash -c "echo deb http://fr.archive.ubuntu.com/ubuntu/ wily main >> /etc/apt/sources.list"
     - sudo bash -c "echo deb-src http://fr.archive.ubuntu.com/ubuntu/ wily main >> /etc/apt/sources.list"
     - sudo apt-get update; sudo apt-get install gcc-5 g++-5 gcc-5-arm-linux-gnueabihf g++-5-arm-linux-gnueabihf
@@ -22,3 +24,4 @@ test:
           background: true
     - sleep 5
     - cat nohup.out
+    - pytest tests.py
