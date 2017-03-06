@@ -12,7 +12,6 @@
 #include <type_traits>
 
 #include "commands.hpp"
-#include "peer_info.hpp"
 #include "serializer_deserializer.hpp"
 #include "socket_interface_defs.hpp"
 #include "kserver.hpp"
@@ -58,9 +57,6 @@ class Session : public SessionAbstract
     unsigned int request_num() const {return requests_num;}
     unsigned int error_num() const {return errors_num;}
     SessID get_id() const {return id;}
-    const char* get_client_ip() const {return peer_info.ip_str;}
-    int get_client_port() const {return peer_info.port;}
-    std::time_t get_start_time() const {return start_time;}
 
     // Receive - Send
 
@@ -103,7 +99,6 @@ class Session : public SessionAbstract
     std::shared_ptr<KServerConfig> config;
     int comm_fd;  ///< Socket file descriptor
     SessID id;
-    PeerInfo<sock_type> peer_info;
     SessionManager& session_manager;
 
     struct EmptyBuffer {};
@@ -169,14 +164,12 @@ Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
 , config(config_)
 , comm_fd(comm_fd_)
 , id(id_)
-, peer_info(PeerInfo<sock_type>(comm_fd_))
 , session_manager(session_manager_)
 #if KSERVER_HAS_WEBSOCKET
 , websock(config_)
 #endif
 , requests_num(0)
 , errors_num(0)
-, start_time(0)
 , send_buffer(0)
 , status(OPENED)
 {}

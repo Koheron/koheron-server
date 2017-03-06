@@ -12,6 +12,7 @@
 
 extern "C" {
   #include <sys/un.h>
+  #include <sys/socket.h>
 }
 
 namespace kserver {
