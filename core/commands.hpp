@@ -44,7 +44,6 @@ struct Buffer
     const std::array<T, N>& extract_array() {
         // http://stackoverflow.com/questions/11205186/treat-c-cstyle-array-as-stdarray
         const auto p = reinterpret_cast<const std::array<T, N>*>(begin());
-        assert(p->data() == (const T*)begin());
         position += size_of<T, N>;
         return *p;
     }

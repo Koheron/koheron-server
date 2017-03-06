@@ -61,9 +61,7 @@ def get_json(devices):
             {'name': 'get_cmds', 'id': 1, 'args': [], 'ret_type': 'std::string'},
             {'name': 'get_stats', 'id': 2, 'args': [], 'ret_type': 'const char *'},
             {'name': 'get_dev_status', 'id': 3, 'args': [], 'ret_type': 'void'},
-            {'name': 'get_running_sessions', 'id': 4, 'args': [], 'ret_type': 'const char *'},
-            {'name': 'subscribe_pubsub', 'id': 5, 'args': [{'name': 'channel', 'type': 'uint32_t'}], 'ret_type': 'void'},
-            {'name': 'pubsub_ping', 'id': 6, 'args': [], 'ret_type': 'void'}
+            {'name': 'get_running_sessions', 'id': 4, 'args': [], 'ret_type': 'const char *'}
         ]
     }]
 
@@ -226,7 +224,7 @@ def generate_call(device, dev_id, operation):
 # Parse command arguments
 # -----------------------------------------------------------
 
-def parser_generator(device, operation): 
+def parser_generator(device, operation):
     if operation.get('arguments') is None:
         return ''
 
@@ -243,7 +241,6 @@ def parser_generator(device, operation):
             print_type_list_pack(lines, pack)
             lines.append('>(cmd);\n')
             lines.append('    if (std::get<0>(args_tuple' + str(idx)  + ') < 0) {\n')
-            lines.append('        kserver->syslog.print<ERROR>(\"[{} - {}] Failed to deserialize buffer.\\n");\n'.format(device.name, operation['name']))
             lines.append('        return -1;\n')
             lines.append('    }\n')
 
@@ -252,7 +249,6 @@ def parser_generator(device, operation):
 
         elif pack['family'] in ['vector', 'string', 'array']:
             lines.append('    if (cmd.sess->recv(args_' + operation['name'] + '.' + pack['args']['name'] + ', cmd) < 0) {\n')
-            lines.append('        kserver->syslog.print<ERROR>(\"[' + device.name + ' - ' + operation['name'] + '] Failed to receive '+ pack['family'] +'.\\n");\n')
             lines.append('        return -1;\n')
             lines.append('    }\n\n')
         else:
@@ -287,7 +283,7 @@ def print_req_buff_size(lines, packs):
 
 def print_type_list_pack(lines, pack):
     for idx, arg in enumerate(pack['args']):
-        if idx < len(pack['args']) - 1:   
+        if idx < len(pack['args']) - 1:
             lines.append(arg['type'] + ', ')
         else:
             lines.append(arg['type'])

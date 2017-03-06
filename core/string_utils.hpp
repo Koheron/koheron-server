@@ -52,19 +52,6 @@ snprintf(char *s, size_t n, const char *fmt, Args&&... args) {
     return std::snprintf(s, n, "%s", fmt);
 }
 
-// syslog
-template<int priority, typename... Args>
-typename std::enable_if_t< 0 < sizeof...(Args), void >
-syslog(const char *fmt, Args&&... args) {
-    ::syslog(priority, fmt, std::forward<Args>(args)...);
-}
-
-template<int priority, typename... Args>
-typename std::enable_if_t< 0 == sizeof...(Args), void >
-syslog(const char *fmt, Args&&... args) {
-    ::syslog(priority, "%s", fmt);
-}
-
 // -------------------------------------------------------------------------
 // Compile-time string
 // -------------------------------------------------------------------------

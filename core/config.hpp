@@ -1,5 +1,5 @@
-/// Server configuration 
-/// 
+/// Server configuration
+///
 /// Load and store configuration file content
 ///
 /// (c) Koheron
@@ -36,9 +36,6 @@ struct KServerConfig
     /// Enable/Disable the Nagle algorithm in the TCP buffer
     bool tcp_nodelay;
 
-    /// Send messages to syslog
-    bool syslog;
-
     /// Run KServer as a daemon if true
     bool daemon;
 
@@ -73,7 +70,6 @@ struct KServerConfig
     int _read_tcp_nodelay(JsonValue value);
     int _read_daemon(JsonValue value);
     int _read_notify_systemd(JsonValue value);
-    int _read_log(JsonValue value);
     int _read_server(JsonValue value, server_t serv_type);
     int _read_tcp(JsonValue value);
     int _read_websocket(JsonValue value);

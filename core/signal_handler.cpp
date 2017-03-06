@@ -7,14 +7,12 @@
 #include <iostream>
 #include <cxxabi.h>
 
-extern "C" { 
+extern "C" {
   #include <signal.h>
   #include <execinfo.h>
 }
 
 #include "kserver.hpp"
-#include "syslog.tpp"
-
 namespace kserver {
 
 KServer *SignalHandler::kserver = nullptr;
@@ -27,7 +25,7 @@ int SignalHandler::init(KServer *kserver_)
         set_ignore_signals()   < 0 ||
         set_crash_signals()    < 0)
         return -1;
-        
+
     return 0;
 }
 
@@ -49,12 +47,10 @@ int SignalHandler::set_interrup_signals()
     sig_int_handler.sa_flags = 0;
 
     if (sigaction(SIGINT, &sig_int_handler, nullptr) < 0) {
-        kserver->syslog.print<CRITICAL>("Cannot set SIGINT handler\n");
         return -1;
     }
 
     if (sigaction(SIGTERM, &sig_int_handler, nullptr) < 0) {
-        kserver->syslog.print<CRITICAL>("Cannot set SIGTERM handler\n");
         return -1;
     }
 
@@ -75,7 +71,6 @@ int SignalHandler::set_ignore_signals()
     // when client closes its connection during writing.
     // Results in an unwanted server shutdown
     if (sigaction(SIGPIPE, &sig_ign_handler, 0) < 0) {
-        kserver->syslog.print<CRITICAL>("Cannot disable SIGPIPE\n");
         return -1;
     }
 
@@ -83,11 +78,10 @@ int SignalHandler::set_ignore_signals()
     // According to this:
     // http://stackoverflow.com/questions/7296923/different-signal-handler-for-thread-and-process-is-it-possible
     //
-    // SIGPIPE is delivered to the thread generating it. 
+    // SIGPIPE is delivered to the thread generating it.
     // It might thus be possible to stop the session emitting it.
 
     if (sigaction(SIGTSTP, &sig_ign_handler, 0) < 0) {
-        kserver->syslog.print<CRITICAL>("Cannot disable SIGTSTP\n");
         return -1;
     }
 
@@ -95,7 +89,7 @@ int SignalHandler::set_ignore_signals()
 }
 
 // Crashed signals
-// 
+//
 // Write backtrace to the syslog. See:
 // http://stackoverflow.com/questions/77005/how-to-generate-a-stacktrace-when-my-gcc-c-app-crashes
 
@@ -103,38 +97,17 @@ int SignalHandler::set_ignore_signals()
 
 void crash_signal_handler(int sig)
 {
-    // The signal handler is called several times 
+    // The signal handler is called several times
     // on a segmentation fault (WHY ?).
     // So only display the backtrace the first time
     if (SignalHandler::s_interrupted)
         return;
-
-    const char *sig_name;
-
-    switch (sig) {
-      case SIGBUS:
-        sig_name = "(Bus Error)";
-        break;
-      case SIGSEGV:
-        sig_name = "(Segmentation Fault)";
-        break;
-      case SIGABRT:
-        sig_name = "(Abort)";
-        break;
-      default:
-        sig_name = "(Unidentify signal)";
-    }
-
-    SignalHandler::kserver->syslog.print<PANIC>(
-                              "CRASH: signal %d %s\n", sig, sig_name);
 
     void *buffer[BACKTRACE_BUFF_SIZE];
     size_t size = backtrace(buffer, BACKTRACE_BUFF_SIZE);
     char **messages = backtrace_symbols(buffer, size);
 
     if (messages == nullptr) {
-        SignalHandler::kserver->syslog.print<ERROR>(
-                                             "No backtrace_symbols");
         goto exit;
     }
 
@@ -165,17 +138,6 @@ void crash_signal_handler(int sig)
             int status;
             char *real_name = abi::__cxa_demangle(mangled_name, 0, 0, &status);
 
-            // If demangling is successful, output the demangled function name
-            if (status == 0) {
-                SignalHandler::kserver->syslog.print<INFO>(
-                        "[bt]: (%d) %s : %s+%s%s\n", 
-                        i, messages[i], real_name, offset_begin, offset_end);
-            } else { // Otherwise, output the mangled function name
-                SignalHandler::kserver->syslog.print<INFO>(
-                        "[bt]: (%d) %s : %s+%s%s\n", 
-                        i, messages[i], mangled_name, offset_begin, offset_end);
-            }
-
             free(real_name);
         }
     }
@@ -195,17 +157,14 @@ int SignalHandler::set_crash_signals()
     sig_crash_handler.sa_flags = SA_RESTART | SA_SIGINFO;
 
     if (sigaction(SIGSEGV, &sig_crash_handler, nullptr) < 0) {
-        kserver->syslog.print<CRITICAL>("Cannot set SIGSEGV handler\n");
         return -1;
     }
 
     if (sigaction(SIGBUS, &sig_crash_handler, nullptr) < 0) {
-        kserver->syslog.print<CRITICAL>("Cannot set SIGBUS handler\n");
         return -1;
     }
 
     if (sigaction(SIGABRT, &sig_crash_handler, nullptr) < 0) {
-        kserver->syslog.print<CRITICAL>("Cannot set SIGABRT handler\n");
         return -1;
     }
 

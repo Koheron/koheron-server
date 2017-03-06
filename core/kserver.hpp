@@ -18,7 +18,6 @@
 #include <utility>
 
 #include "devices_manager.hpp"
-#include "syslog.hpp"
 #include "signal_handler.hpp"
 #include "session_manager.hpp"
 
@@ -140,7 +139,6 @@ class KServer
     SessionManager session_manager;
 
     // Logs
-    SysLog syslog;
     std::time_t start_time;
 
     std::mutex ks_mutex;

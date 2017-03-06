@@ -5,7 +5,6 @@
 #include "devices_manager.hpp"
 #include "kserver.hpp"
 #include "commands.hpp"
-#include "syslog.tpp"
 #include "meta_utils.hpp"
 #include <ks_devices.hpp>
 
@@ -21,10 +20,6 @@ int DevicesContainer::alloc() {
         return 0;
 
     if (std::get<dev - 2>(is_starting)) {
-        syslog.print<CRITICAL>(
-            "Circular dependency detected while initializing device [%u] %s\n",
-            dev, std::get<dev>(devices_names).data());
-
         return -1;
     }
 
@@ -41,10 +36,9 @@ int DevicesContainer::alloc() {
 
 DeviceManager::DeviceManager(KServer *kserver_)
 : kserver(kserver_)
-, dev_cont(ctx, kserver->syslog)
+, dev_cont(ctx)
 {
     ctx.set_device_manager(this);
-    ctx.set_syslog(&kserver->syslog);
     is_started.fill(false);
 }
 
@@ -56,15 +50,7 @@ void DeviceManager::alloc_device()
     if (std::get<dev - 2>(is_started))
         return;
 
-    kserver->syslog.print<INFO>(
-        "Device Manager: Starting device [%u] %s...\n",
-        dev, std::get<dev>(devices_names).data());
-
     if (dev_cont.alloc<dev>() < 0) {
-        kserver->syslog.print<PANIC>(
-            "Failed to allocate device [%u] %s. Exiting server...\n",
-            dev, std::get<dev>(devices_names).data());
-
         kserver->exit_all = true;
         return;
     }
@@ -103,8 +89,6 @@ void DeviceManager::start(device_id dev, std::index_sequence<devs...>)
 int DeviceManager::init()
 {
     if (ctx.init() < 0) {
-        kserver->syslog.print<CRITICAL>(
-                "Context initialization failed\n");
         return -1;
     }
 

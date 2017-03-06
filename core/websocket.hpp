@@ -13,12 +13,10 @@
 
 namespace kserver {
 
-class SysLog;
-
 class WebSocket
 {
   public:
-    WebSocket(std::shared_ptr<KServerConfig> config_, SysLog& syslog_);
+    WebSocket(std::shared_ptr<KServerConfig> config_);
 
     void set_id(int comm_fd_);
     int authenticate();
@@ -30,14 +28,13 @@ class WebSocket
 
     char* get_payload_no_copy() {return payload;}
     int64_t payload_size() const {return header.payload_size;}
-    
+
     bool is_closed() const {return connection_closed;}
 
     int exit();
 
   private:
     std::shared_ptr<KServerConfig> config;
-    SysLog& syslog;
 
     int comm_fd;
 

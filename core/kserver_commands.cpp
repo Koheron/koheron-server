@@ -3,10 +3,8 @@
 /// (c) Koheron
 
 #include "kserver.hpp"
-
+#include "kserver_session.hpp"
 #include <ctime>
-
-#include "syslog.tpp"
 #include <devices_json.hpp>
 
 namespace kserver {
@@ -59,14 +57,10 @@ int send_listener_stats(Command& cmd, KServer *kserver,
                     listener->stats.total_requests_num);
 
     if (ret < 0) {
-        kserver->syslog.print<ERROR>(
-                              "KServer::GET_STATS Format error\n");
         return -1;
     }
 
     if (ret >= KS_DEV_WRITE_STR_LEN) {
-        kserver->syslog.print<ERROR>(
-                              "KServer::GET_STATS Buffer overflow\n");
         return -1;
     }
 
@@ -88,14 +82,10 @@ KSERVER_EXECUTE_OP(GET_STATS)
                     std::time(nullptr) - start_time);
 
     if (ret < 0) {
-        syslog.print<ERROR>(
-                      "KServer::GET_STATS Format error\n");
         return -1;
     }
 
     if (ret >= KS_DEV_WRITE_STR_LEN) {
-        syslog.print<ERROR>(
-                      "KServer::GET_STATS Buffer overflow\n");
         return -1;
     }
 
@@ -127,7 +117,6 @@ KSERVER_EXECUTE_OP(GET_STATS)
     if ((bytes = GET_SESSION.send<1, KServer::GET_STATS>("EOKS\n")) < 0)
         return -1;
 
-    syslog.print<DEBUG>("[S] [%u bytes]\n", bytes_send + bytes);
     return 0;
 }
 
@@ -189,14 +178,10 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
                            std::time(nullptr) - start_time);
 
         if (ret < 0) {
-            syslog.print<ERROR>(
-                  "KServer::GET_RUNNING_SESSIONS Format error\n");
             return -1;
         }
 
         if (ret >= KS_DEV_WRITE_STR_LEN) {
-            syslog.print<ERROR>(
-                  "KServer::GET_RUNNING_SESSIONS Buffer overflow\n");
             return -1;
         }
 
@@ -210,7 +195,6 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
     if ((bytes = GET_SESSION.send<1, KServer::GET_RUNNING_SESSIONS>("EORS\n")) < 0)
         return -1;
 
-    syslog.print<DEBUG>("[S] [%u bytes]\n", bytes_send + bytes);
     return 0;
 }
 
@@ -234,7 +218,6 @@ int KServer::execute(Command& cmd)
         return execute_op<KServer::GET_RUNNING_SESSIONS>(cmd);
       case KServer::kserver_op_num:
       default:
-        syslog.print<ERROR>("KServer::execute unknown operation\n");
         return -1;
     }
 }

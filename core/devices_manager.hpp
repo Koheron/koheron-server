@@ -21,9 +21,8 @@ namespace kserver {
 class DevicesContainer
 {
   public:
-    DevicesContainer(Context& ctx_, SysLog& syslog_)
+    DevicesContainer(Context& ctx_)
     : ctx(ctx_)
-    , syslog(syslog_)
     {
         is_started.fill(false);
         is_starting.fill(false);
@@ -39,7 +38,6 @@ class DevicesContainer
 
   private:
     Context& ctx;
-    SysLog& syslog;
 
     std::array<bool, device_num - 2> is_started;
     std::array<bool, device_num - 2> is_starting;

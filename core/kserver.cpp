@@ -9,7 +9,6 @@
 #include "commands.hpp"
 #include "kserver_session.hpp"
 #include "session_manager.hpp"
-#include "syslog.tpp"
 
 extern "C" {
   #include <sys/un.h>
@@ -31,7 +30,6 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
 #endif
   dev_manager(this),
   session_manager(*this, dev_manager),
-  syslog(config_, sig_handler, session_manager),
   start_time(0)
 {
     if (sig_handler.init(this) < 0)
@@ -46,25 +44,16 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
 #if KSERVER_HAS_TCP
     if (tcp_listener.init() < 0)
         exit(EXIT_FAILURE);
-#else
-    if (config->tcp_worker_connections > 0)
-        syslog.print<ERROR>("TCP connections not supported\n");
 #endif // KSERVER_HAS_TCP
 
 #if KSERVER_HAS_WEBSOCKET
     if (websock_listener.init() < 0)
         exit(EXIT_FAILURE);
-#else
-    if (config->websock_worker_connections > 0)
-        syslog.print<ERROR>("Websocket connections not supported\n");
 #endif // KSERVER_HAS_WEBSOCKET
 
 #if KSERVER_HAS_UNIX_SOCKET
     if (unix_listener.init() < 0)
         exit(EXIT_FAILURE);
-#else
-    if (config->unixsock_worker_connections > 0)
-        syslog.print<ERROR>("Unix socket connections not supported\n");
 #endif // KSERVER_HAS_UNIX_SOCKET
 }
 
@@ -161,7 +150,6 @@ void KServer::notify_systemd_ready()
     int sd_notif_fd = socket(AF_UNIX, SOCK_DGRAM|SOCK_CLOEXEC, 0);
 
     if (sd_notif_fd < 0) {
-        syslog.print<WARNING>("Cannot open notification socket\n");
         return;
     }
 
@@ -177,7 +165,6 @@ void KServer::notify_systemd_ready()
     msg.msg_iov = (struct iovec*)malloc(sizeof(struct iovec) * 3);
 
     if (msg.msg_iov == nullptr) {
-        syslog.print<WARNING>("Cannot allocate msg.msg_iov\n");
         goto exit_notification_socket;
     }
 
@@ -191,15 +178,12 @@ void KServer::notify_systemd_ready()
     msg.msg_iovlen = 1;
 
     if (sendmsg(sd_notif_fd, &msg, MSG_NOSIGNAL) < 0) {
-        syslog.print<WARNING>("Cannot send notification to systemd.\n");
     }
 
     free(msg.msg_iov);
 
 exit_notification_socket:
-    if (::shutdown(sd_notif_fd, SHUT_RDWR) < 0)
-        syslog.print<WARNING>("Cannot shutdown notification socket\n");
-
+    ::shutdown(sd_notif_fd, SHUT_RDWR);
     close(sd_notif_fd);
 }
 #endif
@@ -214,7 +198,6 @@ int KServer::run()
 
     while (1) {
         if (!ready_notified && is_ready()) {
-            syslog.print<INFO>("Koheron server ready\n");
 #if KSERVER_HAS_SYSTEMD
             if (config->notify_systemd)
                 notify_systemd_ready();
@@ -223,11 +206,8 @@ int KServer::run()
         }
 
         if (sig_handler.interrupt() || exit_all) {
-            syslog.print<INFO>("Interrupt received, killing Koheron server ...\n");
-
             session_manager.delete_all();
             close_listeners();
-            syslog.close();
             return 0;
         }
 

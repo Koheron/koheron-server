@@ -103,7 +103,6 @@ class Session : public SessionAbstract
     std::shared_ptr<KServerConfig> config;
     int comm_fd;  ///< Socket file descriptor
     SessID id;
-    SysLog *syslog_ptr;
     PeerInfo<sock_type> peer_info;
     SessionManager& session_manager;
 
@@ -113,7 +112,7 @@ class Session : public SessionAbstract
 
 #if KSERVER_HAS_WEBSOCKET
     struct EmptyWebsock {
-        EmptyWebsock(std::shared_ptr<KServerConfig> config_, SysLog& syslog_) {}
+        EmptyWebsock(std::shared_ptr<KServerConfig> config_) {}
     };
 
     std::conditional_t<sock_type == WEBSOCK, WebSocket, EmptyWebsock> websock;
@@ -142,9 +141,6 @@ class Session : public SessionAbstract
     }
 
     void exit_session() {
-        if (exit_socket() < 0)
-            session_manager.kserver.syslog.print<WARNING>(
-                "An error occured during session exit\n");
     }
 
     int read_command(Command& cmd);
@@ -154,8 +150,6 @@ class Session : public SessionAbstract
         const auto err = rcv_n_bytes(buff.data(), sizeof(uint32_t));
 
         if (err < 0) {
-            session_manager.kserver.syslog.print<ERROR>(
-            "Cannot read pack length\n");
             return -1;
         }
 
@@ -175,11 +169,10 @@ Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
 , config(config_)
 , comm_fd(comm_fd_)
 , id(id_)
-, syslog_ptr(&session_manager_.kserver.syslog)
 , peer_info(PeerInfo<sock_type>(comm_fd_))
 , session_manager(session_manager_)
 #if KSERVER_HAS_WEBSOCKET
-, websock(config_, session_manager_.kserver.syslog)
+, websock(config_)
 #endif
 , requests_num(0)
 , errors_num(0)
@@ -212,9 +205,6 @@ int Session<sock_type>::run()
         requests_num++;
 
         if (unlikely(session_manager.dev_manager.execute(cmd) < 0)) {
-            session_manager.kserver.syslog.print<ERROR>(
-                "Failed to execute command [device = %i, operation = %i]\n",
-                cmd.device, cmd.operation);
             errors_num++;
         }
 
@@ -254,10 +244,6 @@ inline int Session<TCP>::recv(std::vector<T>& vec, Command& cmd)
     vec.resize(length);
     const auto err = rcv_n_bytes(reinterpret_cast<char *>(vec.data()), length * sizeof(T));
 
-    if (err >= 0)
-        session_manager.kserver.syslog.print<DEBUG>(
-            "TCPSocket: Received a vector of %lu bytes\n", length);
-
     return err;
 }
 
@@ -272,10 +258,6 @@ inline int Session<TCP>::recv(std::string& str, Command& cmd)
 
     str.resize(length);
     const auto err = rcv_n_bytes(const_cast<char*>(str.data()), length);
-
-    if (err >= 0)
-        session_manager.kserver.syslog.print<DEBUG>(
-            "TCPSocket: Received a string of %lu bytes\n", length);
 
     return err;
 }
@@ -305,24 +287,17 @@ inline int Session<TCP>::write(const T *data, unsigned int len)
     const int n_bytes_send = ::write(comm_fd, (void*)data, bytes_send);
 
     if (n_bytes_send == 0) {
-       session_manager.kserver.syslog.print<ERROR>(
-          "TCPSocket::write: Connection closed by client\n");
        return 0;
     }
 
     if (unlikely(n_bytes_send < 0)) {
-       session_manager.kserver.syslog.print<ERROR>(
-          "TCPSocket::write: Can't write to client\n");
        return -1;
     }
 
     if (unlikely(n_bytes_send != bytes_send)) {
-        session_manager.kserver.syslog.print<ERROR>(
-            "TCPSocket::write: Some bytes have not been sent\n");
         return -1;
     }
 
-    session_manager.kserver.syslog.print<DEBUG>("[S] [%u bytes]\n", bytes_send);
     return bytes_send;
 }
 
@@ -366,8 +341,6 @@ inline int Session<WEBSOCK>::recv(std::vector<T>& vec, Command& cmd)
     const auto length = std::get<0>(cmd.payload.deserialize<uint32_t>());
 
     if (length > CMD_PAYLOAD_BUFFER_LEN) {
-        session_manager.kserver.syslog.print<ERROR>(
-            "WebSocket: Payload size overflow during buffer reception\n");
         return -1;
     }
 
@@ -382,8 +355,6 @@ inline int Session<WEBSOCK>::recv(std::string& str, Command& cmd)
     const auto length = std::get<0>(cmd.payload.deserialize<uint32_t>());
 
     if (length > CMD_PAYLOAD_BUFFER_LEN) {
-        session_manager.kserver.syslog.print<ERROR>(
-            "WebSocket::rcv_vector: Payload size overflow\n");
         return -1;
     }
 

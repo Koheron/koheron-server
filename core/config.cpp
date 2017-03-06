@@ -15,7 +15,6 @@ namespace kserver {
 KServerConfig::KServerConfig()
 : verbose(false),
   tcp_nodelay(false),
-  syslog(false),
   daemon(true),
   notify_systemd(false),
   tcp_port(TCP_DFLT_PORT),
@@ -97,32 +96,6 @@ int KServerConfig::_read_notify_systemd(JsonValue value) {
     READ_BOOL(notify_systemd)
 }
 
-int KServerConfig::_read_log(JsonValue value)
-{
-    if (value.getTag() != JSON_OBJECT) {
-        fprintf(stderr, "Invalid field log\n");
-        return -1;
-    }
-
-    for (auto i : value) {
-        if (strcmp(i->key, "system_log") == 0) {
-            int status = is_on(i->value);
-
-            if (status < 0) {
-                fprintf(stderr, "Invalid field system_log\n");
-                return -1;
-            }
-
-            syslog = status;
-        } else {
-            fprintf(stderr, "Invalid key in log\n");
-            return -1;
-        }
-    }
-
-    return 0;
-}
-
 int check_unixsocket_path(const char *path)
 {
     // Must be an abstract socket, or an absolute path
@@ -152,8 +125,8 @@ int KServerConfig::_read_server(JsonValue value, server_t serv_type)
                 fprintf(stderr, "Invalid value in field listen\n");
                 return -1;
             }
-            
-            if (serv_type == TCP_SERVER) {            
+
+            if (serv_type == TCP_SERVER) {
                 tcp_port = i->value.toNumber();
             }
             else if (serv_type == WEBSOCK_SERVER) {
@@ -180,7 +153,7 @@ int KServerConfig::_read_server(JsonValue value, server_t serv_type)
                 return -1;
 
             strcpy(unixsock_path, path);
-        }        
+        }
         else if (strcmp(i->key, "worker_connections") == 0) {
             if (i->value.getTag() != JSON_NUMBER) {
                 fprintf(stderr, "Invalid value in field worker_connections\n");
@@ -189,9 +162,9 @@ int KServerConfig::_read_server(JsonValue value, server_t serv_type)
 
             if (serv_type == TCP_SERVER)
                 tcp_worker_connections = i->value.toNumber();
-            else if (serv_type == WEBSOCK_SERVER)         
+            else if (serv_type == WEBSOCK_SERVER)
                 websock_worker_connections = i->value.toNumber();
-            else if (serv_type == UNIXSOCK_SERVER)        
+            else if (serv_type == UNIXSOCK_SERVER)
                 unixsock_worker_connections = i->value.toNumber();
         } else {
             fprintf(stderr, "Unknown server key %s\n", i->key);
@@ -223,13 +196,6 @@ void KServerConfig::_check_config()
         // Desactivate verbose if run as a daemon
         // since stdout is not available
         verbose = false;
-
-        // In daemon mode it is advisable to 
-        // activate the syslog since this is the
-        // main output for the program
-        if (!syslog)
-            printf("NOTICE: You should consider to activate "
-                   "the syslog when running KServer as a daemon\n");
     }
 }
 
@@ -300,10 +266,6 @@ int KServerConfig::load_file(char *filename)
 
             strcpy(unixsock_path, notify_socket_path);
         }
-        else if (IS_LOGS) {
-            if (_read_log(i->value) < 0)
-                return -1;
-        }
         else if (IS_TCP) {
             if (_read_tcp(i->value) < 0)
                 return -1;
@@ -338,7 +300,6 @@ void KServerConfig::show()
     printf("Verbose: %s\n", verbose ? "ON": "OFF");
     printf("Notify systemd: %s\n", notify_systemd ? "ON": "OFF");
     printf("Systemd notification socket: %s\n", notify_socket);
-    printf("System log: %s\n\n", syslog ? "ON": "OFF");
 
     printf("TCP listen: %u\n", tcp_port);
     printf("TCP workers: %u\n\n", tcp_worker_connections);

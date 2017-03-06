@@ -25,10 +25,6 @@ class UsesContext
         return &ctx.get<UsesContext>() == this;
     }
 
-    void log(const std::string& msg) {
-        ctx.log<INFO>(msg.c_str());
-    }
-
   private:
     Context& ctx;
 

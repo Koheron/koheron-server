@@ -10,7 +10,6 @@
 #include <core/commands.hpp>
 #include <core/kserver.hpp>
 #include <core/kserver_session.hpp>
-#include <core/syslog.tpp>
 #if KSERVER_HAS_DEVMEM
 #include <drivers/lib/memory_manager.hpp>
 #endif
@@ -43,7 +42,6 @@ int KDevice<dev_id_of<{{ device.objects[0]["type"] }}>>::execute(Command& cmd)
 {% endfor %}
       case {{ device.tag | lower }}_op_num:
       default:
-          kserver->syslog.print<ERROR>("{{ device.class_name }}: Unknown operation\n");
           return -1;
     }
 }
