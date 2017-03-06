@@ -11,34 +11,25 @@ CONFIG_PATH=$(BASE_DIR)/$(CONFIG)
 TMP = $(BASE_DIR)/tmp
 __PYTHON = $(shell bash scripts/get_python.sh $(PYTHON) $(BASE_DIR))
 
-CORE = core
-MAKE_PY = scripts/make.py
-DEVGEN_PY = scripts/devgen.py
-
-FULL_CFG = $(TMP)/full_config.json
-$(shell $(__PYTHON) $(MAKE_PY) --config $(CONFIG_PATH) $(BASE_DIR) $(TMP))
 
 TEMPLATES = $(shell find scripts/templates -name '*.hpp' -o -name '*.h' -o -name '*.tpp')
-CORE_HEADERS=$(shell find $(CORE) -name '*.hpp' -o -name '*.h' -o -name '*.tpp')
-CORE_SRC=$(shell find $(CORE) -name '*.cpp' -o -name '*.c')
+CORE_HEADERS=$(shell find core -name '*.hpp' -o -name '*.h' -o -name '*.tpp')
+CORE_SRC=$(shell find core -name '*.cpp' -o -name '*.c')
 CORE_OBJ=$(subst .cpp,.o, $(addprefix $(TMP)/, $(notdir $(CORE_SRC))))
 
-ARCH_FLAGS:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; cfg = json.load(sys.stdin); print '-' + ' -'.join(cfg['arch_flags'])")
-OPTIM_FLAGS:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; cfg = json.load(sys.stdin); print '-' + ' -'.join(cfg['optimization_flags'])")
-DEBUG_FLAGS:=$(shell $(__PYTHON) $(MAKE_PY) --debug-flags $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.debug-flags)
-DEFINES:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; cfg = json.load(sys.stdin); print '-D' + ' -D'.join(cfg['defines']) + ' -DKOHERON_SERVER_VERSION=' + '$(KOHERON_SERVER_VERSION)'")
-CROSS_COMPILE:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; print json.load(sys.stdin)['cross-compile']")
-DEVICES:=$(shell $(__PYTHON) $(MAKE_PY) --devices $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.devices)
-DEPENDENCIES:=$(shell $(__PYTHON) $(MAKE_PY) --dependencies $(CONFIG_PATH) $(BASE_DIR) $(TMP) && cat $(TMP)/.dependencies)
-SERVER:=$(shell cat $(FULL_CFG) | $(__PYTHON) -c "import sys, json; print json.load(sys.stdin)['server-name']")
+ARCH_FLAGS:= -march=armv7-a -mtune=cortex-a9 -mfpu=vfpv3 -mfpu=neon -mfloat-abi=hard
+OPTIM_FLAGS:= -O3
+
+DEFINES:= -DDEBUG_KSERVER -DKOHERON_SERVER_VERSION=$(KOHERON_SERVER_VERSION)
+CROSS_COMPILE:=/usr/bin/arm-linux-gnueabihf-
+DEVICES:= tests/tests.hpp tests/exception_tests.hpp
 
 DEVICES_HPP=$(filter-out %.cpp,$(DEVICES))
 DEVICES_CPP=$(filter-out %.hpp,$(DEVICES))
 DEVICES_OBJ=$(addprefix $(TMP)/, $(subst .cpp,.o,$(notdir $(filter-out %.hpp,$(DEVICES)))))
 
-DEPENDENCIES_OBJ=$(addprefix $(TMP)/, $(notdir $(subst .cpp,.o,$(DEPENDENCIES))))
+_DEVICES_PATHS=$(sort $(dir $(DEVICES)))
 
-_DEVICES_PATHS=$(sort $(dir $(DEVICES))) $(sort $(dir $(DEPENDENCIES)))
 # Concat paths using ':' for VPATH
 # https://www.chemie.fu-berlin.de/chemnet/use/info/make/make_8.html
 semicolon:=:
@@ -55,11 +46,9 @@ TMP_DEVICES_HPP=$(TMP)/devices.hpp
 TMP_OPERATIONS_HPP=$(TMP)/operations.hpp
 
 VPATH=core:core/crypto:$(DEVICES_PATHS)
-OBJ = $(CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ) $(DEPENDENCIES_OBJ)
+OBJ = $(CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ)
 DEP=$(subst .o,.d,$(OBJ))
-EXECUTABLE=$(TMP)/$(SERVER)
-
-CPUS = $(shell nproc 2> /dev/null || echo 1)
+EXECUTABLE=$(TMP)/kserverd
 
 # --------------------------------------------------------------
 # Toolchains
@@ -75,7 +64,7 @@ CCXX=$(CROSS_COMPILE)g++ -flto
 
 INC=-I$(TMP) -I$(BASE_DIR) -I.
 CFLAGS=-Wall -Werror $(INC) $(DEFINES) -MMD -MP
-CFLAGS += $(ARCH_FLAGS) $(DEBUG_FLAGS) $(OPTIM_FLAGS)
+CFLAGS += $(ARCH_FLAGS) $(OPTIM_FLAGS)
 CXXFLAGS=$(CFLAGS) -std=c++14 -pthread
 
 # --------------------------------------------------------------
@@ -88,20 +77,6 @@ LIBS = -lm # -lpthread -lssl -lcrypto
 
 all: exec
 
-debug:
-	@echo CORE_SRC = $(CORE_SRC)
-	@echo CORE_OBJ = $(CORE_OBJ)
-	@echo CORE_DEP = $(CORE_DEP)
-	@echo DEVICES_HPP = $(DEVICES_HPP)
-	@echo DEVICES_CPP = $(DEVICES_CPP)
-	@echo DEVICES_OBJ = $(DEVICES_OBJ)
-	@echo DEPENDENCIES = $(DEPENDENCIES)
-	@echo DEPENDENCIES_OBJ = $(DEPENDENCIES_OBJ)
-	@echo DEVICES_PATHS = $(DEVICES_PATHS)
-	@echo KS_DEVICES_HPP = $(KS_DEVICES_HPP)
-	@echo KS_DEVICES_CPP = $(KS_DEVICES_CPP)
-	@echo KS_DEVICES_OBJ = $(KS_DEVICES_OBJ)
-
 # ------------------------------------------------------------------------------------------------------------
 # Build, start, stop
 # ------------------------------------------------------------------------------------------------------------
@@ -112,8 +87,8 @@ debug:
 # http://scottmcpeak.com/autodepend/autodepend.html
 -include $(DEP)
 
-$(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(TMP_OPERATIONS_HPP) $(KS_DEVICES_CPP): $(DEVICES_HPP) $(DEVGEN_PY) $(TEMPLATES)
-	$(__PYTHON) $(MAKE_PY) --generate $(CONFIG_PATH) $(BASE_DIR) $(TMP)
+$(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(TMP_OPERATIONS_HPP) $(KS_DEVICES_CPP): $(DEVICES_HPP) scripts/devgen.py $(TEMPLATES)
+	$(__PYTHON) scripts/make.py --generate $(CONFIG_PATH) $(BASE_DIR) $(TMP)
 
 $(TMP)/%.o: %.cpp
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
@@ -125,7 +100,7 @@ $(EXECUTABLE): $(OBJ)
 	$(CCXX) -o $@ $(OBJ) $(CXXFLAGS) $(LIBS)
 
 exec: $(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(KS_DEVICES_CPP)
-	$(MAKE) --jobs=$(CPUS) $(EXECUTABLE)
+	$(MAKE) --jobs=$(shell nproc 2> /dev/null || echo 1) $(EXECUTABLE)
 
 start_server: exec stop_server
 	nohup $(EXECUTABLE) -c config/kserver_local.conf > /dev/null 2> server.log &
