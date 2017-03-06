@@ -77,7 +77,7 @@ all: exec
 .PHONY: exec operations_hpp
 
 $(TMP)/devices_table.hpp $(TMP)/devices.hpp $(TMP)/operations.hpp $(KS_DEVICES_CPP): $(DEVICES_HPP) scripts/devgen.py $(TEMPLATES)
-	$(__PYTHON) scripts/make.py --generate $(CONFIG_PATH) $(BASE_DIR) $(TMP)
+	$(__PYTHON) scripts/make.py --generate $(CONFIG_PATH) $(TMP)
 
 $(TMP)/%.o: %.cpp
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<
