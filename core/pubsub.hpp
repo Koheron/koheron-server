@@ -10,11 +10,8 @@
 #include <array>
 #include <algorithm>
 #include <type_traits>
-
-#if KSERVER_HAS_THREADS
-#  include <thread>
-#  include <mutex>
-#endif
+#include <thread>
+#include <mutex>
 
 #include "kserver_defs.hpp"
 #include "signal_handler.hpp"
@@ -34,34 +31,7 @@ struct Subscribers
         return get<channel>().size();
     }
 
-    int subscribe(uint16_t channel, SessID sid) {
-        if (channel >= channels_count)
-            return -1;
 
-        // Check whether session hasn't already
-        // subscribed before adding to subscribers.
-
-        auto& s = _subscribers[channel];
-        auto it = std::find(s.begin(), s.end(), sid);
-
-        if (it == s.end())
-            s.push_back(sid);
-
-        return 0;
-    }
-
-    void unsubscribe(SessID sid) {
-        for (auto& s : _subscribers) {
-            // http://stackoverflow.com/questions/39912/how-do-i-remove-an-item-from-a-stl-vector-with-a-certain-value
-            auto it = std::find(s.begin(), s.end(), sid);
-
-            if (it != s.end()) {
-                using std::swap;
-                swap(*it, s.back());
-                s.pop_back();
-            }
-        }
-    }
 
   private:
     std::array<std::vector<SessID>, channels_count> _subscribers;

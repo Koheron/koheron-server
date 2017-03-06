@@ -9,13 +9,10 @@
 #include <vector>
 #include <stack>
 #include <memory>
+#include <mutex>
 
 #include "kserver_defs.hpp"
 #include "config.hpp"
-
-#if KSERVER_HAS_THREADS
-#  include <mutex>
-#endif
 
 namespace kserver {
 
@@ -58,18 +55,15 @@ class SessionManager
     bool is_reusable_id(SessID id);
     bool is_current_id(SessID id);
 
-#if KSERVER_HAS_THREADS
     std::mutex mutex;
-#endif
+
 };
 
 template<int sock_type>
 SessID SessionManager::create_session(const std::shared_ptr<KServerConfig>& config_,
                                       int comm_fd)
 {
-#if KSERVER_HAS_THREADS
     std::lock_guard<std::mutex> lock(mutex);
-#endif
 
     SessID new_id;
 

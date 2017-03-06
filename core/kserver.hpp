@@ -8,11 +8,8 @@
 #include "kserver_defs.hpp"
 #include "socket_interface_defs.hpp"
 
-#if KSERVER_HAS_THREADS
 #include <thread>
 #include <mutex>
-#endif
-
 #include <array>
 #include <vector>
 #include <string>
@@ -63,9 +60,7 @@ class ListeningChannel
     inline void dec_thread_num() { num_threads--; }
 
     int start_worker();
-#if KSERVER_HAS_THREADS
     void join_worker();
-#endif
 
     int open_communication();
 
@@ -78,33 +73,29 @@ class ListeningChannel
     /// True when ready to open sessions
     std::atomic<bool> is_ready;
 
-#if KSERVER_HAS_THREADS
     std::thread comm_thread; ///< Listening thread
-#endif
 
     KServer *kserver;
     ListenerStats<sock_type> stats;
 
-  private:  
+  private:
     int __start_worker();
 }; // ListeningChannel
 
-#if KSERVER_HAS_THREADS
 template<int sock_type>
 void ListeningChannel<sock_type>::join_worker()
 {
     if (listen_fd >= 0)
         comm_thread.join();
 }
-#endif // KSERVER_HAS_THREADS
 
  ////////////////////////////////////////////////////////////////////////////
 /////// KServer
 
-/// Main class of the server. It initializes the 
+/// Main class of the server. It initializes the
 /// connections and start the sessions.
 ///
-/// Derived from KDevice, therefore it is seen as 
+/// Derived from KDevice, therefore it is seen as
 /// a device from the client stand point.
 
 class KServer
@@ -121,8 +112,6 @@ class KServer
         GET_STATS = 2,              ///< Get KServer listeners statistics
         GET_DEV_STATUS = 3,         ///< Send the devices status
         GET_RUNNING_SESSIONS = 4,   ///< Send the running sessions
-        SUBSCRIBE_PUBSUB = 5,       ///< Subscribe to a broadcast channel
-        PUBSUB_PING = 6,            ///< Emit a ping to server broadcast subscribers
         kserver_op_num
     };
 
@@ -154,9 +143,7 @@ class KServer
     SysLog syslog;
     std::time_t start_time;
 
-#if KSERVER_HAS_THREADS
     std::mutex ks_mutex;
-#endif
 
     int execute(Command& cmd);
     template<int op> int execute_op(Command& cmd);

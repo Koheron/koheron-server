@@ -8,10 +8,8 @@
 #include <array>
 #include <memory>
 #include <assert.h>
-#if KSERVER_HAS_THREADS
-#  include <thread>
-#  include <mutex>
-#endif
+#include <thread>
+#include <mutex>
 
 #include "kdevice.hpp"
 
@@ -73,10 +71,7 @@ class DeviceManager
     KServer *kserver;
     DevicesContainer dev_cont;
     std::array<bool, device_num - 2> is_started;
-
-#if KSERVER_HAS_THREADS
     std::recursive_mutex mutex;
-#endif
 
     Context ctx;
 

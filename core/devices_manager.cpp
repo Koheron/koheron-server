@@ -51,9 +51,7 @@ DeviceManager::DeviceManager(KServer *kserver_)
 template<std::size_t dev>
 void DeviceManager::alloc_device()
 {
-#if KSERVER_HAS_THREADS
     std::lock_guard<std::recursive_mutex> lock(mutex);
-#endif
 
     if (std::get<dev - 2>(is_started))
         return;

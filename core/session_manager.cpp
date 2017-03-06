@@ -9,10 +9,8 @@
 
 #include <sys/socket.h>
 
-#if KSERVER_HAS_THREADS
 #  include <thread>
 #  include <mutex>
-#endif
 
 namespace kserver {
 
@@ -36,7 +34,7 @@ void SessionManager::print_reusable_ids()
 
         for (auto& reusable_id : reusable_ids)
             printf(", %u", reusable_id);
-            
+
         printf("}\n");
     }
 }
@@ -75,9 +73,7 @@ std::vector<SessID> SessionManager::get_current_ids()
 
 void SessionManager::delete_session(SessID id)
 {
-#if KSERVER_HAS_THREADS
     std::lock_guard<std::mutex> lock(mutex);
-#endif
 
     int sess_fd;
 
@@ -86,9 +82,6 @@ void SessionManager::delete_session(SessID id)
                              "Not allocated session ID: %u\n", id);
         return;
     }
-
-    // Unsubscribe from any broadcast channel
-    kserver.syslog.pubsub.unsubscribe(id);
 
     if (session_pool[id] != nullptr) {
         switch (session_pool[id]->kind) {
@@ -128,7 +121,7 @@ void SessionManager::delete_all()
 
     if (!session_pool.empty()) {
         auto ids = get_current_ids();
-        
+
         for (auto& id : ids) {
             kserver.syslog.print<INFO>("Delete session %u\n", id);
             delete_session(id);

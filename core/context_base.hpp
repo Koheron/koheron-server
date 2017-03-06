@@ -35,12 +35,6 @@ class ContextBase
         syslog->print<severity>(msg, std::forward<Args>(args)...);
     }
 
-    template<class Dev, typename... Args>
-    int notify(Args&&... args) {
-        return syslog->notify<kserver::PubSub::DEVICES_CHANNEL,
-                              dev_id_of<Dev>>(std::forward<Args>(args)...);
-    }
-
   protected:
     virtual int init() { return 0; }
 

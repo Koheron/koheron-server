@@ -86,9 +86,7 @@ void KServer::close_listeners()
     unix_listener.shutdown();
 #endif
 
-#if KSERVER_HAS_THREADS
     join_listeners_workers();
-#endif
 }
 
 int KServer::start_listeners_workers()

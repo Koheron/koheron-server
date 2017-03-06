@@ -52,7 +52,7 @@ int send_listener_stats(Command& cmd, KServer *kserver,
     unsigned int bytes_send = 0;
 
     int ret = snprintf(send_str, KS_DEV_WRITE_STR_LEN,
-                    "%s:%d:%d:%d\n", 
+                    "%s:%d:%d:%d\n",
                     listen_channel_desc[sock_type].c_str(),
                     listener->stats.opened_sessions_num,
                     listener->stats.total_sessions_num,
@@ -214,43 +214,12 @@ KSERVER_EXECUTE_OP(GET_RUNNING_SESSIONS)
     return 0;
 }
 
-/////////////////////////////////////
-// SUBSCRIBE_PUBSUB
-// Subscribe to a pubsub channel
-
-KSERVER_EXECUTE_OP(SUBSCRIBE_PUBSUB)
-{
-    const auto tup = cmd.sess->deserialize<uint32_t>(cmd);
-
-    if (std::get<0>(tup) < 0) {
-        syslog.print<ERROR>("Pubsub subscribe: cannot read channel\n");
-        return -1;
-    }
-
-    const auto channel = std::get<1>(tup);
-    syslog.print<DEBUG>("Session id #%u subscribes to channel #%u\n", cmd.sess_id, channel);
-    return syslog.pubsub.subscribe(channel, cmd.sess_id);
-}
-
-/////////////////////////////////////
-// BROADCAST_PING
-// Trigger notifications for tests
-
-KSERVER_EXECUTE_OP(PUBSUB_PING)
-{
-    syslog.notify<PubSub::SERVER_CHANNEL, PubSub::PING>(static_cast<uint32_t>(cmd.sess_id));
-    syslog.notify<PubSub::SERVER_CHANNEL, PubSub::PING_TEXT>("Ping from server\n");
-    syslog.print<INFO>("Pubsub test triggered\n");
-    return 0;
-}
 
 ////////////////////////////////////////////////
 
 int KServer::execute(Command& cmd)
 {
-#if KSERVER_HAS_THREADS
     std::lock_guard<std::mutex> lock(static_cast<KServer*>(this)->ks_mutex);
-#endif
 
     switch (cmd.operation) {
       case KServer::GET_VERSION:
@@ -263,10 +232,6 @@ int KServer::execute(Command& cmd)
         return execute_op<KServer::GET_DEV_STATUS>(cmd);
       case KServer::GET_RUNNING_SESSIONS:
         return execute_op<KServer::GET_RUNNING_SESSIONS>(cmd);
-      case KServer::SUBSCRIBE_PUBSUB:
-        return execute_op<KServer::SUBSCRIBE_PUBSUB>(cmd);
-      case KServer::PUBSUB_PING:
-        return execute_op<KServer::PUBSUB_PING>(cmd);
       case KServer::kserver_op_num:
       default:
         syslog.print<ERROR>("KServer::execute unknown operation\n");

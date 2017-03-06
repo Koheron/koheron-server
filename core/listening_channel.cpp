@@ -1,19 +1,18 @@
-/// Implementation and specializations of 
+/// Implementation and specializations of
 /// the class ListeningChannel in kserver.hpp
 ///
 /// (c) Koheron
 
 #include "kserver.hpp"
 
-#if KSERVER_HAS_THREADS
 #include <thread>
-#endif
+
 
 #include <atomic>
 
 extern "C" {
   #include <sys/socket.h>   // socket definitions
-  #include <sys/types.h>    // socket types      
+  #include <sys/types.h>    // socket types
   #include <arpa/inet.h>    // inet (3) functions
   #include <netinet/tcp.h>
 #if KSERVER_HAS_UNIX_SOCKET
@@ -176,7 +175,6 @@ void comm_thread_call(ListeningChannel<sock_type> *listener)
             continue;
         }
 
-#if KSERVER_HAS_THREADS
         if (listener->is_max_threads()) {
             listener->kserver->syslog. template print<WARNING>(
                         "Maximum number of workers exceeded\n");
@@ -185,9 +183,6 @@ void comm_thread_call(ListeningChannel<sock_type> *listener)
 
         std::thread sess_thread(session_thread_call<sock_type>, comm_fd, listener);
         sess_thread.detach();
-#else
-        session_thread_call<sock_type>(comm_fd, listener);
-#endif
     }
 
     listener->kserver->syslog. template print<INFO>(
@@ -204,11 +199,8 @@ int ListeningChannel<sock_type>::__start_worker()
             return -1;
         }
 
-#if KSERVER_HAS_THREADS
         comm_thread = std::thread{comm_thread_call<sock_type>, this};
-#else
-        comm_thread_call<sock_type>(this);
-#endif
+
     }
 
     return 0;

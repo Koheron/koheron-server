@@ -35,12 +35,6 @@ class Context {
         syslog.print<severity>(msg, std::forward<Args>(args)...);
     }
 
-    template<class Dev, typename... Args>
-    int notify(const char *msg, Args&&... args) {
-        return syslog.notify<kserver::PubSub::DEVICES_CHANNEL,
-                             dev_id_of<Dev>>(msg, std::forward<Args>(args)...);
-    }
-
   private:
     Context(kserver::DeviceManager& dm_,
             kserver::SysLog& syslog_)

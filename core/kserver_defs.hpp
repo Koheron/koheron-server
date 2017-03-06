@@ -47,18 +47,6 @@ namespace kserver {
 #define KSERVER_HAS_TCP_NODELAY 1
 
 // ------------------------------------------
-// Threads
-// ------------------------------------------
-
-/// Enable/Disable threads
-///
-/// Set to 0 for a single-threaded server.
-///
-/// Threads must be enable when both TCP
-/// and Websockets connections are required.
-#define KSERVER_HAS_THREADS 1
-
-// ------------------------------------------
 // Logs
 // ------------------------------------------
 
@@ -74,7 +62,7 @@ namespace kserver {
 /// Number of samples
 #define KSERVER_SIG_LEN 16384
 
-/// Command payload buffer length 
+/// Command payload buffer length
 constexpr int64_t CMD_PAYLOAD_BUFFER_LEN = 16384 * 8;
 
 /// Read string length
@@ -98,7 +86,7 @@ constexpr int64_t CMD_PAYLOAD_BUFFER_LEN = 16384 * 8;
 /// Websocket send buffer size (bytes)
 #define WEBSOCK_SEND_BUF_LEN 16384 * 2 * 4
 
-/// Maximum length of the Unix socket file path 
+/// Maximum length of the Unix socket file path
 ///
 /// Note:
 /// 108 is the maximum length on Linux. See:
@@ -135,10 +123,6 @@ typedef int SessID;
 
 #if !KSERVER_HAS_TCP && !KSERVER_HAS_WEBSOCKET
 #error "KServer needs at least one connection type !!"
-#endif
-
-#if(KSERVER_HAS_TCP && KSERVER_HAS_WEBSOCKET && !KSERVER_HAS_THREADS)
-#error "Running both TCP and Websocket connections is only available with threads"
 #endif
 
 } // namespace kserver
