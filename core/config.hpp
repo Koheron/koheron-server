@@ -37,7 +37,7 @@ struct KServerConfig
     unsigned int websock_worker_connections = 100;
 
     /// Unix socket file path
-    char unixsock_path[UNIX_SOCKET_PATH_LEN] = "/var/run/koheron-server.sock";
+    char unixsock_path[UNIX_SOCKET_PATH_LEN] = "/tmp/koheron-server.sock";
     /// Unix socket max parallel connections
     unsigned int unixsock_worker_connections = 100;
 
