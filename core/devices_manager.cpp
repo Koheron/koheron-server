@@ -43,8 +43,7 @@ DeviceManager::DeviceManager(KServer *kserver_)
 }
 
 template<std::size_t dev>
-void DeviceManager::alloc_device()
-{
+void DeviceManager::alloc_device() {
     std::lock_guard<std::recursive_mutex> lock(mutex);
 
     if (std::get<dev - 2>(is_started))
@@ -62,8 +61,7 @@ void DeviceManager::alloc_device()
 
 template<device_id dev0, device_id... devs>
 std::enable_if_t<0 == sizeof...(devs) && 2 <= dev0, void>
-DeviceManager::start_impl(device_id dev)
-{
+DeviceManager::start_impl(device_id dev) {
     static_assert(dev0 < device_num, "");
     static_assert(dev0 >= 2, "");
     alloc_device<dev0>();
@@ -71,8 +69,7 @@ DeviceManager::start_impl(device_id dev)
 
 template<device_id dev0, device_id... devs>
 std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, void>
-DeviceManager::start_impl(device_id dev)
-{
+DeviceManager::start_impl(device_id dev) {
     static_assert(dev0 < device_num, "");
     static_assert(dev0 >= 2, "");
 
@@ -81,17 +78,14 @@ DeviceManager::start_impl(device_id dev)
 }
 
 template<device_id... devs>
-void DeviceManager::start(device_id dev, std::index_sequence<devs...>)
-{
+void DeviceManager::start(device_id dev, std::index_sequence<devs...>) {
     start_impl<devs...>(dev);
 }
 
-int DeviceManager::init()
-{
+int DeviceManager::init() {
     if (ctx.init() < 0) {
         return -1;
     }
-
     return 0;
 }
 
@@ -106,8 +100,7 @@ DeviceManager::execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd)
 
 template<device_id dev0, device_id... devs>
 std::enable_if_t<0 < sizeof...(devs) && 2 <= dev0, int>
-DeviceManager::execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd)
-{
+DeviceManager::execute_dev_impl(KDeviceAbstract *dev_abs, Command& cmd) {
     static_assert(dev0 < device_num, "");
     static_assert(dev0 >= 2, "");
 
@@ -123,10 +116,7 @@ int DeviceManager::execute_dev(KDeviceAbstract *dev_abs, Command& cmd,
     return execute_dev_impl<devs...>(dev_abs, cmd);
 }
 
-int DeviceManager::execute(Command& cmd)
-{
-    printf("DeviceManager::execute()\n");
-
+int DeviceManager::execute(Command& cmd) {
     assert(cmd.device < device_num);
 
     if (cmd.device == 0) {

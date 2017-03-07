@@ -30,7 +30,7 @@ int create_tcp_listening(unsigned int port) {
     // To avoid binding error
     // See http://beej.us/guide/bgnet/output/html/singlepage/bgnet.html#bind
     int yes = 1;
-    if (setsockopt(listen_fd_, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int))==-1) {
+    if (setsockopt(listen_fd_, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) < 0) {
         printf("Binding error");
     }
 

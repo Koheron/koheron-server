@@ -17,14 +17,8 @@ extern "C" {
 #include <sys/stat.h>
 #include "core/kserver.hpp"
 
-int main(int argc, char **argv)
-{
-
-    printf("Start server \n");
+int main(int argc, char **argv) {
     kserver::KServer server;
-    printf("Server started \n");
-
     server.run();
-
     return 0;
 }

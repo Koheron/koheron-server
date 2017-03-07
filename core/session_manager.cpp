@@ -24,20 +24,6 @@ SessionManager::~SessionManager() {delete_all();}
 
 unsigned int SessionManager::num_sess = 0;
 
-void SessionManager::print_reusable_ids()
-{
-    if (reusable_ids.size() == 0) {
-        printf("reusable_ids = {}\n");
-    } else {
-        printf("reusable_ids = {%u", reusable_ids[0]);
-
-        for (auto& reusable_id : reusable_ids)
-            printf(", %u", reusable_id);
-
-        printf("}\n");
-    }
-}
-
 bool SessionManager::is_reusable_id(SessID id)
 {
     for (auto& reusable_id : reusable_ids)

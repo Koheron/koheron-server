@@ -162,13 +162,11 @@ Session<sock_type>::Session(int comm_fd_, SessID id_, SessionManager& session_ma
 template<int sock_type>
 int Session<sock_type>::run()
 {
-    printf("Session<%d>::run\n", sock_type);
     if (init_session() < 0) {
         return -1;
     }
 
     while (!session_manager.kserver.exit_comm.load()) {
-        printf("...\n");
         Command cmd;
         const int nb_bytes_rcvd = read_command(cmd);
 

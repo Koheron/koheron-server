@@ -36,15 +36,12 @@ KServer::KServer()
     exit_all.store(false);
 
     if (tcp_listener.init() < 0) {
-        printf("Failed to initialize TCP socket\n");
         exit(EXIT_FAILURE);
     }
     if (websock_listener.init() < 0) {
-        printf("Failed to initialize Webocket\n");
         exit(EXIT_FAILURE);
     }
     if (unix_listener.init() < 0) {
-        printf("Failed to initialize Unix socket\n");
         exit(EXIT_FAILURE);
     }
 }
@@ -61,15 +58,12 @@ void KServer::close_listeners()
 int KServer::start_listeners_workers()
 {
     if (tcp_listener.start_worker() < 0) {
-        printf("Failed to start TCP socket worker\n");
         return -1;
     }
     if (websock_listener.start_worker() < 0) {
-        printf("Failed to start Websocket worker\n");
         return -1;
     }
     if (unix_listener.start_worker() < 0) {
-        printf("Failed to start Unix socket worker\n");
         return -1;
     }
     return 0;
@@ -86,7 +80,6 @@ int KServer::run() {
     printf("KServer::run()\n");
 
     if (start_listeners_workers() < 0) {
-        printf("Failed to start listeners \n");
         return -1;
     }
 

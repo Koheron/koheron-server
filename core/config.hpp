@@ -23,7 +23,7 @@ namespace kserver {
         constexpr unsigned int websock_worker_connections = 100;
 
         /// Unix socket file path
-        constexpr char unixsock_path[UNIX_SOCKET_PATH_LEN] = "/tmp/koheron-server.sock";
+        constexpr char unixsock_path[UNIX_SOCKET_PATH_LEN] = "/tmp/kserver_local.sock";
         /// Unix socket max parallel connections
         constexpr unsigned int unixsock_worker_connections = 100;
     }
