@@ -1,5 +1,3 @@
 devices:
     - tests/tests.hpp
-    - tests/benchmarks.hpp
-    - tests/exception_tests.hpp
     - tests/uses_context.hpp

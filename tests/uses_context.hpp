@@ -4,8 +4,6 @@
 #include "context.hpp"
 
 #include "tests.hpp"
-#include "benchmarks.hpp"
-#include "exception_tests.hpp"
 
 class UsesContext
 {
@@ -13,8 +11,6 @@ class UsesContext
     UsesContext(Context& ctx_)
     : ctx(ctx_)
     , tests(ctx.get<Tests>())
-    , benchmarks(ctx.get<Benchmarks>())
-    , exception_tests(ctx.get<ExceptionTests>())
     {}
 
     bool set_float_from_tests(float f) {
@@ -27,10 +23,8 @@ class UsesContext
 
   private:
     Context& ctx;
-
     Tests& tests;
-    Benchmarks& benchmarks;
-    ExceptionTests& exception_tests;
+
 };
 
 #endif // __USES_CONTEXT_HPP__
