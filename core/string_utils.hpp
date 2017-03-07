@@ -10,49 +10,6 @@
 namespace kserver {
 
 // -------------------------------------------------------------------------
-// Variadic string formating functions accepting parameter packs
-// -------------------------------------------------------------------------
-
-// printf
-template<typename... Args>
-typename std::enable_if_t< 0 < sizeof...(Args), void >
-printf(const char *fmt, Args&&... args) {
-    std::printf(fmt, std::forward<Args>(args)...);
-}
-
-template<typename... Args>
-typename std::enable_if_t< 0 == sizeof...(Args), void >
-printf(const char *fmt, Args&&... args) {
-    std::printf("%s", fmt);
-}
-
-// fprintf
-template<typename... Args>
-typename std::enable_if_t< 0 < sizeof...(Args), void >
-fprintf(FILE *stream, const char *fmt, Args&&... args) {
-    std::fprintf(stream, fmt, std::forward<Args>(args)...);
-}
-
-template<typename... Args>
-typename std::enable_if_t< 0 == sizeof...(Args), void >
-fprintf(FILE *stream, const char *fmt, Args&&... args) {
-    std::fprintf(stream, "%s", fmt);
-}
-
-// snprintf
-template<typename... Args>
-typename std::enable_if_t< 0 < sizeof...(Args), int >
-snprintf(char *s, size_t n, const char *fmt, Args&&... args) {
-    return std::snprintf(s, n, fmt, std::forward<Args>(args)...);
-}
-
-template<typename... Args>
-typename std::enable_if_t< 0 == sizeof...(Args), int >
-snprintf(char *s, size_t n, const char *fmt, Args&&... args) {
-    return std::snprintf(s, n, "%s", fmt);
-}
-
-// -------------------------------------------------------------------------
 // Compile-time string
 // -------------------------------------------------------------------------
 
