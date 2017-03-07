@@ -15,7 +15,7 @@ CORE_SRC = $(shell find core -name '*.cpp' -o -name '*.c')
 
 CORE_OBJ=$(subst .cpp,.o, $(addprefix $(TMP)/, $(notdir $(CORE_SRC))))
 
-DEFINES:= -DDEBUG_KSERVER -DKOHERON_SERVER_VERSION=$(TAG).$(SHA)
+DEFINES:= -DKOHERON_SERVER_VERSION=$(TAG).$(SHA)
 
 DEVICES:= tests/tests.hpp tests/tests.cpp
 
