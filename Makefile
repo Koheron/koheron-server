@@ -96,23 +96,6 @@ exec: $(TMP_DEVICE_TABLE_HPP) $(TMP_DEVICES_HPP) $(KS_DEVICES_CPP)
 operations_hpp: $(TMP_OPERATIONS_HPP)
 
 # ------------------------------------------------------------------------------------------------------------
-# Test python API
-# ------------------------------------------------------------------------------------------------------------
-
-.PHONY: test_python
-
-KOHERON_PYTHON_URL = https://github.com/Koheron/koheron-python.git
-KOHERON_PYTHON_BRANCH = v0.13.0
-KOHERON_PYTHON_DIR = $(TMP)/koheron-python
-
-$(KOHERON_PYTHON_DIR):
-	git clone $(KOHERON_PYTHON_URL) $(KOHERON_PYTHON_DIR)
-	cd $(KOHERON_PYTHON_DIR) && git checkout $(KOHERON_PYTHON_BRANCH)
-
-test_python: $(KOHERON_PYTHON_DIR) start_server
-	make -C $(KOHERON_PYTHON_DIR) test
-
-# ------------------------------------------------------------------------------------------------------------
 # Clean
 # ------------------------------------------------------------------------------------------------------------
 
