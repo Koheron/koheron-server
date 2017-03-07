@@ -12,7 +12,6 @@
 #include <mutex>
 
 #include "kserver_defs.hpp"
-#include "config.hpp"
 
 namespace kserver {
 

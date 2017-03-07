@@ -16,13 +16,12 @@ extern "C" {
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "core/kserver.hpp"
-#include "core/config.hpp"
 
 int main(int argc, char **argv)
 {
 
     printf("Start server \n");
-    kserver::KServer server();
+    kserver::KServer server;
     printf("Server started \n");
 
     server.run();

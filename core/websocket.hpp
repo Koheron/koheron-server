@@ -8,7 +8,6 @@
 #include <string>
 
 #include "kserver_defs.hpp"
-#include "config.hpp"
 #include "commands.hpp"
 
 namespace kserver {

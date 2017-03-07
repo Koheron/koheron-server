@@ -5,8 +5,6 @@
 /// (c) Koheron
 
 #include "websocket.hpp"
-#include "config.hpp"
-
 #include <cstring>
 #include <sstream>
 #include <iostream>
