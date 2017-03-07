@@ -24,4 +24,4 @@ test:
           background: true
     - sleep 5
     - cat nohup.out
-    - pytest tests.py
+    - pytest tests/test.py
