@@ -15,9 +15,8 @@ CORE_SRC = $(shell find core -name '*.cpp' -o -name '*.c')
 
 CORE_OBJ=$(subst .cpp,.o, $(addprefix $(TMP)/, $(notdir $(CORE_SRC))))
 
-DEFINES:= -DKOHERON_SERVER_VERSION=$(TAG).$(SHA)
+include tests/build.mk
 
-DEVICES:= tests/tests.hpp tests/tests.cpp
 
 DEVICES_HPP=$(filter-out %.cpp,$(DEVICES))
 DEVICES_CPP=$(filter-out %.hpp,$(DEVICES))
@@ -43,23 +42,11 @@ DEP=$(subst .o,.d,$(OBJ))
 EXECUTABLE=$(TMP)/kserverd
 
 # --------------------------------------------------------------
-# Toolchain
-# --------------------------------------------------------------
-CROSS_COMPILE:=
-ARCH_FLAGS:= -march=native
-
-#CROSS_COMPILE:=/usr/bin/arm-linux-gnueabihf-
-#ARCH_FLAGS:= -march=armv7-a -mtune=cortex-a9 -mfpu=vfpv3 -mfpu=neon -mfloat-abi=hard
-
-# Use Link Time Optimization
-CCXX=$(CROSS_COMPILE)g++ -flto
-
-# --------------------------------------------------------------
 # GCC compiling & linking flags
 # --------------------------------------------------------------
 
 INC=-I$(TMP) -I$(BASE_DIR) -I.
-CFLAGS=-Wall -Werror $(INC) $(DEFINES) -MMD -MP $(ARCH_FLAGS) -O3
+CFLAGS=-Wall -Werror $(INC) -DKOHERON_SERVER_VERSION=$(TAG).$(SHA) -MMD -MP $(ARCH_FLAGS) -O3
 CXXFLAGS=$(CFLAGS) -std=c++14 -pthread
 
 # --------------------------------------------------------------
