@@ -18,7 +18,6 @@
 #include <utility>
 
 #include "devices_manager.hpp"
-#include "signal_handler.hpp"
 #include "session_manager.hpp"
 
 namespace kserver {
@@ -98,8 +97,6 @@ class KServer
         GET_CMDS = 1,               ///< Send the commands numbers
         kserver_op_num
     };
-
-    SignalHandler sig_handler;
 
     std::atomic<bool> exit_comm;
     std::atomic<bool> exit_all;

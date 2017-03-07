@@ -19,16 +19,12 @@ extern "C" {
 namespace kserver {
 
 KServer::KServer()
-: sig_handler(),
-  tcp_listener(this),
+: tcp_listener(this),
   websock_listener(this),
   unix_listener(this),
   dev_manager(this),
   session_manager(*this, dev_manager)
 {
-    if (sig_handler.init(this) < 0) {
-        exit(EXIT_FAILURE);
-    }
     if (dev_manager.init() < 0) {
         exit (EXIT_FAILURE);
     }
@@ -84,7 +80,7 @@ int KServer::run() {
     }
 
     while (1) {
-        if (sig_handler.interrupt() || exit_all) {
+        if (exit_all) {
             session_manager.delete_all();
             close_listeners();
             return 0;
