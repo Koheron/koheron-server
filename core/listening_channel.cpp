@@ -5,6 +5,7 @@
 
 #include "kserver.hpp"
 #include "kserver_session.hpp"
+#include "config.hpp"
 #include <thread>
 #include <atomic>
 #include <unistd.h>
@@ -19,8 +20,7 @@ extern "C" {
 
 namespace kserver {
 
-int create_tcp_listening(unsigned int port, const std::shared_ptr<KServerConfig>& config)
-{
+int create_tcp_listening(unsigned int port) {
     int listen_fd_ = socket(AF_INET, SOCK_STREAM, 0);
 
     if (listen_fd_ < 0) {
@@ -53,8 +53,7 @@ int create_tcp_listening(unsigned int port, const std::shared_ptr<KServerConfig>
     return listen_fd_;
 }
 
-int set_comm_sock_opts(int comm_fd, const std::shared_ptr<KServerConfig>& config)
-{
+int set_comm_sock_opts(int comm_fd) {
     int sndbuf_len = sizeof(uint32_t) * KSERVER_SIG_LEN;
 
     if (setsockopt(comm_fd, SOL_SOCKET, SO_SNDBUF,
@@ -81,15 +80,14 @@ int set_comm_sock_opts(int comm_fd, const std::shared_ptr<KServerConfig>& config
     return 0;
 }
 
-int open_tcp_communication(int listen_fd, const std::shared_ptr<KServerConfig>& config)
-{
+int open_tcp_communication(int listen_fd) {
     printf("start open_tcp_communication\n");
     int comm_fd = accept(listen_fd, (struct sockaddr*) NULL, NULL);
 
     if (comm_fd < 0)
         return comm_fd;
 
-    if (set_comm_sock_opts(comm_fd, config) < 0)
+    if (set_comm_sock_opts(comm_fd) < 0)
         return -1;
 
     printf("end open_tcp_communication\n");
@@ -97,13 +95,11 @@ int open_tcp_communication(int listen_fd, const std::shared_ptr<KServerConfig>& 
 }
 
 template<int sock_type>
-void session_thread_call(int comm_fd, ListeningChannel<sock_type> *listener)
-{
+void session_thread_call(int comm_fd, ListeningChannel<sock_type> *listener) {
     printf("start session_thread_call\n");
     listener->inc_thread_num();
 
-    SessID sid = listener->kserver->session_manager. template create_session<sock_type>(
-                            listener->kserver->config, comm_fd);
+    SessID sid = listener->kserver->session_manager. template create_session<sock_type>(comm_fd);
 
     listener->kserver->session_manager.delete_session(sid);
 
@@ -112,8 +108,7 @@ void session_thread_call(int comm_fd, ListeningChannel<sock_type> *listener)
 }
 
 template<int sock_type>
-void comm_thread_call(ListeningChannel<sock_type> *listener)
-{
+void comm_thread_call(ListeningChannel<sock_type> *listener) {
     printf("start comm_thread_call\n");
     listener->is_ready = true;
 
@@ -139,8 +134,7 @@ void comm_thread_call(ListeningChannel<sock_type> *listener)
 }
 
 template<int sock_type>
-int ListeningChannel<sock_type>::__start_worker()
-{
+int ListeningChannel<sock_type>::__start_worker() {
     printf("start worker\n");
     if (listen_fd >= 0) {
         if (listen(listen_fd, KSERVER_BACKLOG) < 0) {
@@ -155,12 +149,11 @@ int ListeningChannel<sock_type>::__start_worker()
 // ---- TCP ----
 
 template<>
-int ListeningChannel<TCP>::init()
-{
+int ListeningChannel<TCP>::init() {
     num_threads.store(0);
 
-    if (kserver->config->tcp_worker_connections > 0) {
-        listen_fd = create_tcp_listening(kserver->config->tcp_port, kserver->config);
+    if (config::tcp_worker_connections > 0) {
+        listen_fd = create_tcp_listening(config::tcp_port);
         printf("TCP channel initialized\n");
         return listen_fd;
     }
@@ -168,30 +161,26 @@ int ListeningChannel<TCP>::init()
 }
 
 template<>
-void ListeningChannel<TCP>::shutdown()
-{
-    if (kserver->config->tcp_worker_connections > 0) {
+void ListeningChannel<TCP>::shutdown() {
+    if (config::tcp_worker_connections > 0) {
         ::shutdown(listen_fd, SHUT_RDWR);
         close(listen_fd);
     }
 }
 
 template<>
-int ListeningChannel<TCP>::open_communication()
-{
+int ListeningChannel<TCP>::open_communication() {
     printf("TCP open_communication\n");
-    return open_tcp_communication(listen_fd, kserver->config);
+    return open_tcp_communication(listen_fd);
 }
 
 template<>
-bool ListeningChannel<TCP>::is_max_threads()
-{
-    return (num_threads.load() + 1) > (int)kserver->config->tcp_worker_connections;
+bool ListeningChannel<TCP>::is_max_threads() {
+    return num_threads.load() >= (int)config::tcp_worker_connections;
 }
 
 template<>
-int ListeningChannel<TCP>::start_worker()
-{
+int ListeningChannel<TCP>::start_worker() {
     return __start_worker();
 }
 
@@ -199,12 +188,11 @@ int ListeningChannel<TCP>::start_worker()
 // ---- WEBSOCK ----
 
 template<>
-int ListeningChannel<WEBSOCK>::init()
-{
+int ListeningChannel<WEBSOCK>::init() {
     num_threads.store(0);
 
-    if (kserver->config->websock_worker_connections > 0) {
-        listen_fd = create_tcp_listening(kserver->config->websock_port, kserver->config);
+    if (config::websock_worker_connections > 0) {
+        listen_fd = create_tcp_listening(config::websock_port);
         printf("Websocket channel initialized\n");
         return listen_fd;
     } else {
@@ -213,36 +201,31 @@ int ListeningChannel<WEBSOCK>::init()
 }
 
 template<>
-void ListeningChannel<WEBSOCK>::shutdown()
-{
-    if (kserver->config->websock_worker_connections > 0) {
+void ListeningChannel<WEBSOCK>::shutdown() {
+    if (config::websock_worker_connections > 0) {
         ::shutdown(listen_fd, SHUT_RDWR);
         close(listen_fd);
     }
 }
 
 template<>
-int ListeningChannel<WEBSOCK>::open_communication()
-{
-    return open_tcp_communication(listen_fd, kserver->config);
+int ListeningChannel<WEBSOCK>::open_communication() {
+    return open_tcp_communication(listen_fd);
 }
 
 template<>
-bool ListeningChannel<WEBSOCK>::is_max_threads()
-{
-    return (num_threads.load() + 1) > (int)kserver->config->websock_worker_connections;
+bool ListeningChannel<WEBSOCK>::is_max_threads() {
+    return num_threads.load() >= (int)config::websock_worker_connections;
 }
 
 template<>
-int ListeningChannel<WEBSOCK>::start_worker()
-{
+int ListeningChannel<WEBSOCK>::start_worker() {
     return __start_worker();
 }
 
 // ---- UNIX ----
 
-int create_unix_listening(const char *unix_sock_path)
-{
+int create_unix_listening(const char *unix_sock_path) {
     struct sockaddr_un local;
 
     int listen_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -270,8 +253,8 @@ int ListeningChannel<UNIX>::init()
 {
     num_threads.store(0);
 
-    if (kserver->config->unixsock_worker_connections > 0) {
-        listen_fd = create_unix_listening(kserver->config->unixsock_path);
+    if (config::unixsock_worker_connections > 0) {
+        listen_fd = create_unix_listening(config::unixsock_path);
         printf("Unix socket channel initialized\n");
         return listen_fd;
     }
@@ -279,32 +262,27 @@ int ListeningChannel<UNIX>::init()
 }
 
 template<>
-void ListeningChannel<UNIX>::shutdown()
-{
-    if (kserver->config->unixsock_worker_connections > 0) {
+void ListeningChannel<UNIX>::shutdown() {
+    if (config::unixsock_worker_connections > 0) {
         ::shutdown(listen_fd, SHUT_RDWR);
         close(listen_fd);
     }
 }
 
 template<>
-int ListeningChannel<UNIX>::open_communication()
-{
+int ListeningChannel<UNIX>::open_communication() {
     struct sockaddr_un remote;
     uint32_t t = sizeof(remote);
     return accept(listen_fd, (struct sockaddr *)&remote, &t);
 }
 
 template<>
-bool ListeningChannel<UNIX>::is_max_threads()
-{
-    return (num_threads.load() + 1)
-                 > (int)kserver->config->unixsock_worker_connections;
+bool ListeningChannel<UNIX>::is_max_threads() {
+    return num_threads.load() >= (int)config::unixsock_worker_connections;
 }
 
 template<>
-int ListeningChannel<UNIX>::start_worker()
-{
+int ListeningChannel<UNIX>::start_worker() {
     return __start_worker();
 }
 

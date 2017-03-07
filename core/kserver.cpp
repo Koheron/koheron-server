@@ -9,6 +9,7 @@
 #include "commands.hpp"
 #include "kserver_session.hpp"
 #include "session_manager.hpp"
+#include "config.hpp"
 
 extern "C" {
   #include <sys/un.h>
@@ -17,9 +18,8 @@ extern "C" {
 
 namespace kserver {
 
-KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
-: config(config_),
-  sig_handler(),
+KServer::KServer()
+: sig_handler(),
   tcp_listener(this),
   websock_listener(this),
   unix_listener(this),
@@ -55,13 +55,9 @@ KServer::KServer(std::shared_ptr<kserver::KServerConfig> config_)
 
 }
 
-// This cannot be done in the destructor
-// since it is called after the "delete config"
-// at the end of the main()
 void KServer::close_listeners()
 {
     exit_comm.store(true);
-    assert(config != NULL);
     tcp_listener.shutdown();
     websock_listener.shutdown();
     unix_listener.shutdown();

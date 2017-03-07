@@ -45,9 +45,7 @@ template<int sock_type>
 class Session : public SessionAbstract
 {
   public:
-    Session(const std::shared_ptr<KServerConfig>& config_,
-            int comm_fd, SessID id_,
-            SessionManager& session_manager_);
+    Session(int comm_fd, SessID id_, SessionManager& session_manager_);
 
     int run();
 
@@ -93,7 +91,6 @@ class Session : public SessionAbstract
     }
 
   private:
-    std::shared_ptr<KServerConfig> config;
     int comm_fd;  ///< Socket file descriptor
     SessID id;
     SessionManager& session_manager;
@@ -103,7 +100,7 @@ class Session : public SessionAbstract
             Buffer<KSERVER_RECV_DATA_BUFF_LEN>, EmptyBuffer> recv_data_buff;
 
     struct EmptyWebsock {
-        EmptyWebsock(std::shared_ptr<KServerConfig> config_) {}
+        EmptyWebsock() {}
     };
 
     std::conditional_t<sock_type == WEBSOCK, WebSocket, EmptyWebsock> websock;
@@ -150,15 +147,12 @@ friend class SessionManager;
 };
 
 template<int sock_type>
-Session<sock_type>::Session(const std::shared_ptr<KServerConfig>& config_,
-                            int comm_fd_, SessID id_,
-                            SessionManager& session_manager_)
+Session<sock_type>::Session(int comm_fd_, SessID id_, SessionManager& session_manager_)
 : SessionAbstract(sock_type)
-, config(config_)
 , comm_fd(comm_fd_)
 , id(id_)
 , session_manager(session_manager_)
-, websock(config_)
+, websock()
 , requests_num(0)
 , errors_num(0)
 , send_buffer(0)
@@ -212,15 +206,13 @@ int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes);
 
 template<>
 template<typename T, size_t N>
-inline int Session<TCP>::recv(std::array<T, N>& arr, Command& cmd)
-{
+inline int Session<TCP>::recv(std::array<T, N>& arr, Command& cmd) {
     return rcv_n_bytes(reinterpret_cast<char*>(arr.data()), size_of<T, N>);
 }
 
 template<>
 template<typename T>
-inline int Session<TCP>::recv(std::vector<T>& vec, Command& cmd)
-{
+inline int Session<TCP>::recv(std::vector<T>& vec, Command& cmd) {
     const auto length = get_pack_length() / sizeof(T);
 
     if (length < 0)
@@ -234,8 +226,7 @@ inline int Session<TCP>::recv(std::vector<T>& vec, Command& cmd)
 
 template<>
 template<>
-inline int Session<TCP>::recv(std::string& str, Command& cmd)
-{
+inline int Session<TCP>::recv(std::string& str, Command& cmd) {
     const auto length = get_pack_length();
 
     if (length < 0)
@@ -249,15 +240,13 @@ inline int Session<TCP>::recv(std::string& str, Command& cmd)
 
 template<>
 template<typename... Tp>
-inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd, std::false_type)
-{
+inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd, std::false_type) {
     return std::make_tuple(0);
 }
 
 template<>
 template<typename... Tp>
-inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd, std::true_type)
-{
+inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd, std::true_type) {
     constexpr auto pack_len = required_buffer_size<Tp...>();
     Buffer<pack_len> buff;
     const int err = rcv_n_bytes(buff.data(), pack_len);
@@ -266,8 +255,7 @@ inline std::tuple<int, Tp...> Session<TCP>::deserialize(Command& cmd, std::true_
 
 template<>
 template<class T>
-inline int Session<TCP>::write(const T *data, unsigned int len)
-{
+inline int Session<TCP>::write(const T *data, unsigned int len) {
     const int bytes_send = sizeof(T) * len;
     const int n_bytes_send = ::write(comm_fd, (void*)data, bytes_send);
 
@@ -293,13 +281,10 @@ inline int Session<TCP>::write(const T *data, unsigned int len)
 
 // Unix socket has the same interface than TCP socket
 template<>
-class Session<UNIX> : public Session<TCP>
-{
+class Session<UNIX> : public Session<TCP> {
   public:
-    Session<UNIX>(const std::shared_ptr<KServerConfig>& config_,
-                  int comm_fd_, SessID id_,
-                  SessionManager& session_manager_)
-    : Session<TCP>(config_, comm_fd_, id_, session_manager_) {}
+    Session<UNIX>(int comm_fd_, SessID id_, SessionManager& session_manager_)
+    : Session<TCP>(comm_fd_, id_, session_manager_) {}
 };
 
 // -----------------------------------------------
@@ -308,16 +293,14 @@ class Session<UNIX> : public Session<TCP>
 
 template<>
 template<typename T, size_t N>
-inline int Session<WEBSOCK>::recv(std::array<T, N>& arr, Command& cmd)
-{
+inline int Session<WEBSOCK>::recv(std::array<T, N>& arr, Command& cmd) {
     arr = cmd.payload.extract_array<T, N>();
     return 0;
 }
 
 template<>
 template<typename T>
-inline int Session<WEBSOCK>::recv(std::vector<T>& vec, Command& cmd)
-{
+inline int Session<WEBSOCK>::recv(std::vector<T>& vec, Command& cmd) {
     const auto length = std::get<0>(cmd.payload.deserialize<uint32_t>());
 
     if (length > CMD_PAYLOAD_BUFFER_LEN) {
@@ -330,8 +313,7 @@ inline int Session<WEBSOCK>::recv(std::vector<T>& vec, Command& cmd)
 
 template<>
 template<>
-inline int Session<WEBSOCK>::recv(std::string& str, Command& cmd)
-{
+inline int Session<WEBSOCK>::recv(std::string& str, Command& cmd) {
     const auto length = std::get<0>(cmd.payload.deserialize<uint32_t>());
 
     if (length > CMD_PAYLOAD_BUFFER_LEN) {
@@ -344,22 +326,19 @@ inline int Session<WEBSOCK>::recv(std::string& str, Command& cmd)
 
 template<>
 template<typename... Tp>
-inline std::tuple<int, Tp...> Session<WEBSOCK>::deserialize(Command& cmd, std::false_type)
-{
+inline std::tuple<int, Tp...> Session<WEBSOCK>::deserialize(Command& cmd, std::false_type) {
     return std::make_tuple(0);
 }
 
 template<>
 template<typename... Tp>
-inline std::tuple<int, Tp...> Session<WEBSOCK>::deserialize(Command& cmd, std::true_type)
-{
+inline std::tuple<int, Tp...> Session<WEBSOCK>::deserialize(Command& cmd, std::true_type) {
     return std::tuple_cat(std::make_tuple(0), cmd.payload.deserialize<Tp...>());
 }
 
 template<>
 template<class T>
-inline int Session<WEBSOCK>::write(const T *data, unsigned int len)
-{
+inline int Session<WEBSOCK>::write(const T *data, unsigned int len) {
     return websock.send(data, len);
 }
 

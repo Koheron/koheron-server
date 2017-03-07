@@ -5,6 +5,7 @@
 /// (c) Koheron
 
 #include "websocket.hpp"
+#include "config.hpp"
 
 #include <cstring>
 #include <sstream>
@@ -23,9 +24,8 @@ extern "C" {
 
 namespace kserver {
 
-WebSocket::WebSocket(std::shared_ptr<KServerConfig> config_)
-: config(config_),
-  comm_fd(-1),
+WebSocket::WebSocket()
+: comm_fd(-1),
   read_str_len(0),
   connection_closed(false)
 {
@@ -33,13 +33,11 @@ WebSocket::WebSocket(std::shared_ptr<KServerConfig> config_)
     bzero(sha_str, 21);
 }
 
-void WebSocket::set_id(int comm_fd_)
-{
+void WebSocket::set_id(int comm_fd_) {
     comm_fd = comm_fd_;
 }
 
-int WebSocket::authenticate()
-{
+int WebSocket::authenticate() {
     if (read_http_packet() < 0)
         return -1;
 
@@ -90,8 +88,7 @@ int WebSocket::authenticate()
     return send_request(oss.str());
 }
 
-int WebSocket::read_http_packet()
-{
+int WebSocket::read_http_packet() {
     reset_read_buff();
 
     int nb_bytes_rcvd = read(comm_fd, read_str, WEBSOCK_READ_STR_LEN);
@@ -120,9 +117,7 @@ int WebSocket::read_http_packet()
     return nb_bytes_rcvd;
 }
 
-int WebSocket::set_send_header(unsigned char *bits, long long data_len,
-                               unsigned int format)
-{
+int WebSocket::set_send_header(unsigned char *bits, long long data_len, unsigned int format) {
     memset(bits, 0, 10 + data_len);
 
     bits[0] = format;
@@ -154,8 +149,7 @@ int WebSocket::set_send_header(unsigned char *bits, long long data_len,
     return mask_offset;
 }
 
-int WebSocket::exit()
-{
+int WebSocket::exit() {
     return send_request(send_buf, set_send_header(send_buf, 0, (1 << 7) + CONNECTION_CLOSE));
 }
 
@@ -182,8 +176,7 @@ int WebSocket::receive##type(arg_type arg_name)                            \
 WEBSOCK_RCV(_cmd, Command&, cmd) // receive_cmd
 WEBSOCK_RCV(,,)                  // receive
 
-int WebSocket::decode_raw_stream_cmd(Command& cmd)
-{
+int WebSocket::decode_raw_stream_cmd(Command& cmd) {
     if (unlikely(read_str_len < (int)header.header_size + 1))
         return -1;
 
@@ -199,8 +192,7 @@ int WebSocket::decode_raw_stream_cmd(Command& cmd)
     return 0;
 }
 
-int WebSocket::decode_raw_stream()
-{
+int WebSocket::decode_raw_stream() {
     if (unlikely(read_str_len < (int)header.header_size + 1))
         return -1;
 
@@ -213,8 +205,7 @@ int WebSocket::decode_raw_stream()
     return 0;
 }
 
-int WebSocket::read_stream()
-{
+int WebSocket::read_stream() {
     reset_read_buff();
 
     int read_head_err = read_header();
@@ -236,8 +227,7 @@ int WebSocket::read_stream()
     return err;
 }
 
-int WebSocket::check_opcode(unsigned int opcode)
-{
+int WebSocket::check_opcode(unsigned int opcode) {
     switch (opcode) {
       case CONTINUATION_FRAME:
         return -1;
@@ -258,8 +248,7 @@ int WebSocket::check_opcode(unsigned int opcode)
     return 0;
 }
 
-int WebSocket::read_header()
-{
+int WebSocket::read_header() {
     if (read_n_bytes(6,6) < 0)
         return -1;
 
@@ -324,8 +313,7 @@ int WebSocket::read_header()
     return 0;
 }
 
-int WebSocket::read_n_bytes(int64_t bytes, int64_t expected)
-{
+int WebSocket::read_n_bytes(int64_t bytes, int64_t expected) {
     int64_t remaining = bytes;
     int64_t bytes_read = -1;
 
@@ -361,14 +349,12 @@ int WebSocket::read_n_bytes(int64_t bytes, int64_t expected)
     return 0;
 }
 
-int WebSocket::send_request(const std::string& request)
-{
+int WebSocket::send_request(const std::string& request) {
     return send_request(reinterpret_cast<const unsigned char*>(request.c_str()),
                         request.length());
 }
 
-int WebSocket::send_request(const unsigned char *bits, long long len)
-{
+int WebSocket::send_request(const unsigned char *bits, long long len) {
     if (connection_closed)
         return 0;
 
@@ -396,8 +382,7 @@ int WebSocket::send_request(const unsigned char *bits, long long len)
     return bytes_send;
 }
 
-void WebSocket::reset_read_buff()
-{
+void WebSocket::reset_read_buff() {
     bzero(read_str, read_str_len);
     read_str_len = 0;
 }

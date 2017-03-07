@@ -88,7 +88,7 @@ void ListeningChannel<sock_type>::join_worker() {
 class KServer
 {
   public:
-    KServer(std::shared_ptr<kserver::KServerConfig> config_);
+    KServer();
 
     int run();
 
@@ -99,7 +99,6 @@ class KServer
         kserver_op_num
     };
 
-    std::shared_ptr<kserver::KServerConfig> config;
     SignalHandler sig_handler;
 
     std::atomic<bool> exit_comm;

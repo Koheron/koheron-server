@@ -20,14 +20,10 @@ extern "C" {
 
 int main(int argc, char **argv)
 {
-    // Load config and options
-    auto config = std::make_shared<kserver::KServerConfig>();
 
     printf("Start server \n");
-
-    kserver::KServer server(config);
-
-    printf("Config loaded \n");
+    kserver::KServer server();
+    printf("Server started \n");
 
     server.run();
 

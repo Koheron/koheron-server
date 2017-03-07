@@ -33,8 +33,7 @@ class SessionManager
     size_t get_num_sess() const {return session_pool.size();}
 
     template<int sock_type>
-    SessID create_session(const std::shared_ptr<KServerConfig>& config_,
-                          int comm_fd);
+    SessID create_session(int comm_fd);
 
     std::vector<SessID> get_current_ids();
 
@@ -60,9 +59,7 @@ class SessionManager
 };
 
 template<int sock_type>
-SessID SessionManager::create_session(const std::shared_ptr<KServerConfig>& config_,
-                                      int comm_fd)
-{
+SessID SessionManager::create_session(int comm_fd) {
     std::lock_guard<std::mutex> lock(mutex);
 
     SessID new_id;
@@ -76,8 +73,7 @@ SessID SessionManager::create_session(const std::shared_ptr<KServerConfig>& conf
         reusable_ids.pop_back();
     }
 
-    auto session = std::make_unique<Session<sock_type>>(
-                            config_, comm_fd, new_id, (*this));
+    auto session = std::make_unique<Session<sock_type>>(comm_fd, new_id, (*this));
 
     session_pool.insert(std::pair<SessID, std::unique_ptr<SessionAbstract>>(new_id,
                 static_cast<std::unique_ptr<SessionAbstract>>(std::move(session))));

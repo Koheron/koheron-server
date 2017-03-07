@@ -16,7 +16,7 @@ namespace kserver {
 class WebSocket
 {
   public:
-    WebSocket(std::shared_ptr<KServerConfig> config_);
+    WebSocket();
 
     void set_id(int comm_fd_);
     int authenticate();
@@ -34,7 +34,6 @@ class WebSocket
     int exit();
 
   private:
-    std::shared_ptr<KServerConfig> config;
 
     int comm_fd;
 
