@@ -1,4 +1,4 @@
-CONFIG=tests/config_local.yaml
+CONFIG=tests/config.yml
 PYTHON=/usr/bin/python
 
 SHA=`git rev-parse --short HEAD`
@@ -57,7 +57,7 @@ all: exec
 .PHONY: exec operations_hpp
 
 $(TMP)/devices_table.hpp $(TMP)/devices.hpp $(TMP)/operations.hpp $(KS_DEVICES_CPP): $(DEVICES_HPP) scripts/devgen.py $(TEMPLATES)
-	python scripts/make.py --generate $(CONFIG_PATH) $(TMP)
+	python scripts/devgen.py $(CONFIG_PATH) $(TMP)
 
 $(TMP)/%.o: %.cpp
 	$(CCXX) -c $(CXXFLAGS) -o $@ $<

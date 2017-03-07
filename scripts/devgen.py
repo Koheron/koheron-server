@@ -5,6 +5,8 @@ import re
 import CppHeaderParser
 import jinja2
 import json
+import sys
+import yaml
 
 # -----------------------------------------------------------------------------------------
 # Code generation
@@ -39,8 +41,6 @@ class Device:
         dev = parse_header(os.path.join(base_dir, path))[0]
         self.raw = dev
         self.header_path = os.path.dirname(path)
-        # self.calls = cmd_calls(dev)
-
         self.path = path
         self.operations = dev['operations']
         self.tag = dev['tag']
@@ -331,3 +331,17 @@ def get_std_array_params(arg_type):
       'T': templates[0].strip(),
       'N': templates[1].strip()
     }
+
+def main(argv):
+    config_file = argv[0]
+    tmp_dir = argv[1]
+    if not os.path.exists(tmp_dir):
+        os.makedirs(tmp_dir)
+
+    with open(config_file) as f:
+        config = yaml.load(f)
+
+    generate(config['drivers'], '.', tmp_dir)
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
