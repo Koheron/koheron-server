@@ -17,7 +17,7 @@ CORE_OBJ=$(subst .cpp,.o, $(addprefix $(TMP)/, $(notdir $(CORE_SRC))))
 
 DEFINES:= -DDEBUG_KSERVER -DKOHERON_SERVER_VERSION=$(TAG).$(SHA)
 
-DEVICES:= tests/tests.hpp tests/tests.cpp
+DEVICES:= tests/tests.hpp tests/tests.cpp uses_context.hpp
 
 DEVICES_HPP=$(filter-out %.cpp,$(DEVICES))
 DEVICES_CPP=$(filter-out %.hpp,$(DEVICES))
