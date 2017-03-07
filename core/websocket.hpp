@@ -25,7 +25,6 @@ class WebSocket
     /// Send binary blob
     template<class T> int send(const T *data, unsigned int len);
 
-    char* get_payload_no_copy() {return payload;}
     int64_t payload_size() const {return header.payload_size;}
 
     bool is_closed() const {return connection_closed;}

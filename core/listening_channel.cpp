@@ -108,13 +108,12 @@ void comm_thread_call(ListeningChannel<sock_type> *listener) {
     while (!listener->kserver->exit_comm.load()) {
         int comm_fd = listener->open_communication();
 
-        if (listener->kserver->exit_comm.load())
+        if (listener->kserver->exit_comm.load()) {
             break;
-
+        }
         if (comm_fd < 0) {
             continue;
         }
-
         if (listener->is_max_threads()) {
             continue;
         }
@@ -141,20 +140,14 @@ int ListeningChannel<sock_type>::__start_worker() {
 template<>
 int ListeningChannel<TCP>::init() {
     num_threads.store(0);
-
-    if (config::tcp_worker_connections > 0) {
-        listen_fd = create_tcp_listening(config::tcp_port);
-        return listen_fd;
-    }
-    return 0;
+    listen_fd = create_tcp_listening(config::tcp_port);
+    return listen_fd;
 }
 
 template<>
 void ListeningChannel<TCP>::shutdown() {
-    if (config::tcp_worker_connections > 0) {
-        ::shutdown(listen_fd, SHUT_RDWR);
-        close(listen_fd);
-    }
+    ::shutdown(listen_fd, SHUT_RDWR);
+    close(listen_fd);
 }
 
 template<>
@@ -164,7 +157,7 @@ int ListeningChannel<TCP>::open_communication() {
 
 template<>
 bool ListeningChannel<TCP>::is_max_threads() {
-    return num_threads.load() >= (int)config::tcp_worker_connections;
+    return num_threads.load() >= config::tcp_worker_connections;
 }
 
 template<>
@@ -178,21 +171,14 @@ int ListeningChannel<TCP>::start_worker() {
 template<>
 int ListeningChannel<WEBSOCK>::init() {
     num_threads.store(0);
-
-    if (config::websock_worker_connections > 0) {
-        listen_fd = create_tcp_listening(config::websock_port);
-        return listen_fd;
-    } else {
-        return 0; // Nothing to be done
-    }
+    listen_fd = create_tcp_listening(config::websock_port);
+    return listen_fd;
 }
 
 template<>
 void ListeningChannel<WEBSOCK>::shutdown() {
-    if (config::websock_worker_connections > 0) {
-        ::shutdown(listen_fd, SHUT_RDWR);
-        close(listen_fd);
-    }
+    ::shutdown(listen_fd, SHUT_RDWR);
+    close(listen_fd);
 }
 
 template<>
@@ -202,7 +188,7 @@ int ListeningChannel<WEBSOCK>::open_communication() {
 
 template<>
 bool ListeningChannel<WEBSOCK>::is_max_threads() {
-    return num_threads.load() >= (int)config::websock_worker_connections;
+    return num_threads.load() >= config::websock_worker_connections;
 }
 
 template<>
@@ -239,20 +225,14 @@ template<>
 int ListeningChannel<UNIX>::init()
 {
     num_threads.store(0);
-
-    if (config::unixsock_worker_connections > 0) {
-        listen_fd = create_unix_listening(config::unixsock_path);
-        return listen_fd;
-    }
-    return 0;
+    listen_fd = create_unix_listening(config::unixsock_path);
+    return listen_fd;
 }
 
 template<>
 void ListeningChannel<UNIX>::shutdown() {
-    if (config::unixsock_worker_connections > 0) {
-        ::shutdown(listen_fd, SHUT_RDWR);
-        close(listen_fd);
-    }
+    ::shutdown(listen_fd, SHUT_RDWR);
+    close(listen_fd);
 }
 
 template<>
@@ -264,7 +244,7 @@ int ListeningChannel<UNIX>::open_communication() {
 
 template<>
 bool ListeningChannel<UNIX>::is_max_threads() {
-    return num_threads.load() >= (int)config::unixsock_worker_connections;
+    return num_threads.load() >= config::unixsock_worker_connections;
 }
 
 template<>

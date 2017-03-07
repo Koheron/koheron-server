@@ -15,17 +15,17 @@ namespace kserver {
         /// TCP listening port
         constexpr unsigned int tcp_port = 36000;
         /// TCP max parallel connections
-        constexpr unsigned int tcp_worker_connections = 100;
+        constexpr int tcp_worker_connections = 100;
 
         /// Websocket listening port
         constexpr unsigned int websock_port = 8080;
         /// Websocket max parallel connections
-        constexpr unsigned int websock_worker_connections = 100;
+        constexpr int websock_worker_connections = 100;
 
         /// Unix socket file path
         constexpr char unixsock_path[UNIX_SOCKET_PATH_LEN] = "/tmp/kserver_local.sock";
         /// Unix socket max parallel connections
-        constexpr unsigned int unixsock_worker_connections = 100;
+        constexpr int unixsock_worker_connections = 100;
     }
 } // namespace kserver
 
