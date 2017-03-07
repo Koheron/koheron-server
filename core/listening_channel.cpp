@@ -49,7 +49,6 @@ int create_tcp_listening(unsigned int port) {
         return -1;
     }
 
-    printf("TCP listening successful \n");
     return listen_fd_;
 }
 
@@ -81,7 +80,6 @@ int set_comm_sock_opts(int comm_fd) {
 }
 
 int open_tcp_communication(int listen_fd) {
-    printf("start open_tcp_communication\n");
     int comm_fd = accept(listen_fd, (struct sockaddr*) NULL, NULL);
 
     if (comm_fd < 0)
@@ -90,26 +88,21 @@ int open_tcp_communication(int listen_fd) {
     if (set_comm_sock_opts(comm_fd) < 0)
         return -1;
 
-    printf("end open_tcp_communication\n");
     return comm_fd;
 }
 
 template<int sock_type>
 void session_thread_call(int comm_fd, ListeningChannel<sock_type> *listener) {
-    printf("start session_thread_call\n");
     listener->inc_thread_num();
-
     SessID sid = listener->kserver->session_manager. template create_session<sock_type>(comm_fd);
-
+    auto session = static_cast<Session<sock_type>*>(&listener->kserver->session_manager.get_session(sid));
+    session->run();
     listener->kserver->session_manager.delete_session(sid);
-
     listener->dec_thread_num();
-    printf("end session_thread_call\n");
 }
 
 template<int sock_type>
 void comm_thread_call(ListeningChannel<sock_type> *listener) {
-    printf("start comm_thread_call\n");
     listener->is_ready = true;
 
     while (!listener->kserver->exit_comm.load()) {
@@ -129,20 +122,17 @@ void comm_thread_call(ListeningChannel<sock_type> *listener) {
         std::thread sess_thread(session_thread_call<sock_type>, comm_fd, listener);
         sess_thread.detach();
     }
-    printf("end comm_thread_call\n");
 
 }
 
 template<int sock_type>
 int ListeningChannel<sock_type>::__start_worker() {
-    printf("start worker\n");
     if (listen_fd >= 0) {
         if (listen(listen_fd, KSERVER_BACKLOG) < 0) {
             return -1;
         }
         comm_thread = std::thread{comm_thread_call<sock_type>, this};
     }
-    printf("end worker\n");
     return 0;
 }
 
@@ -154,7 +144,6 @@ int ListeningChannel<TCP>::init() {
 
     if (config::tcp_worker_connections > 0) {
         listen_fd = create_tcp_listening(config::tcp_port);
-        printf("TCP channel initialized\n");
         return listen_fd;
     }
     return 0;
@@ -170,7 +159,6 @@ void ListeningChannel<TCP>::shutdown() {
 
 template<>
 int ListeningChannel<TCP>::open_communication() {
-    printf("TCP open_communication\n");
     return open_tcp_communication(listen_fd);
 }
 
@@ -193,7 +181,6 @@ int ListeningChannel<WEBSOCK>::init() {
 
     if (config::websock_worker_connections > 0) {
         listen_fd = create_tcp_listening(config::websock_port);
-        printf("Websocket channel initialized\n");
         return listen_fd;
     } else {
         return 0; // Nothing to be done
@@ -255,7 +242,6 @@ int ListeningChannel<UNIX>::init()
 
     if (config::unixsock_worker_connections > 0) {
         listen_fd = create_unix_listening(config::unixsock_path);
-        printf("Unix socket channel initialized\n");
         return listen_fd;
     }
     return 0;

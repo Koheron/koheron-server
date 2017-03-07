@@ -9,7 +9,10 @@ class KoheronClient:
     def __init__(self, unixsock=''):
         self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.sock.connect(unixsock)
-        self.load_devices()
+
+        self.send_command(1, 1)
+        self.send_command(1, 0)
+        #self.load_devices()
 
     def load_devices(self):
         try:

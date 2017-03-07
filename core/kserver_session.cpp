@@ -14,9 +14,8 @@ template<> int Session<TCP>::exit_socket() {return 0;}
 #define HEADER_TYPE_LIST uint16_t, uint16_t
 
 template<>
-int Session<TCP>::read_command(Command& cmd)
-{
-    printf("Enter read_command()\n");
+int Session<TCP>::read_command(Command& cmd) {
+    printf("Session<TCP>::read_command()\n");
     // Read and decode header
     // |      RESERVED     | dev_id  |  op_id  |             payload_size              |   payload
     // |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | ...
@@ -40,8 +39,7 @@ int Session<TCP>::read_command(Command& cmd)
 
 // TODO Replace by function load_buffer
 template<>
-int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes)
-{
+int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes) {
     int bytes_rcv = 0;
     uint64_t bytes_read = 0;
 
@@ -67,8 +65,7 @@ int Session<TCP>::rcv_n_bytes(char *buffer, uint64_t n_bytes)
 // -----------------------------------------------
 
 template<>
-int Session<WEBSOCK>::init_socket()
-{
+int Session<WEBSOCK>::init_socket() {
     websock.set_id(comm_fd);
 
     if (websock.authenticate() < 0) {
@@ -78,14 +75,12 @@ int Session<WEBSOCK>::init_socket()
     return 0;
 }
 
-template<> int Session<WEBSOCK>::exit_socket()
-{
+template<> int Session<WEBSOCK>::exit_socket() {
     return websock.exit();
 }
 
 template<>
-int Session<WEBSOCK>::read_command(Command& cmd)
-{
+int Session<WEBSOCK>::read_command(Command& cmd) {
     if (unlikely(websock.receive_cmd(cmd) < 0)) {
         return -1;
     }

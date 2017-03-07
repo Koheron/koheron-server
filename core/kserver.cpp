@@ -26,9 +26,6 @@ KServer::KServer()
   dev_manager(this),
   session_manager(*this, dev_manager)
 {
-
-    printf("Start constructing kserver....\n");
-
     if (sig_handler.init(this) < 0) {
         exit(EXIT_FAILURE);
     }
@@ -50,9 +47,6 @@ KServer::KServer()
         printf("Failed to initialize Unix socket\n");
         exit(EXIT_FAILURE);
     }
-
-    printf("End constructing kserver....\n");
-
 }
 
 void KServer::close_listeners()
@@ -89,7 +83,7 @@ void KServer::join_listeners_workers() {
 
 int KServer::run() {
 
-    printf("Start server\n");
+    printf("KServer::run()\n");
 
     if (start_listeners_workers() < 0) {
         printf("Failed to start listeners \n");
@@ -104,7 +98,6 @@ int KServer::run() {
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
-    printf("Stop server");
     return 0;
 }
 

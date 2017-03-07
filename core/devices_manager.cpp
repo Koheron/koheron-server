@@ -125,7 +125,7 @@ int DeviceManager::execute_dev(KDeviceAbstract *dev_abs, Command& cmd,
 
 int DeviceManager::execute(Command& cmd)
 {
-    printf("Execute command\n");
+    printf("DeviceManager::execute()\n");
 
     assert(cmd.device < device_num);
 

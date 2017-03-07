@@ -24,8 +24,7 @@ namespace kserver {
 #define xstr(s) str(s)
 #define str(s) #s
 
-KSERVER_EXECUTE_OP(GET_VERSION)
-{
+KSERVER_EXECUTE_OP(GET_VERSION) {
     printf("kserver get version \n");
     return GET_SESSION.send<1, KServer::GET_VERSION>(xstr(KOHERON_SERVER_VERSION));
 }
@@ -34,15 +33,14 @@ KSERVER_EXECUTE_OP(GET_VERSION)
 // GET_CMDS
 // Send the commands numbers
 
-KSERVER_EXECUTE_OP(GET_CMDS)
-{
+KSERVER_EXECUTE_OP(GET_CMDS) {
+    printf("kserver get commands \n");
     return GET_SESSION.send<1, KServer::GET_CMDS>(build_devices_json());
 }
 
 ////////////////////////////////////////////////
 
-int KServer::execute(Command& cmd)
-{
+int KServer::execute(Command& cmd) {
     std::lock_guard<std::mutex> lock(static_cast<KServer*>(this)->ks_mutex);
 
     switch (cmd.operation) {

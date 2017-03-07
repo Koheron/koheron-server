@@ -59,6 +59,8 @@ class SessionManager
 
 template<int sock_type>
 SessID SessionManager::create_session(int comm_fd) {
+
+    printf("SessionManager::create_session()\n");
     std::lock_guard<std::mutex> lock(mutex);
 
     SessID new_id;
