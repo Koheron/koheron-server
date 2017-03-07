@@ -1,2 +1,2 @@
-devices:
+drivers:
     - tests/tests.hpp

@@ -8,12 +8,6 @@ import yaml
 
 from devgen import generate
 
-def get_devices(config):
-    if 'devices' in config:
-        return config['devices']
-    elif 'drivers' in config:
-        return config['drivers']
-
 def main(argv):
     cmd = argv[0]
     tmp_dir = argv[2]
@@ -24,7 +18,7 @@ def main(argv):
         config = yaml.load(config_file)
 
     if cmd == '--generate':
-        generate(get_devices(config), '.', tmp_dir)
+        generate(config['drivers'], '.', tmp_dir)
 
     else:
         raise ValueError('Unknown command')

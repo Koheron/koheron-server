@@ -22,21 +22,12 @@ DEVICES_HPP=$(filter-out %.cpp,$(DEVICES))
 DEVICES_CPP=$(filter-out %.hpp,$(DEVICES))
 DEVICES_OBJ=$(addprefix $(TMP)/, $(subst .cpp,.o,$(notdir $(filter-out %.hpp,$(DEVICES)))))
 
-_DEVICES_PATHS=$(sort $(dir $(DEVICES)))
-
-# Concat paths using ':' for VPATH
-# https://www.chemie.fu-berlin.de/chemnet/use/info/make/make_8.html
-semicolon:=:
-empty:=
-space:= $(empty) $(empty)
-DEVICES_PATHS=$(subst $(space),$(semicolon),$(_DEVICES_PATHS))
-
 # Generated source files
 KS_DEVICES_HPP=$(addprefix ks_,$(notdir $(DEVICES_HPP)))
 KS_DEVICES_CPP=$(addprefix $(TMP)/,$(subst .hpp,.cpp,$(KS_DEVICES_HPP)))
 KS_DEVICES_OBJ=$(addprefix $(TMP)/,$(subst .hpp,.o,$(KS_DEVICES_HPP))) $(TMP)/context.o
 
-VPATH=core:core/crypto:$(DEVICES_PATHS)
+VPATH=core:core/crypto:$(_VPATH)
 OBJ = $(CORE_OBJ) $(KS_DEVICES_OBJ) $(DEVICES_OBJ)
 DEP=$(subst .o,.d,$(OBJ))
 EXECUTABLE=$(TMP)/kserverd
