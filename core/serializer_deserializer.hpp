@@ -1,6 +1,6 @@
 /// Serialize and deserialize binary buffers
 ///
-/// (c) Koheron 
+/// (c) Koheron
 
 #ifndef __SERIALIZER_DESERIALIZER_HPP__
 #define __SERIALIZER_DESERIALIZER_HPP__
@@ -10,8 +10,9 @@
 #include <array>
 #include <vector>
 #include <string>
+#include <complex>
 
-namespace kserver {
+namespace koheron {
 
 // http://stackoverflow.com/questions/17789928/whats-a-proper-way-of-type-punning-a-float-to-an-int-and-vice-versa
 template <typename T, typename U>
@@ -26,20 +27,17 @@ inline T pseudo_cast(const U &x)
 // Definitions
 // ------------------------
 
-template<typename Tp, size_t N=0> constexpr size_t size_of;
-template<typename Tp, size_t N> constexpr size_t size_of = size_of<Tp> * N;
+template<typename Tp, size_t N = 1> constexpr size_t size_of = sizeof(Tp) * N;
 
 template<typename Tp> Tp extract(const char *buff);                // Deserialization
 template<typename Tp> void append(unsigned char *buff, Tp value);  // Serialization
 
 // uint8_t
 
-template<> constexpr size_t size_of<uint8_t> = 1;
-
 template<>
 inline uint8_t extract<uint8_t>(const char *buff)
 {
-    return (unsigned char)buff[0];
+    return static_cast<unsigned char>(buff[0]);
 }
 
 template<>
@@ -50,12 +48,11 @@ inline void append<uint8_t>(unsigned char *buff, uint8_t value)
 
 // int8_t
 
-template<> constexpr size_t size_of<int8_t> = 1;
-
 template<>
 inline int8_t extract<int8_t>(const char *buff)
 {
-    return buff[0];
+    uint8_t tmp = extract<uint8_t>(buff);
+    return *reinterpret_cast<int8_t*>(&tmp);
 }
 
 template<>
@@ -66,12 +63,11 @@ inline void append<int8_t>(unsigned char *buff, int8_t value)
 
 // uint16_t
 
-template<> constexpr size_t size_of<uint16_t> = 2;
-
 template<>
 inline uint16_t extract<uint16_t>(const char *buff)
 {
-    return (unsigned char)buff[1] + ((unsigned char)buff[0] << 8);
+    return static_cast<unsigned char>(buff[1])
+           + (static_cast<unsigned char>(buff[0]) << 8);
 }
 
 template<>
@@ -82,8 +78,6 @@ inline void append<uint16_t>(unsigned char *buff, uint16_t value)
 }
 
 // int16_t
-
-template<> constexpr size_t size_of<int16_t> = 2;
 
 template<>
 inline int16_t extract<int16_t>(const char *buff)
@@ -100,13 +94,12 @@ inline void append<int16_t>(unsigned char *buff, int16_t value)
 
 // uint32_t
 
-template<> constexpr size_t size_of<uint32_t> = 4;
-
 template<>
 inline uint32_t extract<uint32_t>(const char *buff)
 {
-    return (unsigned char)buff[3] + ((unsigned char)buff[2] << 8) 
-           + ((unsigned char)buff[1] << 16) + ((unsigned char)buff[0] << 24);
+    auto tmp = static_cast<unsigned char>(buff[3]) + (static_cast<unsigned char>(buff[2]) << 8)
+             + (static_cast<unsigned char>(buff[1]) << 16) + (static_cast<unsigned char>(buff[0]) << 24);
+    return static_cast<uint32_t>(tmp);
 }
 
 template<>
@@ -119,8 +112,6 @@ inline void append<uint32_t>(unsigned char *buff, uint32_t value)
 }
 
 // int32_t
-
-template<> constexpr size_t size_of<int32_t> = 4;
 
 template<>
 inline int32_t extract<int32_t>(const char *buff)
@@ -156,8 +147,6 @@ inline void append<uint64_t>(unsigned char *buff, uint64_t value)
 
 // int64_t
 
-template<> constexpr size_t size_of<int64_t> = 8;
-
 template<>
 inline int64_t extract<int64_t>(const char *buff)
 {
@@ -173,9 +162,6 @@ inline void append<int64_t>(unsigned char *buff, int64_t value)
 
 // float
 
-template<> constexpr size_t size_of<float> = size_of<uint32_t>;
-static_assert(sizeof(float) == size_of<float>, "Invalid float size");
-
 template<>
 inline float extract<float>(const char *buff)
 {
@@ -190,9 +176,6 @@ inline void append<float>(unsigned char *buff, float value)
 
 // double
 
-template<> constexpr size_t size_of<double> = size_of<uint64_t>;
-static_assert(sizeof(double) == size_of<double>, "Invalid double size");
-
 template<>
 inline double extract<double>(const char *buff)
 {
@@ -205,14 +188,61 @@ inline void append<double>(unsigned char *buff, double value)
     append<uint64_t>(buff, pseudo_cast<uint64_t, double>(value));
 }
 
-// bool
+// complex
 
-template<> constexpr size_t size_of<bool> = 1;
+namespace detail {
+
+template<typename T>
+inline auto extract_cplx(const char *buff)
+{
+    T r = extract<T>(buff);
+    T i = extract<T>(buff + sizeof(T));
+    return std::complex<T>(r, i);
+}
+
+template<typename T>
+inline void append_cplx(unsigned char *buff, std::complex<T> value)
+{
+    append<T>(buff, value.real());
+    append<T>(buff + sizeof(T), value.imag());
+}
+
+}  // namespace detail
+
+template<> constexpr size_t size_of<std::complex<float>> = 2 * sizeof(float);
+
+template<>
+inline std::complex<float> extract<std::complex<float>>(const char *buff)
+{
+    return detail::extract_cplx<float>(buff);
+}
+
+template<>
+inline void append<std::complex<float>>(unsigned char *buff, std::complex<float> value)
+{
+    detail::append_cplx<float>(buff, value);
+}
+
+template<> constexpr size_t size_of<std::complex<double>> = 2 * sizeof(double);
+
+template<>
+inline std::complex<double> extract<std::complex<double>>(const char *buff)
+{
+    return detail::extract_cplx<double>(buff);
+}
+
+template<>
+inline void append<std::complex<double>>(unsigned char *buff, std::complex<double> value)
+{
+    detail::append_cplx<double>(buff, value);
+}
+
+// bool
 
 template<>
 inline bool extract<bool>(const char *buff)
 {
-    return (unsigned char)buff[0] == 1;
+    return static_cast<unsigned char>(buff[0]) == 1;
 }
 
 template<>
@@ -228,22 +258,19 @@ inline void append<bool>(unsigned char *buff, bool value)
 namespace detail {
     template<size_t position, typename... Tp>
     inline std::enable_if_t<0 == sizeof...(Tp), std::tuple<Tp...>>
-    deserialize(const char *buff)
-    {
+    deserialize(const char *buff) {
         return std::make_tuple();
     }
 
     template<size_t position, typename Tp0, typename... Tp>
     inline std::enable_if_t<0 == sizeof...(Tp), std::tuple<Tp0, Tp...>>
-    deserialize(const char *buff)
-    {
+    deserialize(const char *buff) {
         return std::make_tuple(extract<Tp0>(&buff[position]));
     }
 
     template<size_t position, typename Tp0, typename... Tp>
     inline std::enable_if_t<0 < sizeof...(Tp), std::tuple<Tp0, Tp...>>
-    deserialize(const char *buff)
-    {
+    deserialize(const char *buff) {
         return std::tuple_cat(std::make_tuple(extract<Tp0>(&buff[position])),
                               deserialize<position + size_of<Tp0>, Tp...>(buff));
     }
@@ -266,17 +293,15 @@ namespace detail {
     required_buffer_size() {
         return size_of<Tp0> + required_buffer_size<Tp...>();
     }
-}
+} // namespace detail
 
 template<typename... Tp>
-constexpr size_t required_buffer_size()
-{
+constexpr size_t required_buffer_size() {
     return detail::required_buffer_size<Tp...>();
 }
 
 template<size_t position, typename... Tp>
-inline std::tuple<Tp...> deserialize(const char *buff)
-{
+inline std::tuple<Tp...> deserialize(const char *buff) {
     return detail::deserialize<position, Tp...>(buff);
 }
 
@@ -287,23 +312,22 @@ inline std::tuple<Tp...> deserialize(const char *buff)
 namespace detail {
     template<size_t buff_pos, size_t I, typename... Tp>
     inline std::enable_if_t<I == sizeof...(Tp), void>
-    serialize(const std::tuple<Tp...>& t, unsigned char *buff)
+    serialize(const std::tuple<Tp...>&, unsigned char *)
     {}
 
     template<size_t buff_pos, size_t I, typename... Tp>
     inline std::enable_if_t<I < sizeof...(Tp), void>
-    serialize(const std::tuple<Tp...>& t, unsigned char *buff)
-    {
-        using type = typename std::tuple_element_t<I, std::tuple<Tp...>>;
-        append<type>(&buff[buff_pos], std::get<I>(t));
+    serialize(const std::tuple<Tp...>& t, unsigned char *buff) {
+        using type = typename std::tuple_element<I, std::tuple<Tp...>>::type;
+        // append<type>(&buff[buff_pos], std::get<I>(t));
+        append(&buff[buff_pos], std::get<I>(t));
         serialize<buff_pos + size_of<type>, I + 1, Tp...>(t, &buff[0]);
     }
 }
 
 template<typename... Tp>
 inline std::array<unsigned char, required_buffer_size<Tp...>()>
-serialize(const std::tuple<Tp...>& t)
-{
+serialize(const std::tuple<Tp...>& t) {
     std::array<unsigned char, required_buffer_size<Tp...>()> arr;
     detail::serialize<0, 0, Tp...>(t, arr.data());
     return arr;
@@ -311,9 +335,8 @@ serialize(const std::tuple<Tp...>& t)
 
 template<typename... Tp>
 inline std::array<unsigned char, required_buffer_size<Tp...>()>
-serialize(Tp... t)
-{
-    return serialize<Tp...>(std::make_tuple(t...));
+serialize(Tp&&... t) {
+    return serialize<Tp...>(std::make_tuple(std::forward<Tp>(t)...));
 }
 
 // ---------------------------
@@ -369,6 +392,19 @@ class DynamicSerializer {
     static_assert(!is_scalar_v<uint32_t*>, "");
     static_assert(!is_scalar_v<std::vector<float>>, "");
 
+    // Complex
+    template<typename T>
+    struct is_std_complex : std::false_type {};
+    template<typename T>
+    struct is_std_complex<std::complex<T>> : std::true_type {};
+
+    template<typename T>
+    static constexpr bool is_std_complex_v = is_std_complex<std::decay_t<T>>::value;
+
+    static_assert(is_std_complex_v<std::complex<float>>, "");
+    static_assert(is_std_complex_v<std::complex<double>&>, "");
+    static_assert(!is_std_complex_v<float>, "");
+
     // Tuple
     template <typename T>
     struct is_std_tuple : std::false_type {};
@@ -414,7 +450,7 @@ class DynamicSerializer {
 
     template<typename T>
     void append(T t) {
-        kserver::append<T>(&scal_data[scal_size], t);
+        koheron::append<T>(&scal_data[scal_size], t);
         scal_size += size_of<T>;
     }
 
@@ -427,13 +463,13 @@ class DynamicSerializer {
     }
 
     template<typename Tp0, typename... Tp>
-    inline std::enable_if_t<0 == sizeof...(Tp) && is_scalar_v<Tp0>, void>
-    command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
+    inline std::enable_if_t<0 == sizeof...(Tp) && (is_scalar_v<Tp0> || is_std_complex_v<Tp0>), void>
+    command_serializer(std::vector<unsigned char>&, Tp0&& t, Tp&&...) {
         append(std::forward<Tp0>(t));
     }
 
     template <typename Tp0, typename... Tp>
-    inline std::enable_if_t<0 < sizeof...(Tp) && is_scalar_v<Tp0>, void>
+    inline std::enable_if_t<0 < sizeof...(Tp) && (is_scalar_v<Tp0> || is_std_complex_v<Tp0>), void>
     command_serializer(std::vector<unsigned char>& buffer, Tp0&& t, Tp&&... args) {
         append(std::forward<Tp0>(t));
         command_serializer(buffer, std::forward<Tp>(args)...);
@@ -449,7 +485,7 @@ class DynamicSerializer {
         using T = typename Container::value_type;
         const uint32_t n_bytes = container.size() * sizeof(T);
         buffer.resize(buffer.size() + size_of<uint32_t>);
-        kserver::append(buffer.data() + buffer.size() - size_of<uint32_t>, n_bytes);
+        koheron::append(buffer.data() + buffer.size() - size_of<uint32_t>, n_bytes);
 
         if (n_bytes > 0) {
             const auto bytes = reinterpret_cast<const unsigned char*>(container.data());
@@ -536,7 +572,7 @@ class DynamicSerializer {
                      >, void>
     build_command(std::vector<unsigned char>& buffer, Tp0&& arg0, Args&&... args) {
         const auto& header = serialize(0U, class_id, func_id);
-        buffer.resize(kserver::required_buffer_size<uint32_t, uint16_t, uint16_t>());
+        buffer.resize(koheron::required_buffer_size<uint32_t, uint16_t, uint16_t>());
         std::move(header.begin(), header.end(), buffer.begin());
         scal_size = 0;
         command_serializer(buffer, std::forward<Tp0>(arg0),
@@ -548,7 +584,7 @@ class DynamicSerializer {
     std::enable_if_t< 0 == sizeof...(Args), void >
     build_command(std::vector<unsigned char>& buffer, Args&&... args) {
         const auto& header = serialize(0U, class_id, func_id);
-        buffer.resize(kserver::required_buffer_size<uint32_t, uint16_t, uint16_t>());
+        buffer.resize(koheron::required_buffer_size<uint32_t, uint16_t, uint16_t>());
         std::move(header.begin(), header.end(), buffer.begin());
     }
 
@@ -564,6 +600,6 @@ class DynamicSerializer {
     uint64_t scal_size = 0;
 };
 
-} // namespace kserver
+} // namespace koheron
 
 #endif // __SERIALIZER_DESERIALIZER_HPP__

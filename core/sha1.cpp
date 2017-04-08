@@ -32,8 +32,8 @@
  * implemented by Jun-ichiro itojun Itoh <itojun@itojun.org>
  */
 
+#include "sha1.h"
 #include <sys/types.h>
-
 #include <cstdint>
 
 #ifdef WIN32
@@ -114,17 +114,7 @@ static const u_int32_t _K[] = { 0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6 }
 
 #define	H(n)	(ctxt->h.b32[(n)])
 #define	COUNT	(ctxt->count)
-#define	BCOUNT	(ctxt->c.b64[0] / 8)
 #define	W(n)	(ctxt->m.b32[(n)])
-
-#define	PUTBYTE(x)	{ \
-	ctxt->m.b8[(COUNT % 64)] = (x);		\
-	COUNT++;				\
-	COUNT %= 64;				\
-	ctxt->c.b64[0] += 8;			\
-	if (COUNT % 64 == 0)			\
-		sha1_step(ctxt);		\
-     }
 
 #define	PUTPAD(x)	{ \
 	ctxt->m.b8[(COUNT % 64)] = (x);		\
@@ -225,7 +215,7 @@ sha1_step(struct sha1_ctxt *ctxt)
 
 /*------------------------------------------------------------*/
 
-void
+static void
 sha1_init(struct sha1_ctxt *ctxt)
 {
 	bzero(ctxt, sizeof(struct sha1_ctxt));
@@ -236,7 +226,7 @@ sha1_init(struct sha1_ctxt *ctxt)
 	H(4) = 0xc3d2e1f0;
 }
 
-void
+static void
 sha1_pad(struct sha1_ctxt *ctxt)
 {
 	size_t padlen;		/*pad length in bytes*/
@@ -270,7 +260,7 @@ sha1_pad(struct sha1_ctxt *ctxt)
 #endif
 }
 
-void
+static void
 sha1_loop(struct sha1_ctxt *ctxt, const u_int8_t *input, size_t len)
 {
 	size_t gaplen;
@@ -295,7 +285,7 @@ sha1_loop(struct sha1_ctxt *ctxt, const u_int8_t *input, size_t len)
 	}
 }
 
-void
+static void
 sha1_result(struct sha1_ctxt *ctxt, caddr_t digest0)
 {
 	u_int8_t *digest;

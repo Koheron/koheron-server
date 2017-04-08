@@ -10,20 +10,22 @@
 #include <tuple>
 #include <string>
 
-#include <devices_table.hpp>
-#include "kserver_defs.hpp"
+#include <drivers_table.hpp>
+#include "server_definitions.hpp"
 #include "serializer_deserializer.hpp"
 
-namespace kserver {
+namespace koheron {
 
 template<size_t len>
 struct Buffer
 {
-    constexpr Buffer(size_t position_ = 0) noexcept
+    explicit constexpr Buffer(size_t position_ = 0) noexcept
     : position(position_)
     {};
 
-    constexpr size_t size() const {return len;}
+    constexpr size_t size() const {
+        return len;
+    }
 
     void set()     {_data.fill(0);}
     char* data()   {return _data.data();}
@@ -35,7 +37,7 @@ struct Buffer
     std::tuple<Tp...> deserialize() {
         static_assert(required_buffer_size<Tp...>() <= len, "Buffer size too small");
 
-        const auto tup = kserver::deserialize<0, Tp...>(begin());
+        const auto tup = koheron::deserialize<0, Tp...>(begin());
         position += required_buffer_size<Tp...>();
         return tup;
     }
@@ -43,7 +45,11 @@ struct Buffer
     template<typename T, size_t N>
     const std::array<T, N>& extract_array() {
         // http://stackoverflow.com/questions/11205186/treat-c-cstyle-array-as-stdarray
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wcast-align"
         const auto p = reinterpret_cast<const std::array<T, N>*>(begin());
+        #pragma GCC diagnostic pop
+        // assert(p->data() == reinterpret_cast<const T*>(begin()));
         position += size_of<T, N>;
         return *p;
     }
@@ -80,16 +86,16 @@ struct Command
         HEADER_START = 4  // First 4 bytes are reserved
     };
 
-    SessID sess_id = -1;                    ///< ID of the session emitting the command
-    SessionAbstract *sess;                  ///< Pointer to the session emitting the command
-    device_id device = dev_id_of<NoDevice>;  ///< The device to control
-    int32_t operation = -1;                 ///< Operation ID
+    SessionID session_id = -1; // ID of the session emitting the command
+    SessionAbstract *session; // Pointer to the session emitting the command
+    driver_id driver = driver_id_of<NoDriver>; // The driver to control
+    int32_t operation = -1; // Operation ID
 
-    Buffer<HEADER_SIZE> header;             ///< Raw data header
+    Buffer<HEADER_SIZE> header; // Raw data header
     Buffer<CMD_PAYLOAD_BUFFER_LEN> payload;
 };
 
-} // namespace kserver
+} // namespace koheron
 
 #endif // __COMMANDS_HPP__
 

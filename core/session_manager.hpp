@@ -11,76 +11,78 @@
 #include <memory>
 #include <mutex>
 
-#include "kserver_defs.hpp"
+#include "server_definitions.hpp"
+#include "config.hpp"
+#include "session_abstract.hpp"
+#include "syslog.hpp"
 
-namespace kserver {
 
-class SessionAbstract;
-template<int sock_type> class Session;
-class DeviceManager;
-class KServer;
+namespace koheron {
+
+// class SessionAbstract;
+template<int socket_type> class Session;
+class DriverManager;
 
 class SessionManager
 {
   public:
-    SessionManager(KServer& kserver_, DeviceManager& dev_manager_);
+    SessionManager(DriverManager& drv_manager_, SysLog& syslog_);
 
     ~SessionManager();
 
-    static unsigned int num_sess;
+    static int number_of_sessions;
 
-    size_t get_num_sess() const {return session_pool.size();}
+    size_t get_number_of_sessions() const {return session_pool.size();}
 
-    template<int sock_type>
-    SessID create_session(int comm_fd);
+    template<int socket_type>
+    SessionID create_session(int comm_fd);
 
-    std::vector<SessID> get_current_ids();
+    std::vector<SessionID> get_session_ids();
 
-    SessionAbstract& get_session(SessID id) const {return *session_pool.at(id);}
+    SessionAbstract& get_session(SessionID id) const {return *session_pool.at(id);}
 
-    void delete_session(SessID id);
+    void delete_session(SessionID id);
     void delete_all();
+    void exit_comm();
 
-    KServer& kserver;
-    DeviceManager& dev_manager;
+    DriverManager& driver_manager;
+    SysLog& syslog;
 
   private:
     // Sessions pool
-    std::map<SessID, std::unique_ptr<SessionAbstract>> session_pool;
-    std::vector<SessID> reusable_ids;
+    std::map<SessionID, std::unique_ptr<SessionAbstract>> session_pool;
+    std::vector<SessionID> reusable_ids;
 
-    void print_reusable_ids();
-    bool is_reusable_id(SessID id);
-    bool is_current_id(SessID id);
+    bool is_reusable_id(SessionID id);
+    bool is_id_in_session_ids(SessionID id);
 
     std::mutex mutex;
-
 };
 
-template<int sock_type>
-SessID SessionManager::create_session(int comm_fd) {
-
+template<int socket_type>
+SessionID SessionManager::create_session(int comm_fd)
+{
     std::lock_guard<std::mutex> lock(mutex);
 
-    SessID new_id;
+    SessionID new_id;
 
     // Choose a reusable ID if available else
     // create a new ID equal to the session number
-    if (reusable_ids.size() == 0) {
-        new_id = num_sess;
+    if (reusable_ids.empty()) {
+        new_id = number_of_sessions;
     } else {
         new_id = reusable_ids.back();
         reusable_ids.pop_back();
     }
 
-    auto session = std::make_unique<Session<sock_type>>(comm_fd, new_id, (*this));
+    auto session = std::make_unique<Session<socket_type>>(comm_fd, new_id, syslog, driver_manager);
 
-    session_pool.insert(std::pair<SessID, std::unique_ptr<SessionAbstract>>(new_id,
+    session_pool.insert(std::pair<SessionID, std::unique_ptr<SessionAbstract>>(new_id,
                 static_cast<std::unique_ptr<SessionAbstract>>(std::move(session))));
-    num_sess++;
+    number_of_sessions++;
     return new_id;
 }
 
-} // namespace kserver
+} // namespace koheron
 
 #endif //__SESSION_MANAGER_HPP__

@@ -5,9 +5,66 @@
 
 #include <cstring>
 #include <string>
+#include <array>
 #include <syslog.h>
 
-namespace kserver {
+namespace koheron {
+
+// -------------------------------------------------------------------------
+// Variadic string formating functions accepting parameter packs
+// -------------------------------------------------------------------------
+
+// printf
+template<typename... Args>
+typename std::enable_if_t< 0 < sizeof...(Args), void >
+printf(const char *fmt, Args&&... args) {
+    std::printf(fmt, std::forward<Args>(args)...);
+}
+
+template<typename... Args>
+typename std::enable_if_t< 0 == sizeof...(Args), void >
+printf(const char *fmt, Args&&... args) {
+    std::printf("%s", fmt);
+}
+
+// fprintf
+template<typename... Args>
+typename std::enable_if_t< 0 < sizeof...(Args), void >
+fprintf(FILE *stream, const char *fmt, Args&&... args) {
+    std::fprintf(stream, fmt, std::forward<Args>(args)...);
+}
+
+template<typename... Args>
+typename std::enable_if_t< 0 == sizeof...(Args), void >
+fprintf(FILE *stream, const char *fmt, Args&&... args) {
+    std::fprintf(stream, "%s", fmt);
+}
+
+// snprintf
+template<typename... Args>
+typename std::enable_if_t< 0 < sizeof...(Args), int >
+snprintf(char *s, size_t n, const char *fmt, Args&&... args) {
+    return std::snprintf(s, n, fmt, std::forward<Args>(args)...);
+}
+
+template<typename... Args>
+typename std::enable_if_t< 0 == sizeof...(Args), int >
+snprintf(char *s, size_t n, const char *fmt, Args&&... args) {
+    return std::snprintf(s, n, "%s", fmt);
+}
+
+// syslog
+template<int priority, typename... Args>
+typename std::enable_if_t< 0 < sizeof...(Args), void >
+syslog(const char *fmt, Args&&... args) {
+    ::syslog(priority, fmt, std::forward<Args>(args)...);
+}
+
+template<int priority, typename... Args>
+typename std::enable_if_t< 0 == sizeof...(Args), void >
+syslog(const char *fmt, Args&&... args) {
+    ::syslog(priority, "%s", fmt);
+}
 
 // -------------------------------------------------------------------------
 // Compile-time string
@@ -21,7 +78,7 @@ class str_const { // constexpr string
 
   public:
     template<std::size_t N>
-    constexpr str_const(const char(&a)[N]) : // ctor
+    explicit constexpr str_const(const char(&a)[N]) : // ctor
         p_(a), sz_(N-1) {}
 
     constexpr char operator[](std::size_t n) { // []
@@ -39,9 +96,9 @@ class str_const { // constexpr string
 template<class T, class... Tail, class Elem = typename std::decay<T>::type>
 constexpr std::array<Elem,1+sizeof...(Tail)> make_array(T&& head, Tail&&... values)
 {
-  return { std::forward<T>(head), std::forward<Tail>(values)... };
+  return {{ std::forward<T>(head), std::forward<Tail>(values)... }};
 }
 
-} // namespace kserver
+} // namespace koheron
 
 #endif // __STRING_UTILS_HPP__
