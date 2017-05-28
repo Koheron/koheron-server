@@ -56,7 +56,10 @@ struct Buffer
 
     template<typename T>
     void to_vector(std::vector<T>& vec, uint64_t length) {
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wcast-align"
         const auto b = reinterpret_cast<const T*>(begin());
+        #pragma GCC diagnostic pop
         vec.resize(length);
         std::move(b, b + length, vec.begin());
         position += length * sizeof(T);
